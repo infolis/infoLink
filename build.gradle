@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+version =  1.0
+sourceCompatibility = 1.5
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'nz.ac.waikato.cms.weka:weka-stable:3.6.6'
+    compile 'org.apache.lucene:lucene-core:3.5.0'
+    // compile 'org.apache.lucene:lucene-analyzers-common:3.5.0'
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.pdfbox:pdfbox:1.8.8'
+    compile 'args4j:args4j:2.0.29'
+}
+
+// vim: ft=groovy:

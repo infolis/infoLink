@@ -1,1 +1,7 @@
 # infoLink
+
+## Building
+
+```
+gradle build
+```

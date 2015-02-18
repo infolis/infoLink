@@ -39,6 +39,7 @@ import java.io.BufferedReader;
  * The document has three fields:
  * <ul>
  * <li><code>path</code>--containing the pathname of the file, as a stored, untokenized field;</li>
+ * <li><code>fileName</code>--containing the file name of the file, as a stored, tokenized field;</li>
  * <li><code>modified</code>--containing the last modified date of the file as a field as created by <a
  * href="lucene.document.DateTools.html">DateTools</a>; and</li>
  * <li><code>contents</code>--containing the full contents of the file, as a Reader field;</li>

@@ -21,11 +21,15 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
 }
 
-task copyPython(type:Copy) {
-    from 'src/main/python'
-    into new File(project.buildDir, 'scripts')
+task copypython(type:copy) {
+    def source = 'src/main/python'
+    def target = new file(project.builddir, 'bin')
+    from source
+    into target
 }
-assemble.dependsOn copyPython
+applicationDistribution.from(copyPython) {
+    into "bin"
+}
 
 // http://stackoverflow.com/questions/18421857/is-it-possible-to-specify-multiple-main-classes-using-gradle-application-plugi
 // The next two lines disable the tasks for the primary main which by default

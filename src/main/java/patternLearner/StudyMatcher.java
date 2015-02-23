@@ -22,15 +22,26 @@ import java.math.BigInteger;
 public class StudyMatcher 
 {
 	String searchInterface; 
+	String queryCache;
+	String externalDatasetURLs;
 
 	/**
-	 * Class constructor specifying the repository's search interface base URL.
+	 * Class constructor specifying the repository's search interface base URL, the query cache file and 
+	 * URL list for external datasets to use.
+	 * 
+	 * If no query cache or URL list shall be used, set corresponding parameter to null.
+	 * 
+	 * If non-existing query cache is specified, one will be created.
 	 * 
 	 * @param searchInterface	the repository's search interface base URL
+	 * @param queryCache		path to the query cache (or null if no cache shall be used)
+	 * @param externalDatasetURLs	path to the list of URLs for external datasets (or null if no URL list shall be used)
 	 */
-	StudyMatcher(String searchInterface)
+	StudyMatcher(String searchInterface, String queryCache, String externalDatasetURLs)
 	{
 		this.searchInterface = searchInterface;
+		this.queryCache = queryCache;
+		this.externalDatasetURLs = externalDatasetURLs;
 	}
 	
 	/**
@@ -203,18 +214,17 @@ public class StudyMatcher
 	}
 	
 	/**
-	 * Reads the cache to find DOIs and names of previously queried dataset names.
+	 * Reads this queryCache to find DOIs and names of previously queried dataset names.
 	 *  
 	 * @param url		the query to find the dataset entries
-	 * @param filename	path of the cache file
 	 * @return			a map containing dataset DOIs (key) and names (value)
 	 */
-	public HashMap<String,String> readFromCache(String url, String filename)
+	public HashMap<String,String> readFromCache(String url)
 	{
 		try
 		{
-    		File f = new File( filename );
-    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
+    		File f = new File(this.queryCache);
+    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");
     		BufferedReader reader = new BufferedReader(isr);
     	    String text = null;
     	    while ((text = reader.readLine()) != null) 
@@ -222,7 +232,7 @@ public class StudyMatcher
     	    	if (text.contains(url.toString())) 
     	    	{
     	    		HashMap<String,String> res = new HashMap<String,String>();
-    	    		String[] data = text.split(Util.delimiter_cacheFile);
+    	    		String[] data = text.split(Util.delimiter_internal);
     	    		// query is in cache but no data can be found in dara - return empty hashmap
     	    		if (data.length < 3) { res.put("", ""); return res; }
     	    		// each query has n dataset names with n dois
@@ -244,21 +254,21 @@ public class StudyMatcher
 	}
 	
 	/**
-	 * Searches for matching (= similar to <emph>studyname</emph>) dataset names in 
-	 * <emph>externalDatasetPathsFile</emph> listing datasets along with URLs to their landing pages.
+	 * Searches for matching (= similar to <emph>studyname</emph>) dataset names in this 
+	 * <emph>externalDatasetURLs</emph> listing datasets along with URLs to their landing pages.
 	 * 
 	 * @param studyname					name of the dataset to be matched
-	 * @param externalDatasetPathsFile	path of file listing dataset names and URLs
 	 * @return							string representation of a URL pointing to the matching dataset record
 	 */
-	public String match_external(String studyname, String externalDatasetPathsFile)
+	public String match_external(String studyname)
 	{
 		System.out.println(studyname);
 		String link = null;
+		if (this.externalDatasetURLs == null) {return link;}
 		try
 		{
-    		File f = new File(externalDatasetPathsFile);
-    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
+    		File f = new File(this.externalDatasetURLs);
+    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");
     		BufferedReader reader = new BufferedReader(isr);
     	    String text = null;
     	    while ((text = reader.readLine()) != null) 
@@ -266,7 +276,7 @@ public class StudyMatcher
     	    	String[] nameUrl =  text.split(";");
     	    	// studyname might contain additional info, e.g. year specifications
     	    	// therefore search for listed title inside of studyname instead of checking whether both are equal
-    	    	if (studyname.contains(nameUrl[0])) { return nameUrl[1]; }
+    	    	if (studyname.contains(nameUrl[0])) { reader.close(); return nameUrl[1]; }
     	    }
     	    reader.close();
 		}
@@ -294,79 +304,9 @@ public class StudyMatcher
 	 * Matches the assumed dataset name <emph>searchTerm</emph> to records in dara having a similar name. 
 	 * The computation of string similarity is done by dara's search function. Querying dara is 
 	 * carried out using the dara web interface to ensure accessibility from outside of GESIS. However, 
-	 * this leads to high processing times both for querying and parsing the results.
-	 * 
-	 * @param searchTerm	assumed dataset name to be matched to dara records
-	 * @param cacheFile		path to the query cache
-	 * @return				a map containing matching dataset DOIs (keys) and names (values)
-	 */
-	public HashMap<String,String> match(String searchTerm, String cacheFile)
-	{
-		URL url;
-		try { url = constructURL(searchTerm, 600); System.out.println(url); System.out.println("\n" + searchTerm); }
-		catch (MalformedURLException e) { e.printStackTrace(); return new HashMap<String,String>(); }
-		// read file queryCache - use saved results instead of querying whenever possible
-		HashMap<String,String> res = readFromCache(url.toString(), cacheFile);
-		// if no entry is found in the cache, query dara
-		if (res.isEmpty())
-		{
-			try { res = parseHTML(readFromURL(url)); }
-			catch (IOException ioe) { ioe.printStackTrace(); return new HashMap<String,String>(); }
-		}
-		else 
-		{ 
-			System.out.println("Found query in cache for term: " + searchTerm); 
-			// query was in cache but no data was specified i.e. study is not registered in dara
-			if (res.keySet().contains("")) { return new HashMap<String, String>(); }
-			System.out.println(res.toString());
-			return res;
-		}
-		// if result is empty, check if studytitle maybe is an enumeration and search for parts!
-		if (res.isEmpty())
-		{
-			String[] newTerms = getEnumeratedTerms(searchTerm);
-			for (String term : newTerms)
-			{
-				// ignore terms consisting of digits only
-				if (!term.trim().matches("\\d+")) {	res.putAll(match(term.trim(), cacheFile)); }
-			}
-		}
-		// write results to cache
-		// empty results in the cache are valuable too -> prevents repeated searching for non-registered studies
-		writeToCache(url.toString(), res, cacheFile);
-		return res; 
-	}
-	
-	/**
-	 * Writes the results of a dara query to the cache found in specified cacheFilename path.
-	 *  
-	 * @param url		the dara query url
-	 * @param res		the parsed dara response for the specified query url
-	 * @param cacheFilename	path of the cache file
-	 */
-	private void writeToCache(String url, HashMap<String, String> res, String cacheFilename)
-	{
-		String delimiter = Util.delimiter_cacheFile;
-		String newLine = url;
-
-		for (String key : res.keySet())	{ newLine = newLine + delimiter + res.get(key) + delimiter + key; }
-		try 
-		{
-			System.out.println("Writing query to cache: " + newLine);
-			File f = new File(cacheFilename);
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(f, true), "UTF-8");
-		    BufferedWriter out = new BufferedWriter(fstream);
-		    out.write(newLine + System.getProperty("line.separator"));
-		    out.close();
-		}
-		catch (IOException e) { e.printStackTrace(); }
-	}
-	
-	/**
-	 * Matches the assumed dataset name <emph>searchTerm</emph> to records in dara having a similar name. 
-	 * The computation of string similarity is done by dara's search function. Querying dara is 
-	 * carried out using the dara web interface to ensure accessibility from outside of GESIS. However, 
-	 * this leads to high processing times both for querying and parsing the results.
+	 * this leads to high processing times both for querying and parsing the results. 
+	 * If specified in StudyMatcher instance, query cache and / or interal URL list will be used for 
+	 * matching. 
 	 * 
 	 * @param searchTerm	assumed dataset name to be matched to dara records
 	 * @return				a map containing matching dataset DOIs (keys) and names (values)
@@ -377,29 +317,75 @@ public class StudyMatcher
 		try { url = constructURL(searchTerm, 600); System.out.println(url); System.out.println("\n" + searchTerm); }
 		catch (MalformedURLException e) { e.printStackTrace(); return new HashMap<String,String>(); }
 		HashMap<String,String> res = new HashMap<String,String>();
+		// read file queryCache - use saved results instead of querying
+		if (this.queryCache!=null) 
+		{ 
+			res = readFromCache(url.toString());
+			// query was found in cache
+			if (!res.isEmpty())
+			{ 
+				System.out.println("Found query in cache for term: " + searchTerm); 
+				// query was in cache but no data was specified i.e. study is not registered in dara
+				if (res.keySet().contains("")) { return new HashMap<String, String>(); }
+				System.out.println(res.toString());
+				return res;
+			}
+		}
+		// if no cache is used or entry is not found in the cache, query dara
 		try { res = parseHTML(readFromURL(url)); }
 		catch (IOException ioe) { ioe.printStackTrace(); return new HashMap<String,String>(); }
 		
-		// check if studytitle maybe is an enumeration and search for parts as well
-		String[] newTerms = getEnumeratedTerms(searchTerm);
-		for (String term : newTerms) 
-		{ 
-			// ignore terms consisting of digits only
-			if (!term.trim().matches("\\d+")) {	res.putAll(match(term.trim())); }
-		}		
+		// if result is empty, check if studytitle maybe is an enumeration and search for parts!
+		if (res.isEmpty())
+		{
+			String[] newTerms = getEnumeratedTerms(searchTerm);
+			for (String term : newTerms)
+			{
+				// ignore terms consisting of digits only
+				if (!term.trim().matches("\\d+\\s*")) {	res.putAll(match(term.trim())); }
+			}
+		}
+		// write results to cache
+		// empty results in the cache are valuable too -> prevents repeated searching for non-registered studies
+		if (this.queryCache!=null) { writeToCache(url.toString(), res); }
 		return res; 
 	}
 	
 	/**
+	 * Writes the results of a dara query to the cache found in specified cacheFilename path.
+	 *  
+	 * @param url		the dara query url
+	 * @param res		the parsed dara response for the specified query url
+	 * @param cacheFilename	path of the cache file
+	 */
+	private void writeToCache(String url, HashMap<String, String> res)
+	{
+		String delimiter = Util.delimiter_internal;
+		String newLine = url;
+
+		for (String key : res.keySet())	{ newLine = newLine + delimiter + res.get(key) + delimiter + key; }
+		try 
+		{
+			System.out.println("Writing query to cache: " + newLine);
+			File f = new File(this.queryCache);
+			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(f, true), "UTF-8");
+		    BufferedWriter out = new BufferedWriter(fstream);
+		    out.write(newLine + System.getProperty("line.separator"));
+		    out.close();
+		}
+		catch (IOException e) { e.printStackTrace(); }
+	}
+	
+	/**
 	 * Queries "http://www.da-ra.de/dara/study/web_search_show" for the specified dataset name. Optionally 
-	 * uses cache file if specified. 
+	 * uses cache file and external dataset URL list if specified. 
 	 * 
-	 * @param args	args[0]: dataset name(s); args[1]: path of cache file (optional)
+	 * @param args	args[0]: dataset name(s); args[1]: path of cache file or null; args[2]: path of URL list or null
 	 */
 	public static void main(String[] args)
 	{
-		StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show");
-		if (args.length == 1) {	System.out.println(matcher.match(args[0])); }
-		else { System.out.println(matcher.match(args[0], args[1])); }
+		if (args.length == 3) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], args[2]); System.out.println(matcher.match(args[0]));}
+		if (args.length == 2) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], null); System.out.println(matcher.match(args[0]));}
+		if (args.length == 1) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", null, null); System.out.println(matcher.match(args[0]));}
 	}
 }

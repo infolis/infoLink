@@ -1,6 +1,5 @@
 package luceneIndexing;
 
- 
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -19,16 +18,15 @@ package luceneIndexing;
  * limitations under the License.
  */
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+//import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.HashMap;
 
 
@@ -40,11 +38,16 @@ import java.util.HashMap;
  */
 public class Indexer 
 {
-	
 	/**
 	 * Class constructor.
 	 */
-	private Indexer() {}
+	private Indexer() { }
+	
+	public static Analyzer getAnalyzer()
+	{
+		return new CaseSensitiveStandardAnalyzer();
+		//return new StandardAnalyzer(Version.LUCENE_CURRENT, new HashSet<String>());
+	}
 
 	/**
 	 * Converts all text files in a directory and all subdirectories to lucene documents and 
@@ -91,11 +94,6 @@ public class Indexer
 		for (File indexDir : fileMap.keySet())
 		{
 			File docDir = fileMap.get(indexDir);
-			// if desired, specify stopwords here and initialize IndexWriter with this set. 
-			// For InfoLink, removing stopwords is not advantageous.
-			/*String [] GermanStopWordsFull = {};
-			java.util.List<String> list = Arrays.asList(GermanStopWordsFull);
-			Set<String> set = new HashSet<String>(list);*/
 
 			System.out.println("start");
 			if (indexDir.exists()) 
@@ -107,8 +105,7 @@ public class Indexer
 			Date start = new Date();
 			try 
 			{
-				//IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR), new CaseInsensitiveWhitespaceAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
-				IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), new StandardAnalyzer(Version.LUCENE_CURRENT, new HashSet<String>()), true, IndexWriter.MaxFieldLength.LIMITED);
+				IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), Indexer.getAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
 				System.out.println("Indexing to directory '" + indexDir + "'...");
 				indexDocs(writer, docDir);
 				System.out.println("Optimizing...");

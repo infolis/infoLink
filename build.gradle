@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.application.CreateStartScripts
+
+apply plugin: 'application'
 apply plugin: 'java'
 
 version =  1.0
@@ -17,5 +20,44 @@ dependencies {
     compile 'args4j:args4j:2.0.29'
     compile 'org.jsoup:jsoup:1.8.1'
 }
+
+// The next two lines disable the tasks for the primary main which by default
+// generates a script with a name matching the project name. 
+// You can leave them enabled but if so you'll need to define mainClassName
+// And you'll be creating your application scripts two different ways which 
+// could lead to confusion
+startScripts.enabled = false
+run.enabled = false
+
+println startScripts
+// http://stackoverflow.com/questions/18421857/is-it-possible-to-specify-multiple-main-classes-using-gradle-application-plugi
+// Creates scripts for entry points
+// Subproject must apply application plugin to be able to call this method.
+def createScript(mainClass, name) {
+  project.tasks.create(name: name, type: CreateStartScripts) {
+    outputDir       = new File(project.buildDir, 'scripts')
+    mainClassName   = mainClass
+    applicationName = name
+    classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
+  }
+  project.tasks[name].dependsOn(project.jar)
+
+  project.applicationDistribution.with {
+    into("bin") {
+      from(project.tasks[name])
+      fileMode = 0755
+    }
+  }
+}
+createScript('tagger.Tagger', 'Tagger')
+createScript('preprocessing.TextExtractor', 'TextExtractor')
+createScript('luceneIndexing.Indexer', 'Indexer')
+createScript('searching.Search_Term_Position', 'Search_Term_Position')
+createScript('patternLearner.TrainingSet', 'TrainingSet')
+createScript('patternLearner.Learner', 'Learner')
+createScript('patternLearner.ExampleReader', 'ExampleReader')
+createScript('patternLearner.Util', 'Util')
+createScript('patternLearner.ContextMiner', 'ContextMiner')
+createScript('patternLearner.StudyMatcher', 'StudyMatcher')
 
 // vim: ft=groovy:

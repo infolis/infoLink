@@ -21,6 +21,13 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
 }
 
+task copyPython(type:Copy) {
+    from 'src/main/python'
+    into new File(project.buildDir, 'scripts')
+}
+assemble.dependsOn copyPython
+
+// http://stackoverflow.com/questions/18421857/is-it-possible-to-specify-multiple-main-classes-using-gradle-application-plugi
 // The next two lines disable the tasks for the primary main which by default
 // generates a script with a name matching the project name. 
 // You can leave them enabled but if so you'll need to define mainClassName
@@ -28,23 +35,24 @@ dependencies {
 // could lead to confusion
 startScripts.enabled = false
 run.enabled = false
-
-println startScripts
-// http://stackoverflow.com/questions/18421857/is-it-possible-to-specify-multiple-main-classes-using-gradle-application-plugi
 // Creates scripts for entry points
 // Subproject must apply application plugin to be able to call this method.
-def createScript(mainClass, name) {
-  project.tasks.create(name: name, type: CreateStartScripts) {
+def createScript(mainClass, scriptName) {
+
+  def taskName = "Install_Script_For_" + scriptName
+
+  project.tasks.create(name: taskName, type: CreateStartScripts) {
     outputDir       = new File(project.buildDir, 'scripts')
     mainClassName   = mainClass
-    applicationName = name
+    applicationName = scriptName
     classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
   }
-  project.tasks[name].dependsOn(project.jar)
+
+  project.tasks[taskName].dependsOn(project.jar)
 
   project.applicationDistribution.with {
     into("bin") {
-      from(project.tasks[name])
+      from(project.tasks[taskName])
       fileMode = 0755
     }
   }

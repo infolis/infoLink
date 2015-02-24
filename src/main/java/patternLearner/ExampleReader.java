@@ -105,6 +105,10 @@ public class ExampleReader
 	 */
 	public static void main(String[] args)
 	{
+		if (args.length != 1) {
+			System.out.println("Usage: ExampleReader <path of the context file>");
+			System.exit(1);
+		}
 		ExampleReader learner = new ExampleReader(new File(args[0]));
 		HashMap<String,Term> termMap = learner.getTermMap();
 		

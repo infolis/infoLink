@@ -194,10 +194,10 @@ public class TextExtractor {
 */
 class OptionHandler {
 		
-	@Option(name="-i",usage="path of pdf documents to convert", metaVar = "INPUT_PATH")
+	@Option(name="-i",usage="path of pdf documents to convert", metaVar = "INPUT_PATH", required = true)
     private String inputPath;
 		
-	@Option(name="-o",usage="path to save converted documents", metaVar = "OUTPUT_PATH")
+	@Option(name="-o",usage="path to save converted documents", metaVar = "OUTPUT_PATH", required = true)
     private String outputPath;
 		
 	@Option(name="-p",usage="set to convert document page-wise", metaVar = "PAGEWISE")
@@ -216,11 +216,14 @@ class OptionHandler {
         try { parser.parseArgument(args); } 
         catch(CmdLineException e) {
             System.err.println(e.getMessage());
-            System.err.println("java OptionHandler [options...] arguments...");
+            System.err.println("TextExtractor [options...] arguments...");
             parser.printUsage(System.err);
             System.err.println();
             return;
         }
+        catch (Exception e) {
+        	e.printStackTrace();
+		}
         TextExtractor.convert(inputPath, outputPath, pagewise);
 	}
 }

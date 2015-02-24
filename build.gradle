@@ -21,9 +21,9 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
 }
 
-task copypython(type:copy) {
+task copyPython(type:Copy) {
     def source = 'src/main/python'
-    def target = new file(project.builddir, 'bin')
+    def target = new File(project.buildDir, 'bin')
     from source
     into target
 }
@@ -68,7 +68,6 @@ createScript('searching.Search_Term_Position', 'Search_Term_Position')
 createScript('patternLearner.TrainingSet', 'TrainingSet')
 createScript('patternLearner.Learner', 'Learner')
 createScript('patternLearner.ExampleReader', 'ExampleReader')
-createScript('patternLearner.Util', 'Util')
 createScript('patternLearner.ContextMiner', 'ContextMiner')
 createScript('patternLearner.StudyMatcher', 'StudyMatcher')
 

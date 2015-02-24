@@ -260,6 +260,12 @@ public class TrainingSet
 	 */
 	public static void main(String[] args) 
 	{ 
+		if (args.length != 2) {
+			System.out.println("Usage: TrainingSet <inputFile> <outputFile>");
+			System.out.println("	<inputFile>	path of the file containing the training examples in InfoLink output XML format");
+			System.out.println("	<outputFile>	name of the output File");
+			System.exit(1);
+		}
 		String filename_examples = args[0];
 		String filename_output = args[1];
 		TrainingSet newSet = new TrainingSet(new File(filename_examples));

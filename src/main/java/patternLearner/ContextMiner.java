@@ -1153,6 +1153,19 @@ public class ContextMiner
 	 */
 	public static void main(String[] args) //throws IOException//when reading link map...
 	{ 
+        if (args.length < 9) {
+            System.out.println("Not enough arguments to ContextMiner");
+            System.out.println("args[0]: basePath (root path of text corpus)");
+            System.out.println("args[1]: prefix of all subcorpora (all subdirectories inside of basePath containing text documents to process). Set to \" \" to not process any subcorpora");
+            System.out.println("args[2]: contexts_patterns_filename (input path for all contexts found by pattern-based search)");
+            System.out.println("args[3]: contexts_terms_filename (input path for all contexts found by term-based search)");
+            System.out.println("args[4]: output path");
+            System.out.println("args[5]: path of the lucene index");
+            System.out.println("args[6]: path of the document filename ID map");
+            System.out.println("args[7]: path of the query cache used for mapping dataset references to records in dara. Set to \" \" if no query cache shall be used");
+            System.out.println("args[8]: path of the file listing external URLs for external datasets. Set to \" \" if no external URL list shall be used.");
+            throw new IllegalArgumentException("Not enough arguments to ContextMiner.main");
+        }
 		String basePath = args[0];
 		String prefix = args[1];
 		

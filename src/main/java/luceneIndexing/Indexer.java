@@ -127,9 +127,16 @@ public class Indexer
 	 * Selects either all subdirectories in the specified directory (recursive mode) or only the root 
 	 * directory, specifies a path for the indexes to be created and starts the indexing process. 
 	 * 
-	 * @param	args 	args[0]: path to the corpus root directory; args[1]: path to the index directory; args[2]: "r" to set recursive mode
+	 * @param	args	args[0]: path to the corpus root directory; args[1]: path to the index directory; args[2]: "r" to set recursive mode
 	 */
 	public static void main(String[] args) {
+		if (args.length < 3) {
+			System.out.println("Usage: Indexer <corpusPath> <indexPath> <recursiveFlag>");
+			System.out.println("	corpusPath	path to the corpus root directory");
+			System.out.println("	indexPath	path to the index directory");
+			System.out.println("	<recursiveFlag>	\"r\" (without quotes) to select directories recursively [OPTIONAL]");
+			System.exit(1);
+		}
 		HashMap<File, File> toIndex = new HashMap<File, File>();
 		File root_corpus = new File(args[0]);
 		String root_index = new File (Paths.get(args[1]).normalize().toString()).getAbsolutePath();
@@ -141,7 +148,7 @@ public class Indexer
 			for (File file : root_corpus.listFiles()) 
 			{
 				if (file.isDirectory())
-				{	
+				{
 					toIndex.put(new File(root_index + "_" + file.getName()), new File(root_corpus + File.separator + file.getName()));
 				}
 			}

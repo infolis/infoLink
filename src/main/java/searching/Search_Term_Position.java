@@ -73,6 +73,14 @@ public class Search_Term_Position
 	 */
 	public static void main(String[] args) throws IOException, ParseException, org.apache.lucene.queryParser.ParseException 
 	{
+		if (args.length < 4) {
+			System.out.println("Usage: Search_Term_Position <indexPath> <filename> <term> <query>");
+			System.out.println("<indexPath>	location of the Lucene index");
+			System.out.println("<filename>	path to the output file");
+			System.out.println("<term>	the term to retrieve");
+			System.out.println("<query>	the lucene query to search for term");
+			System.exit(1);
+		}
 		Search_Term_Position termSearcher = new Search_Term_Position(args[0], args[1], args[2], args[3]); 
 		try { termSearcher.complexSearch(new File(termSearcher.filename), true); } catch (Exception e) { e.printStackTrace();}
 	} 

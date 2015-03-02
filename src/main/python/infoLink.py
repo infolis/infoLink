@@ -24,11 +24,14 @@ parser.add_option("-n", "--npConstraint", action="store_true", dest="np", help="
 parser.add_option("-u", "--ucConstraint", action="store_true", dest="uc", help="if set, use upper-case constraint")
 parser.add_option("-m", "--idMapPath", dest="idMapPath", help="use csv file ID_MAP_PATH to retrieve ID of documents in corpus", metavar="ID_MAP_PATH")
 parser.add_option("-g", "--german", action="store_true", dest="german", help="if set, use language german, use english else", metavar="LANG_GERMAN")
+parser.add_option("-C", "--javaClassPath", dest="classpath", help="Set the java classpath", metavar="CLASSPATH")
 
 options, args = parser.parse_args()
 
 infoLinkClassPath = args[0]
 classpath = "."
+if options.classpath:
+    classpath = options.classpath
 
 #make absolute paths before passing arguments to Java modules
 if options.corpus: #necessary because None in options.corpus will default in current absolute path...
@@ -80,31 +83,31 @@ if options.extract:
         if not os.path.exists(biblessDocsPath):
             os.makedirs(biblessDocsPath)
         bibRemover.makeBiblessDocs(cleanTextPagesPath, suspectedBibsFile, biblessDocsPath)
-        
+
         corpusPath = biblessDocsPath
     else:
         corpusPath = cleanTextPagesPath
-     
+
 else:
     corpusPath = options.corpus
-    
+
 #create Lucene Index
 print "Creating Lucene Index for %s in %s" %(corpusPath, options.index)
 indexingCmd = "java " + "-classpath \"" + classpath + "\" " + "luceneIndexing.Indexer " + corpusPath + " " + options.index
 print "Calling\n%s" %indexingCmd
 p = subprocess.Popen(indexingCmd, cwd=infoLinkClassPath)
 p.wait()
-    
+
 # 2) InfoLink reference extraction (pattern-based or term-search-based)
 
 flags = ""
 if options.uc:
     flags += " -u"
 if options.np:
-    flags += " -n"  
+    flags += " -n"
 if options.german:
     flags += " -g"
- 
+
 #construct option string from options and corresponding values to pass over to learner
 optionStr = ""
 optionDict = vars(options)
@@ -119,14 +122,14 @@ for item in optionDict.items():
             #option is not related to learner and thus not included in learnerOptionNameDict (e.g. -e)
             pass
 optionStr += " -c " + corpusPath + flags
-        
+
 #reference extraction - learn new patterns or use existing patterns
 learnerCmd = "java -Xmx1g -Xms1g -classpath \"" + classpath + "\" " + "patternLearner.Learner" + optionStr
 print "Calling\n%s" %learnerCmd
 p = subprocess.Popen(learnerCmd, cwd=infoLinkClassPath)
 p.wait()
-    
-    
+
+
 # 3) Post-processing: complete output files
 patOut = "\" \""
 termsOut = "\" \""
@@ -187,24 +190,24 @@ def convertToJson(filename):
     with open(jsonOut_pat, "w") as f:
         f.write(str(Json.convertToJson(filename)))
     print "Wrote %s." %jsonOut_pat
-    
+
 if patOut != "\" \"":
     try:
         convertToJson(linkfile_patterns_filtered)
     except IOError as ioe:
         print ioe
-     
+
     try:
         convertToJson(linkfile_patterns_filtered.replace(".csv", "_unknownURN.csv"))
     except IOError as ioe:
         print ioe
-        
-if termsOut != "\" \"":       
+
+if termsOut != "\" \"":
     try:
         convertToJson(linkfile_terms_filtered)
     except IOError as ioe:
         print ioe
-        
+
     try:
         convertToJson(linkfile_terms_filtered.replace(".csv", "_unknownURN.csv"))
     except IOError as ioe:

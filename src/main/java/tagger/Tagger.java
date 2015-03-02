@@ -295,6 +295,16 @@ public class Tagger
 	 */
 	public static void main(String[] args) throws IOException
 	{
+		if (args.length < 6) {
+			System.out.println("Usage: Tagger <tagCommand> <chunkCommand> <encoding> <tempFileIn> <tempFileOut> <input>");
+			System.out.println("	<tagCommand>	(example 'c:/TreeTagger/bin/tag-english')");
+			System.out.println("	<chunkCommand>	(example 'c:/TreeTagger/bin/chunk-english')");
+			System.out.println("	<encoding>	(example 'utf-8')");
+			System.out.println("	<tempFileIn>	(example 'data/tempTagFileIn')");
+			System.out.println("	<tempFileOut>	(example 'data/tempTagFileOut')");
+			System.out.println("	<input>	input");
+			System.exit(1);
+		}
 		String tagCommand = args[0];//"c:/TreeTagger/bin/tag-english"
 		String chunkCommand = args[1];//"c:/TreeTagger/bin/chunk-english"
 		String encoding = args[2];//"utf-8"

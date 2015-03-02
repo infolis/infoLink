@@ -2880,16 +2880,16 @@ public class Learner
 */
 class OptionHandler {
 
-	@Option(name="-c",usage="extract references from this corpus", metaVar = "CORPUS_PATH")
+	@Option(name="-c",usage="extract references from this corpus", metaVar = "CORPUS_PATH", required = true)
     private String corpusPath;
 	
-	@Option(name="-i",usage="use this Lucene Index for documents in corpus", metaVar = "INDEX_PATH")
+	@Option(name="-i",usage="use this Lucene Index for documents in corpus", metaVar = "INDEX_PATH", required = true)
     private String indexPath;
 	
     @Option(name="-l",usage="learn extraction patterns from corpus and save training data to this directory", metaVar = "TRAIN_PATH")
     private String trainPath;
     
-    @Option(name="-s",usage="learn extraction patterns using these seeds", metaVar = "SEED")
+    @Option(name="-s",usage="learn extraction patterns using these seeds", metaVar = "SEED", required = true)
     private String seeds;
 
     @Option(name="-p",usage="use existing extraction patterns listed in this file", metaVar = "PATTERNS_FILENAME")
@@ -2898,7 +2898,7 @@ class OptionHandler {
     @Option(name="-t",usage="apply term search for dataset names listed in this file", metaVar = "TERMS_FILENAME")
     private String termsPath;
     
-    @Option(name="-o",usage="output to this directory", metaVar="OUTPUT_PATH")
+    @Option(name="-o",usage="output to this directory", metaVar="OUTPUT_PATH", required = true)
     private String outputPath;
 
     @Option(name="-n",usage="if set, use NP constraint", metaVar="CONSTRAINT_NP_FLAG")
@@ -2923,19 +2923,12 @@ class OptionHandler {
     public void doMain(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this); 
 
+        // parse the arguments.
         try {
-            // parse the arguments.
             parser.parseArgument(args);
-
-            // after parsing arguments, you should check if enough arguments are given.
-            //if( arguments.isEmpty() ) { throw new CmdLineException(parser,"No argument is given"); }
-
         } catch(CmdLineException e) {
-            // if there's a problem in the command line, you'll get this exception. this will report
-            // an error message.
+            System.err.println("Learner [options...] arguments...");
             System.err.println(e.getMessage());
-            System.err.println("java OptionHandler [options...] arguments...");
-            // print the list of available options
             parser.printUsage(System.err);
             return;
         }
@@ -2947,7 +2940,9 @@ class OptionHandler {
             System.out.println("patternPath is set to " + patternPath);
 
         String termsOut = "";
-        if(termsPath != null) { termsOut = new File(termsPath).getName() + "_foundMentions.map"; }
+        if(termsPath != null) {
+            termsOut = new File(termsPath).getName() + "_foundMentions.map";
+        }
         // access non-option arguments
         /*
         System.out.println("other arguments are:");

@@ -384,6 +384,13 @@ public class StudyMatcher
 	 */
 	public static void main(String[] args)
 	{
+		if (args.length == 0) {
+			System.out.println("Usage: StudyMatcher <datasetName> [<cacheFile>] [<urlListFile>]");
+			System.out.println("	<datasetName>	dataset name");
+			System.out.println("	<cacheFile>	path of cache file");
+			System.out.println("	<urlListFile>	name of file contianing URL list");
+			System.exit(1);
+		}
 		if (args.length == 3) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], args[2]); System.out.println(matcher.match(args[0]));}
 		if (args.length == 2) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], null); System.out.println(matcher.match(args[0]));}
 		if (args.length == 1) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", null, null); System.out.println(matcher.match(args[0]));}

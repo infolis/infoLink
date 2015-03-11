@@ -57,9 +57,9 @@ if options.terms:
 if options.extract:
     flag_pagewise = (options.learnpath != None)
     if flag_pagewise:
-        textExtractionCmd = "java -classpath \"" + classpath + "\" preprocessing.TextExtractor -i " + options.corpus + " -o " + options.extract + " -p"
+	textExtractionCmd = ["java", "-classpath", classpath, "preprocessing.TextExtractor", "-i", options.corpus, "-o", options.extract, "-p"]
     else:
-        textExtractionCmd = "java -classpath \"" + classpath + "\" preprocessing.TextExtractor -i " + options.corpus + " -o " + options.extract
+        textExtractionCmd = ["java", "-classpath", classpath, "preprocessing.TextExtractor", "-i", options.corpus, "-o", options.extract]
     #remove last file separator
     if options.extract.endswith("\\") or options.extract.endswith("/"):
         options.extract = options.extract[:-1]
@@ -67,7 +67,7 @@ if options.extract:
         os.makedirs(options.extract)
     if not os.path.exists(options.extract + "_clean"):
         os.makedirs(options.extract + "_clean")
-    textCleaningCmd = "java -classpath \"" + classpath + "\" preprocessing.Cleaner " + options.extract + " " + options.extract + "_clean"
+    textCleaningCmd = ["java", "-classpath", classpath, "preprocessing.Cleaner", options.extract, options.extract + "_clean"]
     print "Calling %s..." %textExtractionCmd
     p = subprocess.Popen(textExtractionCmd, cwd=infoLinkClassPath)
     p.wait()
@@ -79,7 +79,7 @@ if options.extract:
         cleanTextPagesPath = options.extract + "_clean"
         head, tail = os.path.split(cleanTextPagesPath)
         suspectedBibsFile = os.path.abspath(os.path.join(cleanTextPagesPath, "..", tail + "_suspectedBibs.csv"))
-        biblessDocsPath = os.path.abspath(os.path.join(cleanTextPagesPath, "..", tail + "_biblessDocs\\"))
+        biblessDocsPath = os.path.abspath(os.path.join(cleanTextPagesPath, "..", tail + "_biblessDocs"))
         if not os.path.exists(biblessDocsPath):
             os.makedirs(biblessDocsPath)
         bibRemover.makeBiblessDocs(cleanTextPagesPath, suspectedBibsFile, biblessDocsPath)
@@ -93,23 +93,23 @@ else:
 
 #create Lucene Index
 print "Creating Lucene Index for %s in %s" %(corpusPath, options.index)
-indexingCmd = "java " + "-classpath \"" + classpath + "\" " + "luceneIndexing.Indexer " + corpusPath + " " + options.index
+indexingCmd = ["java", "-classpath", classpath, "luceneIndexing.Indexer", corpusPath, options.index]
 print "Calling\n%s" %indexingCmd
 p = subprocess.Popen(indexingCmd, cwd=infoLinkClassPath)
 p.wait()
 
 # 2) InfoLink reference extraction (pattern-based or term-search-based)
 
-flags = ""
+flags = []
 if options.uc:
-    flags += " -u"
+    flags.append("-u")
 if options.np:
-    flags += " -n"
+    flags.append("-n")
 if options.german:
-    flags += " -g"
+    flags.append("-g")
 
 #construct option string from options and corresponding values to pass over to learner
-optionStr = ""
+optionStr = []
 optionDict = vars(options)
 learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l"}
 for item in optionDict.items():
@@ -117,14 +117,18 @@ for item in optionDict.items():
         pass
     elif item[1]:
         try:
-            optionStr += " " + learnerOptionNameDict.get(item[0]) + " " + item[1]
+            optionStr.append(learnerOptionNameDict.get(item[0], ""))
+            optionStr.append(item[1])
         except TypeError as te:
             #option is not related to learner and thus not included in learnerOptionNameDict (e.g. -e)
             pass
-optionStr += " -c " + corpusPath + flags
+optionStr.append("-c")
+optionStr.append(corpusPath)
+optionStr.extend(flags)
 
 #reference extraction - learn new patterns or use existing patterns
-learnerCmd = "java -Xmx1g -Xms1g -classpath \"" + classpath + "\" " + "patternLearner.Learner" + optionStr
+learnerCmd = ["java", "-Xmx1g", "-Xms1g", "-classpath", classpath, "patternLearner.Learner"]
+learnerCmd.extend(optionStr)
 print "Calling\n%s" %learnerCmd
 p = subprocess.Popen(learnerCmd, cwd=infoLinkClassPath)
 p.wait()
@@ -149,7 +153,8 @@ queryCache = os.path.join(options.outpath, "queryCache.csv")
 #queryCache = "\" \""
 externalURLs = os.path.join(options.outpath, "externalStudiesIndex.txt")
 matchingOptions = [corpusPath, matching_prefix, patOut, termsOut, options.outpath, matching_index, options.idMapPath, queryCache, externalURLs]
-matchingCmd = "java -classpath \"" + classpath + "\" " + "patternLearner.ContextMiner " + " ".join(matchingOptions)
+matchingCmd = ["java", "-classpath", classpath, "patternLearner.ContextMiner"]
+matchingCmd.extend(matchingOptions)
 print "Calling\n%s" %matchingCmd
 p = subprocess.Popen(matchingCmd, cwd=infoLinkClassPath)
 p.wait()

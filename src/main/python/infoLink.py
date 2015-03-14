@@ -156,8 +156,7 @@ matchingOptions = [corpusPath, matching_prefix, patOut, termsOut, options.outpat
 matchingCmd = ["java", "-classpath", classpath, "patternLearner.ContextMiner"]
 matchingCmd.extend(matchingOptions)
 print "Calling\n%s" %matchingCmd
-p = subprocess.Popen(matchingCmd, cwd=infoLinkClassPath)
-p.wait()
+os.system(" ".join(matchingCmd))
 
 # 5) Filter links
 #TODO: IN PARAMETER OUTPUT FILE INCLUDE MATCHING PARAMETERS!!!

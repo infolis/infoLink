@@ -17,7 +17,7 @@ PYTHON_SRC="src/main/python"
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns, use uppercase_constraint
 # use ALLBUS, Allbus, Eurobarometer and ISSP as seeds
 python $PYTHON_SRC/infoLink.py \
-    -C "build/classes/main/" \
+    -C "build/classes/main/:build/install/infoLink/lib/*" \
     -e "../data/test/small_txt" \
     -c "../data/test/small" \
     -l "../data/test/train_small/" \

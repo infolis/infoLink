@@ -4,6 +4,7 @@ import re
 import os
 import shutil
 
+
 def getDocumentName(filename):
 	"""Restore the original document name from the files representing single pages of a document."""
 	return re.sub("_\d+_clean.txt", "", filename)
@@ -73,7 +74,10 @@ class Document:
 			numChars = len(self.text)
 			#penalty for decimal numbers
 			numDecimals = float(len(re.findall("\d+\.\d+", self.text)))
-			return ((numNumbers / numChars) >= 0.01) and ((numNumbers / numChars) <= 0.1) and ((numDecimals / numChars) <= 0.004)
+			try:
+			    return ((numNumbers / numChars) >= 0.01) and ((numNumbers / numChars) <= 0.1) and ((numDecimals / numChars) <= 0.004)
+			except ZeroDivisionError as ze:
+			    return False
 			
 		def hasBibNumberRatio_c(self):
 			"""Compute the ratio of numbers on page: a high number of numbers is 
@@ -83,6 +87,8 @@ class Document:
 			"""
 			numNumbers = float(len(re.findall("\d+", self.text)))
 			numChars = len(self.text)
+			if numChars == 0:
+			    return False
 			#penalty for decimal numbers
 			numDecimals = float(len(re.findall("\d+\.\d+", self.text)))
 			#pages containing on of the cue words are accepted at lower thresholds (are preferred)
@@ -101,6 +107,8 @@ class Document:
 			"""
 			numNumbers = float(len(re.findall("\d+", self.text)))
 			numChars = len(self.text)
+			if numChars == 0:
+			    return False
 			#penalty for decimal numbers
 			numDecimals = float(len(re.findall("\d+\.\d+", self.text)))
 			if checkStartPage:
@@ -224,11 +232,17 @@ def getBibliographies_d(path):
 
             if not bibSecStarted:
                 #first page of bib has not been found
-                if page.startsBibliography_d() and page.atEnd_b():
-                    bibPages.append(page)
-                    bibSecStarted = True
-                    #found first bib page
-                    #set flag to apply bonus to all following pages
+                try:
+                    if page.startsBibliography_d() and page.atEnd_b():
+                        bibPages.append(page)
+                        bibSecStarted = True
+                        #found first bib page
+                        #set flag to apply bonus to all following pages
+                except RuntimeError as e:
+                    print e
+                    if page.startsBibliography_d() and page.atEnd():
+                        bibPages.append(page)
+                        bibSecStarted = True
 
             else:
                 if page.isBibliography_d():

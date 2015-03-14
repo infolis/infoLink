@@ -130,7 +130,7 @@ public class Indexer
 	 * @param	args	args[0]: path to the corpus root directory; args[1]: path to the index directory; args[2]: "r" to set recursive mode
 	 */
 	public static void main(String[] args) {
-		if (args.length < 3) {
+		if (args.length < 2) {
 			System.out.println("Usage: Indexer <corpusPath> <indexPath> <recursiveFlag>");
 			System.out.println("	corpusPath	path to the corpus root directory");
 			System.out.println("	indexPath	path to the index directory");

@@ -22,7 +22,7 @@ python $PYTHON_SRC/infoLink.py \
     -c "../data/test/small" \
     -l "../data/test/train_small/" \
     -o "../data/test/output_small" \
-    -s "\"ALLBUS Allbus Eurobarometer ISSP\"" \
+    -s "ALLBUS Allbus Eurobarometer ISSP" \
     -i "../data/test/Index_small" \
     -m "../data/test/urnDict.csv" \
     -u \

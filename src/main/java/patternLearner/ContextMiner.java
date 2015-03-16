@@ -1,5 +1,7 @@
 package patternLearner;
 
+import patternLearner.bootstrapping.ExampleReader;
+import studyMatching.StudyMatcher;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.BufferedReader;
@@ -17,8 +19,11 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import patternLearner.bootstrapping.Term;
 
-import searching.Search_Term_Position;
+import searching.SearchTermPosition;
 
 
 /**
@@ -31,9 +36,9 @@ import searching.Search_Term_Position;
  */
 public class ContextMiner 
 {
-	HashSet<String> documentSet;
-	HashMap<String, ExampleReader.Term> termMap;
-	HashMap<String,HashSet<String[]>> documentMap;
+	Set<String> documentSet;
+	Map<String, Term> termMap;
+	Map<String,Set<String[]>> documentMap;
 	String corpusName;
 	
 	/**
@@ -89,7 +94,7 @@ public class ContextMiner
 	 * 
 	 * @return	set of documents found in the context file.
 	 */
-	public HashSet<String> getDocuments ()
+	public Set<String> getDocuments ()
 	{
 		return this.documentSet;
 	}
@@ -714,13 +719,13 @@ public class ContextMiner
 	public HashMap<String,HashMap<String,HashSet<String>>> getLinkDocMap(String snippetFilename, HashMap<String,String> idMap)
 	{
 		ExampleReader exReader = new ExampleReader(new File(snippetFilename));
-		HashMap<String,HashSet<String[]>> docMap = exReader.getDocumentMap();
+		Map<String,Set<String[]>> docMap = exReader.getDocumentMap();
 		HashMap<String,HashMap<String,HashSet<String>>> urnDocMap = new HashMap<String,HashMap<String,HashSet<String>>>();
 		// docMap has filenames as keys, transform them into IDs
 		for (String key : docMap.keySet())
 		{
 			String urnKey = getID(mapToDictName(key.replace("\\", "/")), idMap);
-			HashSet<String[]> links = docMap.get(key);
+			Set<String[]> links = docMap.get(key);
 			HashMap<String,HashSet<String>> termMap = new HashMap<String,HashSet<String>>();
 			// for better performance: sort by term (=context[1])
 			Iterator<String[]> linkIter = links.iterator();
@@ -748,13 +753,13 @@ public class ContextMiner
 	   * @param termList		list of search terms
 	   * @param snippetFilename	path of output file
 	   */
-	public void saveAllSnippets(String indexDir, Collection<String> termList, String snippetFilename)
+	public void saveAllSnippets(String indexDir, Collection<String> termList, String snippetFilename) throws IOException
 	{
 		try { Util.prepareOutputFile(snippetFilename); }
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			Search_Term_Position search = new Search_Term_Position(indexDir, snippetFilename, term.trim(), "\"" + Search_Term_Position.normalizeQuery(term) + "\"");
+			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + SearchTermPosition.normalizeQuery(term) + "\"");
 			try { search.complexSearch(new File(snippetFilename), true);	}
 			catch (IOException ioe) { ioe.printStackTrace(); }
 			catch (Exception e) { e.printStackTrace(); }
@@ -887,7 +892,7 @@ public class ContextMiner
 	 * @param logFilename		name of the log file
 	 * @param useExistingSnippetCache	if true use existing snippetFilename, else create
 	 */
-	public void outputLinkMap(HashMap<String, Collection<StudyLink>> linkMap, String filename, String indexDir, String snippetFilename, HashMap<String,String> idMap, String logFilename, boolean useExistingSnippetCache)
+	public void outputLinkMap(HashMap<String, Collection<StudyLink>> linkMap, String filename, String indexDir, String snippetFilename, HashMap<String,String> idMap, String logFilename, boolean useExistingSnippetCache) throws IOException
 	{
 		String delimiter = Util.delimiter_csv;
 		String pubStudyNameVersionLinkConf = "";
@@ -981,7 +986,7 @@ public class ContextMiner
 	 * @param queryCache		path of the query cache file
 	 * @param externalURLs		path of the URL list for external datasets
 	 */
-	public static void mineContexts(String basePath, String prefix, String patterns, String terms, String outPath, String indexPath, String urnDictPath, String searchInterface, String queryCache, String externalURLs)
+	public static void mineContexts(String basePath, String prefix, String patterns, String terms, String outPath, String indexPath, String urnDictPath, String searchInterface, String queryCache, String externalURLs) throws IOException
 	{
 		StudyMatcher matcher = new StudyMatcher(searchInterface, queryCache, externalURLs);
 		if (indexPath!=null)
@@ -1013,7 +1018,7 @@ public class ContextMiner
 	 * @param externalURLs		path of the URL list for external datasets
 	 * @param refSnippetsOnly	if set, outputs snippets only for found references; else outputs snippets for all occurrences of found dataset names
 	 */
-	public static void mineContexts(File path, String patterns, String terms, String outPath, String indexPath, String idMapPath, String searchInterface, String queryCache, String externalURLs)
+	public static void mineContexts(File path, String patterns, String terms, String outPath, String indexPath, String idMapPath, String searchInterface, String queryCache, String externalURLs) throws IOException
 	{
 		StudyMatcher matcher = new StudyMatcher(searchInterface, queryCache, externalURLs);
 		if (indexPath!=null)
@@ -1058,7 +1063,7 @@ public class ContextMiner
 	/**
 	 * Mines the contexts of Learner, matches them with records in da|ra and outputs the link files. refsnuppets...
 	 */
-	public static void getLinks(File corpus, String outputPath, String indexDir, StudyMatcher matcher, String foundContextsFilename, String idMapPath)
+	public static void getLinks(File corpus, String outputPath, String indexDir, StudyMatcher matcher, String foundContextsFilename, String idMapPath) throws IOException
 	{
 		String corpusName = corpus.getName();		
 		ContextMiner miner = new ContextMiner(foundContextsFilename, corpusName);
@@ -1151,7 +1156,7 @@ public class ContextMiner
 	 * <li>args[8]: path of the file listing external URLs for external datasets. Set to " " if no external URL list shall be used.</li>
 	 * </ul>
 	 */
-	public static void main(String[] args) //throws IOException//when reading link map...
+	public static void main(String[] args) throws IOException //throws IOException//when reading link map...
 	{ 
         if (args.length < 9) {
             System.out.println("Not enough arguments to ContextMiner");

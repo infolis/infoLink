@@ -78,8 +78,7 @@ public class Cleaner
 	 */
 	public static String removeControlSequences(String text)
 	{
-		String pdfBox_unkownCharRepl = "[]";
-		return text.replaceAll(pdfBox_unkownCharRepl, "").replaceAll("[^\\P{Cc}\\P{Cf}\\P{Co}\\P{Cs}\\P{Cn}\\s]", "");	
+		return text.replaceAll("[^\\P{Cc}\\P{Cf}\\P{Co}\\P{Cs}\\P{Cn}\\s]", "");	
 	}
 	
 	/**

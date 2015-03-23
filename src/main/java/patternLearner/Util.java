@@ -225,7 +225,13 @@ public class Util
 	 */
 	public static String escapeXML(String string)
 	{
-		return StringEscapeUtils.escapeXml(string);
+	    String xml10pattern = "[^"
+                    + "\u0009\r\n"
+                    + "\u0020-\uD7FF"
+                    + "\uE000-\uFFFD"
+                    + "\ud800\udc00-\udbff\udfff"
+                    + "]";
+		return StringEscapeUtils.escapeXml(string).replaceAll(xml10pattern,"");
 	}
 	
 	/**

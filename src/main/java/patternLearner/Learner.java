@@ -452,8 +452,8 @@ public class Learner
 		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL2 (indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, 0);
-		//bootstrapBL4 ( indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, 0);
+		//bootstrapBL2 (indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, 0);
+		bootstrapBL4 ( indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, 0);
 	}
 	
 	/**
@@ -2910,6 +2910,9 @@ class OptionHandler {
     @Option(name="-g",usage="if set, use German language (important for tagging and phrase chunking if NP constraint is used)", metaVar="LANG_GERMAN_FLAG")
     private boolean german = false;
     
+    @Option(name="-f",usage="if set, use frequency-based pattern relevance measure (use reliability-based measure else)", metaVar="FREQUENCY_MEASURE")
+    private boolean frequencyMeasure = false;
+    
     // receives other command line parameters than options
     @Argument
     private List<String> arguments = new ArrayList<String>();
@@ -2990,9 +2993,11 @@ class OptionHandler {
 			//TODO: IMPROVE: SEEDS MAY CONSIST OF MULTIPLE WORDS...
 			String[] seedArray = seeds.split("\\s+");
 			//TODO: THRESHOLD AS PARAMETER
-			double threshold = 0.03; //0.4 and 0.3 in paper...
-			Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold);
-			//Learner.learn("ISSP", indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts" , trainPath + File.separator + "arffs", constraintNP, constraintUC, german);
+			double threshold = 0.9; //0.4 and 0.3 in paper...
+			if(! frequencyMeasure)
+			{	Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); }
+			else
+			{ Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintNP, constraintUC, german); }
 		}
     }
 }

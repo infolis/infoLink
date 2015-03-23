@@ -78,7 +78,7 @@ public class Cleaner
 	 */
 	public static String removeControlSequences(String text)
 	{
-		return text.replace("[^\\P{Cc}\\s]", "");
+		return text.replace("[^\\P{Cc}\\P{Cf}\\P{Co}\\P{Cs}\\P{Cn}\\s]", "");
 	}
 	
 	/**

@@ -236,7 +236,7 @@ public class Util
 	 */
 	public static String unescapeXML(String string)
 	{
-r		eturn StringEscapeUtils.unescapeXml(string);
+		return StringEscapeUtils.unescapeXml(string);
 	}
 	
 	//TODO: change name to denormalizeRegex or something similar...

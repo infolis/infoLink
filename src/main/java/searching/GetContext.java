@@ -152,10 +152,9 @@ public class GetContext
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
 	    String leftContextPat = "(" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s*?" + ")";
 	    String rightContextPat = "(\\s*?" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.lastWordRegex + ")";
-	    query = Pattern.quote(query);
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
-	    Pattern pat = Pattern.compile(leftContextPat + query + rightContextPat);
+	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(query) + rightContextPat);
 	    Matcher m = pat.matcher(text);
 	    ArrayList<String> leftContexts = new ArrayList<String>();
 	    ArrayList<String> rightContexts = new ArrayList<String>();
@@ -164,8 +163,8 @@ public class GetContext
 	    
 	    {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary 
 	    	query = query.replace("-", " ").replace("–", " ").replace(".", " ").replace("(", " ").replace(")", " ").replace(":", " ").replace(",", " ").replace(";", " ").replace("/", " ").replace("\\", " ").replace("&", " ").replace("_", "");
-	    	System.out.println(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]"));
-	    	pat = Pattern.compile( leftContextPat + query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]") + rightContextPat, Pattern.CASE_INSENSITIVE );
+	    	System.out.println(Pattern.quote(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]")));
+	    	pat = Pattern.compile( leftContextPat + Pattern.quote(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]")) + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    }

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import searching.Search_Term_Position;
 
@@ -224,7 +225,7 @@ public class Util
 	 */
 	public static String escapeXML(String string)
 	{
-		return string.replace("\"","&quot;").replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;").replace("'", "&apos;");
+		return StringEscapeUtils.escapeXml(string);
 	}
 	
 	/**
@@ -235,7 +236,7 @@ public class Util
 	 */
 	public static String unescapeXML(String string)
 	{
-		return string.replace("&quot;", "\"").replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&");
+r		eturn StringEscapeUtils.unescapeXml(string);
 	}
 	
 	//TODO: change name to denormalizeRegex or something similar...

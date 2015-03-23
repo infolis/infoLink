@@ -129,7 +129,11 @@ public class Search_Term_Position
 		qp.setPhraseSlop(7); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(true);
 		BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
-		Query q = qp.parse(this.query.trim());
+		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+		//if quotes are present in absence of any whitespace inside of query
+		Query q;
+		try { q = qp.parse(this.query.trim()); }
+		catch (IllegalArgumentException iae) { q = qp.parse(this.query.trim().replace("\"","")); }
 		System.out.println("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;
@@ -178,8 +182,11 @@ public class Search_Term_Position
 		qp.setPhraseSlop(7); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(true);
 		BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
-		Query q = qp.parse(this.query.trim());
-		
+		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+		//if quotes are present in absence of any whitespace inside of query
+		Query q;
+		try { q = qp.parse(this.query.trim()); }
+		catch (IllegalArgumentException iae) { q = qp.parse(this.query.trim().replace("\"","")); }
 		System.out.println("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;

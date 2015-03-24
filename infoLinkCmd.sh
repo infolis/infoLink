@@ -10,26 +10,25 @@
 # -u = use uppercase_constraint (dataset titles are required to have at least one uppercase character)
 # -p = use the patterns in this file for reference extraction
 # -t = apply term search for dataset names listed in this file
-# first argument: classpath for InfoLink java classes (change if desired)
+# -f = use frequency-based measure for pattern validity assessment
+# -r = use reliability-based measure for pattern validity assessment with specified threshold
 
 PYTHON_SRC="src/main/python"
+DIR_NAME=${PWD##*/} 
+INSTALL_DIR="build/install/$DIR_NAME"
 
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns, use uppercase_constraint
-# use ALLBUS, Allbus, Eurobarometer and ISSP as seeds
+# use ALLBUS, Allbus, Eurobarometer, ISSP and NHANES as seeds
+# apply reliability-based pattern validity assessment with threshold of 0.7
 python $PYTHON_SRC/infoLink.py \
-    -C "build/classes/main/:build/install/infoLink/lib/*" \
+    -C "build/classes/main/:$INSTALL_DIR/lib/*" \
     -e "../data/test/small_txt" \
     -c "../data/test/small" \
-    -l "../data/test/train_small/" \
+    -l "../data/test/train_small" \
     -o "../data/test/output_small" \
-    -s "ALLBUS Allbus Eurobarometer ISSP" \
+    -s "ALLBUS Allbus Eurobarometer ISSP NHANES" \
     -i "../data/test/Index_small" \
     -m "../data/test/urnDict.csv" \
+    -r "0.7" \
     -u \
-    .
 
-# learn patterns and apply patterns without text extraction. Use uppercase_constraint
-# python.exe ../py/infoLink.py "." -c "../data/test/small_txt" -l "../data/test/train_small/" -s "\"ALLBUS Allbus Eurobarometer ISSP\"" -i "../data/test/Index_small" -o "../data/test/output_small" -m "../data/test/urnDict.csv" -u
-
-# apply existing patterns and term search for known dataset names with prior text extraction. Use uppercase_constraint
-# python.exe ../py/infoLink.py "." -p "../data/test/patterns.csv" -o "../data/test/output_small" -e "../data/test/small_txt" -c "../data/test/small" -i "../data/test/Index_small" -t "../data/test/known_datasets.csv" -u

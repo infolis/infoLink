@@ -2913,6 +2913,9 @@ class OptionHandler {
     @Option(name="-f",usage="if set, use frequency-based pattern relevance measure (use reliability-based measure else)", metaVar="FREQUENCY_MEASURE")
     private boolean frequencyMeasure = false;
     
+    @Option(name="-r",usage="apply reliability-based pattern validation using the specified threshold", metaVar="RELIABILITY_THRESHOLD")
+    private String reliabilityThreshold;
+    
     // receives other command line parameters than options
     @Argument
     private List<String> arguments = new ArrayList<String>();
@@ -2992,8 +2995,7 @@ class OptionHandler {
 			if(! op.exists()) { op.mkdirs(); System.out.println("Created directory " + op); }
 			//TODO: IMPROVE: SEEDS MAY CONSIST OF MULTIPLE WORDS...
 			String[] seedArray = seeds.split("\\s+");
-			//TODO: THRESHOLD AS PARAMETER
-			double threshold = 0.9; //0.4 and 0.3 in paper...
+			double threshold = Double.parseDouble(reliabilityThreshold);
 			if(! frequencyMeasure)
 			{	Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); }
 			else

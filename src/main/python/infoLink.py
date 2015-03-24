@@ -24,12 +24,12 @@ parser.add_option("-n", "--npConstraint", action="store_true", dest="np", help="
 parser.add_option("-u", "--ucConstraint", action="store_true", dest="uc", help="if set, use upper-case constraint")
 parser.add_option("-m", "--idMapPath", dest="idMapPath", help="use csv file ID_MAP_PATH to retrieve ID of documents in corpus", metavar="ID_MAP_PATH")
 parser.add_option("-g", "--german", action="store_true", dest="german", help="if set, use language german, use english else", metavar="LANG_GERMAN")
-parser.add_option("-f", "--frequency", action="store_true", dest="frequency", help="if set, use frequency-based measure to assess whether a pattern is relevant. Else, use reliability-based measure", metavar="FREQUENCY_MEASURE")
+parser.add_option("-f", "--frequency", action="store_true", dest="frequency", help="if set, use frequency-based measure to assess whether a pattern is relevant", metavar="FREQUENCY_MEASURE")
+parser.add_option("-r", "--reliability", dest="reliability", help="use reliability-based measure for pattern validation with the specified threshold", metavar = "RELIABILITY_THRESHOLD")
 parser.add_option("-C", "--javaClassPath", dest="classpath", help="Set the java classpath", metavar="CLASSPATH")
 
 options, args = parser.parse_args()
 
-infoLinkClassPath = args[0]
 classpath = "."
 if options.classpath:
     classpath = options.classpath
@@ -70,9 +70,9 @@ if options.extract:
         os.makedirs(options.extract + "_clean")
     textCleaningCmd = ["java", "-classpath", classpath, "preprocessing.Cleaner", options.extract, options.extract + "_clean"]
     print "Calling %s..." %textExtractionCmd
-    p = subprocess.Popen(textExtractionCmd, cwd=infoLinkClassPath)
+    p = subprocess.Popen(textExtractionCmd)
     p.wait()
-    p = subprocess.Popen(textCleaningCmd, cwd=infoLinkClassPath)
+    p = subprocess.Popen(textCleaningCmd)
     p.wait()
     if options.learnpath:
         import bibRemover
@@ -96,7 +96,7 @@ else:
 print "Creating Lucene Index for %s in %s" %(corpusPath, options.index)
 indexingCmd = ["java", "-classpath", classpath, "luceneIndexing.Indexer", corpusPath, options.index]
 print "Calling\n%s" %indexingCmd
-p = subprocess.Popen(indexingCmd, cwd=infoLinkClassPath)
+p = subprocess.Popen(indexingCmd)
 p.wait()
 
 # 2) InfoLink reference extraction (pattern-based or term-search-based)
@@ -114,7 +114,7 @@ if options.frequency:
 #construct option string from options and corresponding values to pass over to learner
 optionStr = []
 optionDict = vars(options)
-learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l"}
+learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r"}
 for item in optionDict.items():
     if item[0] == "uc" or item[0] == "np" or item[0] == "german" or item[0] == "frequency":
         pass
@@ -133,7 +133,7 @@ optionStr.extend(flags)
 learnerCmd = ["java", "-Xmx1g", "-Xms1g", "-classpath", classpath, "patternLearner.Learner"]
 learnerCmd.extend(optionStr)
 print "Calling\n%s" %learnerCmd
-p = subprocess.Popen(learnerCmd, cwd=infoLinkClassPath)
+p = subprocess.Popen(learnerCmd)
 p.wait()
 
 

@@ -24,7 +24,7 @@ parser.add_option("-n", "--npConstraint", action="store_true", dest="np", help="
 parser.add_option("-u", "--ucConstraint", action="store_true", dest="uc", help="if set, use upper-case constraint")
 parser.add_option("-m", "--idMapPath", dest="idMapPath", help="use csv file ID_MAP_PATH to retrieve ID of documents in corpus", metavar="ID_MAP_PATH")
 parser.add_option("-g", "--german", action="store_true", dest="german", help="if set, use language german, use english else", metavar="LANG_GERMAN")
-parser.add_option("-f", "--frequency", action="store_true", dest="frequency", help="if set, use frequency-based measure to assess whether a pattern is relevant", metavar="FREQUENCY_MEASURE")
+parser.add_option("-f", "--frequency", dest="frequency", help="use frequency-based measure for pattern validation with the specified threshold", metavar="FREQUENCY_THRESHOLD")
 parser.add_option("-r", "--reliability", dest="reliability", help="use reliability-based measure for pattern validation with the specified threshold", metavar = "RELIABILITY_THRESHOLD")
 parser.add_option("-C", "--javaClassPath", dest="classpath", help="Set the java classpath", metavar="CLASSPATH")
 
@@ -108,15 +108,13 @@ if options.np:
     flags.append("-n")
 if options.german:
     flags.append("-g")
-if options.frequency:
-    flags.append("-f")
 
 #construct option string from options and corresponding values to pass over to learner
 optionStr = []
 optionDict = vars(options)
-learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r"}
+learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r", "frequency" : "-f"}
 for item in optionDict.items():
-    if item[0] == "uc" or item[0] == "np" or item[0] == "german" or item[0] == "frequency":
+    if item[0] == "uc" or item[0] == "np" or item[0] == "german":
         pass
     elif item[1]:
         try:

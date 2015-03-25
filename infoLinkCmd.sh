@@ -26,7 +26,7 @@ python $PYTHON_SRC/infoLink.py \
     -c "../data/test/small" \
     -l "../data/test/train_small" \
     -o "../data/test/output_small" \
-    -s "ALLBUS Allbus Eurobarometer ISSP NHANES" \
+    -s "ALLBUS--@--Allbus--@--Eurobarometer--@--ISSP--@--NHANES" \
     -i "../data/test/Index_small" \
     -m "../data/test/urnDict.csv" \
     -r "0.7" \

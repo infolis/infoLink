@@ -412,7 +412,7 @@ public class Learner
 	 * @param arffDirName		path of the directory containing all arff files
 	 * @param corpusDirectory	name of the directory containing the text corpus
 	 */
-	private void bootstrap(String indexDirectory, String seed, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory)
+	private void bootstrap(String indexDirectory, String seed, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, double threshold)
 	{
 		File contextDir = new File(contextDirName);
     	String[] contextFiles = contextDir.list();
@@ -440,7 +440,7 @@ public class Learner
 		try 
 		{ 
 			//TODO: separate steps, replace old readArff method
-			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory); 
+			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory, threshold); 
 			this.processedSeeds.add(seed); 
 		}
 		catch (IOException e) { e.printStackTrace(); System.exit(1); }
@@ -453,7 +453,7 @@ public class Learner
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		//bootstrapBL2 (indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, 0);
-		bootstrapBL4 ( indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, 0);
+		bootstrapBL4 ( indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, 0, threshold);
 	}
 	
 	/**
@@ -487,20 +487,20 @@ public class Learner
 	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
 	 */
-	private void bootstrapBL1(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter)
+	private void bootstrapBL1(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
 	{
 		numIter ++;
 		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
 		Util.mergeContexts(outputDirectory, "all.xml", "_all_");
 		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
-		try { readArff(outputDirectory + File.separator + "all.arff", outputDirectory, indexDirectory, corpusDirectory); }
+		try { readArff(outputDirectory + File.separator + "all.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
 		if (numIter == 6) { return; } //TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL1(indexDirectory, newSeeds,nextIterPath.toString(), corpusDirectory, numIter);
+		bootstrapBL1(indexDirectory, newSeeds,nextIterPath.toString(), corpusDirectory, numIter, threshold);
 	}
 	
 	/**
@@ -513,20 +513,20 @@ public class Learner
 	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
 	 */
-	private void bootstrapBL2(String indexDirectory, Collection<String> terms, String outputDirectory, String corpusDirectory, int numIter)
+	private void bootstrapBL2(String indexDirectory, Collection<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
 	{
 		numIter ++;
 		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
 		Util.mergeNewContexts(outputDirectory, "allNew.xml", "");
 		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory); }
+		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
 		if (numIter == 6) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL2(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter);
+		bootstrapBL2(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter, threshold);
 	}
 	
 	/**
@@ -539,20 +539,20 @@ public class Learner
 	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
 	 */
-	private void bootstrapBL3(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter)
+	private void bootstrapBL3(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
 	{
 		numIter ++;
 		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
 		Util.mergeAllContexts(outputDirectory, "allNew.xml", "_all_");
 		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory); }
+		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
 		if (numIter == 6) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
-		bootstrapBL3(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter);
+		bootstrapBL3(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter, threshold);
 	}
 	
 	/**
@@ -568,7 +568,7 @@ public class Learner
 	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
 	 */
-	private void bootstrapBL4 ( String indexDirectory, Collection<String> terms, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, int numIter)
+	private void bootstrapBL4 ( String indexDirectory, Collection<String> terms, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, int numIter, double threshold)
 	{
 		this.foundSeeds_iteration = new HashSet<String>();
 		numIter ++;
@@ -606,7 +606,7 @@ public class Learner
 	    	{
 	    		try 
 	    		{ 
-	    			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory); 
+	    			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory, threshold); 
 	    			this.processedSeeds.add(seed); 
 	    		}
 	    		catch (IOException e) { e.printStackTrace(); }
@@ -631,7 +631,7 @@ public class Learner
 		if (numIter == 9) { System.out.println("Reached maximum number of iterations! Returning."); return; }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter);
+		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter, threshold);
 	}
 	
 	/**
@@ -1342,7 +1342,7 @@ public class Learner
 	 * @param data		training data
 	 * @return			...
 	 */
-	private ArrayList<String[]> getRelevantNgramPatterns(Instance instance, Instances data)
+	private ArrayList<String[]> getRelevantNgramPatterns(Instance instance, Instances data, double threshold)
 	{
 		String attVal0 = instance.stringValue(0); //l5
 		String attVal1 = instance.stringValue(1); //l4
@@ -1480,7 +1480,7 @@ public class Learner
 		// check whether pattern is known before continuing
 		// also improves performance
 		if (this.processedPatterns.contains(regex_ngram1_normalizedAndQuoted)) { return ngramPats; } 
-		if ( ! (isStopword(attVal4) & isStopword(attVal5)) & isRelevant(regex_ngram1_quoted, 0.2))//0.2
+		if ( ! (isStopword(attVal4) & isStopword(attVal5)) & isRelevant(regex_ngram1_quoted, threshold))//0.2
 		{
 			// substitute normalized numbers etc. with regex
 			String[] newPat = {luceneQuery1, regex_ngram1_normalizedAndQuoted };
@@ -1491,7 +1491,7 @@ public class Learner
 		{
 			//TODO: do not return here, instead process Type phrase behind study title terms also"
 			if ( this.processedPatterns.contains( regex_ngram2_normalizedAndQuoted )) { return ngramPats; } 
-			if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) | isStopword( attVal3 ) & isStopword( attVal5 ) | isStopword( attVal3 ) & isStopword( attVal4) ) & isRelevant( regex_ngram2_quoted, 0.18 ))//0.18
+			if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) | isStopword( attVal3 ) & isStopword( attVal5 ) | isStopword( attVal3 ) & isStopword( attVal4) ) & isRelevant( regex_ngram2_quoted, threshold-0.02 ))//0.18
 			{
 				System.out.println( "found relevant type 2 pattern: " + regex_ngram2_normalizedAndQuoted );
 				String[] newPat = { luceneQuery2, regex_ngram2_normalizedAndQuoted };
@@ -1501,7 +1501,7 @@ public class Learner
 			else
 			{
 				if (this.processedPatterns.contains( regex_ngram3_normalizedAndQuoted)) { return ngramPats; } 
-				if ( !( isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram3_quoted, 0.16 ))//0.16
+				if ( !( isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram3_quoted, threshold-0.04 ))//0.16
 				{
 					System.out.println("found relevant type 3 pattern: " + regex_ngram3_normalizedAndQuoted );
 					//ngramPats.add(regex_ngram3_normalizedAndQuoted);
@@ -1511,7 +1511,7 @@ public class Learner
 				else 
 				{
 					if ( this.processedPatterns.contains( regex_ngram4_normalizedAndQuoted )) {  return ngramPats; } 
-					if ( !( isStopword( attVal1) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram4_quoted, 0.14 ))//0.14
+					if ( !( isStopword( attVal1) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram4_quoted, threshold-0.06 ))//0.14
 					{
 						System.out.println("found relevant type 4 pattern: " + regex_ngram4_normalizedAndQuoted );
 						//ngramPats.add(regex_ngram4_normalizedAndQuoted);
@@ -1521,7 +1521,7 @@ public class Learner
 					else
 					{
 						if ( this.processedPatterns.contains( regex_ngram5_normalizedAndQuoted )) { return ngramPats; } 
-						if ( !( isStopword( attVal0 ) & isStopword( attVal1 ) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram5_quoted, 0.12 ))//0.12
+						if ( !( isStopword( attVal0 ) & isStopword( attVal1 ) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) & isRelevant( regex_ngram5_quoted, threshold-0.08 ))//0.12
 						{
 							System.out.println("found relevant type 5 pattern: " + regex_ngram5_normalizedAndQuoted );
 							//ngramPats.add(regex_ngram5_normalizedAndQuoted);
@@ -1532,7 +1532,7 @@ public class Learner
 				}
 			}
 			if ( this.processedPatterns.contains( regex_ngramA_normalizedAndQuoted )) { return ngramPats; } 
-			if ( !( isStopword( attVal5 ) & isStopword( attVal6 ) | isStopword( attVal4 ) & isStopword( attVal6 ) | isStopword( attVal4 ) & isStopword( attVal5 ) ) & isRelevant( regex_ngramA_quoted, 0.18 ))//0.18
+			if ( !( isStopword( attVal5 ) & isStopword( attVal6 ) | isStopword( attVal4 ) & isStopword( attVal6 ) | isStopword( attVal4 ) & isStopword( attVal5 ) ) & isRelevant( regex_ngramA_quoted, threshold-0-02 ))//0.18
 			{
 				System.out.println( "found relevant type A pattern: " + regex_ngramA_normalizedAndQuoted );
 				//ngramPats.add(regex_ngramA_normalizedAndQuoted);
@@ -1542,7 +1542,7 @@ public class Learner
 			else
 			{
 				if ( this.processedPatterns.contains(regex_ngramB_normalizedAndQuoted )) { return ngramPats; } 
-				if ( !( isStopword( attVal4 ) & isStopword(attVal5) & isStopword( attVal6 ) & isStopword( attVal7 )) & isRelevant( regex_ngramB_quoted, 0.16 ))//0.16
+				if ( !( isStopword( attVal4 ) & isStopword(attVal5) & isStopword( attVal6 ) & isStopword( attVal7 )) & isRelevant( regex_ngramB_quoted, threshold-0.04 ))//0.16
 				{
 					System.out.println( "found relevant type B pattern: " + regex_ngramB_normalizedAndQuoted );
 					//ngramPats.add(regex_ngramB_normalizedAndQuoted);
@@ -1552,7 +1552,7 @@ public class Learner
 				else
 				{
 					if ( this.processedPatterns.contains( regex_ngramC_normalizedAndQuoted )) { return ngramPats; } 
-					if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 )) & isRelevant( regex_ngramC_quoted, 0.14 ))//0.14
+					if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 )) & isRelevant( regex_ngramC_quoted, threshold-0.06 ))//0.14
 					{
 						System.out.println( "found relevant type C pattern: " + regex_ngramC_normalizedAndQuoted );
 						//ngramPats.add(regex_ngramC_normalizedAndQuoted);
@@ -1562,7 +1562,7 @@ public class Learner
 					else
 					{
 						if ( this.processedPatterns.contains( regex_ngramD_normalizedAndQuoted )) { return ngramPats; } 
-						if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 ) & isStopword( attVal9 )) & isRelevant( regex_ngramD_quoted, 0.12 ))//0.12
+						if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 ) & isStopword( attVal9 )) & isRelevant( regex_ngramD_quoted, threshold-0.08 ))//0.12
 						{
 							System.out.println( "found relevant type D pattern: " + regex_ngramD_normalizedAndQuoted );
 							//ngramPats.add(regex_ngramD_normalizedAndQuoted);
@@ -2286,7 +2286,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private HashSet<String[]> induceRelevantPatternsFromArff(String filename) throws FileNotFoundException, IOException
+	private HashSet<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException
 	{	
 		Instances data = getInstances(filename);
 		Instances data_positive = getInstances(data, "True");
@@ -2304,7 +2304,7 @@ public class Learner
 	    	n++;
 	    	//save patterns and output...
 	    	System.out.println("Inducing relevant patterns for instance " + n + " of " + m + " for " + " \"" + filename + "\"");
-	    	patterns.addAll(getRelevantNgramPatterns(curInstance, data));
+	    	patterns.addAll(getRelevantNgramPatterns(curInstance, data, threshold));
 	    	System.out.println("Added all ngram-patterns for instance " + n + " of " + m + " to pattern set");
 	    }
 	    return patterns;
@@ -2314,9 +2314,9 @@ public class Learner
 	 * rest of deprecated and deleted method readArff - delete after having integrated the remaining functionality in calling methods.
 	 * @param path_corpus
 	 */
-	private void readArff(String filename, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
+	private void readArff(String filename, String outputDir, String path_index, String path_corpus, double threshold) throws FileNotFoundException, IOException
 	{
-		HashSet<String[]> ngramPats = induceRelevantPatternsFromArff(filename);
+		HashSet<String[]> ngramPats = induceRelevantPatternsFromArff(filename, threshold);
 	    String dir = path_corpus;
 	    File corpus = new File(dir);
 	    String[] corpus_test = corpus.list();
@@ -2672,16 +2672,16 @@ public class Learner
 		 * @param path_contexts	name of the directory containing the context files
 		 * @param path_arffs	name of the directory containing the arff files
 		 */
-		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, boolean german)
+		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, boolean german, double threshold)
 		{
 			try
 			{
-				Learner learner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, path_contexts, path_arffs, path_output); //TODO: invoke with params for thresholds etc here...
+				Learner learner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, path_contexts, path_arffs, path_output); 
 				Collection<String> initialSeeds = new HashSet<String>();
 				initialSeeds.add(initialSeed);
-				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, constraint_NP, constraint_upperCase, "frequency", -1);
+				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, constraint_NP, constraint_upperCase, "frequency", threshold);
 				learner.reliableInstances.add(initialSeed);
-				learner.bootstrap(path_index, initialSeed, path_train, path_contexts, path_arffs, path_corpus);
+				learner.bootstrap(path_index, initialSeed, path_train, path_contexts, path_arffs, path_corpus, threshold);
 				
 				String allPatternsPath = path_train + File.separator + "allPatterns/";
 				File ap = Paths.get(allPatternsPath).normalize().toFile();
@@ -2795,8 +2795,9 @@ public class Learner
 								"corpus_path" + delimiter + "output_path" + delimiter + "context_path" + delimiter + 
 								"arff_path" + delimiter + "constraint_NP" + delimiter + "constraint_upperCase" + delimiter + 
 								"method" + delimiter + "threshold" + delimiter + "start_time\n";
-			//TODO: SEEDS MAY CONTAIN MULTIPLE WORDS... (if main method is changed accordingly)
-			for( String seed : initialSeeds ) { parameters += seed + " "; }
+			for(String seed : initialSeeds) { parameters += seed + Util.delimiter_internal; }
+			//remove delimiter at the end of the seed list
+			parameters = parameters.substring(0, parameters.length()-Util.delimiter_internal.length());
 			parameters = parameters.trim() + delimiter + path_index + delimiter + path_train + delimiter + path_corpus + 
 						delimiter + path_output + delimiter + path_contexts + delimiter + path_arffs + delimiter + 
 						constraint_NP + delimiter + constraint_upperCase + delimiter + method + delimiter + threshold + delimiter + timestamp;
@@ -2910,10 +2911,10 @@ class OptionHandler {
     @Option(name="-g",usage="if set, use German language (important for tagging and phrase chunking if NP constraint is used)", metaVar="LANG_GERMAN_FLAG")
     private boolean german = false;
     
-    @Option(name="-f",usage="if set, use frequency-based pattern relevance measure (use reliability-based measure else)", metaVar="FREQUENCY_MEASURE")
-    private boolean frequencyMeasure = false;
+    @Option(name="-f",usage="apply frequency-based pattern validation method using the specified threshold", metaVar="FREQUENCY_THRESHOLD")
+    private String frequencyThreshold;
     
-    @Option(name="-r",usage="apply reliability-based pattern validation using the specified threshold", metaVar="RELIABILITY_THRESHOLD")
+    @Option(name="-r",usage="apply reliability-based pattern validation method using the specified threshold", metaVar="RELIABILITY_THRESHOLD")
     private String reliabilityThreshold;
     
     // receives other command line parameters than options
@@ -2993,13 +2994,16 @@ class OptionHandler {
 			if(! tp_contexts.exists()) { tp_contexts.mkdirs(); System.out.println("Created directory " + tp_contexts); }
 			if(! tp_arffs.exists()) { tp_arffs.mkdirs(); System.out.println("Created directory " + tp_arffs); }
 			if(! op.exists()) { op.mkdirs(); System.out.println("Created directory " + op); }
-			//TODO: IMPROVE: SEEDS MAY CONSIST OF MULTIPLE WORDS...
-			String[] seedArray = seeds.split("\\s+");
-			double threshold = Double.parseDouble(reliabilityThreshold);
-			if(! frequencyMeasure)
-			{	Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); }
-			else
-			{ Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintNP, constraintUC, german); }
+			String[] seedArray = seeds.split(Util.delimiter_internal);
+			if(reliabilityThreshold != null)
+			{	
+			    double threshold = Double.parseDouble(reliabilityThreshold);
+			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); 
+			}
+			if(frequencyThreshold != null)
+			{ 
+			    double threshold = Double.parseDouble(frequencyThreshold);
+			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); }
 		}
     }
 }

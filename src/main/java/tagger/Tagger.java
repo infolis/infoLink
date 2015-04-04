@@ -3,15 +3,11 @@ package tagger;
 import java.io.IOException;
 import java.util.ArrayList;
 import patternLearner.Util;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
-import java.io.OutputStream;
 import java.util.HashMap;
 
 
@@ -28,27 +24,21 @@ public class Tagger
 	String chunkCommand;
 	String encoding;
 	String tempFileIn;
-	String tempFileOut;
 	
 	/**
 	 * Class constructor specifying the command for invoking the tagger via command line interface, 
-	 * the command for invoking the phrase chunker via command line interface, the character encoding, 
-	 * a filename for a temporary file used as input for the tagger and a filename for a temporary file 
-	 * for storing the output of the tagger. 
+	 * the command for invoking the phrase chunker via command line interface and the character encoding. 
 	 * 
 	 * @param tagCommand	the command for invoking the tagger via command line interface
 	 * @param chunkCommand	the command for invoking the phrase chunker via command line interface
 	 * @param encoding		the character encoding
-	 * @param tempFileIn	filename for a temporary file used as input for the tagger
-	 * @param tempFileOut	filename for a temporary file for storing the output of the tagger
 	 */
-	public Tagger(String tagCommand, String chunkCommand, String encoding, String tempFileIn, String tempFileOut)
+	public Tagger(String tagCommand, String chunkCommand, String encoding, String tempFileIn)
 	{
 		this.tagCommand = tagCommand;
 		this.chunkCommand = chunkCommand;
 		this.encoding = encoding;
 		this.tempFileIn = tempFileIn;
-		this.tempFileOut = tempFileOut;
 	}
 	
 	/**
@@ -173,17 +163,16 @@ public class Tagger
 	}
 
 	/**
-	 * Generates a map of Chunks from a TreeTagger output file. 
+	 * Generates a map of Chunks from a TreeTagger output string. 
 	 * Keys: phrase tags. Values: phrase chunks
 	 * 
-	 * @param file	TreeTagger output file containing information on phrase chunks
-	 * @return		a map of Chunks representing the information in the TreeTagger output file. Keys: tags, values: a list of Chunks
+	 * @param file	TreeTagger output string containing information on phrase chunks
+	 * @return		a map of Chunks representing the information in the TreeTagger output string. Keys: tags, values: a list of Chunks
 	 * @throws IOException
 	 */
-	public HashMap<String, ArrayList<Chunk>> getPhrases(File file) throws IOException
+	public HashMap<String, ArrayList<Chunk>> getPhrases(String content) throws IOException
 	{
 		HashMap<String,ArrayList<Chunk>> phrases = new HashMap<String, ArrayList<Chunk>>();
-		String content = Util.readFile(file, this.encoding);
 		String[] wordInfoList = content.split(System.getProperty("line.separator"));
 		String curTag = "";
 		ArrayList<TaggedWord> curWords = new ArrayList<TaggedWord>();
@@ -234,25 +223,28 @@ public class Tagger
 		// tagger needs one word per line and punctuation as separate words
 		Util.writeToFile(new File(this.tempFileIn), this.encoding, sentence.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
 		System.out.println("tagging sentence \"" + sentence + "\"");
-		Process p = Runtime.getRuntime().exec("cmd /c " + this.tagCommand + " " + this.tempFileIn + " " + this.tempFileOut);
-		BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-		String line = "";
-		while ((line = br.readLine()) != null) { System.out.println(line); }
-		br.close();
-		return getTaggedSentence(new File(this.tempFileOut));
+		Process p = Runtime.getRuntime().exec(new String[] { this.tagCommand, this.tempFileIn } );
+		InputStream in = new BufferedInputStream( p.getInputStream());
+		InputStreamReader isr = new InputStreamReader(in);
+		BufferedReader buff = new BufferedReader (isr);
+		String output = "";
+		String line;
+		while((line = buff.readLine()) != null) { output += line; }
+		in.close();
+		buff.close();
+		return getTaggedSentence(output);
 	}
 
 	/**
-	 * Extracts a list of TaggedWords from a temporary output file created by the TreeTagger
+	 * Extracts a list of TaggedWords from an output string created by the TreeTagger
 	 * 
-	 * @param file	the temporary TreeTagger output file containing words and their POS-tags
-	 * @return		a list of TaggedWords representing the information in the TreeTagger output file
+	 * @param content	the TreeTagger output string containing words and their POS-tags
+	 * @return		a list of TaggedWords representing the information in the TreeTagger output string
 	 * @throws IOException
 	 */
-	public ArrayList<TaggedWord> getTaggedSentence(File file) throws IOException
+	public ArrayList<TaggedWord> getTaggedSentence(String content) throws IOException
 	{
 		ArrayList<TaggedWord> taggedSentence = new ArrayList<TaggedWord>();
-		String content = Util.readFile(file, this.encoding);
 		String[] wordInfoList = content.split(System.getProperty("line.separator"));
 		for (String wordInfo: wordInfoList)
 		{
@@ -288,15 +280,14 @@ public class Tagger
 
 		Process p = Runtime.getRuntime().exec(new String[] { this.chunkCommand, this.tempFileIn });
 		InputStream in = new BufferedInputStream( p.getInputStream());
-		OutputStream out = new BufferedOutputStream(new FileOutputStream(this.tempFileOut));
-		int cnt;
-		byte[] buffer = new byte[1024];
-		while ( (cnt = in.read(buffer)) != -1) {
-			   out.write(buffer, 0, cnt );
-			}
+		InputStreamReader isr = new InputStreamReader(in);
+		BufferedReader buff = new BufferedReader (isr);
+		String output = "";
+		String line;
+		while((line = buff.readLine()) != null) { output += line; }
 		in.close();
-		out.close();
-		return getPhrases(new File(this.tempFileOut));
+		buff.close();
+		return getPhrases(output);
 	}
 	
 	/**
@@ -307,13 +298,12 @@ public class Tagger
 	 */
 	public static void main(String[] args) throws IOException
 	{
-		if (args.length < 6) {
+		if (args.length < 5) {
 			System.out.println("Usage: Tagger <tagCommand> <chunkCommand> <encoding> <tempFileIn> <tempFileOut> <input>");
 			System.out.println("	<tagCommand>	(example 'c:/TreeTagger/bin/tag-english')");
 			System.out.println("	<chunkCommand>	(example 'c:/TreeTagger/bin/chunk-english')");
 			System.out.println("	<encoding>	(example 'utf-8')");
 			System.out.println("	<tempFileIn>	(example 'data/tempTagFileIn')");
-			System.out.println("	<tempFileOut>	(example 'data/tempTagFileOut')");
 			System.out.println("	<input>	input");
 			System.exit(1);
 		}
@@ -321,10 +311,10 @@ public class Tagger
 		String chunkCommand = args[1];//"c:/TreeTagger/bin/chunk-english"
 		String encoding = args[2];//"utf-8"
 		String tempFileIn = args[3];//"data/tempTagFileIn"
-		String tempFileOut = args[4];//"data/tempTagFileOut"
-		String input = args[5];
-		Tagger tagger = new Tagger(tagCommand, chunkCommand, encoding, tempFileIn, tempFileOut);
+		String input = args[4];
+		Tagger tagger = new Tagger(tagCommand, chunkCommand, encoding, tempFileIn);
 		System.out.println(tagger.chunk(input));
 		System.out.println(tagger.tag(input));
 	}
 }
+

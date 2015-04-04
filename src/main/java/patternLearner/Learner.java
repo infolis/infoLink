@@ -1292,7 +1292,7 @@ public class Learner
 				if (this.chunkingCmd != null)
 				{
 					Tagger tagger;
-					try { tagger = new Tagger(this.taggingCmd, this.chunkingCmd, "utf-8", "data/tempTagFileIn", "data/tempTagFileOut"); }
+					try { tagger = new Tagger(this.taggingCmd, this.chunkingCmd, "utf-8", "data/tempTagFileIn"); }
 					catch (Exception e) { e.printStackTrace(); throw new IOException("\nerror initializing tagger\n"); }
 					ArrayList<Tagger.Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
 					containedInNP = false;

@@ -23,7 +23,6 @@ public class Tagger
 	String tagCommand;
 	String chunkCommand;
 	String encoding;
-	String tempFileIn;
 	
 	/**
 	 * Class constructor specifying the command for invoking the tagger via command line interface, 
@@ -33,12 +32,11 @@ public class Tagger
 	 * @param chunkCommand	the command for invoking the phrase chunker via command line interface
 	 * @param encoding		the character encoding
 	 */
-	public Tagger(String tagCommand, String chunkCommand, String encoding, String tempFileIn)
+	public Tagger(String tagCommand, String chunkCommand, String encoding)
 	{
 		this.tagCommand = tagCommand;
 		this.chunkCommand = chunkCommand;
 		this.encoding = encoding;
-		this.tempFileIn = tempFileIn;
 	}
 	
 	/**
@@ -197,7 +195,6 @@ public class Tagger
 				{
 					if (curTag.equals("")) { continue; }
 					String[] infoParts = wordInfo.split("\t");
-					System.out.println("word info: " + wordInfo);
 					// ignore lemmata - not needed here
 					TaggedWord taggedWord = new TaggedWord(infoParts[0], infoParts[1]);
 					curWords.add(taggedWord);
@@ -223,9 +220,9 @@ public class Tagger
 	public ArrayList<TaggedWord> tag(String sentence) throws IOException
 	{
 		// tagger needs one word per line and punctuation as separate words
-		Util.writeToFile(new File(this.tempFileIn), this.encoding, sentence.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
+		//Util.writeToFile(new File(this.tempFileIn), this.encoding, sentence.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
 		System.out.println("tagging sentence \"" + sentence + "\"");
-		Process p = Runtime.getRuntime().exec(new String[] { this.tagCommand, this.tempFileIn } );
+		Process p = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "echo \"" + sentence + "\" | " + this.tagCommand } );
 		InputStream in = new BufferedInputStream( p.getInputStream());
 		InputStreamReader isr = new InputStreamReader(in);
 		BufferedReader buff = new BufferedReader (isr);
@@ -277,10 +274,10 @@ public class Tagger
 	public HashMap<String, ArrayList<Chunk>> chunk(String string) throws IOException
 	{
 		// tagger needs one word per line and punctuation as separate words
-		Util.writeToFile(new File(this.tempFileIn),"utf-8", string.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
+		//Util.writeToFile(new File(this.tempFileIn),"utf-8", string.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
 		System.out.println("tagging \"" + string + "\"");
 
-		Process p = Runtime.getRuntime().exec(new String[] { this.chunkCommand, this.tempFileIn });
+		Process p = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c", "echo \"" + string + "\" | " + this.chunkCommand });
 		InputStream in = new BufferedInputStream( p.getInputStream());
 		InputStreamReader isr = new InputStreamReader(in);
 		BufferedReader buff = new BufferedReader (isr);
@@ -289,7 +286,6 @@ public class Tagger
 		while((line = buff.readLine()) != null) { output += System.getProperty("line.separator") + line; }
 		in.close();
 		buff.close();
-		System.out.println(output.trim());
 		return getPhrases(output.trim());
 	}
 	
@@ -301,21 +297,19 @@ public class Tagger
 	 */
 	public static void main(String[] args) throws IOException
 	{
-		if (args.length < 5) {
-			System.out.println("Usage: Tagger <tagCommand> <chunkCommand> <encoding> <tempFileIn> <tempFileOut> <input>");
-			System.out.println("	<tagCommand>	(example 'c:/TreeTagger/bin/tag-english')");
-			System.out.println("	<chunkCommand>	(example 'c:/TreeTagger/bin/chunk-english')");
+		if (args.length < 4) {
+			System.out.println("Usage: Tagger <tagCommand> <chunkCommand> <encoding> <input>");
+			System.out.println("	<tagCommand>	(example 'tree-tagger-german')");
+			System.out.println("	<chunkCommand>	(example 'tagger-chunker-german')");
 			System.out.println("	<encoding>	(example 'utf-8')");
-			System.out.println("	<tempFileIn>	(example 'data/tempTagFileIn')");
 			System.out.println("	<input>	input");
 			System.exit(1);
 		}
-		String tagCommand = args[0];//"c:/TreeTagger/bin/tag-english"
-		String chunkCommand = args[1];//"c:/TreeTagger/bin/chunk-english"
-		String encoding = args[2];//"utf-8"
-		String tempFileIn = args[3];//"data/tempTagFileIn"
-		String input = args[4];
-		Tagger tagger = new Tagger(tagCommand, chunkCommand, encoding, tempFileIn);
+		String tagCommand = args[0];
+		String chunkCommand = args[1];
+		String encoding = args[2];
+		String input = args[3];
+		Tagger tagger = new Tagger(tagCommand, chunkCommand, encoding);
 		System.out.println(tagger.chunk(input));
 		System.out.println(tagger.tag(input));
 	}

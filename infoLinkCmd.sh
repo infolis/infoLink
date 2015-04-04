@@ -23,19 +23,22 @@ CHUNKING_CMD="tagger-chunker-german"
 
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns
 # use ALLBUS, Eurobarometer, and NHANES as seeds
-# apply reliability-based pattern validity assessment with threshold of 0.7
+## apply reliability-based pattern validity assessment with threshold of 0.5
 # apply frequency-based pattern validity assessment with threshold of 0.24 
-# use uppercase and NP constraints
+# use uppercase constraint
+# #use NP constraint
+# restrict maximum number of iterations to 3
 python $PYTHON_SRC/infoLink.py \
     -C "build/classes/main/:$INSTALL_DIR/lib/*" \
     -e "../data/test/small_txt" \
     -c "../data/test/small" \
-    -l "../data/test/train_small_H" \
-    -o "../data/test/output_small_H" \
+    -l "../data/test/train_small" \
+    -o "../data/test/output_small" \
     -s "ALLBUS--@--Eurobarometer--@--NHANES" \
     -i "../data/test/Index_small" \
     -m "../data/test/urnDict.csv" \
     -f "0.24" \
+    # -r "0.5"
     # -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
     --maxN 3 \
     -u \

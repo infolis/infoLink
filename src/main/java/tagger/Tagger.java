@@ -3,9 +3,15 @@ package tagger;
 import java.io.IOException;
 import java.util.ArrayList;
 import patternLearner.Util;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
+import java.io.OutputStream;
 import java.util.HashMap;
 
 
@@ -279,11 +285,17 @@ public class Tagger
 		// tagger needs one word per line and punctuation as separate words
 		Util.writeToFile(new File(this.tempFileIn),"utf-8", string.replaceAll("(\\p{Punct})", "$1 ").replaceAll("\\s+", System.getProperty("line.separator")), false);
 		System.out.println("tagging \"" + string + "\"");
-		Process p = Runtime.getRuntime().exec("cmd /c " + this.chunkCommand + " " + this.tempFileIn + " " + this.tempFileOut);
-		BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-		String line = "";
-		while ((line = br.readLine()) != null) { System.out.println(line); }
-		br.close();
+
+		Process p = Runtime.getRuntime().exec(new String[] { this.chunkCommand, this.tempFileIn });
+		InputStream in = new BufferedInputStream( p.getInputStream());
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(this.tempFileOut));
+		int cnt;
+		byte[] buffer = new byte[1024];
+		while ( (cnt = in.read(buffer)) != -1) {
+			   out.write(buffer, 0, cnt );
+			}
+		in.close();
+		out.close();
 		return getPhrases(new File(this.tempFileOut));
 	}
 	

@@ -68,11 +68,13 @@ public class Learner
 	// basePath is used for normalizing path names when searching for known dataset names
 	// should point to the path of the input text corpus
 	Path basePath;
-	boolean constraint_NP;
 	boolean constraint_upperCase;
+	String taggingCmd;
+	String chunkingCmd;
 	String language;
 	String corpusPath;
 	String indexPath;
+	String trainPath;
 	String contextPath;
 	String arffPath;
 	String outputPath;
@@ -85,19 +87,20 @@ public class Learner
 	 * @param constraint_upperCase	if set, references are only accepted if dataset name has at least one upper case character
 	 * 
 	 */
-	public Learner(boolean constraint_NP, boolean constraint_upperCase, boolean german, String corpusPath, String indexPath, String contextPath, String arffPath, String outputPath)
+	public Learner(String taggingCmd, String chunkingCmd, boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath)
 	{
 		this.processedSeeds = new HashSet<String>();
 		this.foundSeeds_iteration = new HashSet<String>();
 		this.foundPatterns_iteration = new HashSet<String>();
 		this.reliablePatterns_iteration = new HashSet<String>();
 		this.processedPatterns = new HashSet<String>();
-		this.constraint_NP = constraint_NP;
 		this.constraint_upperCase = constraint_upperCase;
-		if (german) { this.language = "de"; } else { this.language = "en"; }
+		this.taggingCmd = taggingCmd;
+		this.chunkingCmd = chunkingCmd;
 		this.corpusPath = corpusPath;
 		this.basePath = Paths.get(corpusPath);
 		this.indexPath = indexPath;
+		this.trainPath = trainPath;
 		this.contextPath = contextPath;
 		this.arffPath = arffPath;
 		this.outputPath = outputPath;
@@ -405,19 +408,17 @@ public class Learner
 	 * 
 	 * Method for assessing pattern validity is frequency-based.
 	 * 
-	 * @param indexDirectory	name of the directory containing the lucene index to be searched
 	 * @param seed				the term to be searched as starting point in the current iteration
-	 * @param outputDirectory	path of the output directory
-	 * @param contextDirName	path of the directory containing all context files
-	 * @param arffDirName		path of the directory containing all arff files
-	 * @param corpusDirectory	name of the directory containing the text corpus
+	 * @param threshold			threshold for accepting patterns
+	 * @param maxIterations		maximum number of iterations for algorithm
+	 *
 	 */
-	private void bootstrap(String indexDirectory, String seed, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, double threshold)
+	private void bootstrap_frequency(String seed, double threshold, int maxIterations)
 	{
-		File contextDir = new File(contextDirName);
+		File contextDir = new File(this.contextPath);
     	String[] contextFiles = contextDir.list();
     	List<String> contextFileList = Arrays.asList(contextFiles);
-    	File arffDir = new File(arffDirName);
+    	File arffDir = new File(this.arffPath);
     	String[] arffFiles = arffDir.list();
     	List<String> arffFileList = Arrays.asList(arffFiles);
     	String seedEscaped = Util.escapeSeed(seed);
@@ -430,17 +431,17 @@ public class Learner
 			if (!contextFileList.contains(filenameContext))
 			{
 				// if no cache files exist, search in corpus and generate contexts
-				getContextsForSeed(indexDirectory, seed, contextDirName + File.separator + filenameContext);
+				getContextsForSeed(this.indexPath, seed, this.contextPath + File.separator + filenameContext);
 			}
-			TrainingSet trainingSet = new TrainingSet(new File(contextDirName + File.separator + filenameContext));
-			trainingSet.createTrainingSet("True", arffDirName + File.separator + filenameArff);
+			TrainingSet trainingSet = new TrainingSet(new File(this.contextPath + File.separator + filenameContext));
+			trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff);
 		}
 		//3. generate patterns
 		//4. search for patterns in corpus: 
 		try 
 		{ 
 			//TODO: separate steps, replace old readArff method
-			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory, threshold); 
+			readArff(this.arffPath + File.separator + filenameArff, this.trainPath, this.indexPath, this.corpusPath, threshold); 
 			this.processedSeeds.add(seed); 
 		}
 		catch (IOException e) { e.printStackTrace(); System.exit(1); }
@@ -450,10 +451,10 @@ public class Learner
 		//this.foundPatterns_iteration = new HashSet<String>();
 		
 		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration2").normalize().toFile();
+		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		//bootstrapBL2 (indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, 0);
-		bootstrapBL4 ( indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, 0, threshold);
+		bootstrapBL4 ( this.indexPath, newSeeds, nextIterPath.toString(), this.contextPath, this.arffPath, this.corpusPath, 0, threshold, maxIterations);
 	}
 	
 	/**
@@ -472,9 +473,9 @@ public class Learner
 	 * @param seeds				reliable terms to be searched as starting point
 	 * @param threshold			reliability threshold
 	 **/
-	private void bootstrap(Collection<String> seeds, double threshold)
+	private void bootstrap(Collection<String> seeds, double threshold, int maxIterations)
 	{
-		bootstrap_reliabilityBased(seeds, threshold, -1);
+		bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
 	}
 	
 	/**
@@ -496,7 +497,7 @@ public class Learner
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
 		try { readArff(outputDirectory + File.separator + "all.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 6) { return; } //TODO: MAX NUM ITER AS PARAM OR CLASS VAL
+		if (numIter == 3) { return; } //TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
@@ -522,7 +523,7 @@ public class Learner
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
 		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 6) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
+		if (numIter == 3) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
@@ -548,7 +549,7 @@ public class Learner
 		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
 		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
 		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 6) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
+		if (numIter == 3) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
@@ -568,7 +569,7 @@ public class Learner
 	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
 	 */
-	private void bootstrapBL4 ( String indexDirectory, Collection<String> terms, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, int numIter, double threshold)
+	private void bootstrapBL4(String indexDirectory, Collection<String> terms, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, int numIter, double threshold, int maxIterations)
 	{
 		this.foundSeeds_iteration = new HashSet<String>();
 		numIter ++;
@@ -628,10 +629,10 @@ public class Learner
 		}
 		catch (IOException ioe) { ioe.printStackTrace(); System.exit(1);}
 		//TODO: NUMITER...
-		if (numIter == 9) { System.out.println("Reached maximum number of iterations! Returning."); return; }
+		if (numIter == maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter, threshold);
+		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter, threshold, maxIterations);
 	}
 	
 	/**
@@ -641,7 +642,7 @@ public class Learner
 	 * @param threshold	reliability threshold
 	 * @param numIter	current iteration
 	 */
-	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter)
+	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter, int maxIter)
 	{
 		numIter ++;
 		System.out.println("Bootstrapping... Iteration: " + numIter);
@@ -689,8 +690,8 @@ public class Learner
 		catch( IOException ioe ) { ioe.printStackTrace(); }
 		//TODO: USE DIFFERENT STOP CRITERION: continue until patterns stable...
 		//TODO: NUM ITER...
-		if(numIter == 9) { System.out.println("Reached maximum number of iterations! Returning."); return; }
-		bootstrap_reliabilityBased(this.foundSeeds_iteration, threshold, numIter);
+		if(numIter == maxIter - 1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
+		bootstrap_reliabilityBased(this.foundSeeds_iteration, threshold, numIter, maxIter);
 	}
 	
 	private String getString_reliablePatternOutput( HashMap<String, ArrayList<String[]>> patternsAndContexts, int iteration )
@@ -1192,7 +1193,7 @@ public class Learner
 	 * Searches all regex in <emph>patternSet</emph> in the specified text file <emph>filenameIn</emph> 
 	 * and writes all matches to the file <emph>filenameOut</emph>. 
 	 * 
-	 * Creates file data/output/abortedMatches.txt to log all documents where matching 
+	 * Creates file data/abortedMatches.txt to log all documents where matching 
 	 * was aborted in suspicion of catastrophic backtracking
 	 * 
 	 * @param patternSet	set of regular expressions for searching
@@ -1247,7 +1248,7 @@ public class Learner
 			boolean matchFound = false;
 			// if thread was aborted due to long processing time, matchFound should be false
 			if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
-			else { Util.writeToFile( new File( "data/output/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+			else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 			
 			while(matchFound)
 			{
@@ -1264,7 +1265,7 @@ public class Learner
 					matchFound = false;
 					// if thread was aborted due to long processing time, matchFound should be false
 					if(threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
-					else { Util.writeToFile(new File("data/output/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true); }
+					else { Util.writeToFile(new File("data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true); }
 					System.out.println( "Processing new match..." );
 					continue;
 				}
@@ -1281,19 +1282,18 @@ public class Learner
 						matchFound = false;
 						// if thread was aborted due to long processing time, matchFound should be false
 						if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
-						else { Util.writeToFile( new File( "data/output/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+						else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 						System.out.println("Processing new match...");
 						continue;
 					} 
 				}
 				
 				boolean containedInNP;
-				if (constraint_NP)
+				if (this.chunkingCmd != null)
 				{
 					//TODO: SPECIFY TAGGING COMMANDS SOMEWHERE ELSE!!!
 					Tagger tagger;
-					if (this.language.equals("de")) { tagger = new Tagger("c:/TreeTagger/bin/tag-german", "c:/TreeTagger/bin/chunk-german", "utf-8", "data/tempTagFileIn", "data/tempTagFileOut");}
-					else { tagger = new Tagger("c:/TreeTagger/bin/tag-english", "c:/TreeTagger/bin/chunk-english", "utf-8", "data/tempTagFileIn", "data/tempTagFileOut"); }
+					tagger = new Tagger(this.taggingCmd, this.chunkingCmd, "utf-8", "data/tempTagFileIn", "data/tempTagFileOut");
 					
 					ArrayList<Tagger.Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
 					containedInNP = false;
@@ -1327,7 +1327,7 @@ public class Learner
 				matchFound = false;
 				// if thread was aborted due to long processing time, matchFound should be false
 				if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
-				else { Util.writeToFile(new File("data/output/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+				else { Util.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 				System.out.println( "Processing new match...");
 			}
 		}
@@ -2472,7 +2472,7 @@ public class Learner
 						
 						else
 						{
-							Util.writeToFile(new File( "data/output/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
+							Util.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
 						}
 						
 						while (matchFound)
@@ -2499,7 +2499,7 @@ public class Learner
 							
 							else
 							{
-								Util.writeToFile(new File("data/output/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
+								Util.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
 							}
 							System.out.println("Processing new match...");
 						}
@@ -2526,7 +2526,7 @@ public class Learner
 		 * @param constraint_NP					if set, only dataset names occuring inside a noun phrase are accepted
 		 * @param constraint_upperCase			if set, only dataset names having at least one upper case character are accepted
 		 */
-		public static void searchForTerms(String path_output, String path_corpus, String path_index, String path_knownTitles, String filename_knownTitlesMentions, boolean constraint_NP, boolean constraint_upperCase, boolean german)
+		public static void searchForTerms(String path_output, String path_corpus, String path_index, String path_knownTitles, String filename_knownTitlesMentions, boolean constraint_upperCase, String taggingCmd, String chunkingCmd)
 		{	
 			// list previously processed files to allow pausing and resuming of testing operation
 			HashSet<String> processedFiles = new HashSet<String>();
@@ -2567,7 +2567,7 @@ public class Learner
 		    }
 
 		    // need new Learner instance for each task - else, previously processed patterns will not be processed again!
-		    Learner newLearner2 = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, "", "", path_output);
+		    Learner newLearner2 = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output);
 		    	
 		    // get refs for known unambiguous studies
 		    // read study names from file
@@ -2607,7 +2607,7 @@ public class Learner
 		 * @param constraint_NP					if set, only dataset names occuring inside a noun phrase are accepted
 		 * @param constraint_upperCase			if set, only dataset names having at least one upper case character are accepted
 		 */
-		public static void useExistingPatterns(String path_patterns, String path_output, String path_corpus, String path_index, boolean constraint_NP, boolean constraint_upperCase, boolean german)
+		public static void useExistingPatterns(String path_patterns, String path_output, String path_corpus, String path_index, boolean constraint_upperCase, String taggingCmd, String chunkingCmd)
 		{
 			// load saved patterns
 			HashSet<String> patternSet1;
@@ -2651,7 +2651,7 @@ public class Learner
 		    	    }
 		    	}
 		    // need new Learner instance for each task - else, previously processed patterns will not be processed again
-		    Learner newLearner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, "", "", path_output);
+		    Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output);
 		    ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1,corpus_test,path_output);
 		    String[] filenames_grams = new String[3];		
 			filenames_grams[0] = path_output + File.separator + "datasets_patterns.csv";
@@ -2672,16 +2672,16 @@ public class Learner
 		 * @param path_contexts	name of the directory containing the context files
 		 * @param path_arffs	name of the directory containing the arff files
 		 */
-		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, boolean german, double threshold)
+		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations)
 		{
 			try
 			{
-				Learner learner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, path_contexts, path_arffs, path_output); 
+				Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
 				Collection<String> initialSeeds = new HashSet<String>();
 				initialSeeds.add(initialSeed);
-				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, constraint_NP, constraint_upperCase, "frequency", threshold);
+				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency", threshold);
 				learner.reliableInstances.add(initialSeed);
-				learner.bootstrap(path_index, initialSeed, path_train, path_contexts, path_arffs, path_corpus, threshold);
+				learner.bootstrap_frequency(initialSeed, threshold, maxIterations);
 				
 				String allPatternsPath = path_train + File.separator + "allPatterns/";
 				File ap = Paths.get(allPatternsPath).normalize().toFile();
@@ -2731,8 +2731,8 @@ public class Learner
 		    	HashSet<String> corpus_test_list = new HashSet<String>();
 		    	for (int i=0; i<corpus_complete.length; i++) {
 		    	    // Get filename of file or directory
-		    	    if ( !processedFiles.contains(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath().toLowerCase())) 
-		    	    { corpus_test_list.add(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath().toLowerCase()); }
+		    	    if ( !processedFiles.contains(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath())) 
+		    	    { corpus_test_list.add(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath()); }
 		    	}
 		    	String[] corpus_test = new String[corpus_test_list.size()];
 		    	corpus_test_list.toArray(corpus_test);
@@ -2750,7 +2750,7 @@ public class Learner
 		    	}
 
 		    	// need new Learner instance - else, previously processed patterns will not be processed again
-		    	Learner newLearner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, path_contexts, path_arffs, path_output );
+		    	Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output );
 		    	ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(learner.processedPatterns, corpus_test);
 		    	newLearner.output_distinct(resNgrams1, filenames_grams, true);
 			}
@@ -2770,12 +2770,12 @@ public class Learner
 		 * @param path_contexts	name of the directory containing the context files
 		 * @param path_arffs	name of the directory containing the arff files
 		 */
-		public static void learn(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, boolean german, double threshold)
+		public static void learn(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations)
 		{
-			Learner learner = new Learner(constraint_NP, constraint_upperCase, german, path_corpus, path_index, path_contexts, path_arffs, path_output); 
-			learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, constraint_NP, constraint_upperCase, "reliability", threshold);
+			Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
+			learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "reliability", threshold);
 			learner.reliableInstances.addAll(initialSeeds);
-			learner.bootstrap(initialSeeds, threshold);
+			learner.bootstrap(initialSeeds, threshold, maxIterations);
 			learner.outputReliableReferences();
 		}
 		
@@ -2902,20 +2902,20 @@ class OptionHandler {
     @Option(name="-o",usage="output to this directory", metaVar="OUTPUT_PATH", required = true)
     private String outputPath;
 
-    @Option(name="-n",usage="if set, use NP constraint", metaVar="CONSTRAINT_NP_FLAG")
-    private boolean constraintNP = false;
+    @Option(name="-n",usage="if set, use NP constraint with the specified tree tagger arguments TAGGER_ARGS", metaVar="TAGGER_ARGS")
+    private String taggerArgs = null;
     
     @Option(name="-u",usage="if set, use upper-case constraint", metaVar="CONSTRAINT_UC_FLAG")
     private boolean constraintUC = false;
-    
-    @Option(name="-g",usage="if set, use German language (important for tagging and phrase chunking if NP constraint is used)", metaVar="LANG_GERMAN_FLAG")
-    private boolean german = false;
     
     @Option(name="-f",usage="apply frequency-based pattern validation method using the specified threshold", metaVar="FREQUENCY_THRESHOLD")
     private String frequencyThreshold;
     
     @Option(name="-r",usage="apply reliability-based pattern validation method using the specified threshold", metaVar="RELIABILITY_THRESHOLD")
     private String reliabilityThreshold;
+    
+    @Option(name="-N",usage="sets the maximum number of iterations to MAX_ITERATIONS. If not set, defaults to 4.", metaVar="MAX_ITERATIONS")
+    private int maxIterations = 4;
     
     // receives other command line parameters than options
     @Argument
@@ -2956,6 +2956,13 @@ class OptionHandler {
         for( String s : arguments )
             System.out.println(s);
         */
+        String taggingCmd = null;
+        String chunkingCmd = null;
+        if(taggerArgs != null) {
+        	String[] taggerArgList = taggerArgs.split(Util.delimiter_internal);
+        	taggingCmd = taggerArgList[0];
+        	chunkingCmd = taggerArgList[1];
+        }
         
         // call Learner.learn method with appropriate options
 		HashSet<String> pathSet = new HashSet<String>();
@@ -2980,8 +2987,8 @@ class OptionHandler {
 				// create output path if not existent
 				File op = Paths.get(outputPath + File.separator + basePath + File.separator).normalize().toFile();
 				if(!op.exists()) { op.mkdirs(); System.out.println("Created directory " + op); }
-				if(patternPath != null) { Learner.useExistingPatterns(patternPath, outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, constraintNP, constraintUC, german); }
-				if(termsPath != null) { Learner.searchForTerms(outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, termsPath, termsOut, constraintNP, constraintUC, german); }
+				if(patternPath != null) { Learner.useExistingPatterns(patternPath, outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, constraintUC, taggingCmd, chunkingCmd); }
+				if(termsPath != null) { Learner.searchForTerms(outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, termsPath, termsOut, constraintUC, taggingCmd, chunkingCmd); }
 			}
 		}
 		
@@ -2998,12 +3005,12 @@ class OptionHandler {
 			if(reliabilityThreshold != null)
 			{	
 			    double threshold = Double.parseDouble(reliabilityThreshold);
-			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); 
+			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIterations); 
 			}
 			if(frequencyThreshold != null)
 			{ 
 			    double threshold = Double.parseDouble(frequencyThreshold);
-			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintNP, constraintUC, german, threshold); }
+			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIterations); }
 		}
     }
 }

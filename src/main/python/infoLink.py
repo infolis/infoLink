@@ -20,12 +20,12 @@ parser.add_option("-e", "--extract", dest="extract", help="extract text from COR
 parser.add_option("-i", "--index", dest="index", help="use / generate this Lucene Index for documents in corpus", metavar="INDEX")
 parser.add_option("-s", "--seed", dest="seed", help="learn extraction patterns using this seed", metavar = "SEED")
 parser.add_option("-t", "--terms", dest="terms", help="apply term search for dataset names listed in this file", metavar = "TERMS_FILENAME")
-parser.add_option("-n", "--npConstraint", action="store_true", dest="np", help="if set, use NP constraint")
+parser.add_option("-n", "--npConstraint", dest="np", help="if set, use NP constraint with the specified tree tagger arguments TAGGER_ARGS", metavar="TAGGER_ARGS")
 parser.add_option("-u", "--ucConstraint", action="store_true", dest="uc", help="if set, use upper-case constraint")
 parser.add_option("-m", "--idMapPath", dest="idMapPath", help="use csv file ID_MAP_PATH to retrieve ID of documents in corpus", metavar="ID_MAP_PATH")
-parser.add_option("-g", "--german", action="store_true", dest="german", help="if set, use language german, use english else", metavar="LANG_GERMAN")
 parser.add_option("-f", "--frequency", dest="frequency", help="use frequency-based measure for pattern validation with the specified threshold", metavar="FREQUENCY_THRESHOLD")
 parser.add_option("-r", "--reliability", dest="reliability", help="use reliability-based measure for pattern validation with the specified threshold", metavar = "RELIABILITY_THRESHOLD")
+parser.add_option("-N", "--maxN", dest="maxN", help="set the maximum number of iterations (default: 4)", metavar = "MAX_ITERATIONS")
 parser.add_option("-C", "--javaClassPath", dest="classpath", help="Set the java classpath", metavar="CLASSPATH")
 
 options, args = parser.parse_args()
@@ -104,17 +104,13 @@ p.wait()
 flags = []
 if options.uc:
     flags.append("-u")
-if options.np:
-    flags.append("-n")
-if options.german:
-    flags.append("-g")
 
 #construct option string from options and corresponding values to pass over to learner
 optionStr = []
 optionDict = vars(options)
-learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r", "frequency" : "-f"}
+learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r", "frequency" : "-f", "np": "-n", "maxN" : "-N"}
 for item in optionDict.items():
-    if item[0] == "uc" or item[0] == "np" or item[0] == "german":
+    if item[0] == "uc":
         pass
     elif item[1]:
         try:

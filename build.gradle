@@ -4,7 +4,7 @@ apply plugin: 'application'
 apply plugin: 'java'
 
 version =  1.0
-sourceCompatibility = 1.5
+sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
@@ -21,6 +21,7 @@ dependencies {
     compile 'args4j:args4j:2.0.29'
     compile 'org.jsoup:jsoup:1.8.1'
     compile 'org.apache.commons:commons-lang3:3.0'
+    compile 'junit:junit:4.4'
 }
 
 task copyPython(type:Copy) {
@@ -72,5 +73,6 @@ createScript('patternLearner.Learner', 'Learner')
 createScript('patternLearner.ExampleReader', 'ExampleReader')
 createScript('patternLearner.ContextMiner', 'ContextMiner')
 createScript('patternLearner.StudyMatcher', 'StudyMatcher')
+createScript('junittest.LeanerTest', 'LearnerTest')
 
 // vim: ft=groovy:

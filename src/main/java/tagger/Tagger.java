@@ -195,7 +195,9 @@ public class Tagger
 				else if ( wordInfo.startsWith("<") & wordInfo.endsWith(">") ) { curTag = wordInfo; }
 				else
 				{
+					if (curTag.equals("")) { continue; }
 					String[] infoParts = wordInfo.split("\t");
+					System.out.println("word info: " + wordInfo);
 					// ignore lemmata - not needed here
 					TaggedWord taggedWord = new TaggedWord(infoParts[0], infoParts[1]);
 					curWords.add(taggedWord);
@@ -229,10 +231,10 @@ public class Tagger
 		BufferedReader buff = new BufferedReader (isr);
 		String output = "";
 		String line;
-		while((line = buff.readLine()) != null) { output += line; }
+		while((line = buff.readLine()) != null) { output += System.getProperty("line.separator") + line; }
 		in.close();
 		buff.close();
-		return getTaggedSentence(output);
+		return getTaggedSentence(output.trim());
 	}
 
 	/**
@@ -284,10 +286,11 @@ public class Tagger
 		BufferedReader buff = new BufferedReader (isr);
 		String output = "";
 		String line;
-		while((line = buff.readLine()) != null) { output += line; }
+		while((line = buff.readLine()) != null) { output += System.getProperty("line.separator") + line; }
 		in.close();
 		buff.close();
-		return getPhrases(output);
+		System.out.println(output.trim());
+		return getPhrases(output.trim());
 	}
 	
 	/**

@@ -13,7 +13,7 @@
 # -t = apply term search for dataset names listed in this file
 # -f = use frequency-based measure for pattern validity assessment with specified threshold
 # -r = use reliability-based measure for pattern validity assessment with specified threshold
-# -maxN = maximum number of iterations
+# -N = maximum number of iterations
 
 PYTHON_SRC="src/main/python"
 DIR_NAME=${PWD##*/} 
@@ -23,11 +23,11 @@ CHUNKING_CMD="tagger-chunker-german"
 
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns
 # use ALLBUS, Eurobarometer, and NHANES as seeds
-## apply reliability-based pattern validity assessment with threshold of 0.5
+# apply reliability-based pattern validity assessment with threshold of 0.5: use  -r "0.5" \
 # apply frequency-based pattern validity assessment with threshold of 0.24 
 # use uppercase constraint
-# #use NP constraint
-# restrict maximum number of iterations to 3
+# use NP constraint: add  -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
+# restrict maximum number of iterations to 2
 python $PYTHON_SRC/infoLink.py \
     -C "build/classes/main/:$INSTALL_DIR/lib/*" \
     -e "../data/test/small_txt" \
@@ -38,8 +38,6 @@ python $PYTHON_SRC/infoLink.py \
     -i "../data/test/Index_small" \
     -m "../data/test/urnDict.csv" \
     -f "0.24" \
-    # -r "0.5"
-    # -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
-    --maxN 3 \
-    -u \
+    -N "2" \
+    -u 
 

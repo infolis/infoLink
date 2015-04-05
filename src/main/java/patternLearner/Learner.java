@@ -629,7 +629,7 @@ public class Learner
 		}
 		catch (IOException ioe) { ioe.printStackTrace(); System.exit(1);}
 		//TODO: NUMITER...
-		if (numIter == maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
+		if (numIter >= maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter, threshold, maxIterations);
@@ -2914,7 +2914,8 @@ class OptionHandler {
     private String reliabilityThreshold;
     
     @Option(name="-N",usage="sets the maximum number of iterations to MAX_ITERATIONS. If not set, defaults to 4.", metaVar="MAX_ITERATIONS")
-    private int maxIterations = 4;
+    //private String maxIterations = "1";
+    private String maxIterations;
     
     // receives other command line parameters than options
     @Argument
@@ -2962,6 +2963,8 @@ class OptionHandler {
         	taggingCmd = taggerArgList[0];
         	chunkingCmd = taggerArgList[1];
         }
+        int maxIter = 4;
+        if (maxIterations != null) maxIter = Integer.valueOf(maxIterations);
         
         // call Learner.learn method with appropriate options
 		HashSet<String> pathSet = new HashSet<String>();
@@ -3004,12 +3007,12 @@ class OptionHandler {
 			if(reliabilityThreshold != null)
 			{	
 			    double threshold = Double.parseDouble(reliabilityThreshold);
-			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIterations); 
+			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter); 
 			}
 			if(frequencyThreshold != null)
 			{ 
 			    double threshold = Double.parseDouble(frequencyThreshold);
-			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIterations); }
+			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter); }
 		}
     }
 }

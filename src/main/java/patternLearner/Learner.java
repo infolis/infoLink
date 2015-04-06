@@ -341,22 +341,16 @@ public class Learner
 	 * @param filename	name of the file listing all seeds
 	 * @return			a set of all seeds contained in the file
 	 */
-	public HashSet<String> getSeeds(String filename) 
+	public HashSet<String> getSeeds(String filename) throws IOException
 	{
 		HashSet<String> seedList = new HashSet<String>();
-		try
-		{
-			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filename)), "UTF8");
-			BufferedReader reader = new BufferedReader(isr);
-		    String text = null;
-		    while ((text = reader.readLine()) != null) {
-		    	  seedList.add(new String(text).trim());
-		    }
-		    reader.close();
+		InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filename)), "UTF8");
+		BufferedReader reader = new BufferedReader(isr);
+		String text = null;
+		while ((text = reader.readLine()) != null) {
+			seedList.add(new String(text).trim());
 		}
-		catch (FileNotFoundException e) { e.printStackTrace(); }
-		catch (IOException ioe) { ioe.printStackTrace(); }
-		
+		reader.close();
 		return seedList;
 	}
 	
@@ -413,7 +407,7 @@ public class Learner
 	 * @param maxIterations		maximum number of iterations for algorithm
 	 *
 	 */
-	private void bootstrap_frequency(String seed, double threshold, int maxIterations)
+	private void bootstrap_frequency(String seed, double threshold, int maxIterations) throws IOException
 	{
 		File contextDir = new File(this.contextPath);
     	String[] contextFiles = contextDir.list();
@@ -434,14 +428,15 @@ public class Learner
 				getContextsForSeed(this.indexPath, seed, this.contextPath + File.separator + filenameContext);
 			}
 			TrainingSet trainingSet = new TrainingSet(new File(this.contextPath + File.separator + filenameContext));
-			trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff);
+			try { trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		}
 		//3. generate patterns
 		//4. search for patterns in corpus: 
 		try 
 		{ 
 			//TODO: separate steps, replace old readArff method
-			readArff(this.arffPath + File.separator + filenameArff, this.trainPath, this.indexPath, this.corpusPath, threshold); 
+			readArff(this.arffPath + File.separator + filenameArff, this.trainPath, threshold); 
 			this.processedSeeds.add(seed); 
 		}
 		catch (IOException e) { e.printStackTrace(); System.exit(1); }
@@ -453,8 +448,10 @@ public class Learner
 		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		//bootstrapBL2 (indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, 0);
-		bootstrapBL4 ( this.indexPath, newSeeds, nextIterPath.toString(), this.contextPath, this.arffPath, this.corpusPath, 0, threshold, maxIterations);
+		//bootstrapBL1(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
+		//bootstrapBL2 (newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
+		//bootstrapBL3 (newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
+		bootstrapBL4(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
 	}
 	
 	/**
@@ -473,87 +470,98 @@ public class Learner
 	 * @param seeds				reliable terms to be searched as starting point
 	 * @param threshold			reliability threshold
 	 **/
-	private void bootstrap(Collection<String> seeds, double threshold, int maxIterations)
+	private void bootstrap(Collection<String> seeds, double threshold, int maxIterations) throws IOException
 	{
-		bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
+		try { bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	}
 	
 	/**
 	 * Frequency-based pattern induction baseline 1: merges contexts of all previously found instances 
 	 * and continues bootstrapping with this new set
 	 * 
-	 * @param indexDirectory	name of the directory containing the lucene index to be searched
 	 * @param terms				instances to process in this iteration
 	 * @param outputDirectory	path of the output directory
-	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
+	 * @param maxIterations
 	 */
-	private void bootstrapBL1(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
-	{
+	private void bootstrapBL1(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException {
 		numIter ++;
-		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
-		Util.mergeContexts(outputDirectory, "all.xml", "_all_");
-		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
-		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
-		try { readArff(outputDirectory + File.separator + "all.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
-		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 3) { return; } //TODO: MAX NUM ITER AS PARAM OR CLASS VAL
-		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
+		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
+		try { 
+			Util.mergeContexts(outputDirectory, "all.xml", "all_"); 
+			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
+			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
+			readArff(outputDirectory + File.separator + "all.arff", outputDirectory, threshold); 
+		}
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		if (numIter >= maxIterations-1) { return; } 
+		HashSet<String> newSeeds = new HashSet<String>();
+		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL1(indexDirectory, newSeeds,nextIterPath.toString(), corpusDirectory, numIter, threshold);
+		bootstrapBL1(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
 	
 	/**
 	 * Frequency-based pattern induction baseline 2: merges contexts of all previously found and hitherto 
 	 * unseen studies and continues bootstrapping with this new set
 	 * 
-	 * @param indexDirectory	name of the directory containing the lucene index to be searched
 	 * @param terms				instances to process in this iteration
 	 * @param outputDirectory	path of the output directory
-	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
+	 * @param threshold
+	 * @param maxIterations
 	 */
-	private void bootstrapBL2(String indexDirectory, Collection<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
+	private void bootstrapBL2(Collection<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException
 	{
 		numIter ++;
-		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
-		Util.mergeNewContexts(outputDirectory, "allNew.xml", "");
-		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
-		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
-		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 3) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
-		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
+		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
+		try { 
+			Util.mergeNewContexts(outputDirectory, "allNew.xml", "all_"); 
+			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
+			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
+			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
+		}
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		if (numIter >= maxIterations -1) { return; }
+		HashSet<String> newSeeds = new HashSet<String>();
+		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL2(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter, threshold);
+		bootstrapBL2(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
 	
 	/**
 	 * Frequency-based pattern induction baseline 3: merges each new context with existing ones and 
 	 * continues bootstrapping with this new set
 	 * 
-	 * @param indexDirectory	name of the directory containing the lucene index to be searched
 	 * @param terms				instances to process in this iteration
 	 * @param outputDirectory	path of the output directory
-	 * @param corpusDirectory	path of the corpus directory
 	 * @param numIter			current iteration
+	 * @param threshold
+	 * @param maxIterations
 	 */
-	private void bootstrapBL3(String indexDirectory, HashSet<String> terms, String outputDirectory, String corpusDirectory, int numIter, double threshold)
+	private void bootstrapBL3(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException
 	{
 		numIter ++;
-		getContextsForAllSeeds(indexDirectory, terms, outputDirectory);
-		Util.mergeAllContexts(outputDirectory, "allNew.xml", "_all_");
-		TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
-		trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-		try { readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, indexDirectory, corpusDirectory, threshold); }
-		catch (IOException e) { e.printStackTrace(); }
-		if (numIter == 3) { return; }//TODO: MAX NUM ITER AS PARAM OR CLASS VAL
+		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
+		try {
+			Util.mergeAllContexts(outputDirectory, "allNew.xml", "all_"); 
+			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
+			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
+			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
+		}
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		if (numIter >= maxIterations-1) { return; }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		HashSet<String> newSeeds = getSeeds(outputDirectory + File.separator + "_all_datasets.csv");
-		bootstrapBL3(indexDirectory, newSeeds, nextIterPath.toString(), corpusDirectory, numIter, threshold);
+		HashSet<String> newSeeds = new HashSet<String>();
+		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		bootstrapBL3(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
 	
 	/**
@@ -561,22 +569,20 @@ public class Learner
 	 * context of each new seed separately and continues bootstrapping with this new set
 	 * ...
 	 * 
-	 * @param indexDirectory	name of the directory containing the lucene index to be searched
 	 * @param terms				instances to process in this iteration
-	 * @param outputDirectory	path of the output directory
-	 * @param contextDirName	path of the directory containing all context files
-	 * @param arffDirName		path of the directory containing all arff files
-	 * @param corpusDirectory	path of the corpus directory
+	 * @param outputPath
 	 * @param numIter			current iteration
+	 * @param threshold
+	 * @param maxIterations
 	 */
-	private void bootstrapBL4(String indexDirectory, Collection<String> terms, String outputDirectory, String contextDirName, String arffDirName, String corpusDirectory, int numIter, double threshold, int maxIterations)
+	private void bootstrapBL4(Collection<String> terms, String outputPath, int numIter, double threshold, int maxIterations) throws IOException
 	{
 		this.foundSeeds_iteration = new HashSet<String>();
 		numIter ++;
-		File contextDir = new File(contextDirName);
+		File contextDir = new File(this.contextPath);
 		String[] contextFiles = contextDir.list();
 		List<String> contextFileList = Arrays.asList(contextFiles);
-		File arffDir = new File(arffDirName);
+		File arffDir = new File(this.arffPath);
 		String[] arffFiles = arffDir.list();
 		List<String> arffFileList = Arrays.asList(arffFiles);
 		TrainingSet trainingSet;
@@ -595,28 +601,29 @@ public class Learner
 		    {
 		    	if(!contextFileList.contains(filenameContext))
 		    	{
-		    		getContextsForSeed(indexDirectory, seed, contextDirName + File.separator + filenameContext);
+		    		getContextsForSeed(this.indexPath, seed, this.contextPath + File.separator + filenameContext);
 		    	}
-		    	trainingSet = new TrainingSet(new File(contextDirName + File.separator + filenameContext));
-		    	trainingSet.createTrainingSet("True", arffDirName + File.separator + filenameArff);
+		    	trainingSet = new TrainingSet(new File(this.contextPath + File.separator + filenameContext));
+		    	try { trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff); }
+		    	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		    }
-	    	System.out.println("Processing " + arffDirName + File.separator + filenameArff);
+	    	System.out.println("Processing " + this.arffPath + File.separator + filenameArff);
 	    	// only process previously unseen studies
 	    	//TODO: only createTrainingSet for unseen studies...
 	    	if (!this.processedSeeds.contains(seed))
 	    	{
 	    		try 
 	    		{ 
-	    			readArff(arffDirName + File.separator + filenameArff, outputDirectory, indexDirectory, corpusDirectory, threshold); 
+	    			readArff(this.arffPath + File.separator + filenameArff, outputPath, threshold); 
 	    			this.processedSeeds.add(seed); 
 	    		}
-	    		catch (IOException e) { e.printStackTrace(); }
+	    		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	    	}
 		}
 		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		try
 		{
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File ( outputDirectory + File.separator + "newSeeds.txt")),"UTF-8");
+			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(outputPath + File.separator + "newSeeds.txt")),"UTF-8");
 		    BufferedWriter out = new BufferedWriter(fstream);
 		    System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
 		    
@@ -627,12 +634,11 @@ public class Learner
 		    out.close();
 		    System.out.println("Saved seeds to file \"" + File.separator + "iteration" + (numIter + 1) + File.separator + "newSeeds.txt\"");
 		}
-		catch (IOException ioe) { ioe.printStackTrace(); System.exit(1);}
-		//TODO: NUMITER...
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		if (numIter >= maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
+		File nextIterPath = Paths.get(outputPath + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL4(indexDirectory, newSeeds, nextIterPath.toString(), contextDirName, arffDirName, corpusDirectory, numIter, threshold, maxIterations);
+		bootstrapBL4(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
 	
 	/**
@@ -642,7 +648,7 @@ public class Learner
 	 * @param threshold	reliability threshold
 	 * @param numIter	current iteration
 	 */
-	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter, int maxIter)
+	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter, int maxIter) throws IOException
 	{
 		numIter ++;
 		System.out.println("Bootstrapping... Iteration: " + numIter);
@@ -673,7 +679,8 @@ public class Learner
 		    {
 			    if (!contextFileList.contains(filenameContext)) { getContextsForSeed(this.indexPath, seed, newContextName); }
 			    trainingSet = new TrainingSet(new File(newContextName));
-			    trainingSet.createTrainingSet("True", newArffName);
+			    try { trainingSet.createTrainingSet("True", newArffName); }
+			    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 			    System.out.println("Created " + newArffName);
 		    }
 		    newArffFiles.add(newArffName);
@@ -682,12 +689,12 @@ public class Learner
 		// 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and new seeds to 
 		// this.foundSeeds_iteration
 	    try { saveReliablePatternData(newArffFiles, threshold); }
-	    catch (IOException e) { e.printStackTrace(); System.exit(1); }
+	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 
 		String output_iteration = getString_reliablePatternOutput( this.reliablePatternsAndContexts, numIter );
 		//TODO: output trace of decisions... (reliability of patterns, change in trusted patterns, instances...)
 		try { Util.writeToFile(logFile, "utf-8", output_iteration, true); }
-		catch( IOException ioe ) { ioe.printStackTrace(); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		//TODO: USE DIFFERENT STOP CRITERION: continue until patterns stable...
 		//TODO: NUM ITER...
 		if(numIter == maxIter - 1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
@@ -742,56 +749,153 @@ public class Learner
 	 * @param filenamePatterns	...
 	 * @param filenameStudies	...
 	 */
-	private void outputContextsAndPatterns(ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies)
+	private void outputContextsAndPatterns(ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException
 	{
 		File contextFile = new File(filenameContexts);
 		File patternFile = new File(filenamePatterns);
 		File studyFile = new File(filenameStudies);
 		// write all these files for validation, do not actually read from them in the program
 		//TODO: do not put everything in the try statement, writing everything to file is not mandatory
-		try
+		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile), "UTF-8");
+		BufferedWriter out = new BufferedWriter(fstream);
+		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") +"<contexts>" + System.getProperty("line.separator"));
+			
+		OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile), "UTF-8");
+		BufferedWriter out2 = new BufferedWriter(fstream2);
+			
+		OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
+		BufferedWriter out3 = new BufferedWriter(fstream3);
+			
+		HashSet<String> patSet = new HashSet<String>();
+		HashSet<String> studySet = new HashSet<String>();
+			
+		for (String[] studyNcontext: studyNcontextList)
 		{
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile), "UTF-8");
-			BufferedWriter out = new BufferedWriter(fstream);
-			out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") +"<contexts>" + System.getProperty("line.separator"));
+			String studyName = studyNcontext[0];
+			String context = studyNcontext[1];
+			String corpusFilename = studyNcontext[2];
+			String usedPat = studyNcontext[3];
+				
+			context = Util.escapeXML(context);
 			
-			OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile), "UTF-8");
-			BufferedWriter out2 = new BufferedWriter(fstream2);
-			
-			OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
-			BufferedWriter out3 = new BufferedWriter(fstream3);
-			
-			HashSet<String> patSet = new HashSet<String>();
-			HashSet<String> studySet = new HashSet<String>();
-			
-			for (String[] studyNcontext: studyNcontextList)
+			patSet.add(usedPat);
+			studySet.add(studyName);
+			// split context into words
+			// join first 5 words = left context
+			// last 5 words = rightcontext
+			// middle word = studyname
+			// do not split at study name - in rare cases, it might occur more than once!
+			String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
+			String leftContext;
+			String rightContext;
+			// contextList may contain less entries if the word before or after the study name is directly attached to the study name (e.g. ALLBUS-Daten)
+			if (contextList.length != 10 + studyName.trim().split("\\s+").length)
 			{
-				String studyName = studyNcontext[0];
-				String context = studyNcontext[1];
-				String corpusFilename = studyNcontext[2];
-				String usedPat = studyNcontext[3];
-				
-				context = Util.escapeXML(context);
-				
-				patSet.add(usedPat);
-				studySet.add(studyName);
-				// split context into words
-				// join first 5 words = left context
-				// last 5 words = rightcontext
-				// middle word = studyname
-				// do not split at study name - in rare cases, it might occur more than once!
-				String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
+				// split by study name in this case...
+				//TODO: simple split at first occurrence only :) (split(term,limit))
+				contextList = context.split(Pattern.quote(Util.escapeXML(studyName)));
+				if (contextList.length != 2)
+				{
+					System.err.println("Warning: context does not have 10 words and cannot be split around the study name. Ignoring.");
+					for (String contextErr : contextList) { System.err.println("###" + contextErr + "###"); }
+					System.err.println(studyName);
+					System.err.println(contextList.length);
+					continue;
+				}
+				else
+				{
+					leftContext = contextList[0];
+					rightContext = contextList[1];
+				}
+			}
+			else
+			{
+				leftContext = "";
+				rightContext = "";
+				for (int i = 0; i < 5; i++)
+				{
+					leftContext += contextList[i] + " ";
+				}
+				for ( int i = contextList.length -1 ; i >= contextList.length - 5; i--)
+				{
+					rightContext = contextList[i] + " " + rightContext;
+				}
+			}
+			out.write("\t<context term=\"" + Util.escapeXML(studyName) + "\" document=\"" + Util.escapeXML(corpusFilename) + "\" usedPattern=\"" + Util.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
+		}
+			
+		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
+		out.close();
+		this.foundSeeds_iteration.addAll( studySet );
+			
+		for (String pat : patSet) {	out2.write(pat + System.getProperty("line.separator"));	}
+		out2.close();
+		
+		for (String stud : studySet) { out3.write(stud + System.getProperty("line.separator"));	}
+		out3.close();
+	}
+	
+	//TODO: remove duplicate code... use separate method instead
+	/**
+	 * ...
+	 * 
+	 * @param studyNcontextList	...
+	 * @param filenameContexts	...
+	 * @param filenamePatterns	...
+	 * @param filenameStudies	...
+	 */
+	private void outputContextsAndPatterns_distinct (ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException
+	{
+		File contextFile = new File(filenameContexts);
+		File patternFile = new File(filenamePatterns);
+		File studyFile = new File(filenameStudies);
+		
+		//TODO: inserted "true" ...
+		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile, true), "UTF-8");	
+		BufferedWriter out = new BufferedWriter(fstream);
+		if (train) { out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator")); }
+			
+		OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile, true), "UTF-8");
+		BufferedWriter out2 = new BufferedWriter(fstream2);
+			
+		OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
+		BufferedWriter out3 = new BufferedWriter(fstream3);
+			
+		HashSet<String> patSet = new HashSet<String>();
+		HashSet<String> studySet = new HashSet<String>();
+		HashSet<String> distinctContexts = new HashSet<String>();
+			
+		for (String[] studyNcontext: studyNcontextList)
+		{
+			String studyName = studyNcontext[0];
+			String context = studyNcontext[1];
+			String corpusFilename = studyNcontext[2];
+			String usedPat = studyNcontext[3];
+			
+			context = Util.escapeXML(context);
+			
+			patSet.add(usedPat);
+			studySet.add(studyName);
+			
+			// split context into words
+			// join first 5 words = left context
+			// last 5 words = rightcontext
+			// middle word = studyname
+			String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
+			// do not print duplicate contexts
+			// extend check for duplicate contexts: context as part of study name...
+			if (! distinctContexts.contains(context.replace("\\s+", "")))
+			{
 				String leftContext;
 				String rightContext;
-				// contextList may contain less entries if the word before or after the study name is directly attached to the study name (e.g. ALLBUS-Daten)
 				if (contextList.length != 10 + studyName.trim().split("\\s+").length)
 				{
 					// split by study name in this case...
-					//TODO: simple split at first occurrence only :) (split(term,limit))
+					// TODO: (s.o.)
 					contextList = context.split(Pattern.quote(Util.escapeXML(studyName)));
 					if (contextList.length != 2)
 					{
-						System.err.println("Warning: context does not have 10 words and cannot be split around the study name. Ignoring.");
+						System.err.println("Warning: context has not 10 words and cannot by split around the study name. Check output method.");
 						for (String contextErr : contextList) { System.err.println("###" + contextErr + "###"); }
 						System.err.println(studyName);
 						System.err.println(contextList.length);
@@ -817,130 +921,23 @@ public class Learner
 					}
 				}
 				out.write("\t<context term=\"" + Util.escapeXML(studyName) + "\" document=\"" + Util.escapeXML(corpusFilename) + "\" usedPattern=\"" + Util.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
+				distinctContexts.add(context.replace("\\s+", ""));
 			}
-			
-			out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-			out.close();
-			this.foundSeeds_iteration.addAll( studySet );
-			
-			for (String pat : patSet) {	out2.write(pat + System.getProperty("line.separator"));	}
-			out2.close();
-			
-			for (String stud : studySet) { out3.write(stud + System.getProperty("line.separator"));	}
-			out3.close();
 		}
-		catch (FileNotFoundException e) { System.err.println(e); System.exit(1);}
-		catch (IOException ioe) { System.err.println(ioe); System.exit(1);}
-	}
-	
-	//TODO: remove duplicate code... use separate method instead
-	/**
-	 * ...
-	 * 
-	 * @param studyNcontextList	...
-	 * @param filenameContexts	...
-	 * @param filenamePatterns	...
-	 * @param filenameStudies	...
-	 */
-	private void outputContextsAndPatterns_distinct (ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train)
-	{
-		File contextFile = new File(filenameContexts);
-		File patternFile = new File(filenamePatterns);
-		File studyFile = new File(filenameStudies);
+		if (train) { out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator")); }
+		out.close();
 		
-		try
+		for (String pat : patSet)
 		{
-			//TODO: inserted "true" ...
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile, true), "UTF-8");	
-			BufferedWriter out = new BufferedWriter(fstream);
-			if (train) { out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator")); }
-			
-			OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile, true), "UTF-8");
-			BufferedWriter out2 = new BufferedWriter(fstream2);
-			
-			OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
-			BufferedWriter out3 = new BufferedWriter(fstream3);
-			
-			HashSet<String> patSet = new HashSet<String>();
-			HashSet<String> studySet = new HashSet<String>();
-			HashSet<String> distinctContexts = new HashSet<String>();
-			
-			for (String[] studyNcontext: studyNcontextList)
-			{
-				String studyName = studyNcontext[0];
-				String context = studyNcontext[1];
-				String corpusFilename = studyNcontext[2];
-				String usedPat = studyNcontext[3];
-				
-				context = Util.escapeXML(context);
-				
-				patSet.add(usedPat);
-				studySet.add(studyName);
-				
-				// split context into words
-				// join first 5 words = left context
-				// last 5 words = rightcontext
-				// middle word = studyname
-				String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
-				// do not print duplicate contexts
-				// extend check for duplicate contexts: context as part of study name...
-				if (! distinctContexts.contains(context.replace("\\s+", "")))
-				{
-					String leftContext;
-					String rightContext;
-					if (contextList.length != 10 + studyName.trim().split("\\s+").length)
-					{
-						// split by study name in this case...
-						// TODO: (s.o.)
-						contextList = context.split(Pattern.quote(Util.escapeXML(studyName)));
-						if (contextList.length != 2)
-						{
-							System.err.println("Warning: context has not 10 words and cannot by split around the study name. Check output method.");
-							for (String contextErr : contextList) { System.err.println("###" + contextErr + "###"); }
-							System.err.println(studyName);
-							System.err.println(contextList.length);
-							continue;
-						}
-						else
-						{
-							leftContext = contextList[0];
-							rightContext = contextList[1];
-						}
-					}
-					else
-					{
-						leftContext = "";
-						rightContext = "";
-						for (int i = 0; i < 5; i++)
-						{
-							leftContext += contextList[i] + " ";
-						}
-						for ( int i = contextList.length -1 ; i >= contextList.length - 5; i--)
-						{
-							rightContext = contextList[i] + " " + rightContext;
-						}
-					}
-					out.write("\t<context term=\"" + Util.escapeXML(studyName) + "\" document=\"" + Util.escapeXML(corpusFilename) + "\" usedPattern=\"" + Util.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
-					distinctContexts.add(context.replace("\\s+", ""));
-				}
-			}
-			if (train) { out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator")); }
-			out.close();
-			
-			for (String pat : patSet)
-			{
-				out2.write(pat + System.getProperty("line.separator"));
-			}
-			out2.close();
-			
-			for (String stud : studySet)
-			{
-				out3.write(stud + System.getProperty("line.separator"));
-			}
-			out3.close();
+			out2.write(pat + System.getProperty("line.separator"));
 		}
-		catch (FileNotFoundException e) { System.err.println(e); }
-		catch (IOException ioe) { System.err.println(ioe); }
+		out2.close();
+		
+		for (String stud : studySet)
+		{
+			out3.write(stud + System.getProperty("line.separator"));
+		}
+		out3.close();
 	}
 	
 	/**
@@ -951,11 +948,12 @@ public class Learner
 	 * 
 	 * @param filename	name of the TrainingSet XML file
 	 */
-	private void outputArffFile(String filename)
+	private void outputArffFile(String filename) throws IOException
 	{
 		TrainingSet newTrainingSet = new TrainingSet(new File(filename));
 		//TODO: assumes patterns to be correct
-		newTrainingSet.createTrainingSet("True",filename.replace(".xml", ".arff"));
+		try { newTrainingSet.createTrainingSet("True",filename.replace(".xml", ".arff")); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	}
 	
 	/**
@@ -965,13 +963,15 @@ public class Learner
 	 * @param studyNcontextList list of extracted instances and their contexts
 	 * @param filenames			array specifying the names for the distinct output files ([0]: dataset names, [1]: contexts, [2]: patterns)
 	 */
-	private void output(ArrayList<String[]> studyNcontextList, String[] filenames)
+	private void output(ArrayList<String[]> studyNcontextList, String[] filenames) throws IOException
 	{
 		String filenameStudies = filenames[0];
 		String filenameContexts = filenames[1];
 		String filenamePatterns = filenames[2];
-		outputContextsAndPatterns(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies);
-		outputArffFile(filenameContexts);
+		try { outputContextsAndPatterns(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies); }
+		catch (IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		try { outputArffFile(filenameContexts); }
+		catch  (IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	}
 	
 	/**
@@ -983,13 +983,17 @@ public class Learner
 	 * @param filenames			array specifying the names for the distinct output files ([0]: dataset names, [1]: contexts, [2]: patterns)
 	 * @param train				flag specifying whether InfoLink is in training mode (i.e. learning new patterns instead of applying known ones)
 	 */
-	private void output_distinct(ArrayList<String[]> studyNcontextList, String[] filenames, boolean train)
+	private void output_distinct(ArrayList<String[]> studyNcontextList, String[] filenames, boolean train) throws IOException
 	{
 		String filenameStudies = filenames[0];
 		String filenameContexts = filenames[1];
 		String filenamePatterns = filenames[2];
-		outputContextsAndPatterns_distinct(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies, train);
-		if (train) { outputArffFile(filenameContexts); }
+		try { outputContextsAndPatterns_distinct(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies, train); }
+		catch  (IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		if (train) { 
+			try { outputArffFile(filenameContexts); }
+			catch  (IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		}
 	}
 	
 	/**
@@ -1002,22 +1006,19 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private ArrayList<String[]> getStudyRefs_optimized_reliabilityCheck(HashSet<String[]> patterns, String[] corpus, String indexPath)
+	private ArrayList<String[]> getStudyRefs_optimized_reliabilityCheck(HashSet<String[]> patterns, String[] corpus) throws IOException
 	{
 		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
-			try
-			{
-				// get list of documents in which to search for the regular expression
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0], indexPath);
-				HashSet<String> patSet = new HashSet<String>();
-				patSet.add(curPat[2]);
-				resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
-				continue;
-			}
-			catch (Exception e) { e.printStackTrace(); continue; }
+			// get list of documents in which to search for the regular expression
+			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
+			HashSet<String> patSet = new HashSet<String>();
+			patSet.add(curPat[2]);
+			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			continue;
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
 		return resAggregated;
@@ -1035,23 +1036,20 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private ArrayList<String[]> getStudyRefs_optimized(HashSet<String[]> patterns, String[] corpus, String indexPath)
+	private ArrayList<String[]> getStudyRefs_optimized(HashSet<String[]> patterns, String[] corpus) throws IOException
 	{
 		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
-			try
-			{
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0], indexPath);
-				HashSet<String> patSet = new HashSet<String>();
-				patSet.add(curPat[1]);
-				//TODO: see above...
-				resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
-				this.processedPatterns.add(curPat[1]);
-				continue;
-			}
-			catch(Exception e) { e.printStackTrace(); System.exit(1);}
+			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
+			HashSet<String> patSet = new HashSet<String>();
+			patSet.add(curPat[1]);
+			//TODO: see above...
+			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			this.processedPatterns.add(curPat[1]);
+			continue;
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
 		return resAggregated;
@@ -1064,13 +1062,13 @@ public class Learner
 	 * @param indexPath			path of the lucene index
 	 * @return					a list of documents with hits
 	 */
-	private String[] getStudyRef_lucene(String lucene_pattern, String indexPath)
+	private String[] getStudyRef_lucene(String lucene_pattern)
 	{
 		String[] candidateCorpus;
 		try
 		{
 			// lucene query is assumed to be normalized
-			Search_Term_Position candidateSearcher = new Search_Term_Position(indexPath, "", "", lucene_pattern);
+			Search_Term_Position candidateSearcher = new Search_Term_Position(this.indexPath, "", "", lucene_pattern);
 			candidateCorpus = candidateSearcher.complexSearch();
 			System.out.println("Number of candidate docs: " + candidateCorpus.length);
 		}
@@ -1087,28 +1085,15 @@ public class Learner
 	 * @param corpus	array of filenames of text documents to search patterns in
 	 * @return			a list of extracted contexts
 	 */
-	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus)
+	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus) throws IOException
 	{
 		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
 
 		for (String filename: corpus)
 		{
-			try
-			{	
-				System.out.println("searching for patterns in " + filename);
-				ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
-				resAggregated.addAll(resList);
-			}
-			catch (FileNotFoundException e)
-			{
-				System.err.println(e);
-				continue;
-			}
-			catch (IOException ioe)
-			{
-				System.err.println(ioe);
-				continue;
-			}
+			System.out.println("searching for patterns in " + filename);
+			ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
+			resAggregated.addAll(resList);
 		}
 		return resAggregated;
 	}
@@ -1123,39 +1108,27 @@ public class Learner
 	 * @param path_output	output path
 	 * @return				a list of extracted contexts
 	 */
-	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus, String path_output)
+	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus, String path_output) throws IOException
 	{
 		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
 
 		for (String filename: corpus)
 		{
-			try
-			{
-				System.out.println("searching for patterns in " + filename);
-				ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
-				String fileLogPath = path_output + File.separator + "processedDocs.csv";
-				String[] filenames_grams = new String[3];
-				filenames_grams[0] = path_output + File.separator + "datasets.csv";
-				filenames_grams[1] = path_output + File.separator + "contexts.xml";
-				filenames_grams[2] = path_output + File.separator + "patterns.csv";
-				output_distinct(resList, filenames_grams, false);
-				OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(fileLogPath, true), "UTF-8");
-				BufferedWriter out = new BufferedWriter(fstream);
-				out.write(new File(filename).getAbsolutePath() + System.getProperty("line.separator"));
-				out.close();
+			System.out.println("searching for patterns in " + filename);
+			ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
+			String fileLogPath = path_output + File.separator + "processedDocs.csv";
+			String[] filenames_grams = new String[3];
+			filenames_grams[0] = path_output + File.separator + "datasets.csv";
+			filenames_grams[1] = path_output + File.separator + "contexts.xml";
+			filenames_grams[2] = path_output + File.separator + "patterns.csv";
+			try { output_distinct(resList, filenames_grams, false); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(fileLogPath, true), "UTF-8");
+			BufferedWriter out = new BufferedWriter(fstream);
+			out.write(new File(filename).getAbsolutePath() + System.getProperty("line.separator"));
+			out.close();
 				
-				resAggregated.addAll(resList);
-			}
-			catch (FileNotFoundException e)
-			{
-				System.err.println(e);
-				continue;
-			}
-			catch (IOException ioe)
-			{
-				System.err.println(ioe);
-				continue;
-			}
+			resAggregated.addAll(resList);
 		}
 		return resAggregated;
 	}
@@ -2202,7 +2175,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private ArrayList<String[]> processPatterns_reliabilityCheck(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
+	private ArrayList<String[]> processPatterns_reliabilityCheck(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
 	{
     	//TODO: DO THIS ONLY ONCE
     	//String dir = "data/corpus/dgs_ohneQuellen_reducedWhitespace/";
@@ -2219,11 +2192,14 @@ public class Learner
     	}
     	System.out.println("inserted all text filenames to corpus");
     	System.out.println("using patterns to extract new contexts...");
-    	ArrayList<String[]> resNgrams = getStudyRefs_optimized_reliabilityCheck(patSetIn, corpus_test, path_index);
-    	System.out.println("done. ");
-    	System.out.println( "Done processing patterns. ");
-
-    	return resNgrams;
+    	try { 
+    		ArrayList<String[]> resNgrams = getStudyRefs_optimized_reliabilityCheck(patSetIn, corpus_test); 
+	    	System.out.println("done. ");
+	    	System.out.println( "Done processing patterns. ");
+	
+	    	return resNgrams;
+    	}
+    	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	}
 	
 	//TODO: call this function inside of readArff - split into several methods!
@@ -2239,7 +2215,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private ArrayList<String[]> processPatterns(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
+	private ArrayList<String[]> processPatterns(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
 	{
     	String dir = path_corpus;
     	File corpus = new File(dir);
@@ -2254,17 +2230,20 @@ public class Learner
     	}
     	System.out.println("inserted all text filenames to corpus");
     	System.out.println("using patterns to extract new contexts...");
-    	ArrayList<String[]> resNgrams = getStudyRefs_optimized(patSetIn,corpus_test, path_index);
-    	System.out.println("done. ");
-    	//outputContextFiles( resNgrams, seed, outputDir);
-    	System.out.println( "Done processing patterns. ");
-
-    	//TODO: add after output of results / usage of results, not here?
-    	for ( String[] p: patSetIn )
-    	{
-    		this.processedPatterns.add(p[1]);
+    	try { 
+    		ArrayList<String[]> resNgrams = getStudyRefs_optimized(patSetIn,corpus_test); 
+	    	System.out.println("done. ");
+	    	//outputContextFiles( resNgrams, seed, outputDir);
+	    	System.out.println( "Done processing patterns. ");
+	
+	    	//TODO: add after output of results / usage of results, not here?
+	    	for ( String[] p: patSetIn )
+	    	{
+	    		this.processedPatterns.add(p[1]);
+	    	}
+	    	return resNgrams;
     	}
-    	return resNgrams;
+    	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	}
 	
 	private Instances getInstances(String arffFilename) throws FileNotFoundException, IOException
@@ -2313,26 +2292,25 @@ public class Learner
 	 * rest of deprecated and deleted method readArff - delete after having integrated the remaining functionality in calling methods.
 	 * @param path_corpus
 	 */
-	private void readArff(String filename, String outputDir, String path_index, String path_corpus, double threshold) throws FileNotFoundException, IOException
+	private void readArff(String filename, String outputDir, double threshold) throws FileNotFoundException, IOException
 	{
 		HashSet<String[]> ngramPats = induceRelevantPatternsFromArff(filename, threshold);
-	    String dir = path_corpus;
-	    File corpus = new File(dir);
+	    File corpus = new File(this.corpusPath);
 	    String[] corpus_test = corpus.list();
 	    if (corpus_test == null) {
 	        // Either dir does not exist or is not a directory
 	    } else {
 	        for (int i=0; i<corpus_test.length; i++) {
 	            // Get filename of file or directory
-	            corpus_test[i] = dir + File.separator + corpus_test[i];
+	            corpus_test[i] = this.corpusPath + File.separator + corpus_test[i];
 	        }
 	    }
 	    System.out.println("inserted all text filenames to corpus");
 	    	
 	    String[] filenames_grams = new String[3];
-	    filenames_grams[0] = outputDir + File.separator + new File(filename).getName().replace(".arff", "") + "_foundStudies.txt";
+	    filenames_grams[0] = outputDir + File.separator + new File(filename).getName().replace(".arff", "") + "_foundDatasets.csv";
 	    filenames_grams[1] = outputDir + File.separator + new File(filename).getName().replace(".arff", "") + "_foundContexts.xml";
-	    filenames_grams[2] = outputDir + File.separator + new File(filename).getName().replace(".arff", "") + "_usedPatterns.txt";
+	    filenames_grams[2] = outputDir + File.separator + new File(filename).getName().replace(".arff", "") + "_usedPatterns.csv";
 	    // before getting new refs, append all patterns to file
 	    // note: all induced patterns, not only new ones
 	    System.out.println("appending patterns to file...");
@@ -2349,10 +2327,12 @@ public class Learner
 	    System.out.println("using patterns to extract new contexts...");
 	    //TODO: use this instead?
 	    //ArrayList<String[]> processPatterns(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
-	    ArrayList<String[]> resNgrams = getStudyRefs_optimized(ngramPats,corpus_test, path_index);
-	    
-	    System.out.println("starting output of found studies and contexts (and used patterns)");
-	    output(resNgrams, filenames_grams);
+	    try { 
+	    	ArrayList<String[]> resNgrams = getStudyRefs_optimized(ngramPats,corpus_test); 
+	    	System.out.println("starting output of found studies and contexts (and used patterns)");
+	    	output(resNgrams, filenames_grams); 
+	    }
+	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	    //outputArffFile(filenames_grams[1]);
 	    System.out.println("done. ");
 	    	
@@ -2430,39 +2410,63 @@ public class Learner
 		 * @param corpus		filenames of text documents to search for references
 		 * @return				...
 		 */
-		public HashMap<String,HashSet<String[]>> getStudyRefs_unambiguous(HashSet<Pattern>patternSet, String[] corpus)
+		public HashMap<String,HashSet<String[]>> getStudyRefs_unambiguous(HashSet<Pattern>patternSet, String[] corpus) throws IOException
 		{
 			HashMap<String,HashSet<String[]>> refList = new HashMap<String,HashSet<String[]>>();
 			for (String filename: corpus)
 			{
-				try
+				System.out.println("searching for patterns in " + filename);
+				char[] content = new char[(int) new File(filename).length()];
+				Reader readerStream = new InputStreamReader(new FileInputStream(filename), "UTF-8");
+				BufferedReader reader = new BufferedReader(readerStream);
+				reader.read(content);
+				reader.close();
+				String input = new String(content);
+				String inputClean = input.replaceAll("\\s+", " ");
+				Iterator<Pattern> patIter = patternSet.iterator();
+				HashSet<String[]> refs = new HashSet<String[]>();
+				while (patIter.hasNext())
 				{
-					System.out.println("searching for patterns in " + filename);
-					char[] content = new char[(int) new File(filename).length()];
-					Reader readerStream = new InputStreamReader(new FileInputStream(filename), "UTF-8");
-					BufferedReader reader = new BufferedReader(readerStream);
-					reader.read(content);
-					reader.close();
-					String input = new String(content);
-					String inputClean = input.replaceAll("\\s+", " ");
-					Iterator<Pattern> patIter = patternSet.iterator();
-					HashSet<String[]> refs = new HashSet<String[]>();
-					while (patIter.hasNext())
+					Pattern p = patIter.next();
+					Matcher m = p.matcher(inputClean);
+					System.out.println("Searching for pattern " + p);
+					SafeMatching safeMatch = new SafeMatching(m);
+					Thread thread = new Thread(safeMatch, filename + "\n" + p);
+					long startTimeMillis = System.currentTimeMillis();
+					// processing time for documents depends on size of the document. 1024 milliseconds allowed per KB
+					long fileSize = new File(filename).length(); 
+					long maxTimeMillis = fileSize;
+					// set upper limit for processing time - prevents stack overflow caused by monitoring process (threadCompleted)
+					//if ( maxTimeMillis > 750000 ) { maxTimeMillis = 750000; }
+					if (maxTimeMillis > 75000) { maxTimeMillis = 75000; }
+					thread.start();
+					boolean matchFound = false;
+					// if thread was aborted due to long processing time, matchFound should be false
+					if (threadCompleted( thread, maxTimeMillis, startTimeMillis))
 					{
-						Pattern p = patIter.next();
-						Matcher m = p.matcher(inputClean);
-						System.out.println("Searching for pattern " + p);
-						SafeMatching safeMatch = new SafeMatching(m);
-						Thread thread = new Thread(safeMatch, filename + "\n" + p);
-						long startTimeMillis = System.currentTimeMillis();
-						// processing time for documents depends on size of the document. 1024 milliseconds allowed per KB
-						long fileSize = new File(filename).length(); 
-						long maxTimeMillis = fileSize;
-						// set upper limit for processing time - prevents stack overflow caused by monitoring process (threadCompleted)
-						//if ( maxTimeMillis > 750000 ) { maxTimeMillis = 750000; }
-						if (maxTimeMillis > 75000) { maxTimeMillis = 75000; }
+						matchFound = safeMatch.find;
+					}
+					
+					else
+					{
+						Util.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
+					}
+					
+					while (matchFound)
+					{
+						System.out.println("found pattern " + p + " in " + filename);
+						String studyName = m.group(1).trim();
+						String version = m.group(2).trim();
+						System.out.println("version: " + version);
+						System.out.println("studyName: " + studyName);
+						String[] titleVersion = new String[2];
+						titleVersion[0] = studyName;
+						titleVersion[1] = version;
+						refs.add( titleVersion);
+						System.out.println("Searching for next match of pattern " + p);
+						thread = new Thread(safeMatch, filename + "\n" + p);
 						thread.start();
-						boolean matchFound = false;
+						matchFound = false;
 						// if thread was aborted due to long processing time, matchFound should be false
 						if (threadCompleted( thread, maxTimeMillis, startTimeMillis))
 						{
@@ -2471,48 +2475,20 @@ public class Learner
 						
 						else
 						{
-							Util.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
+							Util.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
 						}
-						
-						while (matchFound)
-						{
-							System.out.println("found pattern " + p + " in " + filename);
-							String studyName = m.group(1).trim();
-							String version = m.group(2).trim();
-							System.out.println("version: " + version);
-							System.out.println("studyName: " + studyName);
-							String[] titleVersion = new String[2];
-							titleVersion[0] = studyName;
-							titleVersion[1] = version;
-							refs.add( titleVersion);
-
-							System.out.println("Searching for next match of pattern " + p);
-							thread = new Thread(safeMatch, filename + "\n" + p);
-							thread.start();
-							matchFound = false;
-							// if thread was aborted due to long processing time, matchFound should be false
-							if (threadCompleted( thread, maxTimeMillis, startTimeMillis))
-							{
-								matchFound = safeMatch.find;
-							}
-							
-							else
-							{
-								Util.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
-							}
-							System.out.println("Processing new match...");
-						}
+						System.out.println("Processing new match...");
 					}
-					Path path = Paths.get(filename);
-					try { filename = basePath.relativize(path).normalize().toString(); }
-					catch (IllegalArgumentException iae) { filename = basePath.normalize().toString(); }
-					if (!refs.isEmpty()) { refList.put(filename, refs); }
 				}
-				catch (IOException ioe) { ioe.printStackTrace(); continue; }
+				Path path = Paths.get(filename);
+				try { filename = basePath.relativize(path).normalize().toString(); }
+				catch (IllegalArgumentException iae) { filename = basePath.normalize().toString(); }
+				if (!refs.isEmpty()) { refList.put(filename, refs); }
 			}
 			return refList;
 		}
 		
+		//TODO: error handling...
 		/**
 		 * Reads names of datasets from file, constructs regular expressions and searches them in specified 
 		 * text corpus to extract dataset references.
@@ -2572,20 +2548,20 @@ public class Learner
 		    // read study names from file
 		    // add study names to pattern
 		    HashSet<Pattern> patternSetKnown = newLearner2.constructPatterns(path_knownTitles);
-		    HashMap<String,HashSet<String[]>> resKnownStudies = newLearner2.getStudyRefs_unambiguous( patternSetKnown, corpus_complete );
-		    //write to file for use by contextMiner
-		    for ( String f : resKnownStudies.keySet())
-		    {
-		    	if (!resKnownStudies.get(f).isEmpty()) 
+		    try { 
+		    	HashMap<String,HashSet<String[]>> resKnownStudies = newLearner2.getStudyRefs_unambiguous( patternSetKnown, corpus_complete ); 
+		    	//write to file for use by contextMiner
+		    	for ( String f : resKnownStudies.keySet())
 		    	{
-		    		System.out.println(f);
-		    		HashSet<String[]> titleVersionSet = resKnownStudies.get(f);
-		    		for (String[] titleVersion : titleVersionSet)
-		    		System.out.println(titleVersion[0] + " " + titleVersion[1]);
+		    		if (!resKnownStudies.get(f).isEmpty()) 
+		    		{
+		    			System.out.println(f);
+		    			HashSet<String[]> titleVersionSet = resKnownStudies.get(f);
+		    			for (String[] titleVersion : titleVersionSet)
+		    				System.out.println(titleVersion[0] + " " + titleVersion[1]);
+		    		}
 		    	}
-		    }
-		    try
-		    {
+
 		    	File file = new File(path_output + File.separator + filename_knownTitlesMentions);
 		    	FileOutputStream f = new FileOutputStream(file);  
 		    	ObjectOutputStream s = new ObjectOutputStream(f);          
@@ -2595,6 +2571,7 @@ public class Learner
 		    catch ( IOException ioe ) { ioe.printStackTrace(); }  
 		}
 		
+		//TODO: error handling...
 		/**
 		 * Reads existing patterns (regular expressions) from file and searches them in specified text
 		 * corpus to extract dataset references.
@@ -2651,12 +2628,15 @@ public class Learner
 		    	}
 		    // need new Learner instance for each task - else, previously processed patterns will not be processed again
 		    Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output);
-		    ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1,corpus_test,path_output);
-		    String[] filenames_grams = new String[3];		
-			filenames_grams[0] = path_output + File.separator + "datasets_patterns.csv";
-		    filenames_grams[1] = path_output + File.separator + "contexts_patterns.xml";
-		    filenames_grams[2] = path_output + File.separator + "patterns_patterns.csv"; 	
-		    newLearner.output_distinct(resNgrams1, filenames_grams, false);	
+		    try {
+			    ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1,corpus_test,path_output);
+			    String[] filenames_grams = new String[3];		
+				filenames_grams[0] = path_output + File.separator + "datasets_patterns.csv";
+			    filenames_grams[1] = path_output + File.separator + "contexts_patterns.xml";
+			    filenames_grams[2] = path_output + File.separator + "patterns_patterns.csv"; 	
+			    newLearner.output_distinct(resNgrams1, filenames_grams, false);	
+		    }
+		    catch(IOException ioe) { ioe.printStackTrace(); }
 		}
 		
 		/**
@@ -2774,8 +2754,11 @@ public class Learner
 			Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
 			learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "reliability", threshold);
 			learner.reliableInstances.addAll(initialSeeds);
-			learner.bootstrap(initialSeeds, threshold, maxIterations);
-			learner.outputReliableReferences();
+			try {
+				learner.bootstrap(initialSeeds, threshold, maxIterations);
+				learner.outputReliableReferences(); 
+			}
+			catch(IOException ioe) { ioe.printStackTrace(); System.exit(1); }
 		}
 		
 		public String getDateTime()
@@ -2807,7 +2790,7 @@ public class Learner
 		/**
 		 * Writes all extracted references of reliable patterns to xml context file at this output path
 		 */
-		public void outputReliableReferences()
+		public void outputReliableReferences() throws IOException
 		{
 			ArrayList<String[]> reliableContexts = new ArrayList<String[]>();
 			for ( String pattern : this.reliablePatternsAndContexts.keySet() )
@@ -2826,7 +2809,8 @@ public class Learner
 					studyNcontext[2] = filenameIn;
 					studyNcontext[3] = curPat;
 					res.add( studyNcontext );*/
-			output( reliableContexts, filenames );
+			try { output(reliableContexts, filenames ); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		}
 		
 		

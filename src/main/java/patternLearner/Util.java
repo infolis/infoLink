@@ -333,20 +333,17 @@ public class Util
 	 * @param directory	input directory
 	 * @param filename	ouput filename (in directory)
 	 */
-	public static void mergeContexts(String directory, String filename, String prefix)
+	public static void mergeContexts(String directory, String filename, String prefix) throws IOException
 	{
-		try
-		{
-			String content = getMergedContexts(directory, prefix);
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File (directory + File.separator + filename),true), "UTF-8");
-		    BufferedWriter out = new BufferedWriter(fstream);
-		    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<contexts>\n");
-		    out.write(content);
-		    out.write("\n</contexts>\n");
-		    out.close();
-		}
-		catch (IOException e) { e.printStackTrace(); }
+		String content = getMergedContexts(directory, prefix);
+		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File (directory + File.separator + filename),true), "UTF-8");
+	    BufferedWriter out = new BufferedWriter(fstream);
+	    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
+	    out.write(content);
+	    out.write(System.getProperty("line.separator") + "</contexts>");
+	    out.close();
 	}
+
 	
 	/**
 	 * Merges all new contexts in directory to filename. 
@@ -354,19 +351,15 @@ public class Util
 	 * @param directory	input directory
 	 * @param filename 	output filename (in directory)
 	 */
-	public static void mergeNewContexts(String directory, String filename, String excludePrefix)
+	public static void mergeNewContexts(String directory, String filename, String excludePrefix) throws IOException
 	{
-		try
-		{
-		    String content = getMergedNewContexts(directory, excludePrefix);
-		    OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
-		    BufferedWriter out = new BufferedWriter(fstream);
-		    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<contexts>\n");
-		    out.write(content);
-		    out.write("\n</contexts>\n");
-		    out.close();
-		}
-		catch (IOException e) { e.printStackTrace(); }
+		String content = getMergedNewContexts(directory, excludePrefix);
+		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
+		BufferedWriter out = new BufferedWriter(fstream);
+		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
+		out.write(content);
+		out.write(System.getProperty("line.separator") + "</contexts>");
+		out.close();
 	}
 	
 	/**
@@ -378,20 +371,16 @@ public class Util
 	 * @param directory	input directory
 	 * @param filename 	output filename (in directory)
 	 */
-	public static void mergeAllContexts(String directory, String filename, String prefix)
+	public static void mergeAllContexts(String directory, String filename, String prefix) throws IOException
 	{
-		try
-		{
-			moveSeenContexts(directory, prefix);
-		    String content = getMergedContexts(directory, prefix);
-		    OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
-		    BufferedWriter out = new BufferedWriter(fstream);
-		    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<contexts>\n");
-		    out.write(content);
-		    out.write("\n</contexts>\n");
-		    out.close();
-		}
-		catch (IOException e) { e.printStackTrace(); }
+		moveSeenContexts(directory, prefix);
+		String content = getMergedContexts(directory, prefix);
+		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
+		BufferedWriter out = new BufferedWriter(fstream);
+		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
+		out.write(content);
+		out.write(System.getProperty("line.separator") + "</contexts>");
+		out.close();
 	}
 	
 	/**
@@ -399,7 +388,7 @@ public class Util
 	 * 
 	 * @param directory	...
 	 */
-	public static void moveSeenContexts(String directory, String prefix)
+	public static void moveSeenContexts(String directory, String prefix) throws IOException
 	{
     	File contextFileCorpus = new File(directory);
     	String[] contextFiles = contextFileCorpus.list();
@@ -419,10 +408,9 @@ public class Util
     	    		if (!contextFileList.contains(oldContextFiles[i]))
     	    		{	
     	    			// move context to current directory
-    	    	    	Path source = Paths.get(contextFileCorpus.getParent() + "\\" + oldContextFiles[i]);
+    	    	    	Path source = Paths.get(contextFileCorpus.getParent() + File.separator + oldContextFiles[i]);
     	    	    	Path destination = Paths.get(directory);
-    	    	    	try { Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); }
-    	    	    	catch ( IOException e ) { e.printStackTrace(); }
+    	    	    	Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); 
     	    	    }
     	    	}
     	    }
@@ -435,7 +423,7 @@ public class Util
 	 * @param directory	...
 	 * @return			...
 	 */
-	public static String getMergedNewContexts(String directory, String excludedPrefix)
+	public static String getMergedNewContexts(String directory, String excludedPrefix) throws IOException
 	{
     	File contextFileCorpus = new File(directory);
     	String[] contextFiles = contextFileCorpus.list();
@@ -455,24 +443,20 @@ public class Util
     	    		//if seed has not already been processed in previous iterations
     	    		if (! oldContextFileList.contains(contextFiles[i]))
     	    		{	
-	    	    		try
-	    	    		{
-		    	    		File f = new File(directory + "\\" + contextFiles[i]);
-		    	    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
-		    	    		BufferedReader reader = new BufferedReader(isr);
-		    	    	    StringBuffer contents = new StringBuffer();
-		    	    	    String text = null;
-		    	    	    // dis.available() returns 0 if the file does not have more lines.
-		    	    	    while ((text = reader.readLine()) != null) {
-		    	    	    	if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
-		    	    	    	{
-		    	    	    		contents.append(text).append(System.getProperty("line.separator"));
-		    	    	    	}
-		    	    	    }
-		    	    	    reader.close();
-		    	    	    xmlContents = xmlContents + new String(contents) + "\n";
-	    	    		}
-	    	    		catch (IOException e) { e.printStackTrace(); }
+	    	    		File f = new File(directory + File.separator + contextFiles[i]);
+		    	    	InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
+		    	    	BufferedReader reader = new BufferedReader(isr);
+		    	    	StringBuffer contents = new StringBuffer();
+		    	    	String text = null;
+		    	    	// dis.available() returns 0 if the file does not have more lines.
+		    	    	while ((text = reader.readLine()) != null) {
+		    	    	   	if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
+		    	    	   	{
+		    	    	   		contents.append(text).append(System.getProperty("line.separator"));
+		    	    	   	}
+		    	    	}
+		    	    	reader.close();
+		    	    	xmlContents = xmlContents + new String(contents) + System.getProperty("line.separator");
     	    		}
     	    		else { seenFileList.add(contextFiles[i]); }
     	    	}
@@ -483,22 +467,21 @@ public class Util
     	Path destination;
     	for ( String seenFilename : seenFileList )
     	{
-    		source = Paths.get(contextFileCorpus.getParent() + "\\" + seenFilename);
+    		source = Paths.get(contextFileCorpus.getParent() + File.separator + seenFilename);
     		destination = Paths.get(directory);
-    		try { Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); }
-    		catch ( IOException e ) { e.printStackTrace(); }
+    		Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); 
     	}
     	return xmlContents;
 	}
 	
 
 	/**
-	 * ...
+	 * bl1, 
 	 * 
 	 * @param directory	...
 	 * @return			...
 	 */
-	public static String getMergedContexts(String directory, String prefix)
+	public static String getMergedContexts(String directory, String prefix) throws IOException
 	{
     	File contextFileCorpus = new File(directory);
     	String[] contextFiles = contextFileCorpus.list();
@@ -511,24 +494,20 @@ public class Util
     	        // Get filename of file or directory
     	    	if (contextFiles[i].endsWith(".xml") & !(contextFiles[i].startsWith(prefix)) & !(contextFiles[i].startsWith("all.xml")) & !(contextFiles[i].startsWith("allNew.xml")))
     	    	{
-    	    		try
-    	    		{
-	    	    		File f = new File(directory + "\\" + contextFiles[i]);
-	    	    		InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");
-	    	    		BufferedReader reader = new BufferedReader(isr);
-	    	    	    StringBuffer contents = new StringBuffer();
-	    	    	    String text = null;
-	    	    	    // dis.available() returns 0 if the file does not have more lines.
-	    	    	    while ((text = reader.readLine()) != null) {
-	    	    	    	if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
-	    	    	    	{
-	    	    	    		contents.append(text).append(System.getProperty("line.separator"));
-	    	    	    	}
+    	    		File f = new File(directory + File.separator + contextFiles[i]);
+	    	    	InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");
+	    	    	BufferedReader reader = new BufferedReader(isr);
+	    	    	StringBuffer contents = new StringBuffer();
+	    	    	String text = null;
+	    	    	// dis.available() returns 0 if the file does not have more lines.
+	    	    	while ((text = reader.readLine()) != null) {
+	    	    		if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
+	    	    	    {
+	    	    	    	contents.append(text).append(System.getProperty("line.separator"));
 	    	    	    }
-	    	    	    reader.close();
-	    	    	    xmlContents = xmlContents + new String(contents) + "\n";
-    	    		}
-    	    		catch (IOException e) { e.printStackTrace(); }
+	    	    	}
+	    	    	reader.close();
+	    	    	xmlContents = xmlContents + new String(contents) + System.getProperty("line.separator");
     	    	}
     	    }
     	}
@@ -557,7 +536,7 @@ public class Util
 	 * @param f_out	...
 	 * @throws IOException
 	 */
-	public static void getDistinct( File f_in, File f_out ) throws IOException
+	public static void getDistinct(File f_in, File f_out) throws IOException
 	{
 		HashSet<String> contextSet = getDisctinctPatterns(f_in);
 	    for (String context : contextSet) 
@@ -573,7 +552,7 @@ public class Util
 	 * @param f_out	...
 	 * @throws IOException
 	 */
-	public static void getDistinctContexts( File f_in, File f_out ) throws IOException
+	public static void getDistinctContexts(File f_in, File f_out) throws IOException
 	{
 		HashSet<String> contextSet = new HashSet<String>();
 	    boolean inContext = false;

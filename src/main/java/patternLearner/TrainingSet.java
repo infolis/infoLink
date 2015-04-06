@@ -175,19 +175,11 @@ public class TrainingSet
 		 * 
 		 * @param filename	name of the output file
 		 */
-		public void write(String filename)
+		public void write(String filename) throws IOException
 		{   
-		    try
-		    {
-		    	saveToFile(filename);
-		    	System.out.println(this.data.toSummaryString());
-		    	System.out.println("Wrote " + filename);
-		    }
-		    catch (IOException e)
-		    {
-		    	e.printStackTrace();
-		    	System.out.println(data);
-		    }
+		    saveToFile(filename);
+		    System.out.println(this.data.toSummaryString());
+		    System.out.println("Wrote " + filename);
 		}
 		
 		/**
@@ -216,7 +208,7 @@ public class TrainingSet
 	 * @param filename	name of the arff output file
 	 * @return			an ArffFile instance representing the input example set
 	 */
-	public ArffFile createTrainingSet(String classVal, String filename)
+	public ArffFile createTrainingSet(String classVal, String filename) throws IOException
 	{
 		ExampleReader exReader = new ExampleReader(this.examples);
 		HashSet<String[]> contextSet = exReader.getContexts();
@@ -249,7 +241,8 @@ public class TrainingSet
 			contextSetMerged.add(mergedContext);
 		}
 		ArffFile test = new ArffFile( contextSetMerged );
-		test.write( filename );
+		try { test.write( filename ); } 
+		catch  (IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		return test;
 	}
 
@@ -269,6 +262,7 @@ public class TrainingSet
 		String filename_examples = args[0];
 		String filename_output = args[1];
 		TrainingSet newSet = new TrainingSet(new File(filename_examples));
-		newSet.createTrainingSet("True", filename_output);
+		try { newSet.createTrainingSet("True", filename_output); }
+		catch(IOException ioe) { ioe.printStackTrace(); System.exit(1); }
 	 }
 }

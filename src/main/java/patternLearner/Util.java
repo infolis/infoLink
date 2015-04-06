@@ -94,7 +94,7 @@ public class Util
 	  {
 		  FileWriter writer = new FileWriter(filename);
 		  BufferedWriter buf = new BufferedWriter(writer);
-		  buf.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<contexts>\n");
+		  buf.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
 		  buf.close();
 	  }
 
@@ -107,7 +107,7 @@ public class Util
 	  {
 		  FileWriter writer = new FileWriter(filename, true);
 		  BufferedWriter buf = new BufferedWriter(writer);
-		  buf.write("\n</contexts>\n");
+		  buf.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
 		  buf.close();
 	  }
 	
@@ -340,7 +340,7 @@ public class Util
 	    BufferedWriter out = new BufferedWriter(fstream);
 	    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
 	    out.write(content);
-	    out.write(System.getProperty("line.separator") + "</contexts>");
+	    out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
 	    out.close();
 	}
 
@@ -358,7 +358,7 @@ public class Util
 		BufferedWriter out = new BufferedWriter(fstream);
 		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
 		out.write(content);
-		out.write(System.getProperty("line.separator") + "</contexts>");
+		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
 		out.close();
 	}
 	
@@ -379,7 +379,7 @@ public class Util
 		BufferedWriter out = new BufferedWriter(fstream);
 		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
 		out.write(content);
-		out.write(System.getProperty("line.separator") + "</contexts>");
+		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
 		out.close();
 	}
 	
@@ -402,7 +402,7 @@ public class Util
     	    for (int i=0; i<oldContextFiles.length; i++) 
     	    {
     	        // Get filename of file or directory
-    	    	if (oldContextFiles[i].endsWith(".xml") & !(oldContextFiles[i].startsWith(prefix)) & !(oldContextFiles[i].startsWith("all.xml")) & !(oldContextFiles[i].startsWith("allNew.xml")))
+    	    	if (oldContextFiles[i].endsWith(".xml") & !(oldContextFiles[i].startsWith(prefix)) & !(oldContextFiles[i].startsWith("all.xml")) & !(oldContextFiles[i].startsWith("allNew.xml")) & !(oldContextFiles[i].startsWith("allNew_")))
     	    	{
     	    		// if context has not been found again in new iteration
     	    		if (!contextFileList.contains(oldContextFiles[i]))
@@ -492,7 +492,7 @@ public class Util
     	{
     	    for (int i=0; i<contextFiles.length; i++) {
     	        // Get filename of file or directory
-    	    	if (contextFiles[i].endsWith(".xml") & !(contextFiles[i].startsWith(prefix)) & !(contextFiles[i].startsWith("all.xml")) & !(contextFiles[i].startsWith("allNew.xml")))
+    	    	if (contextFiles[i].endsWith(".xml") & ! (contextFiles[i].endsWith("_foundContexts.xml")) & !(contextFiles[i].startsWith(prefix)) & !(contextFiles[i].startsWith("all.xml")) & !(contextFiles[i].startsWith("allNew.xml")) & !(contextFiles[i].startsWith("allNew_")))
     	    	{
     	    		File f = new File(directory + File.separator + contextFiles[i]);
 	    	    	InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");

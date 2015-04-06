@@ -26,6 +26,7 @@ parser.add_option("-m", "--idMapPath", dest="idMapPath", help="use csv file ID_M
 parser.add_option("-f", "--frequency", dest="frequency", help="use frequency-based measure for pattern validation with the specified threshold", metavar="FREQUENCY_THRESHOLD")
 parser.add_option("-r", "--reliability", dest="reliability", help="use reliability-based measure for pattern validation with the specified threshold", metavar = "RELIABILITY_THRESHOLD")
 parser.add_option("-N", "--maxN", dest="maxN", help="set the maximum number of iterations (default: 4)", metavar = "MAX_ITERATIONS")
+parser.add_option("-F", "--frequencyStrategy", dest="strategy", help="set the strategy for processing new contexts within frequeny-based framework. Allowed values: \"mergeCurrent\", \"mergeNew\", \"mergeAll\", \"separate\" (default)", metavar = "FREQUENCY_STRATEGY")
 parser.add_option("-C", "--javaClassPath", dest="classpath", help="Set the java classpath", metavar="CLASSPATH")
 
 options, args = parser.parse_args()
@@ -108,7 +109,7 @@ if options.uc:
 #construct option string from options and corresponding values to pass over to learner
 optionStr = []
 optionDict = vars(options)
-learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r", "frequency" : "-f", "np": "-n", "maxN" : "-N"}
+learnerOptionNameDict = { "outpath" : "-o", "index" : "-i", "patterns" : "-p", "terms" : "-t", "seed" : "-s", "learnpath" : "-l", "reliability" : "-r", "frequency" : "-f", "np": "-n", "maxN" : "-N", "strategy" : "-F"}
 for item in optionDict.items():
     if item[0] == "uc":
         pass
@@ -129,7 +130,7 @@ learnerCmd.extend(optionStr)
 print "Calling\n%s" %learnerCmd
 p = subprocess.Popen(learnerCmd)
 p.wait()
-
+sys.exit(0)
 
 # 3) Post-processing: complete output files
 patOut = "\" \""

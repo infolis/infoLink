@@ -407,7 +407,7 @@ public class Learner
 	 * @param maxIterations		maximum number of iterations for algorithm
 	 *
 	 */
-	private void bootstrap_frequency(String seed, double threshold, int maxIterations) throws IOException
+	private void bootstrap_frequency(String seed, double threshold, int maxIterations, String strategy) throws IOException
 	{
 		File contextDir = new File(this.contextPath);
     	String[] contextFiles = contextDir.list();
@@ -448,10 +448,12 @@ public class Learner
 		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		//bootstrapBL1(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
-		//bootstrapBL2 (newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
-		//bootstrapBL3 (newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
-		bootstrapBL4(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations);
+		switch(strategy) {
+			case "mergeCurrent": bootstrapBL1(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
+			case "mergeNew": bootstrapBL2(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
+			case "mergeAll": bootstrapBL3(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
+			case "separate": bootstrapBL4(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
+		}
 	}
 	
 	/**
@@ -477,7 +479,7 @@ public class Learner
 	}
 	
 	/**
-	 * Frequency-based pattern induction baseline 1: merges contexts of all previously found instances 
+	 * Frequency-based pattern induction baseline 1: merges contexts of all instances found in current iteration  
 	 * and continues bootstrapping with this new set
 	 * 
 	 * @param terms				instances to process in this iteration
@@ -489,15 +491,15 @@ public class Learner
 		numIter ++;
 		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
 		try { 
-			Util.mergeContexts(outputDirectory, "all.xml", "all_"); 
-			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
-			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
-			readArff(outputDirectory + File.separator + "all.arff", outputDirectory, threshold); 
+			Util.mergeContexts(outputDirectory, "allNew.xml", "all_"); 
+			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
+			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
+			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		if (numIter >= maxIterations-1) { return; } 
 		HashSet<String> newSeeds = new HashSet<String>();
-		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
+		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
@@ -549,17 +551,17 @@ public class Learner
 		numIter ++;
 		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
 		try {
-			Util.mergeAllContexts(outputDirectory, "allNew.xml", "all_"); 
-			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
-			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
+			Util.mergeAllContexts(outputDirectory, "all.xml", "all_"); 
+			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
+			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
+			readArff(outputDirectory + File.separator + "all.arff", outputDirectory, threshold); 
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		if (numIter >= maxIterations-1) { return; }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		HashSet<String> newSeeds = new HashSet<String>();
-		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
+		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		bootstrapBL3(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
@@ -2651,16 +2653,16 @@ public class Learner
 		 * @param path_contexts	name of the directory containing the context files
 		 * @param path_arffs	name of the directory containing the arff files
 		 */
-		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations)
+		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations, String strategy)
 		{
 			try
 			{
 				Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
 				Collection<String> initialSeeds = new HashSet<String>();
 				initialSeeds.add(initialSeed);
-				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency", threshold);
+				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency_" + strategy, threshold, maxIterations);
 				learner.reliableInstances.add(initialSeed);
-				learner.bootstrap_frequency(initialSeed, threshold, maxIterations);
+				learner.bootstrap_frequency(initialSeed, threshold, maxIterations, strategy);
 				
 				String allPatternsPath = path_train + File.separator + "allPatterns/";
 				File ap = Paths.get(allPatternsPath).normalize().toFile();
@@ -2752,7 +2754,7 @@ public class Learner
 		public static void learn(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations)
 		{
 			Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
-			learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "reliability", threshold);
+			learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "reliability", threshold, maxIterations);
 			learner.reliableInstances.addAll(initialSeeds);
 			try {
 				learner.bootstrap(initialSeeds, threshold, maxIterations);
@@ -2768,7 +2770,7 @@ public class Learner
 			return dateFormat.format(date);
 		}
 		
-		public void outputParameterInfo(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, String method, double threshold)
+		public void outputParameterInfo(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, String method, double threshold, int maxIterations)
 		{
 			String delimiter = Util.delimiter_csv;
 			String timestamp = getDateTime();
@@ -2776,13 +2778,15 @@ public class Learner
 			String parameters = "initial_seeds" + delimiter + "index_path" + delimiter + "train_path" + delimiter + 
 								"corpus_path" + delimiter + "output_path" + delimiter + "context_path" + delimiter + 
 								"arff_path" + delimiter + "constraint_NP" + delimiter + "constraint_upperCase" + delimiter + 
-								"method" + delimiter + "threshold" + delimiter + "start_time\n";
+								"method" + delimiter + "threshold" + delimiter + "maxIterations" + delimiter + "start_time" + 
+								System.getProperty("line.separator");
 			for(String seed : initialSeeds) { parameters += seed + Util.delimiter_internal; }
 			//remove delimiter at the end of the seed list
 			parameters = parameters.substring(0, parameters.length()-Util.delimiter_internal.length());
 			parameters = parameters.trim() + delimiter + path_index + delimiter + path_train + delimiter + path_corpus + 
 						delimiter + path_output + delimiter + path_contexts + delimiter + path_arffs + delimiter + 
-						constraint_NP + delimiter + constraint_upperCase + delimiter + method + delimiter + threshold + delimiter + timestamp;
+						constraint_NP + delimiter + constraint_upperCase + delimiter + method + delimiter + threshold + 
+						delimiter + maxIterations + delimiter + timestamp;
 			try { Util.writeToFile(logFile, "utf-8", parameters, false); }
 			catch(IOException ioe) { ioe.printStackTrace(); System.out.println(parameters); }
 		}
@@ -2898,8 +2902,10 @@ class OptionHandler {
     private String reliabilityThreshold;
     
     @Option(name="-N",usage="sets the maximum number of iterations to MAX_ITERATIONS. If not set, defaults to 4.", metaVar="MAX_ITERATIONS")
-    //private String maxIterations = "1";
     private String maxIterations;
+    
+    @Option(name="-F",usage="sets the strategy to use for processing new seeds within the frequency-based framework to FREQUENCY_STRATEGY. If not set, defaults to \"separate\"", metaVar="FREQUENCY_STRATEGY")
+    private String strategy;
     
     // receives other command line parameters than options
     @Argument
@@ -2950,6 +2956,9 @@ class OptionHandler {
         int maxIter = 4;
         if (maxIterations != null) maxIter = Integer.valueOf(maxIterations);
         
+        String frequencyStrategy = "separate";
+        if(strategy != null) frequencyStrategy = strategy;
+        
         // call Learner.learn method with appropriate options
 		HashSet<String> pathSet = new HashSet<String>();
 		File root = new File(corpusPath);
@@ -2996,7 +3005,7 @@ class OptionHandler {
 			if(frequencyThreshold != null)
 			{ 
 			    double threshold = Double.parseDouble(frequencyThreshold);
-			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter); }
+			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, frequencyStrategy); }
 		}
     }
 }

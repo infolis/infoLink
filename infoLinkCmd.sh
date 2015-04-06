@@ -14,6 +14,7 @@
 # -f = use frequency-based measure for pattern validity assessment with specified threshold
 # -r = use reliability-based measure for pattern validity assessment with specified threshold
 # -N = maximum number of iterations
+# -F = strategy for processing new contexts within frequeny-based framework: "mergeCurrent", "mergeNew", "mergeAll", "separate" (default)
 
 PYTHON_SRC="src/main/python"
 DIR_NAME=${PWD##*/} 
@@ -22,12 +23,13 @@ TAGGING_CMD="tree-tagger-german"
 CHUNKING_CMD="tagger-chunker-german"
 
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns
-# use ALLBUS, Eurobarometer, and NHANES as seeds
+# use ALLBUS, Eurobarometer, and NHANES as seeds (for frequency-based method: only ALLBUS)
 # apply reliability-based pattern validity assessment with threshold of 0.5: use  -r "0.5" \
 # apply frequency-based pattern validity assessment with threshold of 0.24 
 # use uppercase constraint
 # use NP constraint: add  -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
 # restrict maximum number of iterations to 2
+# use "mergeNew"-strategy
 python $PYTHON_SRC/infoLink.py \
     -C "build/classes/main/:$INSTALL_DIR/lib/*" \
     -e "../data/test/small_txt" \
@@ -39,5 +41,6 @@ python $PYTHON_SRC/infoLink.py \
     -m "../data/test/urnDict.csv" \
     -f "0.24" \
     -N "2" \
+    -F "mergeNew" \
     -u 
 

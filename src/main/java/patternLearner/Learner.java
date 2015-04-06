@@ -449,10 +449,10 @@ public class Learner
 		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		switch(strategy) {
-			case "mergeCurrent": bootstrapBL1(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
-			case "mergeNew": bootstrapBL2(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
-			case "mergeAll": bootstrapBL3(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
-			case "separate": bootstrapBL4(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
+			case "mergeCurrent": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeCurrent"); break;
+			case "mergeNew": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeNew"); break;
+			case "mergeAll": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeAll"); break;
+			case "separate": bootstrap_separate(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
 		}
 	}
 	
@@ -479,91 +479,38 @@ public class Learner
 	}
 	
 	/**
-	 * Frequency-based pattern induction baseline 1: merges contexts of all instances found in current iteration  
-	 * and continues bootstrapping with this new set
+	 * Induces extraction patterns using frequency-based pattern validation. Merges contexts of new seeds before 
+	 * processing. 
 	 * 
-	 * @param terms				instances to process in this iteration
-	 * @param outputDirectory	path of the output directory
-	 * @param numIter			current iteration
-	 * @param maxIterations
+	 * @param terms				seed terms for pattern extraction
+	 * @param outputDirectory	output directory for context and training files
+	 * @param numIter			counter of current iteration
+	 * @param threshold			minimum relative frequency of patterns to be deemed relevant
+	 * @param maxIterations		maximum number of iterations
+	 * @param strategy			strategy for merging the seeds: "mergeCurrent" = merge all contexts found at current iteration; "mergeNew" = merge only contexts of new seeds at current iteration; "mergeAll" = merge all contexts of all iterations
+	 * @throws IOException
 	 */
-	private void bootstrapBL1(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException {
+	private void bootstrap_merge(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations, String strategy) throws IOException {
 		numIter ++;
 		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
 		try { 
-			Util.mergeContexts(outputDirectory, "allNew.xml", "all_"); 
-			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
-			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
-		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		if (numIter >= maxIterations-1) { return; } 
-		HashSet<String> newSeeds = new HashSet<String>();
-		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL1(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
-	}
-	
-	/**
-	 * Frequency-based pattern induction baseline 2: merges contexts of all previously found and hitherto 
-	 * unseen studies and continues bootstrapping with this new set
-	 * 
-	 * @param terms				instances to process in this iteration
-	 * @param outputDirectory	path of the output directory
-	 * @param numIter			current iteration
-	 * @param threshold
-	 * @param maxIterations
-	 */
-	private void bootstrapBL2(Collection<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException
-	{
-		numIter ++;
-		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
-		try { 
-			Util.mergeNewContexts(outputDirectory, "allNew.xml", "all_"); 
-			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "allNew.xml"));
-			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "allNew.arff");
-			readArff(outputDirectory + File.separator + "allNew.arff", outputDirectory, threshold); 
-		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		if (numIter >= maxIterations -1) { return; }
-		HashSet<String> newSeeds = new HashSet<String>();
-		try { newSeeds = getSeeds(outputDirectory + File.separator + "allNew_foundDatasets.csv"); }
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL2(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
-	}
-	
-	/**
-	 * Frequency-based pattern induction baseline 3: merges each new context with existing ones and 
-	 * continues bootstrapping with this new set
-	 * 
-	 * @param terms				instances to process in this iteration
-	 * @param outputDirectory	path of the output directory
-	 * @param numIter			current iteration
-	 * @param threshold
-	 * @param maxIterations
-	 */
-	private void bootstrapBL3(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations) throws IOException
-	{
-		numIter ++;
-		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
-		try {
-			Util.mergeAllContexts(outputDirectory, "all.xml", "all_"); 
+			switch(strategy) {
+				case "mergeCurrent": Util.mergeContexts(outputDirectory, "all.xml", "all_"); break;
+				case "mergeNew": Util.mergeNewContexts(outputDirectory, "all.xml", "all_"); break;
+				case "mergeAll": Util.mergeAllContexts(outputDirectory, "all.xml", "all_"); break;
+			}
 			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
 			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
 			readArff(outputDirectory + File.separator + "all.arff", outputDirectory, threshold); 
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		if (numIter >= maxIterations-1) { return; }
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
+		if (numIter >= maxIterations-1) { return; } 
 		HashSet<String> newSeeds = new HashSet<String>();
 		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		bootstrapBL3(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
+		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
+		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
+		bootstrap_merge(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations, strategy);
 	}
 	
 	/**
@@ -577,7 +524,7 @@ public class Learner
 	 * @param threshold
 	 * @param maxIterations
 	 */
-	private void bootstrapBL4(Collection<String> terms, String outputPath, int numIter, double threshold, int maxIterations) throws IOException
+	private void bootstrap_separate(Collection<String> terms, String outputPath, int numIter, double threshold, int maxIterations) throws IOException
 	{
 		this.foundSeeds_iteration = new HashSet<String>();
 		numIter ++;
@@ -640,7 +587,7 @@ public class Learner
 		if (numIter >= maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
 		File nextIterPath = Paths.get(outputPath + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrapBL4(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
+		bootstrap_separate(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
 	}
 	
 	/**

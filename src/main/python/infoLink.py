@@ -130,7 +130,6 @@ learnerCmd.extend(optionStr)
 print "Calling\n%s" %learnerCmd
 p = subprocess.Popen(learnerCmd)
 p.wait()
-sys.exit(0)
 
 # 3) Post-processing: complete output files
 patOut = "\" \""

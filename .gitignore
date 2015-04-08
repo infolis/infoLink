@@ -5,3 +5,5 @@ build
 .classpath
 .project
 .settings/
+logFile.txt
+/bin/

@@ -2,6 +2,7 @@ import org.gradle.api.tasks.application.CreateStartScripts
 
 apply plugin: 'application'
 apply plugin: 'java'
+apply plugin: 'eclipse'
 
 version =  1.0
 sourceCompatibility = 1.7

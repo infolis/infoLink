@@ -1170,6 +1170,7 @@ public class Learner
 			boolean matchFound = false;
 			// if thread was aborted due to long processing time, matchFound should be false
 			if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
+			// TODO don't hardcode this path
 			else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 			
 			while(matchFound)
@@ -1187,6 +1188,7 @@ public class Learner
 					matchFound = false;
 					// if thread was aborted due to long processing time, matchFound should be false
 					if(threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
+					// TODO don't hardcode this path
 					else { Util.writeToFile(new File("data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true); }
 					System.out.println( "Processing new match..." );
 					continue;
@@ -1204,6 +1206,7 @@ public class Learner
 						matchFound = false;
 						// if thread was aborted due to long processing time, matchFound should be false
 						if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
+						// TODO don't hardcode this path
 						else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 						System.out.println("Processing new match...");
 						continue;
@@ -1248,6 +1251,7 @@ public class Learner
 				matchFound = false;
 				// if thread was aborted due to long processing time, matchFound should be false
 				if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
+				// TODO don't hardcode this path
 				else { Util.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 				System.out.println( "Processing new match...");
 			}
@@ -1962,12 +1966,13 @@ public class Learner
 		//
 		List<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern, "?", "", this.indexPath, this.corpusPath);
 		//TODO: similar to Python, does division of two ints yield an int in Java? or is it not necessary to convert one operand to double?
+		// kba: Yes, you need to cast one of the operands to a float/double to do float/double division
 		//double p_y = extractedInfo.size() / data_size;
 		// this yields the number of documents at least one occurrence of the pattern was found
 		// multiple occurrences inside of one document are not considered
 		//double p_y = matchingDocs.length / data_size;
 		// this counts multiple occurrences inside of documents, not only document-wise
-		double p_y = extractedInfo_check.size() / data_size;
+		double p_y = (double)extractedInfo_check.size() / data_size;
 
 		// for every known instance, check whether pattern is associated with it
 		for (String instance : this.reliableInstances)
@@ -2400,6 +2405,7 @@ public class Learner
 					
 					else
 					{
+						// TODO don't hardcode
 						Util.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
 					}
 					
@@ -2426,6 +2432,7 @@ public class Learner
 						
 						else
 						{
+							// TODO don't hardcode
 							Util.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
 						}
 						System.out.println("Processing new match...");

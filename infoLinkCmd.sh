@@ -19,8 +19,8 @@
 PYTHON_SRC="src/main/python"
 DIR_NAME=${PWD##*/} 
 INSTALL_DIR="build/install/$DIR_NAME"
-TAGGING_CMD="tree-tagger-german"
-CHUNKING_CMD="tagger-chunker-german"
+TAGGING_CMD="./tree-tagger/cmd/tree-tagger-german"
+CHUNKING_CMD="./tree-tagger/cmd/tagger-chunker-german"
 
 # extract and clean text from pdf documents, remove bibliographies and learn and apply patterns
 # use ALLBUS, Eurobarometer, and NHANES as seeds (for frequency-based method: only ALLBUS)

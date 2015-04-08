@@ -7,3 +7,5 @@ build
 .settings/
 logFile.txt
 /bin/
+/data/
+/tree-tagger/

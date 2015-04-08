@@ -1,22 +1,25 @@
 package patternLearner;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.HashMap;
 import java.util.Collection;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import searching.Search_Term_Position;
 
@@ -31,9 +34,9 @@ import searching.Search_Term_Position;
  */
 public class ContextMiner 
 {
-	HashSet<String> documentSet;
-	HashMap<String, ExampleReader.Term> termMap;
-	HashMap<String,HashSet<String[]>> documentMap;
+	Set<String> documentSet;
+	Map<String, ExampleReader.Term> termMap;
+	Map<String,Set<String[]>> documentMap;
 	String corpusName;
 	
 	/**
@@ -89,7 +92,7 @@ public class ContextMiner
 	 * 
 	 * @return	set of documents found in the context file.
 	 */
-	public HashSet<String> getDocuments ()
+	public Set<String> getDocuments ()
 	{
 		return this.documentSet;
 	}
@@ -229,7 +232,7 @@ public class ContextMiner
 	 * @param completeContext	the complete reference snippet found for the dataset
 	 * @return					the updated map
 	 */
-	public HashMap<String,HashSet<String[]>> addInfoToLinkMap(HashMap<String,HashSet<String[]>> docMap, String document, String[] htmlRefNtitle, String title, String version, String completeContext)
+	public Map<String,Set<String[]>> addInfoToLinkMap(Map<String,Set<String[]>> docMap, String document, String[] htmlRefNtitle, String title, String version, String completeContext)
 	{
 		String[] titleVersion = new String[4];
 		// url has higher priority than name and version
@@ -242,7 +245,7 @@ public class ContextMiner
 		else { titleVersion[0] = title; titleVersion[2] = null; } 
 		titleVersion[1] = version; 
 		titleVersion[3] = completeContext;
-		HashSet<String[]> studySet;
+		Set<String[]> studySet;
 		if (docMap.containsKey(document)) { studySet = docMap.get(document); }
 		else { studySet = new HashSet<String[]>(); }
 		studySet.add(titleVersion);
@@ -261,13 +264,13 @@ public class ContextMiner
 	 * 					IDs of documents are keys, a set of contexts belonging to a 
 	 * 					document are values.
 	 */
-	public ArrayList<HashMap<String,HashSet<String[]>>> getTitleAndVersion(HashMap<String,String> idMap)
+	public List<Map<String,Set<String[]>>> getTitleAndVersion(Map<String,String> idMap)
 	{
 		// store data for all references containing numerical information (on reference years or versions etc.) in docStudyMap
-		HashMap<String,HashSet<String[]>> docStudyMap = new HashMap<String,HashSet<String[]>>();
+		Map<String,Set<String[]>> docStudyMap = new HashMap<String,Set<String[]>>();
 		// store data for all references not containing any numerical information in separate map 
 		// -> it might be favorable to treat such references differently
-		HashMap<String,HashSet<String[]>> docNoVersionMap = new HashMap<String,HashSet<String[]>>();
+		Map<String,Set<String[]>> docNoVersionMap = new HashMap<String,Set<String[]>>();
 		// retrieve patterns of valid year / number / version specifications
 		Pattern[] patterns = Util.getContextMinerYearPatterns();
 
@@ -317,7 +320,7 @@ public class ContextMiner
 				else { docNoVersionMap = addInfoToLinkMap(docNoVersionMap, document, htmlRefNtitle, contextComplete[1], separatedTitle[2], contextComplete[0] + " " + contextComplete[1] + " " + contextComplete[2]); }
 			}
 		}
-		ArrayList<HashMap<String,HashSet<String[]>>> res = new ArrayList<HashMap<String,HashSet<String[]>>>();
+		List<Map<String,Set<String[]>>> res = new ArrayList<Map<String,Set<String[]>>>();
 		res.add(docStudyMap);
 		res.add(docNoVersionMap);
 		return res;
@@ -344,9 +347,9 @@ public class ContextMiner
 	 * @param filename	name of the file containing a list of filenames and corresponding URNs
 	 * @return			a map with filenames as keys and URNs as values
 	 */
-	public HashMap<String, String> readIDmap(String filename)
+	public Map<String, String> readIDmap(String filename)
 	{
-		HashMap<String, String> urnMap = new HashMap<String, String>();
+		Map<String, String> urnMap = new HashMap<String, String>();
 		try
 		{
     		File f = new File( filename );
@@ -377,7 +380,7 @@ public class ContextMiner
 	 * @param ssoarURNmap	map with filenames as keys and IDs as values
 	 * @return				the ID of <emph>filename</emph> if found in the map or <emph>filename</emph> otherwise.
 	 */
-	public String getID(String filename, HashMap<String,String> ssoarURNmap)
+	public String getID(String filename, Map<String,String> ssoarURNmap)
 	{
 		String pubId = ssoarURNmap.get(new File(filename).getName());
 		// if text file cannot be mapped to urn: use filename
@@ -403,11 +406,11 @@ public class ContextMiner
 	 * @param method				method used for extracting the references in docMap (pattern-based search vs. term-based search)
 	 * @return
 	 */
-	public ArrayList<HashMap<String, Collection<StudyLink>>> mineStudyRefs(HashMap<String,HashSet<String[]>> docMap, HashMap<String,String> idMap, StudyMatcher matcher, ArrayList<HashMap<String, Collection<StudyLink>>> links_doiUrlString, ExtractionMethod method)
+	public List<Map<String, Collection<StudyLink>>> mineStudyRefs(Map<String,Set<String[]>> docMap, Map<String,String> idMap, StudyMatcher matcher, List<Map<String, Collection<StudyLink>>> links_doiUrlString, ExtractionMethod method)
 	{
-		HashMap<String, Collection<StudyLink>> links_doi = links_doiUrlString.get(0);
-		HashMap<String, Collection<StudyLink>> links_url = links_doiUrlString.get(1);
-		HashMap<String, Collection<StudyLink>> links_str = links_doiUrlString.get(2);
+		Map<String, Collection<StudyLink>> links_doi = links_doiUrlString.get(0);
+		Map<String, Collection<StudyLink>> links_url = links_doiUrlString.get(1);
+		Map<String, Collection<StudyLink>> links_str = links_doiUrlString.get(2);
 
 		for (String filename : docMap.keySet())
 		{
@@ -424,7 +427,7 @@ public class ContextMiner
 				Collection<StudyLink> foundStudies_doi = new HashSet<StudyLink>();
 				Collection<StudyLink> foundStudies_url = new HashSet<StudyLink>();
 				Collection<StudyLink> foundStudies_str = new HashSet<StudyLink>();
-				HashMap<String,String> matchingStudiesMap = new HashMap<String,String>();
+				Map<String,String> matchingStudiesMap = new HashMap<String,String>();
 				
 				matchingStudiesMap = matcher.match(citation[0]);
 				
@@ -487,7 +490,7 @@ public class ContextMiner
 				}
 			}
 		}
-		ArrayList<HashMap<String, Collection<StudyLink>>> res_doiUrlStr = new ArrayList<HashMap<String, Collection<StudyLink>>>();
+		List<Map<String, Collection<StudyLink>>> res_doiUrlStr = new ArrayList<Map<String, Collection<StudyLink>>>();
 		res_doiUrlStr.add(links_doi);
 		res_doiUrlStr.add(links_url);
 		res_doiUrlStr.add(links_str);
@@ -518,15 +521,15 @@ public class ContextMiner
 	 * @param idMap			path of the file listing document filenames and their IDs
 	 * @return				a map with document IDs as keys and extracted dataset references as values
 	 */
-	public HashMap<String,HashSet<String[]>> getKnownStudyRefs(String filename, String corpusName, HashMap<String,String> idMap)
+	public Map<String,Set<String[]>> getKnownStudyRefs(String filename, String corpusName, Map<String,String> idMap)
 	{
-		HashMap<String,HashSet<String[]>> resKnownStudies = new HashMap<String,HashSet<String[]>>();
+		Map<String,Set<String[]>> resKnownStudies = new HashMap<String,Set<String[]>>();
 		try
 		{
 			File file = new File(filename);  
 			FileInputStream f = new FileInputStream(file);  
 			ObjectInputStream s = new ObjectInputStream(f);  
-			HashMap<String,HashSet<String[]>> resKnownStudies_ = (HashMap<String,HashSet<String[]>>)s.readObject();         
+			Map<String,Set<String[]>> resKnownStudies_ = (Map<String,Set<String[]>>)s.readObject();         
 			s.close();
 			
 			for (String key : resKnownStudies_.keySet())
@@ -658,7 +661,7 @@ public class ContextMiner
 	 * @return			<emph>True</emph>, if document was already linked to dataset, <emph>False</emph> 
 	 * 					otherwise.
 	 */
-	public boolean isDuplicate(String pubId, String link, HashMap<String, HashSet<String>> refMap)
+	public boolean isDuplicate(String pubId, String link, Map<String, Set<String>> refMap)
 	{
 		try { return refMap.get(pubId).contains(link); }
 		catch (NullPointerException npe) { return false; }
@@ -675,9 +678,9 @@ public class ContextMiner
 	 * @param logFilename	path to the logfile
 	 * @return				a list of all contexts found for term in docName
 	 */
-	public HashSet<String> getAllSnippetsForTermInDoc(String term, String docName, HashMap<String,HashMap<String,HashSet<String>>> docMap, String logFilename)
+	public Set<String> getAllSnippetsForTermInDoc(String term, String docName, Map<String,Map<String,Set<String>>> docMap, String logFilename)
 	{
-		HashMap<String,HashSet<String>> docSnippets = docMap.get(docName); 
+		Map<String,Set<String>> docSnippets = docMap.get(docName); 
 		// useful when comparing filenames
 		if (docSnippets == null) { docSnippets = docMap.get(docName.replace("/", "\\")); }
 		if (docSnippets == null) { docSnippets = docMap.get(docName.replace("\\", "/")); }
@@ -699,7 +702,7 @@ public class ContextMiner
 				return new HashSet<String>();
 			}
 		}
-		HashSet<String> snippets = docSnippets.get(term.trim());
+		Set<String> snippets = docSnippets.get(term.trim());
 		if (snippets != null) {	return snippets; }
 		else { return new HashSet<String>();}
 	}
@@ -711,17 +714,17 @@ public class ContextMiner
 	 * @param idMap				map listing document names and their corresponding IDs
 	 * @return					a map having IDs as keys and corresponding document filenames as values
 	 */
-	public HashMap<String,HashMap<String,HashSet<String>>> getLinkDocMap(String snippetFilename, HashMap<String,String> idMap)
+	public Map<String,Map<String,Set<String>>> getLinkDocMap(String snippetFilename, Map<String,String> idMap)
 	{
 		ExampleReader exReader = new ExampleReader(new File(snippetFilename));
-		HashMap<String,HashSet<String[]>> docMap = exReader.getDocumentMap();
-		HashMap<String,HashMap<String,HashSet<String>>> urnDocMap = new HashMap<String,HashMap<String,HashSet<String>>>();
+		Map<String,Set<String[]>> docMap = exReader.getDocumentMap();
+		Map<String,Map<String,Set<String>>> urnDocMap = new HashMap<String,Map<String,Set<String>>>();
 		// docMap has filenames as keys, transform them into IDs
 		for (String key : docMap.keySet())
 		{
 			String urnKey = getID(mapToDictName(key.replace("\\", "/")), idMap);
-			HashSet<String[]> links = docMap.get(key);
-			HashMap<String,HashSet<String>> termMap = new HashMap<String,HashSet<String>>();
+			Set<String[]> links = docMap.get(key);
+			Map<String,Set<String>> termMap = new HashMap<String,Set<String>>();
 			// for better performance: sort by term (=context[1])
 			Iterator<String[]> linkIter = links.iterator();
 			while (linkIter.hasNext())
@@ -730,7 +733,7 @@ public class ContextMiner
 				String term = contextComplete[1].trim();
 				String context = contextComplete[0].trim() + " " + term + " " + contextComplete[2].trim();
 				context = context.replace("\n", " ");
-				HashSet<String> termLinks = new HashSet<String>();
+				Set<String> termLinks = new HashSet<String>();
 				if (termMap.containsKey(term)) { termLinks = termMap.get(term); }
 				termLinks.add(context);
 				termMap.put(term, termLinks);
@@ -769,9 +772,9 @@ public class ContextMiner
 	 * @param linkMap	map containing StudyLink instances as values
 	 * @return			list of distince dataset reference names
 	 */
-	public HashSet<String> getAllRefNames(HashMap<String, Collection<StudyLink>> linkMap)
+	public Set<String> getAllRefNames(Map<String, Collection<StudyLink>> linkMap)
 	{
-		HashSet<String> refNameList = new HashSet<String>();
+		Set<String> refNameList = new HashSet<String>();
 		for (String key : linkMap.keySet())
 		{
 			Collection<StudyLink> linkList = linkMap.get(key);
@@ -786,28 +789,28 @@ public class ContextMiner
 	 * @param linkSet	set containing all links
 	 * @return			a set of all links now being merged (only one entry per link with all snippets merged)
 	 */
-	public HashSet<StudyLink> mergeSnippets(Collection<StudyLink> linkSet)
+	public Set<StudyLink> mergeSnippets(Collection<StudyLink> linkSet)
 	{
 		String delimiter = Util.delimiter_csv;
 		// unique key for links
 		String studyNameVersionLinkConf = "";
 		// snippetMap: contains all different snippets for a link
-		HashMap<String, HashSet<String>> snippetMap = new HashMap<String, HashSet<String>>();
+		Map<String, Set<String>> snippetMap = new HashMap<String, Set<String>>();
 		// first pass: merge snippets
 		for (StudyLink ref : linkSet)
 		{
-			HashSet<String> knownSnippets = new HashSet<String>();
+			Set<String> knownSnippets = new HashSet<String>();
 			studyNameVersionLinkConf = ref.name + ref.version + ref.link + ref.confidence + ref.method;
 			if (snippetMap.containsKey(studyNameVersionLinkConf)) { knownSnippets = snippetMap.get(studyNameVersionLinkConf); }
 			knownSnippets.add(ref.snippet);
 			snippetMap.put(studyNameVersionLinkConf, knownSnippets);
 		}
 		// second pass: construct new linkSet with merged snippets
-		HashSet<StudyLink> newLinkSet = new HashSet<StudyLink>();
+		Set<StudyLink> newLinkSet = new HashSet<StudyLink>();
 		for (StudyLink ref : linkSet)
 		{
 			studyNameVersionLinkConf = ref.name + ref.version + ref.link + ref.confidence + ref.method;
-			HashSet<String> snippets = snippetMap.get(studyNameVersionLinkConf);
+			Set<String> snippets = snippetMap.get(studyNameVersionLinkConf);
 			Iterator<String> snippetIter = snippets.iterator();
 			String allSnippets = "";
 			while (snippetIter.hasNext())
@@ -828,7 +831,7 @@ public class ContextMiner
 	 * @param linkMap	map containing all links
 	 * @param filename	output filename
 	 */
-	public void outputLinkMap(HashMap<String, Collection<StudyLink>> linkMap, String filename)
+	public void outputLinkMap(Map<String, Collection<StudyLink>> linkMap, String filename)
 	{
 		String delimiter = Util.delimiter_csv;
 		String pubStudyNameVersionLinkConf = "";
@@ -843,13 +846,13 @@ public class ContextMiner
 			{
 				System.out.println("Processing " + key);
 				// refMap: contains all previously processed distinct references (distinct = link having same refString, same doi, same confidence
-				HashMap<String, HashSet<String>> refMap = new HashMap<String, HashSet<String>>();
+				Map<String, Set<String>> refMap = new HashMap<String, Set<String>>();
 				
 				// output only one link when multiple references are mapped to same study but merge and include all snippets in this link
-				HashSet<StudyLink> mergedLinks = mergeSnippets(linkMap.get(key));
+				Set<StudyLink> mergedLinks = mergeSnippets(linkMap.get(key));
 				for (StudyLink ref : mergedLinks)
 				{
-					HashSet<String> studyRefs = new HashSet<String>();
+					Set<String> studyRefs = new HashSet<String>();
 					// ignore duplicates
 					pubStudyNameVersionLinkConf = key + ref.name + ref.version + ref.link + ref.confidence + ref.method;
 					if (isDuplicate(key, pubStudyNameVersionLinkConf, refMap)) { continue; }
@@ -887,17 +890,17 @@ public class ContextMiner
 	 * @param logFilename		name of the log file
 	 * @param useExistingSnippetCache	if true use existing snippetFilename, else create
 	 */
-	public void outputLinkMap(HashMap<String, Collection<StudyLink>> linkMap, String filename, String indexDir, String snippetFilename, HashMap<String,String> idMap, String logFilename, boolean useExistingSnippetCache)
+	public void outputLinkMap(Map<String, Collection<StudyLink>> linkMap, String filename, String indexDir, String snippetFilename, Map<String,String> idMap, String logFilename, boolean useExistingSnippetCache)
 	{
 		String delimiter = Util.delimiter_csv;
 		String pubStudyNameVersionLinkConf = "";
 		
-		HashSet<String> allRefNames = getAllRefNames(linkMap);
+		Set<String> allRefNames = getAllRefNames(linkMap);
 		
 		// search for all occurrences of ref names in the documents and output snippet map
 		// alternatively, use cache of previous searches
 		if (!useExistingSnippetCache) {	saveAllSnippets(indexDir, allRefNames, snippetFilename); }
-		HashMap<String,HashMap<String,HashSet<String>>> linkDocMap = getLinkDocMap(snippetFilename, idMap);
+		Map<String,Map<String,Set<String>>> linkDocMap = getLinkDocMap(snippetFilename, idMap);
 		try 
 		{
 			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(filename), "UTF-8");
@@ -908,20 +911,20 @@ public class ContextMiner
 			{
 				System.out.println("Processing " + key);
 				// refMap: contains all previously processed distinct references (distinct = link having same refString, same doi, same confidence
-				HashMap<String, HashSet<String>> refMap = new HashMap<String, HashSet<String>>();
+				Map<String, Set<String>> refMap = new HashMap<String, Set<String>>();
 				
 				// output only one link when multiple references are mapped to same study but merge and include all snippets for this link
-				HashSet<StudyLink> mergedLinks = mergeSnippets(linkMap.get(key));
+				Set<StudyLink> mergedLinks = mergeSnippets(linkMap.get(key));
 				for (StudyLink ref : mergedLinks)
 				{
-					HashSet<String> studyRefs = new HashSet<String>();
+					Set<String> studyRefs = new HashSet<String>();
 					// ignore duplicates
 					pubStudyNameVersionLinkConf = key + ref.name + ref.version + ref.link + ref.confidence + ref.method;
 					if (isDuplicate(key, pubStudyNameVersionLinkConf, refMap)) { continue; }
 					
 					// search for all occurences of reference study in the document and output contexts as snippets
 					// instead of only the one snippet that was mapped to study
-					HashSet<String> termBasedSnippets = getAllSnippetsForTermInDoc(ref.alt_name, key, linkDocMap, logFilename);
+					Set<String> termBasedSnippets = getAllSnippetsForTermInDoc(ref.alt_name, key, linkDocMap, logFilename);
 					Iterator<String> termSnippetIter = termBasedSnippets.iterator();
 					String termSnippets = "";
 					while (termSnippetIter.hasNext())
@@ -953,10 +956,10 @@ public class ContextMiner
 	 * Constructs a list of subcorpora in a specified basePath (for each subcorpus being stored in 
 	 * a subfolder of the basePath)
 	 */
-	public static HashSet<File> getSubcorpora(String basePath, String prefix)
+	public static Set<File> getSubcorpora(String basePath, String prefix)
 	{
 		File baseDir = new File(basePath);
-		HashSet<File> subcorpora = new HashSet<File>();
+		Set<File> subcorpora = new HashSet<File>();
 		for ( File subDir : baseDir.listFiles() )
 		{
 			if (subDir.getName().startsWith(prefix)) { subcorpora.add(subDir); }
@@ -1032,13 +1035,13 @@ public class ContextMiner
 	public static void getLinks_termSearch(String corpusName, String outPath, StudyMatcher matcher, String foundMentionsFilename, String urnDictFilename)
 	{
 		ContextMiner minerKnown = new ContextMiner(corpusName);
-		HashMap<String,String> ssoarURNmap = minerKnown.readIDmap(urnDictFilename);
-		HashMap<String,HashSet<String[]>> resKnownStudies = minerKnown.getKnownStudyRefs(foundMentionsFilename, minerKnown.corpusName, ssoarURNmap);
+		Map<String,String> ssoarURNmap = minerKnown.readIDmap(urnDictFilename);
+		Map<String,Set<String[]>> resKnownStudies = minerKnown.getKnownStudyRefs(foundMentionsFilename, minerKnown.corpusName, ssoarURNmap);
 		// sort by reference type: doi vs. url vs. string
-		HashMap<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();				
-		ArrayList<HashMap<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<HashMap<String, Collection<StudyLink>>>();
+		Map<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();				
+		List<Map<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<Map<String, Collection<StudyLink>>>();
 		links_doiUrlString.add(links_doi);
 		links_doiUrlString.add(links_url);
 		links_doiUrlString.add(links_string);
@@ -1062,19 +1065,19 @@ public class ContextMiner
 	{
 		String corpusName = corpus.getName();		
 		ContextMiner miner = new ContextMiner(foundContextsFilename, corpusName);
-		HashMap<String,String> ssoarURNmap = miner.readIDmap(idMapPath);
-		ArrayList<HashMap<String,HashSet<String[]>>> docMaps = miner.getTitleAndVersion(ssoarURNmap);
+		Map<String,String> ssoarURNmap = miner.readIDmap(idMapPath);
+		List<Map<String,Set<String[]>>> docMaps = miner.getTitleAndVersion(ssoarURNmap);
 		// key: filename, value: set of study references (each reference consists of a name and a version)
-		HashMap<String,HashSet<String[]>> docStudyMap = docMaps.get(0);
+		Map<String,Set<String[]>> docStudyMap = docMaps.get(0);
 		// key: filename, value: set of contexts (each context consists of left context, study name, right context)
-		HashMap<String,HashSet<String[]>> docNoVersionMap = docMaps.get(1);
+		Map<String,Set<String[]>> docNoVersionMap = docMaps.get(1);
 				
 		// sort by reference type: doi vs. url vs. string
-		HashMap<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();
 				
-		ArrayList<HashMap<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<HashMap<String, Collection<StudyLink>>>();
+		List<Map<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<Map<String, Collection<StudyLink>>>();
 		links_doiUrlString.add(links_doi);
 		links_doiUrlString.add(links_url);
 		links_doiUrlString.add(links_string);
@@ -1100,19 +1103,19 @@ public class ContextMiner
 	{
 		String corpusName = corpus.getName();		
 		ContextMiner miner = new ContextMiner(foundContextsFilename, corpusName);
-		HashMap<String,String> ssoarURNmap = miner.readIDmap(idMapPath);
-		ArrayList<HashMap<String,HashSet<String[]>>> docMaps = miner.getTitleAndVersion(ssoarURNmap);
+		Map<String,String> ssoarURNmap = miner.readIDmap(idMapPath);
+		List<Map<String,Set<String[]>>> docMaps = miner.getTitleAndVersion(ssoarURNmap);
 		// key: filename, value: set of study references (each reference consists of a name and a version)
-		HashMap<String,HashSet<String[]>> docStudyMap = docMaps.get(0);
+		Map<String,Set<String[]>> docStudyMap = docMaps.get(0);
 		// key: filename, value: set of contexts (each context consists of left context, study name, right context)
-		HashMap<String,HashSet<String[]>> docNoVersionMap = docMaps.get(1);
+		Map<String,Set<String[]>> docNoVersionMap = docMaps.get(1);
 				
 		// sort by reference type: doi vs. url vs. string
-		HashMap<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
-		HashMap<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_doi = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_url = new HashMap<String, Collection<StudyLink>>();
+		Map<String, Collection<StudyLink>> links_string = new HashMap<String, Collection<StudyLink>>();
 				
-		ArrayList<HashMap<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<HashMap<String, Collection<StudyLink>>>();
+		List<Map<String, Collection<StudyLink>>> links_doiUrlString = new ArrayList<Map<String, Collection<StudyLink>>>();
 		links_doiUrlString.add(links_doi);
 		links_doiUrlString.add(links_url);
 		links_doiUrlString.add(links_string);

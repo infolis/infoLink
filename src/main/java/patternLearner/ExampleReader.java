@@ -4,20 +4,20 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
-
-import org.xml.sax.ContentHandler;
-import org.xml.sax.Attributes;
-import org.xml.sax.Locator;
-
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Class for parsing InfoLink reference extraction context files.
@@ -49,7 +49,7 @@ public class ExampleReader
 	 * 
 	 * @return	set of contexts
 	 */
-	public HashSet<String[]> getContexts()
+	public Set<String[]> getContexts()
 	{
 		return handler.contextSet;
 	}
@@ -60,7 +60,7 @@ public class ExampleReader
 	 * 
 	 * @return	set of document names
 	 */
-	public HashSet<String> getDocuments()
+	public Set<String> getDocuments()
 	{
 		return handler.documentSet;
 	}
@@ -70,7 +70,7 @@ public class ExampleReader
 	 * 
 	 * @return	map having string representations of terms (assumed dataset references) as keys and a list of corresponding Term instances as values
 	 */
-	public HashMap<String,Term> getTermMap()
+	public Map<String,Term> getTermMap()
 	{
 		return handler.termMap;
 	}
@@ -80,7 +80,7 @@ public class ExampleReader
 	 * 
 	 * @return	map having document names as keys and sets of assumed dataset references and contexts as values
 	 */
-	public HashMap<String,HashSet<String[]>> getDocumentMap()
+	public Map<String,Set<String[]>> getDocumentMap()
 	{
 		return handler.documentMap;
 	}
@@ -94,7 +94,7 @@ public class ExampleReader
 	 */
 	public Collection<Term> getContextsForTerms()
 	{
-		HashMap<String,Term> termMap = handler.termMap;
+		Map<String,Term> termMap = handler.termMap;
 		return termMap.values();
 	}
 	
@@ -110,15 +110,15 @@ public class ExampleReader
 			System.exit(1);
 		}
 		ExampleReader learner = new ExampleReader(new File(args[0]));
-		HashMap<String,Term> termMap = learner.getTermMap();
+		Map<String,Term> termMap = learner.getTermMap();
 		
 		Collection<Term> terms = termMap.values();
 		Iterator<Term> termIter = terms.iterator(); 
 		while (termIter.hasNext())
 		{
 			Term newTerm = termIter.next();
-			HashSet<String[]> contexts = newTerm.contexts;
-			HashSet<String> documents = newTerm.documents;
+			Set<String[]> contexts = newTerm.contexts;
+			Set<String> documents = newTerm.documents;
 		}
 	}
 	
@@ -246,10 +246,10 @@ public class ExampleReader
 	 */
 	private class ContextHandler implements ContentHandler 
 	{
-		public HashSet<String> documentSet = new HashSet<String>();
-		public HashMap<String,Term> termMap = new HashMap<String,Term>();
-		public HashSet<String[]> contextSet = new HashSet<String[]>();
-		public HashMap<String,HashSet<String[]>> documentMap = new HashMap<String,HashSet<String[]>>();
+		public Set<String> documentSet = new HashSet<String>();
+		public Map<String,Term> termMap = new HashMap<String,Term>();
+		public Set<String[]> contextSet = new HashSet<String[]>();
+		public Map<String,Set<String[]>> documentMap = new HashMap<String,Set<String[]>>();
 		private Term newTerm;
 		private String doc;
 		private String currentValue;
@@ -318,13 +318,13 @@ public class ExampleReader
 				 
 				 if (documentMap.containsKey(this.doc) == false)
 				 {
-					 HashSet<String[]> docContexts = new HashSet<String[]>();
+					 Set<String[]> docContexts = new HashSet<String[]>();
 					 docContexts.add(completeContext);
 					 documentMap.put(this.doc, docContexts);
 				 }
 				 else
 				 {
-					 HashSet<String[]> docContexts = documentMap.get(this.doc);
+					 Set<String[]> docContexts = documentMap.get(this.doc);
 					 docContexts.add(completeContext);
 					 documentMap.put(this.doc, docContexts);
 				 }

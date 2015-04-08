@@ -2,45 +2,45 @@ package patternLearner;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.file.Paths;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.Collection;
-
-import searching.Search_Term_Position;
-import tagger.Tagger;
-
-import weka.core.Attribute;
-import weka.core.FastVector;
-import weka.core.Instance;
-import weka.core.Instances;
+import java.util.regex.Pattern;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import java.text.DateFormat;
+import searching.Search_Term_Position;
+import tagger.Tagger;
+import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instance;
+import weka.core.Instances;
 
 /**
  * Class for finding references to scientific datasets in publications using a minimum supervised iterative 
@@ -57,14 +57,14 @@ import java.text.DateFormat;
  */
 public class Learner
 {
-	ArrayList<String>[] contextsAsStrings;
-	HashSet<String> processedSeeds; //all processed seeds
-	HashSet<String> foundSeeds_iteration; //seeds found at current iteration step
-	HashSet<String> foundPatterns_iteration; //ngram patterns
-	HashSet<String> reliablePatterns_iteration;
-	HashSet<String> processedPatterns; //ngram patterns
-	HashMap<String, ArrayList<String[]>> reliablePatternsAndContexts;
-	HashSet<String> reliableInstances;
+	List<List<String>> contextsAsStrings;
+	Set<String> processedSeeds; //all processed seeds
+	Set<String> foundSeeds_iteration; //seeds found at current iteration step
+	Set<String> foundPatterns_iteration; //ngram patterns
+	Set<String> reliablePatterns_iteration;
+	Set<String> processedPatterns; //ngram patterns
+	Map<String, List<String[]>> reliablePatternsAndContexts;
+	Set<String> reliableInstances;
 	// basePath is used for normalizing path names when searching for known dataset names
 	// should point to the path of the input text corpus
 	Path basePath;
@@ -104,7 +104,7 @@ public class Learner
 		this.contextPath = contextPath;
 		this.arffPath = arffPath;
 		this.outputPath = outputPath;
-		this.reliablePatternsAndContexts = new HashMap<String, ArrayList<String[]>>();
+		this.reliablePatternsAndContexts = new HashMap<String, List<String[]>>();
 		this.reliableInstances = new HashSet<String>();
 		this.reliability = new Reliability();
 	}
@@ -119,8 +119,8 @@ public class Learner
 	 */
 	private class Reliability
 	{
-		HashMap<String, Instance> instances;
-		HashMap<String, Pattern> patterns;
+		Map<String, Instance> instances;
+		Map<String, Pattern> patterns;
 		double maximumPmi;
 		
 		/**
@@ -148,7 +148,7 @@ public class Learner
 			if(this.instances.containsKey(instance.name))
 			{
 				Instance curInstance = this.instances.get(instance.name);
-				HashMap<String, Double> curAssociations = curInstance.associations;
+				Map<String, Double> curAssociations = curInstance.associations;
 				curAssociations.putAll(instance.associations);
 				instance.associations = curAssociations;
 				this.instances.put(instance.name, instance);
@@ -172,7 +172,7 @@ public class Learner
 			if(this.patterns.containsKey(pattern.pattern)) 
 			{
 				Pattern curPattern = this.patterns.get(pattern.pattern);
-				HashMap<String, Double> curAssociations = curPattern.associations;
+				Map<String, Double> curAssociations = curPattern.associations;
 				curAssociations.putAll(pattern.associations);
 				pattern.associations = curAssociations;
 				this.patterns.put(pattern.pattern, pattern);
@@ -203,7 +203,7 @@ public class Learner
 		class Instance 
 		{
 			private String name;
-			private HashMap<String, Double> associations;
+			private Map<String, Double> associations;
 			private double reliability;
 			
 			Instance (String name)
@@ -245,7 +245,7 @@ public class Learner
 		class Pattern
 		{
 			private String pattern;
-			private HashMap<String, Double> associations;
+			private Map<String, Double> associations;
 			double reliability;
 			
 			Pattern(String pattern)
@@ -341,9 +341,9 @@ public class Learner
 	 * @param filename	name of the file listing all seeds
 	 * @return			a set of all seeds contained in the file
 	 */
-	public HashSet<String> getSeeds(String filename) throws IOException
+	public Set<String> getSeeds(String filename) throws IOException
 	{
-		HashSet<String> seedList = new HashSet<String>();
+		Set<String> seedList = new HashSet<String>();
 		InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filename)), "UTF8");
 		BufferedReader reader = new BufferedReader(isr);
 		String text = null;
@@ -445,7 +445,7 @@ public class Learner
 		//this.processedPatterns = new HashSet<String>();
 		//this.foundPatterns_iteration = new HashSet<String>();
 		
-		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
+		Set<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
 		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
 		switch(strategy) {
@@ -490,7 +490,7 @@ public class Learner
 	 * @param strategy			strategy for merging the seeds: "mergeCurrent" = merge all contexts found at current iteration; "mergeNew" = merge only contexts of new seeds at current iteration; "mergeAll" = merge all contexts of all iterations
 	 * @throws IOException
 	 */
-	private void bootstrap_merge(HashSet<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations, String strategy) throws IOException {
+	private void bootstrap_merge(Set<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations, String strategy) throws IOException {
 		numIter ++;
 		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
 		try { 
@@ -505,7 +505,7 @@ public class Learner
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		if (numIter >= maxIterations-1) { return; } 
-		HashSet<String> newSeeds = new HashSet<String>();
+		Set<String> newSeeds = new HashSet<String>();
 		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
@@ -569,7 +569,7 @@ public class Learner
 	    		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 	    	}
 		}
-		HashSet<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
+		Set<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
 		try
 		{
 			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(outputPath + File.separator + "newSeeds.txt")),"UTF-8");
@@ -611,7 +611,7 @@ public class Learner
 		String[] arffFiles = arffDir.list();
 		List<String> arffFileList = Arrays.asList(arffFiles);
 		TrainingSet trainingSet;
-		ArrayList<String> newArffFiles = new ArrayList<String>();
+		List<String> newArffFiles = new ArrayList<String>();
 		// 0. filter seeds, select only reliable ones
 		// alternatively: use all seeds extracted by reliable patterns
 		this.reliableInstances.addAll(terms);
@@ -650,7 +650,7 @@ public class Learner
 		bootstrap_reliabilityBased(this.foundSeeds_iteration, threshold, numIter, maxIter);
 	}
 	
-	private String getString_reliablePatternOutput( HashMap<String, ArrayList<String[]>> patternsAndContexts, int iteration )
+	private String getString_reliablePatternOutput( Map<String, List<String[]>> patternsAndContexts, int iteration )
 	{
 		String string = "Iteration " + iteration + ":\n";
 		for ( String pattern : patternsAndContexts.keySet() )
@@ -698,7 +698,7 @@ public class Learner
 	 * @param filenamePatterns	...
 	 * @param filenameStudies	...
 	 */
-	private void outputContextsAndPatterns(ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException
+	private void outputContextsAndPatterns(List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException
 	{
 		File contextFile = new File(filenameContexts);
 		File patternFile = new File(filenamePatterns);
@@ -715,8 +715,8 @@ public class Learner
 		OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
 		BufferedWriter out3 = new BufferedWriter(fstream3);
 			
-		HashSet<String> patSet = new HashSet<String>();
-		HashSet<String> studySet = new HashSet<String>();
+		Set<String> patSet = new HashSet<String>();
+		Set<String> studySet = new HashSet<String>();
 			
 		for (String[] studyNcontext: studyNcontextList)
 		{
@@ -793,7 +793,7 @@ public class Learner
 	 * @param filenamePatterns	...
 	 * @param filenameStudies	...
 	 */
-	private void outputContextsAndPatterns_distinct (ArrayList<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException
+	private void outputContextsAndPatterns_distinct (List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException
 	{
 		File contextFile = new File(filenameContexts);
 		File patternFile = new File(filenamePatterns);
@@ -810,9 +810,9 @@ public class Learner
 		OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
 		BufferedWriter out3 = new BufferedWriter(fstream3);
 			
-		HashSet<String> patSet = new HashSet<String>();
-		HashSet<String> studySet = new HashSet<String>();
-		HashSet<String> distinctContexts = new HashSet<String>();
+		Set<String> patSet = new HashSet<String>();
+		Set<String> studySet = new HashSet<String>();
+		Set<String> distinctContexts = new HashSet<String>();
 			
 		for (String[] studyNcontext: studyNcontextList)
 		{
@@ -912,7 +912,7 @@ public class Learner
 	 * @param studyNcontextList list of extracted instances and their contexts
 	 * @param filenames			array specifying the names for the distinct output files ([0]: dataset names, [1]: contexts, [2]: patterns)
 	 */
-	private void output(ArrayList<String[]> studyNcontextList, String[] filenames) throws IOException
+	private void output(List<String[]> studyNcontextList, String[] filenames) throws IOException
 	{
 		String filenameStudies = filenames[0];
 		String filenameContexts = filenames[1];
@@ -932,7 +932,7 @@ public class Learner
 	 * @param filenames			array specifying the names for the distinct output files ([0]: dataset names, [1]: contexts, [2]: patterns)
 	 * @param train				flag specifying whether InfoLink is in training mode (i.e. learning new patterns instead of applying known ones)
 	 */
-	private void output_distinct(ArrayList<String[]> studyNcontextList, String[] filenames, boolean train) throws IOException
+	private void output_distinct(List<String[]> studyNcontextList, String[] filenames, boolean train) throws IOException
 	{
 		String filenameStudies = filenames[0];
 		String filenameContexts = filenames[1];
@@ -955,15 +955,15 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private ArrayList<String[]> getStudyRefs_optimized_reliabilityCheck(HashSet<String[]> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs_optimized_reliabilityCheck(Set<String[]> patterns, String[] corpus) throws IOException
 	{
-		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
+		List<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
 			// get list of documents in which to search for the regular expression
 			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
-			HashSet<String> patSet = new HashSet<String>();
+			Set<String> patSet = new HashSet<String>();
 			patSet.add(curPat[2]);
 			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
 			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
@@ -985,14 +985,14 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private ArrayList<String[]> getStudyRefs_optimized(HashSet<String[]> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException
 	{
-		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
+		List<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
 			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
-			HashSet<String> patSet = new HashSet<String>();
+			Set<String> patSet = new HashSet<String>();
 			patSet.add(curPat[1]);
 			//TODO: see above...
 			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
@@ -1034,14 +1034,14 @@ public class Learner
 	 * @param corpus	array of filenames of text documents to search patterns in
 	 * @return			a list of extracted contexts
 	 */
-	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus) throws IOException
 	{
-		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
+		List<String[]> resAggregated = new ArrayList<String[]>();
 
 		for (String filename: corpus)
 		{
 			System.out.println("searching for patterns in " + filename);
-			ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
+			List<String[]> resList = searchForPatterns(patterns, filename, "");
 			resAggregated.addAll(resList);
 		}
 		return resAggregated;
@@ -1057,14 +1057,14 @@ public class Learner
 	 * @param path_output	output path
 	 * @return				a list of extracted contexts
 	 */
-	private ArrayList<String[]> getStudyRefs(HashSet<String> patterns, String[] corpus, String path_output) throws IOException
+	private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus, String path_output) throws IOException
 	{
-		ArrayList<String[]> resAggregated = new ArrayList<String[]>();
+		List<String[]> resAggregated = new ArrayList<String[]>();
 
 		for (String filename: corpus)
 		{
 			System.out.println("searching for patterns in " + filename);
-			ArrayList<String[]> resList = searchForPatterns(patterns, filename, "");
+			List<String[]> resList = searchForPatterns(patterns, filename, "");
 			String fileLogPath = path_output + File.separator + "processedDocs.csv";
 			String[] filenames_grams = new String[3];
 			filenames_grams[0] = path_output + File.separator + "datasets.csv";
@@ -1125,7 +1125,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private ArrayList<String[]> searchForPatterns(HashSet<String> patternSet, String filenameIn, String filenameOut) throws FileNotFoundException, IOException
+	private List<String[]> searchForPatterns(Set<String> patternSet, String filenameIn, String filenameOut) throws FileNotFoundException, IOException
 	{
 		// search for each given regex in filenameIn
 		// write new training examples to context / arff file...
@@ -1138,7 +1138,7 @@ public class Learner
 		// makes regex matching a bit easier
 		String inputClean = input.replaceAll("\\s+", " ");
 		
-		ArrayList<String[]> res = new ArrayList<String[]>();
+		List<String[]> res = new ArrayList<String[]>();
 		Iterator<String> patIter = patternSet.iterator();
 		while (patIter.hasNext())
 		{
@@ -1216,7 +1216,7 @@ public class Learner
 					Tagger tagger;
 					try { tagger = new Tagger(this.taggingCmd, this.chunkingCmd, "utf-8"); }
 					catch (Exception e) { e.printStackTrace(); throw new IOException("\nerror initializing tagger\n"); }
-					ArrayList<Tagger.Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
+					List<Tagger.Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
 					containedInNP = false;
 					if(nounPhrase != null)
 					{
@@ -1263,7 +1263,8 @@ public class Learner
 	 * @param data		training data
 	 * @return			...
 	 */
-	private ArrayList<String[]> getRelevantNgramPatterns(Instance instance, Instances data, double threshold)
+	@SuppressWarnings("unused")
+	private List<String[]> getRelevantNgramPatterns(Instance instance, Instances data, double threshold)
 	{
 		String attVal0 = instance.stringValue(0); //l5
 		String attVal1 = instance.stringValue(1); //l4
@@ -1394,7 +1395,7 @@ public class Learner
 		String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
 		//String regex_ngram5_flex_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 		
-		ArrayList<String[]> ngramPats = new ArrayList<String[]>();
+		List<String[]> ngramPats = new ArrayList<String[]>();
 		// constraint for ngrams: at least one component not be a stopword
 		
 		// prevent induction of patterns less general than already known patterns:
@@ -1508,7 +1509,7 @@ public class Learner
 	 */
 	private boolean saveRelevantPatternsAndContexts(String[] newPat, double threshold) throws IOException
 	{
-		ArrayList<String[]> extractedContexts = getReliable_pattern(newPat, threshold);
+		List<String[]> extractedContexts = getReliable_pattern(newPat, threshold);
 		if (extractedContexts != null)
 		{
 			this.reliablePatternsAndContexts.put(newPat[1],  extractedContexts);
@@ -1531,6 +1532,7 @@ public class Learner
 	 * @param threshold			threshold for pattern reliability
 	 * @return			...
 	 */
+	@SuppressWarnings("unused")
 	private void saveReliablePatternData(Collection<String> filenames_arff, double threshold) throws IOException
 	{
 		for(String filename_arff : filenames_arff)
@@ -1792,12 +1794,12 @@ public class Learner
 	 * @param data	the training examples
 	 * @return		first list containing all sentences of positive training instances, second list containing all sentences of negative training instances
 	 */
-	private ArrayList<String>[] getStrings( Instances data )
+	private List<List<String>> getStrings( Instances data )
 	{
 		String studySubstitute = "<STUDYNAME> ";
-		ArrayList<String> sentences_pos = new ArrayList<String>();
-		ArrayList<String> sentences_neg = new ArrayList<String>();
-		ArrayList<String> sentences;
+		List<String> sentences_pos = new ArrayList<String>();
+		List<String> sentences_neg = new ArrayList<String>();
+		List<String> sentences;
 		Enumeration<Instance> instanceEnum = data.enumerateInstances();
     	while (instanceEnum.hasMoreElements())
     	{	
@@ -1818,9 +1820,9 @@ public class Learner
     		}
     		sentences.add( contextString);
     	}
-    	ArrayList<String>[] resList = new ArrayList[2];
-    	resList[0] = sentences_pos;
-    	resList[1] = sentences_neg;
+    	List<List<String>> resList = new ArrayList<List<String>>();
+    	resList.add(sentences_pos);
+    	resList.add(sentences_neg);
     	return resList;
 	}
 	
@@ -1854,8 +1856,8 @@ public class Learner
 	{
 		System.out.println("Checking if pattern is relevant: " + ngramRegex);
 		// compute score for similar to tf-idf...
-		ArrayList<String> contexts_pos = this.contextsAsStrings[0];
-		ArrayList<String> contexts_neg = this.contextsAsStrings[1];
+		List<String> contexts_pos = this.contextsAsStrings.get(0);
+		List<String> contexts_neg = this.contextsAsStrings.get(1);
 		// count occurrences of ngram in positive vs negative contexts...
 		int count_pos = 0;
 		int count_neg = 0;
@@ -1899,7 +1901,7 @@ public class Learner
 	{
 		if (this.reliableInstances.contains(instance.name)) { return 1; }
 		double rp = 0;
-		HashMap<String, Double> patternsAndPmis = instance.associations;
+		Map<String, Double> patternsAndPmis = instance.associations;
 		int P = patternsAndPmis.size();
 		for (String patternString : patternsAndPmis.keySet())
 		{
@@ -1918,7 +1920,7 @@ public class Learner
 	public double reliability(Reliability.Pattern pattern)
 	{
 		double rp = 0;
-		HashMap<String, Double> instancesAndPmis = pattern.associations;
+		Map<String, Double> instancesAndPmis = pattern.associations;
 		int P = instancesAndPmis.size();
 		for (String instanceName : instancesAndPmis.keySet())
 		{
@@ -1943,7 +1945,7 @@ public class Learner
 	 * the set of patterns is formed by those of the previous iteration plus a new one. Yet, new 
 	 * statistical evidence can lead the algorithm to discard a	pattern that was previously discovered. "
 	 */
-	private ArrayList<String[]> getReliable_pattern(String[] ngramRegex, double threshold) throws IOException
+	private List<String[]> getReliable_pattern(String[] ngramRegex, double threshold) throws IOException
 	{
 		System.out.println("Checking if pattern is reliable: " + ngramRegex[1]);
 		Reliability.Pattern newPat = this.reliability.new Pattern(ngramRegex[1]);
@@ -1955,10 +1957,10 @@ public class Learner
 		double data_size = corpus.list().length;
 				
 		// store results for later use (if pattern deemed reliable)
-		HashSet<String[]> pattern = new HashSet<String[]>();
+		Set<String[]> pattern = new HashSet<String[]>();
 		pattern.add( ngramRegex );
 		//
-		ArrayList<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern, "?", "", this.indexPath, this.corpusPath);
+		List<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern, "?", "", this.indexPath, this.corpusPath);
 		//TODO: similar to Python, does division of two ints yield an int in Java? or is it not necessary to convert one operand to double?
 		//double p_y = extractedInfo.size() / data_size;
 		// this yields the number of documents at least one occurrence of the pattern was found
@@ -1976,15 +1978,15 @@ public class Learner
 			 //using arff file allows usage of positive vs. negative annotations though
 			String instanceContext = this.contextPath + File.separator + Util.escapeSeed( instance ) + ".xml";
 			TrainingSet trainingset_instance = new TrainingSet( new File( instanceContext ));
-			HashSet<String[]> contexts = trainingset_instance.getContexts();*/
+			Set<String[]> contexts = trainingset_instance.getContexts();*/
 			String instanceArff = this.arffPath + File.separator + Util.escapeSeed(instance) + ".arff";
 			//search patterns in all context sentences..-.
 			Reader reader = new InputStreamReader(new FileInputStream(instanceArff), "UTF-8");
 			Instances data = new Instances(reader);
 			reader.close();
 			data.setClassIndex(data.numAttributes() - 1);
-			ArrayList<String> contexts_pos = this.contextsAsStrings[0];
-			//ArrayList<String> contexts_neg = this.contextsAsStrings[1];
+			List<String> contexts_pos = this.contextsAsStrings.get(0);
+			//List<String> contexts_neg = this.contextsAsStrings[1];
 			System.out.println("Searching for pattern " + ngramRegex[1] + " in contexts of " + instance);
 			//TODO: USE SAFEMATCHING
 			for (String context : contexts_pos)
@@ -2031,8 +2033,8 @@ public class Learner
 			//2. process context files
 			//info needed: (1) contexts, (2) filenames (when counting occurrences per file)
 			
-			//HashSet<String[]> contexts = instanceContexts.getContexts();
-			//HashSet<String> filenames = instanceContexts.getDocuments();
+			//Set<String[]> contexts = instanceContexts.getContexts();
+			//Set<String> filenames = instanceContexts.getDocuments();
 					
 			//p_x: P(x) - probability of instance occurring in the data
 			//number of times the instance occurs in the corpus
@@ -2061,7 +2063,7 @@ public class Learner
 		if (patternReliability >= threshold) 
 		{ 
 			System.out.println("Pattern " + ngramRegex[1] + " deemed reliable"); 
-			ArrayList<String[]> extractedInfo = processPatterns(pattern, "?", "", this.indexPath, this.corpusPath );
+			List<String[]> extractedInfo = processPatterns(pattern, "?", "", this.indexPath, this.corpusPath );
 			// number of found contexts = number of occurrences of patterns in the corpus
 			// note: not per file though but in total
 			// (with any arbitrary dataset title = instance)
@@ -2124,7 +2126,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private ArrayList<String[]> processPatterns_reliabilityCheck(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
+	private List<String[]> processPatterns_reliabilityCheck(Set<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
 	{
     	//TODO: DO THIS ONLY ONCE
     	//String dir = "data/corpus/dgs_ohneQuellen_reducedWhitespace/";
@@ -2142,7 +2144,7 @@ public class Learner
     	System.out.println("inserted all text filenames to corpus");
     	System.out.println("using patterns to extract new contexts...");
     	try { 
-    		ArrayList<String[]> resNgrams = getStudyRefs_optimized_reliabilityCheck(patSetIn, corpus_test); 
+    		List<String[]> resNgrams = getStudyRefs_optimized_reliabilityCheck(patSetIn, corpus_test); 
 	    	System.out.println("done. ");
 	    	System.out.println( "Done processing patterns. ");
 	
@@ -2164,7 +2166,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private ArrayList<String[]> processPatterns(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
+	private List<String[]> processPatterns(Set<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
 	{
     	String dir = path_corpus;
     	File corpus = new File(dir);
@@ -2180,7 +2182,7 @@ public class Learner
     	System.out.println("inserted all text filenames to corpus");
     	System.out.println("using patterns to extract new contexts...");
     	try { 
-    		ArrayList<String[]> resNgrams = getStudyRefs_optimized(patSetIn,corpus_test); 
+    		List<String[]> resNgrams = getStudyRefs_optimized(patSetIn,corpus_test); 
 	    	System.out.println("done. ");
 	    	//outputContextFiles( resNgrams, seed, outputDir);
 	    	System.out.println( "Done processing patterns. ");
@@ -2213,7 +2215,7 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private HashSet<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException
+	private Set<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException
 	{	
 		Instances data = getInstances(filename);
 		Instances data_positive = getInstances(data, "True");
@@ -2222,7 +2224,7 @@ public class Learner
 		System.out.println(data_positive.toSummaryString());
 			
 	    Enumeration<Instance> posInstanceEnum = data_positive.enumerateInstances();
-	    HashSet<String[]> patterns = new HashSet<String[]>();
+	    Set<String[]> patterns = new HashSet<String[]>();
 	    int n = 0;
 	    int m = data_positive.numInstances();
 	    while (posInstanceEnum.hasMoreElements())
@@ -2243,7 +2245,7 @@ public class Learner
 	 */
 	private void readArff(String filename, String outputDir, double threshold) throws FileNotFoundException, IOException
 	{
-		HashSet<String[]> ngramPats = induceRelevantPatternsFromArff(filename, threshold);
+		Set<String[]> ngramPats = induceRelevantPatternsFromArff(filename, threshold);
 	    File corpus = new File(this.corpusPath);
 	    String[] corpus_test = corpus.list();
 	    if (corpus_test == null) {
@@ -2275,9 +2277,9 @@ public class Learner
 	    	
 	    System.out.println("using patterns to extract new contexts...");
 	    //TODO: use this instead?
-	    //ArrayList<String[]> processPatterns(HashSet<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
+	    //List<String[]> processPatterns(Set<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws FileNotFoundException, IOException
 	    try { 
-	    	ArrayList<String[]> resNgrams = getStudyRefs_optimized(ngramPats,corpus_test); 
+	    	List<String[]> resNgrams = getStudyRefs_optimized(ngramPats,corpus_test); 
 	    	System.out.println("starting output of found studies and contexts (and used patterns)");
 	    	output(resNgrams, filenames_grams); 
 	    }
@@ -2326,11 +2328,11 @@ public class Learner
 		 * with titles and number specifications.
 		 * 
 		 * @param filename	Name of the file containing a list of dataset names (one name per line)
-		 * @return			A HashSet of Patterns
+		 * @return			A Set of Patterns
 		 */
-		public HashSet<Pattern> constructPatterns(String filename)
+		public Set<Pattern> constructPatterns(String filename)
 		{
-			HashSet<Pattern> patternSet = new HashSet<Pattern>();
+			Set<Pattern> patternSet = new HashSet<Pattern>();
 			try 
 			{
 				File f = new File(filename);
@@ -2359,9 +2361,9 @@ public class Learner
 		 * @param corpus		filenames of text documents to search for references
 		 * @return				...
 		 */
-		public HashMap<String,HashSet<String[]>> getStudyRefs_unambiguous(HashSet<Pattern>patternSet, String[] corpus) throws IOException
+		public Map<String,Set<String[]>> getStudyRefs_unambiguous(Set<Pattern>patternSet, String[] corpus) throws IOException
 		{
-			HashMap<String,HashSet<String[]>> refList = new HashMap<String,HashSet<String[]>>();
+			Map<String,Set<String[]>> refList = new HashMap<String,Set<String[]>>();
 			for (String filename: corpus)
 			{
 				System.out.println("searching for patterns in " + filename);
@@ -2373,7 +2375,7 @@ public class Learner
 				String input = new String(content);
 				String inputClean = input.replaceAll("\\s+", " ");
 				Iterator<Pattern> patIter = patternSet.iterator();
-				HashSet<String[]> refs = new HashSet<String[]>();
+				Set<String[]> refs = new HashSet<String[]>();
 				while (patIter.hasNext())
 				{
 					Pattern p = patIter.next();
@@ -2453,7 +2455,7 @@ public class Learner
 		public static void searchForTerms(String path_output, String path_corpus, String path_index, String path_knownTitles, String filename_knownTitlesMentions, boolean constraint_upperCase, String taggingCmd, String chunkingCmd)
 		{	
 			// list previously processed files to allow pausing and resuming of testing operation
-			HashSet<String> processedFiles = new HashSet<String>();
+			Set<String> processedFiles = new HashSet<String>();
 			try 
 			{
 				File f = new File(path_output + File.separator + "processedDocs.csv");
@@ -2469,7 +2471,7 @@ public class Learner
 			catch (IOException ioe) { System.err.println("warning: could not read processedDocs file. continuing... "); }
 		    File corpus = new File(path_corpus);	
 		    String[] corpus_complete = corpus.list(); 	
-		    HashSet<String> corpus_test_list = new HashSet<String>();
+		    Set<String> corpus_test_list = new HashSet<String>();
 		    for (int i=0; i<corpus_complete.length; i++) 
 		    {
 		    	if (!processedFiles.contains(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath())) 
@@ -2496,16 +2498,16 @@ public class Learner
 		    // get refs for known unambiguous studies
 		    // read study names from file
 		    // add study names to pattern
-		    HashSet<Pattern> patternSetKnown = newLearner2.constructPatterns(path_knownTitles);
+		    Set<Pattern> patternSetKnown = newLearner2.constructPatterns(path_knownTitles);
 		    try { 
-		    	HashMap<String,HashSet<String[]>> resKnownStudies = newLearner2.getStudyRefs_unambiguous( patternSetKnown, corpus_complete ); 
+		    	Map<String,Set<String[]>> resKnownStudies = newLearner2.getStudyRefs_unambiguous( patternSetKnown, corpus_complete ); 
 		    	//write to file for use by contextMiner
 		    	for ( String f : resKnownStudies.keySet())
 		    	{
 		    		if (!resKnownStudies.get(f).isEmpty()) 
 		    		{
 		    			System.out.println(f);
-		    			HashSet<String[]> titleVersionSet = resKnownStudies.get(f);
+		    			Set<String[]> titleVersionSet = resKnownStudies.get(f);
 		    			for (String[] titleVersion : titleVersionSet)
 		    				System.out.println(titleVersion[0] + " " + titleVersion[1]);
 		    		}
@@ -2535,12 +2537,12 @@ public class Learner
 		public static void useExistingPatterns(String path_patterns, String path_output, String path_corpus, String path_index, boolean constraint_upperCase, String taggingCmd, String chunkingCmd)
 		{
 			// load saved patterns
-			HashSet<String> patternSet1;
+			Set<String> patternSet1;
 			try { patternSet1 = Util.getDisctinctPatterns(new File(path_patterns)); }
 			catch (IOException ioe) { patternSet1 = new HashSet<String>(); }
 
 			// list previously processed files to allow pausing and resuming of testing operation
-			HashSet<String> processedFiles = new HashSet<String>();
+			Set<String> processedFiles = new HashSet<String>();
 			try 
 			{
 				File f = new File(path_output + File.separator + "processedDocs.csv");
@@ -2556,7 +2558,7 @@ public class Learner
 			catch (IOException ioe) { System.err.println("warning: could not read processedDocs file. continuing... "); }
 		    File corpus = new File(path_corpus);
 		    String[] corpus_complete = corpus.list();
-		    HashSet<String> corpus_test_list = new HashSet<String>();
+		    Set<String> corpus_test_list = new HashSet<String>();
 		    for (int i=0; i<corpus_complete.length; i++) {
 		    	if ( !processedFiles.contains(new File(path_corpus + corpus_complete[i]).getAbsolutePath())) 
 		    	    	{ corpus_test_list.add(new File(path_corpus + corpus_complete[i]).getAbsolutePath()); }
@@ -2578,7 +2580,7 @@ public class Learner
 		    // need new Learner instance for each task - else, previously processed patterns will not be processed again
 		    Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output);
 		    try {
-			    ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1,corpus_test,path_output);
+			    List<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1,corpus_test,path_output);
 			    String[] filenames_grams = new String[3];		
 				filenames_grams[0] = path_output + File.separator + "datasets_patterns.csv";
 			    filenames_grams[1] = path_output + File.separator + "contexts_patterns.xml";
@@ -2639,7 +2641,7 @@ public class Learner
 		    	filenames_grams[1] = path_output + File.separator + "contexts.xml";
 		    	filenames_grams[2] = path_output + File.separator + "patterns.csv";
 		    	
-				HashSet<String> processedFiles = new HashSet<String>();
+				Set<String> processedFiles = new HashSet<String>();
 				try 
 				{
 					File f = new File(path_output + File.separator + "processedDocs.csv");
@@ -2656,7 +2658,7 @@ public class Learner
 		    	File corpus = new File(path_corpus);
 		    	String[] corpus_complete = corpus.list();
 		    	
-		    	HashSet<String> corpus_test_list = new HashSet<String>();
+		    	Set<String> corpus_test_list = new HashSet<String>();
 		    	for (int i=0; i<corpus_complete.length; i++) {
 		    	    // Get filename of file or directory
 		    	    if ( !processedFiles.contains(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath())) 
@@ -2679,7 +2681,7 @@ public class Learner
 
 		    	// need new Learner instance - else, previously processed patterns will not be processed again
 		    	Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output );
-		    	ArrayList<String[]> resNgrams1 = newLearner.getStudyRefs(learner.processedPatterns, corpus_test);
+		    	List<String[]> resNgrams1 = newLearner.getStudyRefs(learner.processedPatterns, corpus_test);
 		    	newLearner.output_distinct(resNgrams1, filenames_grams, true);
 			}
 			catch (FileNotFoundException e) { System.err.println(e); }
@@ -2743,12 +2745,12 @@ public class Learner
 		 */
 		public void outputReliableReferences() throws IOException
 		{
-			ArrayList<String[]> reliableContexts = new ArrayList<String[]>();
+			List<String[]> reliableContexts = new ArrayList<String[]>();
 			for ( String pattern : this.reliablePatternsAndContexts.keySet() )
 			{
-				ArrayList<String[]> contexts = this.reliablePatternsAndContexts.get( pattern );
+				List<String[]> contexts = this.reliablePatternsAndContexts.get( pattern );
 				reliableContexts.addAll(contexts);
-				//see getString_reliablePatternOutput( HashMap<String, ArrayList<String[]>> patternsAndContexts, int iteration )
+				//see getString_reliablePatternOutput( Map<String, List<String[]>> patternsAndContexts, int iteration )
 			}
 			String[] filenames = new String[3];
 			filenames[0] = this.outputPath + File.separator + "datasets.csv";
@@ -2907,7 +2909,7 @@ class OptionHandler {
         if(strategy != null) frequencyStrategy = strategy;
         
         // call Learner.learn method with appropriate options
-		HashSet<String> pathSet = new HashSet<String>();
+		Set<String> pathSet = new HashSet<String>();
 		File root = new File(corpusPath);
 		
 		//add all documents to corpus for pattern- and term-based search

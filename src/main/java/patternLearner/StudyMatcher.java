@@ -1,16 +1,26 @@
 package patternLearner;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+//import java.net.URLEncoder;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-//import java.net.URLEncoder;
-import java.net.MalformedURLException;
-import java.io.*;
-import java.util.HashMap;
-import java.math.BigInteger;
 
 /**
  * Class for matching dataset reference strings to entries in the dara dataset repository.
@@ -183,9 +193,9 @@ public class StudyMatcher
 	 * @param html	dara HTML output
 	 * @return		a map containing dataset DOIs (keys) and dataset names (values)
 	 */
-	public HashMap<String,String> parseHTML(String html)
+	public Map<String,String> parseHTML(String html)
 	{
-		HashMap<String,String> matchingStudyMap = new HashMap<String,String>();
+		Map<String,String> matchingStudyMap = new HashMap<String,String>();
 		Document doc = Jsoup.parseBodyFragment(html);
 		Elements hitlist = doc.getElementsByTag("li");
 		for (Element hit : hitlist)
@@ -219,7 +229,7 @@ public class StudyMatcher
 	 * @param url		the query to find the dataset entries
 	 * @return			a map containing dataset DOIs (key) and names (value)
 	 */
-	public HashMap<String,String> readFromCache(String url)
+	public Map<String,String> readFromCache(String url)
 	{
 		try
 		{
@@ -231,7 +241,7 @@ public class StudyMatcher
     	    {
     	    	if (text.contains(url.toString())) 
     	    	{
-    	    		HashMap<String,String> res = new HashMap<String,String>();
+    	    		Map<String,String> res = new HashMap<String,String>();
     	    		String[] data = text.split(Util.delimiter_internal);
     	    		// query is in cache but no data can be found in dara - return empty hashmap
     	    		if (data.length < 3) { res.put("", ""); return res; }
@@ -311,12 +321,12 @@ public class StudyMatcher
 	 * @param searchTerm	assumed dataset name to be matched to dara records
 	 * @return				a map containing matching dataset DOIs (keys) and names (values)
 	 */
-	public HashMap<String,String> match(String searchTerm)
+	public Map<String,String> match(String searchTerm)
 	{
 		URL url;
 		try { url = constructURL(searchTerm, 600); System.out.println(url); System.out.println("\n" + searchTerm); }
 		catch (MalformedURLException e) { e.printStackTrace(); return new HashMap<String,String>(); }
-		HashMap<String,String> res = new HashMap<String,String>();
+		Map<String,String> res = new HashMap<String,String>();
 		// read file queryCache - use saved results instead of querying
 		if (this.queryCache!=null) 
 		{ 
@@ -358,7 +368,7 @@ public class StudyMatcher
 	 * @param res		the parsed dara response for the specified query url
 	 * @param cacheFilename	path of the cache file
 	 */
-	private void writeToCache(String url, HashMap<String, String> res)
+	private void writeToCache(String url, Map<String, String> res)
 	{
 		String delimiter = Util.delimiter_internal;
 		String newLine = url;

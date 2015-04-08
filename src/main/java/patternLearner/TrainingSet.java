@@ -3,14 +3,13 @@ package patternLearner;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
-
-import patternLearner.Util;
 
 /**
  * Class for representing training sets in weka's arff file format. 
@@ -49,7 +48,7 @@ public class TrainingSet
 	 * 
 	 * @return	set of all document filenames occurring in this examples
 	 */
-	public HashSet<String> getDocuments()
+	public Set<String> getDocuments()
 	{
 		return this.exReader.getDocuments();
 	}
@@ -59,7 +58,7 @@ public class TrainingSet
 	 * 
 	 * @return	set of all contexts occurring in this examples
 	 */
-	public HashSet<String[]> getContexts()
+	public Set<String[]> getContexts()
 	{
 		return this.exReader.getContexts();
 	}
@@ -69,7 +68,7 @@ public class TrainingSet
 	 */
 	public void createArff()
 	{
-		HashSet<String[]> contextSet = this.getContexts();
+		Set<String[]> contextSet = this.getContexts();
 		new ArffFile(contextSet);
 	}
 	
@@ -107,7 +106,7 @@ public class TrainingSet
 		 * Class values may either be <emph>"True"</emph> (positive training examples) or 
 		 * <emph>"False"</emph> (negative training examples).
 		 */
-		ArffFile (HashSet<String[]> instances) 
+		ArffFile (Set<String[]> instances) 
 		{
 		    FastVector      atts;
 		    FastVector      attVals;
@@ -211,8 +210,8 @@ public class TrainingSet
 	public ArffFile createTrainingSet(String classVal, String filename) throws IOException
 	{
 		ExampleReader exReader = new ExampleReader(this.examples);
-		HashSet<String[]> contextSet = exReader.getContexts();
-		HashSet<String[]> contextSetMerged = new HashSet<String[]>();
+		Set<String[]> contextSet = exReader.getContexts();
+		Set<String[]> contextSetMerged = new HashSet<String[]>();
 		for (String[] leftNrightContext: contextSet)
 		{
 			String leftContext = leftNrightContext[0];

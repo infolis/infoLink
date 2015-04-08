@@ -1,5 +1,7 @@
 package patternLearner;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,16 +11,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.Arrays;  
-import java.util.List;  
-import java.util.ArrayList;
-import static java.nio.file.StandardCopyOption.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -143,9 +146,9 @@ public class Util
 	 * 
 	 * @return	a list of stopwords (English and German)
 	 */
-	public static HashSet<String> stopwordList()
+	public static Set<String> stopwordList()
 	{
-		HashSet<String> stopwords = new HashSet<String>();
+		Set<String> stopwords = new HashSet<String>();
 		stopwords.add("the");
 		stopwords.add("and");
 		stopwords.add("on");
@@ -521,10 +524,10 @@ public class Util
 	 * @return	...
 	 * @throws IOException
 	 */
-	public static HashSet<String> getDisctinctPatterns(File f) throws IOException
+	public static Set<String> getDisctinctPatterns(File f) throws IOException
 	{
 		ArrayList<String> patList = (ArrayList<String>)FileUtils.readLines(f, "UTF-8");
-		HashSet<String> patternSet = new HashSet<String>();
+		Set<String> patternSet = new HashSet<String>();
 		patternSet.addAll(patList);
     	return patternSet;
 	}
@@ -538,7 +541,7 @@ public class Util
 	 */
 	public static void getDistinct(File f_in, File f_out) throws IOException
 	{
-		HashSet<String> contextSet = getDisctinctPatterns(f_in);
+		Set<String> contextSet = getDisctinctPatterns(f_in);
 	    for (String context : contextSet) 
 	    { 
 	    	FileUtils.write(f_out, context + System.getProperty("line.separator"), "UTF-8", true);
@@ -554,7 +557,7 @@ public class Util
 	 */
 	public static void getDistinctContexts(File f_in, File f_out) throws IOException
 	{
-		HashSet<String> contextSet = new HashSet<String>();
+		Set<String> contextSet = new HashSet<String>();
 	    boolean inContext = false;
 	    String newContext = "";
 		InputStreamReader isr = new InputStreamReader(new FileInputStream(f_in), "UTF-8");
@@ -592,8 +595,8 @@ public class Util
 	 */
 	public static void getDistinctFilenames( File f_in, File f_out ) throws IOException
 	{
-		HashSet<String> filenameSet = getDisctinctPatterns(f_in);
-		HashSet<String> filenameSetDistinct = new HashSet<String>();
+		Set<String> filenameSet = getDisctinctPatterns(f_in);
+		Set<String> filenameSetDistinct = new HashSet<String>();
 		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(f_out), "UTF-8");
 	    BufferedWriter out = new BufferedWriter(fstream);
 	    for (String filename : filenameSet) 

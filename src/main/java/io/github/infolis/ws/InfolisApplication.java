@@ -1,13 +1,13 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * JAX-RS Application, wiring up the REST interface to the backend.
  */
 package io.github.infolis.ws;
 
 import io.github.infolis.ws.backend.Backend;
 import io.github.infolis.ws.testws.Test;
+import io.github.infolis.ws.testws.Upload;
 
+import java.io.IOException;
 import java.util.Set;
 
 import javax.ws.rs.core.Application;
@@ -15,25 +15,25 @@ import javax.ws.rs.core.Application;
 /**
  *
  * @author domi
+ * @author kba
  */
-@javax.ws.rs.ApplicationPath("webresources")
+@javax.ws.rs.ApplicationPath("infolis-api")
 public class InfolisApplication extends Application {
+	
+	public InfolisApplication() throws IOException {
+		super();
+		
+		// Make sure the configuration is loaded and valid
+		InfolisApplicationConfig.validate();
+	}
 
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<>();
-        addRestResourceClasses(resources);
-        return resources;
-    }
-
-    /**
-     * Do not modify addRestResourceClasses() method. It is automatically
-     * populated with all resources defined in the project. If required, comment
-     * out calling this method in getClasses().
-     */
-    private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(Backend.class);
         resources.add(Test.class);
+        resources.add(Upload.class);
+        return resources;
     }
 
 }

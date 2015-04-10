@@ -6,8 +6,8 @@
 package io.github.infolis.ws.client;
 
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InFoLiSFile;
-import io.github.infolis.model.InputValues;
+import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.ParameterValues;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,10 +43,10 @@ public class MyClient {
 //        String response = r.accept(MediaType.TEXT_PLAIN).get(String.class);
 //        System.out.println(response);
         Execution e = new Execution();
-        InputValues i = new InputValues();
+        ParameterValues i = new ParameterValues();
         Map<String, Object> entry = new HashMap<>();
         entry.put("infolis:algorithm", "PDF2Text");
-        InFoLiSFile in = new InFoLiSFile();
+        InfolisFile in = new InfolisFile();
         in.setFileId("in");
         entry.put("pdfInput", in);
         i.setValues(entry);

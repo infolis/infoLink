@@ -6,9 +6,8 @@
 package io.github.infolis.ws.server;
 
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InFoLiSFile;
-import io.github.infolis.model.InputValues;
-import io.github.infolis.model.OutputValues;
+import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.ParameterValues;
 import io.github.infolis.ws.server.algorithm.AlgorithmWebservice;
 import io.github.infolis.ws.server.algorithm.PDF2TextWebservice;
 import io.github.infolis.ws.server.algorithm.ParameterTypeAnnotation;
@@ -145,10 +144,10 @@ public class Backend {
     public static void main(String[] args) {
         algorithms.put("PDF2Text", new PDF2TextWebservice());
         Execution e = new Execution();
-        InputValues i = new InputValues();
+        ParameterValues i = new ParameterValues();
         Map<String, Object> entry = new HashMap();
         entry.put("infolis:algorithm", "PDF2Text");
-        InFoLiSFile f = new InFoLiSFile();
+        InfolisFile f = new InfolisFile();
  //       f.setFile(new File("in.pdf"));
         entry.put("pdfInput", f);
         i.setValues(entry);

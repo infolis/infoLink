@@ -5,12 +5,12 @@
  */
 package io.github.infolis.ws.server.algorithm;
 
-import io.github.infolis.model.InFoLiSFile;
+import io.github.infolis.model.InfolisFile;
+import io.github.infolis.ws.client.FrontendClient;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.json.JSONObject;
 
 /**
  *
@@ -18,59 +18,46 @@ import org.json.JSONObject;
  */
 public class PDF2TextWebservice extends AlgorithmWebservice{
    
-    private Map<String, Object> ownParameter = new HashMap();
+    private Map<String, String> ownParameter = new HashMap<>();
     
     public PDF2TextWebservice() {
         ownParameter.put("pdfInput", null);
         ownParameter.put("pdfOutput", null);
     }
     
-    private String version;
-    
-    private InFoLiSFile pdfInput;  
+    private InfolisFile pdfInput;  
     //@ParameterTypeAnnotation(type="output")
-    private InFoLiSFile pdfOutput; 
-
-    @Override
-    public JSONObject getDescription() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    private InfolisFile pdfOutput; 
 
     @Override
     public void run() {
-        pdfInput = (InFoLiSFile)ownParameter.get("pdfInput");
-        pdfOutput =(InFoLiSFile)ownParameter.get("pdfOutput");
+        pdfInput = FrontendClient.get(InfolisFile.class, URI.create(ownParameter.get("pdfInput")));
+        pdfOutput = FrontendClient.get(InfolisFile.class, URI.create(ownParameter.get("pdfOutput")));
         System.out.println("test");
-        setPdfOutput(new InFoLiSFile());
-        pdfOutput.setFileId("out");
-        System.out.println(pdfInput);
+        setPdfOutput(new InfolisFile());
+//        pdfOutput.setFileId("out");
+//        System.out.println(pdfInput);
     }
 
-    /**
-     * @return the params
-     */
-    public Map<String, Object> getParams() {
-        return ownParameter;
-    }
+//    /**
+//     * @return the params
+//     */
+//    public Map<String, Object> getParams() {
+//        return ownParameter;
+//    }
 
-    /**
-     * @param version the version to set
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
 
     /**
      * @param pdfInput the pdfInput to set
      */
-    public void setPdfInput(InFoLiSFile pdfInput) {
+    public void setPdfInput(InfolisFile pdfInput) {
         this.pdfInput = pdfInput;
     }
 
     /**
      * @param pdfOutput the pdfOutput to set
      */
-    public void setPdfOutput(InFoLiSFile pdfOutput) {
+    public void setPdfOutput(InfolisFile pdfOutput) {
         this.pdfOutput = pdfOutput;
     }
 

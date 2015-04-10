@@ -5,13 +5,12 @@
  */
 package io.github.infolis.ws.server.algorithm;
 
+import io.github.infolis.ws.client.FrontendClient;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import org.json.JSONObject;
+
 import org.reflections.Reflections;
 
 /**
@@ -19,22 +18,22 @@ import org.reflections.Reflections;
  * @author domi
  */
 public abstract class AlgorithmWebservice implements Runnable {
-
+	
     public static Map<String, Class<? extends AlgorithmWebservice>> algorithms;
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public abstract JSONObject getDescription();
+    
+//    @GET
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public abstract JSONObject getDescription();
 
     @Override
     public abstract void run();
 
     public static void initialize() {
         algorithms = new HashMap<>();
-        Reflections reflections = new Reflections("io.github.infolis.algorithm");
+//        Reflections reflections = new Reflections("io.github.infolis.ws.server.algorithm");
+        Reflections reflections = new Reflections(AlgorithmWebservice.class.getPackage().toString());
         Set<Class<? extends AlgorithmWebservice>> subTypes = reflections.getSubTypesOf(AlgorithmWebservice.class);         
         for(Class<? extends AlgorithmWebservice> myClass : subTypes) {
-            
             algorithms.put(myClass.getSimpleName(), myClass);
         }
     }

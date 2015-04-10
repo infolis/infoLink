@@ -3,6 +3,7 @@ package io.github.infolis.ws.server;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,11 +71,19 @@ public class InfolisApplicationConfig {
 
 	/**
 	 * Property "fileSavePath"
-	 * @return Path to the directory where files are to be saved
+	 * @return {@link Path} to the directory where files are to be saved
 	 */
 	public static Path getFileSavePath() {
 		Path path = Paths.get(INSTANCE.prop.getProperty("fileSavePath"));
 		return path;
+	}
+	
+	/**
+	 * Property "frontendURI"
+	 * @return {@link URI} of the frontend Linked Data web service
+	 */
+	public static URI getFrontendURI() {
+		return URI.create(INSTANCE.prop.getProperty("frontendURI"));
 	}
 
 }

@@ -38,7 +38,7 @@ dependencies {
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.2'
     compile 'org.codehaus.jackson:jackson-jaxrs:1.9.2'
     compile 'org.codehaus.jackson:jackson-xc:1.9.2'
-    compile 'org.json:json:20141113'
+    compile 'org.json:json:20140107'
 
     // Jersey / JAX-RS
     compile 'org.glassfish.jersey.core:jersey-server:2.17'

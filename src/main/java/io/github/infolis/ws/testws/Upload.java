@@ -1,12 +1,13 @@
 package io.github.infolis.ws.testws;
 
-import io.github.infolis.ws.InfolisApplicationConfig;
+import io.github.infolis.model.util.FileResolver;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -33,41 +34,44 @@ public class Upload {
 	 * PUT /upload/d3b07384d113edec49eaa6238ad5ff00  -
 	 * @param fileId The id of the file, e.g. it's sha1 or md5 checksum
 	 * @param requestBody The file data, directly in the body
-	 * @throws IOException
 	 */
 	@PUT
 	@Path("{id}")
 	public Response putFile(
 			@PathParam("id") String fileId,
-			InputStream requestBody) throws IOException {
-		java.nio.file.Path fileName = InfolisApplicationConfig.getFileSavePath().resolve(fileId);
-		logger.debug("Writing data to file {}", fileName);
-		OutputStream outStream = Files.newOutputStream(fileName, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-		IOUtils.copy(requestBody, outStream);
-		outStream.close();
-		return Response.status(200).build();
+			InputStream requestBody) {
+		Response ret = null;
+		try {
+			FileResolver.validateFileId(fileId);
+            OutputStream outStream = FileResolver.getOutputStream(fileId);
+            IOUtils.copy(requestBody, outStream);
+            outStream.close();
+            ret = Response.created(new URI(fileId)).build();
+		} catch (IllegalArgumentException | IOException | URISyntaxException e) {
+			ret = Response.status(400).entity("Error creating file: " + e.getMessage()).build();
+		}
+		return ret;
 	}
 	
 	/**
 	 * GET /upload/d3b07384d113edec49eaa6238ad5ff00  -
 	 * @param fileId The id of the file
-	 * @return
+	 * @return the contents of the file
 	 */
 	@GET
 	@Path("{id}")
-	public Response getFile(
-			@PathParam("id") String fileId
-			) {
-		java.nio.file.Path fileName = InfolisApplicationConfig.getFileSavePath().resolve(fileId);
-		if (! Files.exists(fileName)) {
-			return Response.status(404).build();
-		} else {	
-            try {
-				return Response.ok(Files.newInputStream(fileName)).build();
-			} catch (IOException e) {
-                return Response.status(400).entity("Couldn't read " + fileName + "!").build();
-			}
+	public Response getFile(@PathParam("id") String fileId) {
+		Response ret = null;
+		try {
+			FileResolver.validateFileId(fileId);
+			InputStream inputStream = FileResolver.getInputStream(fileId);
+            ret = Response.ok(inputStream).build();
+		} catch (FileNotFoundException fnfe) {
+			ret = Response.status(404).entity(String.format("No such file '%s'.", fileId)).build();
+		} catch (IllegalArgumentException | IOException e) {
+			ret = Response.status(400).entity("Error reading file: " + e.getMessage()).build();
 		}
+		return ret;
 	}
 		
 }

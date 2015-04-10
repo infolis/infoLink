@@ -16,13 +16,22 @@ import java.util.Properties;
 public class InfolisApplicationConfig {
 	
 	private static final InfolisApplicationConfig INSTANCE = new InfolisApplicationConfig();
+	
+	static {
+        // Make sure the configuration is loaded and valid
+		try {
+			validate();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
 
 	Properties prop;
 	String loadedFrom = null;
 
 	/**
-	 * Looks for a properties file first in /etc/infolis-ws.properties. If not found, loads it from classpath.
-	 * @throws IOException 
+	 * Looks for a properties file first in /etc/infolis-ws.properties. If not found, loads defaults from classpath.
 	 * 
 	 */
 	private InfolisApplicationConfig() {

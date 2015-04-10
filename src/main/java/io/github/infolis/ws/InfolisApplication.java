@@ -7,7 +7,6 @@ import io.github.infolis.ws.backend.Backend;
 import io.github.infolis.ws.testws.Test;
 import io.github.infolis.ws.testws.Upload;
 
-import java.io.IOException;
 import java.util.Set;
 
 import javax.ws.rs.core.Application;
@@ -19,13 +18,6 @@ import javax.ws.rs.core.Application;
  */
 @javax.ws.rs.ApplicationPath("infolis-api")
 public class InfolisApplication extends Application {
-	
-	public InfolisApplication() throws IOException {
-		super();
-		
-		// Make sure the configuration is loaded and valid
-		InfolisApplicationConfig.validate();
-	}
 
     @Override
     public Set<Class<?>> getClasses() {

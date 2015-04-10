@@ -1,6 +1,6 @@
 package io.github.infolis.model.util;
 
-import io.github.infolis.ws.InfolisApplicationConfig;
+import io.github.infolis.ws.server.InfolisApplicationConfig;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

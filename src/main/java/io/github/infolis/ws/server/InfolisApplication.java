@@ -1,11 +1,10 @@
 /*
  * JAX-RS Application, wiring up the REST interface to the backend.
  */
-package io.github.infolis.ws;
+package io.github.infolis.ws.server;
 
-import io.github.infolis.ws.backend.Backend;
-import io.github.infolis.ws.testws.Test;
-import io.github.infolis.ws.testws.Upload;
+import io.github.infolis.ws.server.testws.TestWebservice;
+import io.github.infolis.ws.server.testws.UploadWebservice;
 
 import java.util.Set;
 
@@ -23,8 +22,8 @@ public class InfolisApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<>();
         resources.add(Backend.class);
-        resources.add(Test.class);
-        resources.add(Upload.class);
+        resources.add(TestWebservice.class);
+        resources.add(UploadWebservice.class);
         return resources;
     }
 

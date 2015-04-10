@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.testws;
+package io.github.infolis.ws.server.testws;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,14 +19,14 @@ import org.apache.pdfbox.util.PDFTextStripper;
  *
  * @author domi
  */
-public class PDFToTextWS {
+public class PDF2Text {
 
     String filename;
     PDDocument document;
     PDFTextStripper stripper;
     String encoding;
 
-    public PDFToTextWS() {
+    public PDF2Text() {
     }
 
     /**
@@ -36,7 +36,7 @@ public class PDFToTextWS {
      * @param encoding	character encoding for text extraction
      * @throws IOException
      */
-    public PDFToTextWS(String filenameIn, String encoding) throws IOException {
+    public PDF2Text(String filenameIn, String encoding) throws IOException {
         this.filename = filenameIn;
         this.document = PDDocument.loadNonSeq(new File(filenameIn), null);
         this.stripper = new PDFTextStripper(encoding);
@@ -175,7 +175,7 @@ public class PDFToTextWS {
             for (String pdfDocument : getFilenames(new File(pathIn), new ArrayList<String>())) {
                 System.out.println("Processing " + pdfDocument);
                 try {
-                    PDFToTextWS extractor = new PDFToTextWS(pdfDocument, "utf-8");
+                    PDF2Text extractor = new PDF2Text(pdfDocument, "utf-8");
                     if (pageWise) {
                         extractor.writePages(pathIn, pathOut);
                     } else {
@@ -195,6 +195,6 @@ public class PDFToTextWS {
     }
 
     public static void main(String[] args) throws IOException {
-        PDFToTextWS.convert(args[0], args[1], false);
+        PDF2Text.convert(args[0], args[1], false);
     }
 }

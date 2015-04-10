@@ -3,17 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.execution;
+package io.github.infolis.model;
 
 import java.util.Map;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author domi
  */
-@XmlRootElement
-public class InputValue {
+public class OutputValue {
     
     private Map<String, Object> values;
 

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.algorithm;
+package io.github.infolis.ws.server.algorithm;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +18,9 @@ import org.reflections.Reflections;
  *
  * @author domi
  */
-public abstract class Algorithm implements Runnable {
+public abstract class AlgorithmWebservice implements Runnable {
 
-    public static Map<String, Class<? extends Algorithm>> algorithms;
+    public static Map<String, Class<? extends AlgorithmWebservice>> algorithms;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -32,8 +32,8 @@ public abstract class Algorithm implements Runnable {
     public static void initialize() {
         algorithms = new HashMap<>();
         Reflections reflections = new Reflections("io.github.infolis.algorithm");
-        Set<Class<? extends Algorithm>> subTypes = reflections.getSubTypesOf(Algorithm.class);         
-        for(Class<? extends Algorithm> myClass : subTypes) {
+        Set<Class<? extends AlgorithmWebservice>> subTypes = reflections.getSubTypesOf(AlgorithmWebservice.class);         
+        for(Class<? extends AlgorithmWebservice> myClass : subTypes) {
             
             algorithms.put(myClass.getSimpleName(), myClass);
         }

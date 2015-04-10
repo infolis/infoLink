@@ -1,7 +1,8 @@
-package io.github.infolis.ws;
+package io.github.infolis.ws.server;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import io.github.infolis.ws.server.InfolisApplicationConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -5,10 +5,10 @@
  */
 package io.github.infolis.ws.client;
 
-import io.github.infolis.ws.backend.Backend;
-import io.github.infolis.ws.execution.Execution;
-import io.github.infolis.ws.execution.InFoLiSFile;
-import io.github.infolis.ws.execution.InputValue;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.InFoLiSFile;
+import io.github.infolis.model.InputValue;
+import io.github.infolis.ws.server.Backend;
 
 import java.util.HashMap;
 import java.util.Map;

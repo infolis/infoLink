@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.execution;
+package io.github.infolis.model;
 
-import io.github.infolis.ws.algorithm.Algorithm;
+import io.github.infolis.ws.server.algorithm.AlgorithmWebservice;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public class Configuration {
     
     private List<Parameter> parameter;
-    private Algorithm algorithm;
+    private AlgorithmWebservice algorithm;
 
     /**
      * @return the parameter
@@ -39,14 +39,14 @@ public class Configuration {
     /**
      * @return the algorithm
      */
-    public Algorithm getAlgorithm() {
+    public AlgorithmWebservice getAlgorithm() {
         return algorithm;
     }
 
     /**
      * @param algorithm the algorithm to set
      */
-    public void setAlgorithm(Algorithm algorithm) {
+    public void setAlgorithm(AlgorithmWebservice algorithm) {
         this.algorithm = algorithm;
     }
 }

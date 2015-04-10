@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.algorithm;
+package io.github.infolis.ws.server.algorithm;
 
-import io.github.infolis.ws.execution.InFoLiSFile;
+import io.github.infolis.model.InFoLiSFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +16,11 @@ import org.json.JSONObject;
  *
  * @author domi
  */
-public class PDF2Text extends Algorithm{
+public class PDF2TextWebservice extends AlgorithmWebservice{
    
     private Map<String, Object> ownParameter = new HashMap();
     
-    public PDF2Text() {
+    public PDF2TextWebservice() {
         ownParameter.put("pdfInput", null);
         ownParameter.put("pdfOutput", null);
     }

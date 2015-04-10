@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.backend;
+package io.github.infolis.ws.server;
 
-import io.github.infolis.ws.algorithm.Algorithm;
-import io.github.infolis.ws.algorithm.PDF2Text;
-import io.github.infolis.ws.algorithm.ParameterTypeAnnotation;
-import io.github.infolis.ws.execution.Execution;
-import io.github.infolis.ws.execution.InFoLiSFile;
-import io.github.infolis.ws.execution.InputValue;
-import io.github.infolis.ws.execution.OutputValue;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.InFoLiSFile;
+import io.github.infolis.model.InputValue;
+import io.github.infolis.model.OutputValue;
+import io.github.infolis.ws.server.algorithm.AlgorithmWebservice;
+import io.github.infolis.ws.server.algorithm.PDF2TextWebservice;
+import io.github.infolis.ws.server.algorithm.ParameterTypeAnnotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -35,11 +35,11 @@ import javax.ws.rs.core.MediaType;
 @Path("/backend")
 public class Backend {
     
-    private static Map<String, Algorithm> algorithms = new HashMap<>();
+    private static Map<String, AlgorithmWebservice> algorithms = new HashMap<>();
    // private Map<String, Object> parameter = new HashMap<>();
     
     public Backend() {
-        algorithms.put("PDF2Text", new PDF2Text());
+        algorithms.put("PDF2Text", new PDF2TextWebservice());
     }
 
 //    @Context
@@ -84,13 +84,13 @@ public class Backend {
 //    @POST
 //    @Consumes(MediaType.APPLICATION_JSON)
     public static void startExecution(Execution e) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
-        Class<? extends Algorithm> algo = null;
+        Class<? extends AlgorithmWebservice> algo = null;
         for (String s : e.getInput().getValues().keySet()) {
             //get the algorithm that should be used
             if (s.equals("infolis:algorithm")) {
                 String algorithmName = e.getInput().getValues().get(s).toString();
-                if (Algorithm.algorithms.containsKey(algorithmName)) {
-                    algo = Algorithm.algorithms.get(algorithmName);
+                if (AlgorithmWebservice.algorithms.containsKey(algorithmName)) {
+                    algo = AlgorithmWebservice.algorithms.get(algorithmName);
                 }
             }
         }
@@ -130,8 +130,8 @@ public class Backend {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void startExecution2(Execution e) {
-        algorithms.put("PDF2Text", new PDF2Text());
-        Algorithm a = null;
+        algorithms.put("PDF2Text", new PDF2TextWebservice());
+        AlgorithmWebservice a = null;
         for (String s : e.getInput().getValues().keySet()) {            
             if (s.equals("infolis:algorithm")) {
                 a = algorithms.get(e.getInput().getValues().get(s).toString());
@@ -143,7 +143,7 @@ public class Backend {
     }
     
     public static void main(String[] args) {
-        algorithms.put("PDF2Text", new PDF2Text());
+        algorithms.put("PDF2Text", new PDF2TextWebservice());
         Execution e = new Execution();
         InputValue i = new InputValue();
         Map<String, Object> entry = new HashMap();

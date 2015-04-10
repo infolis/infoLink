@@ -1,4 +1,4 @@
-package io.github.infolis.ws.testws;
+package io.github.infolis.ws.server.testws;
 
 import io.github.infolis.model.util.FileResolver;
 
@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
  *
  */
 @Path("upload")
-public class Upload {
+public class UploadWebservice {
 	
-    Logger logger = LoggerFactory.getLogger(Upload.class);
+    Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
 	
 	/**
 	 * PUT /upload/d3b07384d113edec49eaa6238ad5ff00  -

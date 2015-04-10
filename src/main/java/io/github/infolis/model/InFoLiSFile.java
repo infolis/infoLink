@@ -15,27 +15,27 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class InFoLiSFile {
     
     InFoLiSFile(String f ) {
-        this.file = f;
+        this.fileId = f;
     }
 
     public InFoLiSFile() {
     }
     
     
-    private String file;
+    private String fileId;
 
     /**
      * @return the file
      */
-    public String getFile() {
-        return file;
+    public String getFileId() {
+        return fileId;
     }
 
     /**
-     * @param file the file to set
+     * @param fileId the file to set
      */
-    public void setFile(String file) {
-        this.file = file;
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
     }
     
     

@@ -7,8 +7,8 @@ package io.github.infolis.ws.server;
 
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InFoLiSFile;
-import io.github.infolis.model.InputValue;
-import io.github.infolis.model.OutputValue;
+import io.github.infolis.model.InputValues;
+import io.github.infolis.model.OutputValues;
 import io.github.infolis.ws.server.algorithm.AlgorithmWebservice;
 import io.github.infolis.ws.server.algorithm.PDF2TextWebservice;
 import io.github.infolis.ws.server.algorithm.ParameterTypeAnnotation;
@@ -111,7 +111,7 @@ public class Backend {
         System.out.println(algo.getMethod("run", null));
 
         Field[] output = algo.getDeclaredFields();
-        OutputValue o = new OutputValue();
+        OutputValues o = new OutputValues();
         Map<String, Object> outputMap = new HashMap();
         for (Field fi : f) {
             for (Annotation a : fi.getDeclaredAnnotations()) {
@@ -145,7 +145,7 @@ public class Backend {
     public static void main(String[] args) {
         algorithms.put("PDF2Text", new PDF2TextWebservice());
         Execution e = new Execution();
-        InputValue i = new InputValue();
+        InputValues i = new InputValues();
         Map<String, Object> entry = new HashMap();
         entry.put("infolis:algorithm", "PDF2Text");
         InFoLiSFile f = new InFoLiSFile();

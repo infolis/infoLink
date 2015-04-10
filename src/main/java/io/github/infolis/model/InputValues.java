@@ -6,12 +6,14 @@
 package io.github.infolis.model;
 
 import java.util.Map;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author domi
  */
-public class OutputValue {
+@XmlRootElement
+public class InputValues {
     
     private Map<String, Object> values;
 

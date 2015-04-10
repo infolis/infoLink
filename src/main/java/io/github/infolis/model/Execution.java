@@ -31,14 +31,14 @@ public class Execution {
     /**
      * @return the input
      */
-    public InputValue getInput() {
+    public InputValues getInput() {
         return input;
     }
 
     /**
      * @param input the input to set
      */
-    public void setInput(InputValue input) {
+    public void setInput(InputValues input) {
         this.input = input;
     }
 
@@ -59,14 +59,14 @@ public class Execution {
     /**
      * @return the output
      */
-    public OutputValue getOutput() {
+    public OutputValues getOutput() {
         return output;
     }
 
     /**
      * @param output the output to set
      */
-    public void setOutput(OutputValue output) {
+    public void setOutput(OutputValues output) {
         this.output = output;
     }
     
@@ -75,8 +75,8 @@ public class Execution {
     }
     
     private String name; 
-    private InputValue input;
+    private InputValues input;
     private Status currentStatus;
-    private OutputValue output;
+    private OutputValues output;
     
 }

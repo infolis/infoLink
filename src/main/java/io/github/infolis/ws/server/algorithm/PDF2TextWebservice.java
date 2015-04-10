@@ -42,7 +42,7 @@ public class PDF2TextWebservice extends AlgorithmWebservice{
         pdfOutput =(InFoLiSFile)ownParameter.get("pdfOutput");
         System.out.println("test");
         setPdfOutput(new InFoLiSFile());
-        pdfOutput.setFile("out");
+        pdfOutput.setFileId("out");
         System.out.println(pdfInput);
     }
 

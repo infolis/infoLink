@@ -7,8 +7,7 @@ package io.github.infolis.ws.client;
 
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InFoLiSFile;
-import io.github.infolis.model.InputValue;
-import io.github.infolis.ws.server.Backend;
+import io.github.infolis.model.InputValues;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +19,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.json.JSONException;
 
@@ -45,11 +43,11 @@ public class MyClient {
 //        String response = r.accept(MediaType.TEXT_PLAIN).get(String.class);
 //        System.out.println(response);
         Execution e = new Execution();
-        InputValue i = new InputValue();
-        Map<String, Object> entry = new HashMap();
+        InputValues i = new InputValues();
+        Map<String, Object> entry = new HashMap<>();
         entry.put("infolis:algorithm", "PDF2Text");
         InFoLiSFile in = new InFoLiSFile();
-        in.setFile("in");
+        in.setFileId("in");
         entry.put("pdfInput", in);
         i.setValues(entry);
         e.setInput(i);

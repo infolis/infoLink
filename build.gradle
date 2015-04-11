@@ -23,6 +23,7 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
     compile 'org.apache.commons:commons-lang3:3.0'
     compile 'junit:junit:4.4'
+    compile 'com.google.guava:guava:18.0'
 }
 
 task copyPython(type:Copy) {
@@ -74,6 +75,4 @@ createScript('patternLearner.Learner', 'Learner')
 createScript('patternLearner.ExampleReader', 'ExampleReader')
 createScript('patternLearner.ContextMiner', 'ContextMiner')
 createScript('patternLearner.StudyMatcher', 'StudyMatcher')
-createScript('junittest.LeanerTest', 'LearnerTest')
-
 // vim: ft=groovy:

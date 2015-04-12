@@ -1,21 +1,32 @@
-::-e = extract text from pdf documents and save to specified location
-::-c = location of input corpus (if in pdf format, use -e option)
-::-l = learn extraction patterns from corpus and save training data to this directory
-::-o = output path
-::-s = seed dataset names (at the moment, do not specify seeds consisting of multiple words)
-::-i = path of the lucene index (will be created if neccessary)
-::-m = path of the map file listing document filenames and corresponding IDs
-::-u = use uppercase_constraint (dataset titles are required to have at least one uppercase character)
-::-p = use the patterns in this file for reference extraction
-::-t = apply term search for dataset names listed in this file
-::first argument: classpath for InfoLink java classes (change if desired)
+::!\bin\bash
 
-::extract and clean text from pdf documents, remove bibliographies and learn and apply patterns, use uppercase_constraint
-::use ALLBUS, Allbus, Eurobarometer and ISSP as seeds
-python.exe ../py/infoLink.py "." -e "../data/test/small_txt" -c "../data/test/small" -l "../data/test/train_small/" -o "../data/test/output_small" -s "\"ALLBUS Allbus Eurobarometer ISSP\"" -i "../data/test/Index_small"  -m "../data/test/urnDict.csv" -u
+:: -e = extract text from pdf documents and save to specified location
+:: -c = location of input corpus (if in pdf format, use -e option)
+:: -l = learn extraction patterns from corpus and save training data to this directory
+:: -o = output path
+:: -s = seed dataset names (use delimiter specified in Util.delimiter_internal to enumerate seeds)
+:: -i = path of the lucene index (will be created if neccessary)
+:: -m = path of the map file listing document filenames and corresponding IDs
+:: -u = use uppercase_constraint (dataset titles are required to have at least one uppercase character)
+:: -n = use NP constraint with the specified tree tagger arguments: tagging command and chunking command
+:: -p = use the patterns in this file for reference extraction
+:: -t = apply term search for dataset names listed in this file
+:: -f = use frequency-based measure for pattern validity assessment with specified threshold
+:: -r = use reliability-based measure for pattern validity assessment with specified threshold
+:: -N = maximum number of iterations
+:: -F = strategy for processing new contexts within frequeny-based framework: "mergeCurrent", "mergeNew", "mergeAll", "separate" (default)
 
-::learn patterns and apply patterns without text extraction. Use uppercase_constraint
-::python.exe ../py/infoLink.py "." -c "../data/test/small_txt" -l "../data/test/train_small/" -s "\"ALLBUS Allbus Eurobarometer ISSP\"" -i "../data/test/Index_small" -o "../data/test/output_small" -m "../data/test/urnDict.csv" -u
+::PYTHON_SRC="src\main\python"
+::DIR_NAME=${PWD::::*\} 
+::INSTALL_DIR="build\install\$DIR_NAME"
+::TAGGING_CMD=".\tree-tagger\cmd\tree-tagger-german"
+::CHUNKING_CMD=".\tree-tagger\cmd\tagger-chunker-german"
 
-::apply existing patterns and term search for known dataset names with prior text extraction. Use uppercase_constraint
-::python.exe ../py/infoLink.py "." -p "../data/test/patterns.csv" -o "../data/test/output_small" -e "../data/test/small_txt" -c "../data/test/small" -i "../data/test/Index_small" -t "../data/test/known_datasets.csv" -u
+:: extract and clean text from pdf documents, remove bibliographies and learn and apply patterns
+:: use ALLBUS, Eurobarometer, and NHANES as seeds (for frequency-based method: only ALLBUS)
+:: apply reliability-based pattern validity assessment with threshold of 0.5: use  -r "0.5" \
+:: apply frequency-based pattern validity assessment with threshold of 0.24 
+:: use uppercase constraint
+:: use NP constraint: add  -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
+:: restrict maximum number of iterations to 2
+

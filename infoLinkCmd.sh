@@ -29,7 +29,7 @@ CHUNKING_CMD="./tree-tagger/cmd/tagger-chunker-german"
 # use uppercase constraint
 # use NP constraint: add  -n "$TAGGING_CMD--@--$CHUNKING_CMD" \
 # restrict maximum number of iterations to 2
-# use "mergeNew"-strategy
+# use "seaparae"-strategy
 python $PYTHON_SRC/infoLink.py \
     -C "build/classes/main/:$INSTALL_DIR/lib/*" \
     -e "../data/test/small_txt" \
@@ -41,6 +41,6 @@ python $PYTHON_SRC/infoLink.py \
     -m "../data/test/urnDict.csv" \
     -f "0.24" \
     -N "2" \
-    -F "mergeNew" \
+    -F "separate" \
     -u 
 

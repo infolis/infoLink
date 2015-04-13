@@ -3,7 +3,7 @@ package io.github.infolis.ws.server;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ParameterValues;
 import io.github.infolis.ws.algorithm.BaseAlgorithm;
-import io.github.infolis.ws.algorithm.PDF2TextAlgorithm;
+import io.github.infolis.ws.algorithm.TextExtractorAlgorithm;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

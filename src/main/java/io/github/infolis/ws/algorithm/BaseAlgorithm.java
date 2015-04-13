@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package io.github.infolis.ws.algorithm;
 
 import io.github.infolis.model.Execution;
@@ -23,7 +18,7 @@ public abstract class BaseAlgorithm implements Runnable,Algorithm {
 	public static Map<String, Class<? extends BaseAlgorithm>> algorithms = new HashMap<>();
 	@SuppressWarnings("rawtypes")
 	private final static Class[] algoList = {
-		PDF2TextAlgorithm.class
+		TextExtractorAlgorithm.class
     };
 	static {
 		for (int i = 0 ; i < algoList.length ; i++) {

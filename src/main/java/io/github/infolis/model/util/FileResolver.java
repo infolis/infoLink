@@ -1,16 +1,22 @@
 package io.github.infolis.model.util;
 
+import io.github.infolis.model.InfolisFile;
 import io.github.infolis.ws.server.InfolisApplicationConfig;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +105,28 @@ public class FileResolver {
 						StandardOpenOption.TRUNCATE_EXISTING,
 						StandardOpenOption.CREATE);
 		return outStream;
+	}
+
+	public static InputStream getInputStream(InfolisFile pdfFile) throws IOException {
+		return getInputStream(pdfFile.getMd5());
+	}
+
+	public static final String getHexMd5(String asText) {
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			/**
+			 * This really, really, really cannot happen, because "MD5" = String constant.
+			 */
+		}
+		digest.update(asText.getBytes());
+		String md5 = DatatypeConverter.printHexBinary(digest.digest());
+		return md5;
+	}
+
+	public static OutputStream getOutputStream(InfolisFile outputFile) throws IOException {
+		return getOutputStream(outputFile.getMd5());
 	}
 
 }

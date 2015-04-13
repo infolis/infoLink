@@ -62,7 +62,7 @@ public class PDF2TextWebservice extends AlgorithmWebservice{
     }
 
     @Override
-    public void setParams(Map<String, Object> params) {        
+    public void setParams(Map<String, Array<String>> params) {        
         for(String s : params.keySet()) {
             System.out.println("s: " +s + " value: " + params.get(s));
             if(s.equals("infolis:algorithm")) {

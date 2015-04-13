@@ -1,4 +1,6 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
+
+import io.github.infolis.infolink.patternLearner.Util;
 
 import java.util.regex.Pattern;
 

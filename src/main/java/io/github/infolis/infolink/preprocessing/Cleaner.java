@@ -1,4 +1,4 @@
-package preprocessing;
+package io.github.infolis.infolink.preprocessing;
 
 import java.io.File;
 import java.io.IOException;

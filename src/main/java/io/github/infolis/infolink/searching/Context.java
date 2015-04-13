@@ -1,4 +1,4 @@
-package searching;
+package io.github.infolis.infolink.searching;
 
 
 
@@ -39,7 +39,7 @@ public class Context {
 	}
 	
 	public String toXML() {
-		return "\t<context term=\"" + patternLearner.Util.escapeXML(this.term) + 
+		return "\t<context term=\"" + io.github.infolis.infolink.patternLearner.Util.escapeXML(this.term) + 
 				"\" document=\"" + this.document + "\">" + System.getProperty("line.separator") + "\t\t" + 
 				"<leftContext>" + this.left +"</leftContext>" + System.getProperty("line.separator") + "\t\t" + 
 				"<rightContext>" + this.right + "</rightContext>" + System.getProperty("line.separator") + 

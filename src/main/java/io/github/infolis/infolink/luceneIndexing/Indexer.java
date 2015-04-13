@@ -1,4 +1,4 @@
-package luceneIndexing;
+package io.github.infolis.infolink.luceneIndexing;
 
 
 /**

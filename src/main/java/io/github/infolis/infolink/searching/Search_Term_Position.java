@@ -1,4 +1,7 @@
-package searching;
+package io.github.infolis.infolink.searching;
+
+import io.github.infolis.infolink.luceneIndexing.Indexer;
+import io.github.infolis.infolink.patternLearner.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +27,6 @@ import org.apache.lucene.util.Version;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.queryParser.ParseException;
-
-
-import patternLearner.Util;
-import luceneIndexing.Indexer;
 
 /**
  * Class for searching terms and complex phrase queries using a Lucene index.

@@ -1,4 +1,6 @@
-package searching;
+package io.github.infolis.infolink.searching;
+
+import io.github.infolis.infolink.patternLearner.Util;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -7,8 +9,6 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-
-import patternLearner.Util;
 
 /**
  * Class for retrieving the context ( = surrounding words) of a term in a document. 
@@ -44,9 +44,9 @@ public class GetContext
 		    // assert: leftContexts and rightContexts must always have the same size
 		    for (int i = 0; i < leftContexts.size(); i ++)
 		    {
-		    	String leftContext = patternLearner.Util.escapeXML(leftContexts.get(i));
-		    	String rightContext = patternLearner.Util.escapeXML(rightContexts.get(i));
-		    	out.write("\t<context term=\"" + patternLearner.Util.escapeXML(term) + "\" document=\"" + filename + "\">\n\t\t<leftContext>" + leftContext +"</leftContext>\n\t\t<rightContext>" + rightContext + "</rightContext>\n\t</context>\n");
+		    	String leftContext = io.github.infolis.infolink.patternLearner.Util.escapeXML(leftContexts.get(i));
+		    	String rightContext = io.github.infolis.infolink.patternLearner.Util.escapeXML(rightContexts.get(i));
+		    	out.write("\t<context term=\"" + io.github.infolis.infolink.patternLearner.Util.escapeXML(term) + "\" document=\"" + filename + "\">\n\t\t<leftContext>" + leftContext +"</leftContext>\n\t\t<rightContext>" + rightContext + "</rightContext>\n\t</context>\n");
 		    }
 		    out.close();
 		}

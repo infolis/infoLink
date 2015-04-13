@@ -1,4 +1,4 @@
-package luceneIndexing;
+package io.github.infolis.infolink.luceneIndexing;
 
 import org.apache.lucene.analysis.Analyzer;
 import java.io.Reader;

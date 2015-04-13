@@ -1,4 +1,6 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
+
+import io.github.infolis.infolink.searching.Search_Term_Position;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import searching.Search_Term_Position;
 
 
 /**

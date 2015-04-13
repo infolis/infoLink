@@ -1,7 +1,12 @@
-package searching;
+package io.github.infolis.infolink.searching;
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
+
+import io.github.infolis.infolink.searching.Context;
+import io.github.infolis.infolink.searching.Search_Term_Position;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -53,11 +58,11 @@ public class Search_Term_PositionTest
 	//TODO: delete files after testing
 	public void createInputFiles() {
 		try { 
-			patternLearner.Util.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
-			patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
-			patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
+			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
+			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
+			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
 			
-			luceneIndexing.Indexer.main(new String[]{ testCorpus, indexPath });
+			io.github.infolis.infolink.luceneIndexing.Indexer.main(new String[]{ testCorpus, indexPath });
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); System.exit(1); }
 	}

@@ -1,6 +1,7 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import io.github.infolis.infolink.searching.Search_Term_Position;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -24,8 +25,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-
-import searching.Search_Term_Position;
 
 /**
  * Class containing various utility functions and definitions. 

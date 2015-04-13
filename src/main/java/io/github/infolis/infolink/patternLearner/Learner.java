@@ -1,4 +1,8 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
+
+import io.github.infolis.infolink.searching.Context;
+import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.infolink.tagger.Tagger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -37,9 +41,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import searching.Context;
-import searching.Search_Term_Position;
-import tagger.Tagger;
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;

@@ -1,8 +1,9 @@
-package tagger;
+package io.github.infolis.infolink.tagger;
+
+import io.github.infolis.infolink.patternLearner.Util;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import patternLearner.Util;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;

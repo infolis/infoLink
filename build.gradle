@@ -91,13 +91,13 @@ def createScript(mainClass, scriptName) {
     }
   }
 }
-createScript('tagger.Tagger', 'Tagger')
-createScript('preprocessing.TextExtractor', 'TextExtractor')
-createScript('luceneIndexing.Indexer', 'Indexer')
-createScript('searching.Search_Term_Position', 'Search_Term_Position')
-createScript('patternLearner.TrainingSet', 'TrainingSet')
-createScript('patternLearner.Learner', 'Learner')
-createScript('patternLearner.ExampleReader', 'ExampleReader')
-createScript('patternLearner.ContextMiner', 'ContextMiner')
-createScript('patternLearner.StudyMatcher', 'StudyMatcher')
+createScript('io.github.infolis.infolink.tagger.Tagger', 'Tagger')
+createScript('io.github.infolis.infolink.preprocessing.TextExtractor', 'TextExtractor')
+createScript('io.github.infolis.infolink.luceneIndexing.Indexer', 'Indexer')
+createScript('io.github.infolis.infolink.searching.Search_Term_Position', 'Search_Term_Position')
+createScript('io.github.infolis.infolink.patternLearner.TrainingSet', 'TrainingSet')
+createScript('io.github.infolis.infolink.patternLearner.Learner', 'Learner')
+createScript('io.github.infolis.infolink.patternLearner.ExampleReader', 'ExampleReader')
+createScript('io.github.infolis.infolink.patternLearner.ContextMiner', 'ContextMiner')
+createScript('io.github.infolis.infolink.patternLearner.StudyMatcher', 'StudyMatcher')
 // vim: ft=groovy:

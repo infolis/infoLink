@@ -1,4 +1,4 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
 
 import java.io.File;
 import java.io.FileNotFoundException;

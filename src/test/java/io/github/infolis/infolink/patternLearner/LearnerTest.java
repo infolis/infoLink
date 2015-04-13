@@ -1,6 +1,9 @@
-package patternLearner;
+package io.github.infolis.infolink.patternLearner;
+
+import io.github.infolis.infolink.patternLearner.Learner;
 
 import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 

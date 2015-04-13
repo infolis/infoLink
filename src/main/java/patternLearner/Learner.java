@@ -30,17 +30,23 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryParser.ParseException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
+import searching.Context;
 import searching.Search_Term_Position;
 import tagger.Tagger;
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 /**
  * Class for finding references to scientific datasets in publications using a minimum supervised iterative 
@@ -55,16 +61,19 @@ import weka.core.Instances;
  * @version 2014-01-27
  *
  */
+//TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
 public class Learner
 {
 	List<List<String>> contextsAsStrings;
 	Set<String> processedSeeds; //all processed seeds
 	Set<String> foundSeeds_iteration; //seeds found at current iteration step
-	Set<String> foundPatterns_iteration; //ngram patterns
-	Set<String> reliablePatterns_iteration;
-	Set<String> processedPatterns; //ngram patterns
-	Map<String, List<String[]>> reliablePatternsAndContexts;
-	Set<String> reliableInstances;
+	Set<String[]> foundPatterns_iteration; //lucene query, minimal regex, full regex. For frequeny learner
+	Set<String[]> relevantPatterns; //frequency learner
+	Set<String> reliablePatterns_iteration; //reliability learner
+	Set<String> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
+	Map<String, List<String[]>> reliablePatternsAndContexts; //reliability learner
+	Set<String> reliableInstances; //reliability learner
+	Map<String, List<Context>> extractedContexts; //todo: replace above...
 	// basePath is used for normalizing path names when searching for known dataset names
 	// should point to the path of the input text corpus
 	Path basePath;
@@ -91,7 +100,7 @@ public class Learner
 	{
 		this.processedSeeds = new HashSet<String>();
 		this.foundSeeds_iteration = new HashSet<String>();
-		this.foundPatterns_iteration = new HashSet<String>();
+		this.foundPatterns_iteration = new HashSet<String[]>();
 		this.reliablePatterns_iteration = new HashSet<String>();
 		this.processedPatterns = new HashSet<String>();
 		this.constraint_upperCase = constraint_upperCase;
@@ -105,9 +114,12 @@ public class Learner
 		this.arffPath = arffPath;
 		this.outputPath = outputPath;
 		this.reliablePatternsAndContexts = new HashMap<String, List<String[]>>();
+		this.extractedContexts = new HashMap<String, List<Context>>();
 		this.reliableInstances = new HashSet<String>();
 		this.reliability = new Reliability();
+		this.relevantPatterns = new HashSet<String[]>();
 	}
+	
 	
 	//TODO: cite paper in docstring
 	/**
@@ -359,34 +371,65 @@ public class Learner
 	 * 
 	 * @param indexDir			name of the directory containing the lucene index to be searched
 	 * @param seedList			a set of seeds whose contexts to retrieve
-	 * @param outputDirectory	name of the directory to output the resulting context file 
 	 */
-	public void getContextsForAllSeeds(String indexDir, Collection<String> seedList, String outputDirectory)
-	{
-		for (String seed : seedList)
-		{
-			getContextsForSeed(indexDir, seed, outputDirectory + File.separator + Util.escapeSeed(seed) + ".xml");
+	public List<Context> getContextsForAllSeeds(String indexDir, Collection<String> seedList) throws IOException, ParseException {
+		List<Context> contexts = new ArrayList<Context>();
+		for (String seed : seedList) {
+			try { contexts.addAll(getContextsForSeed(seed)); }
+			catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+			catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
 		}
+		return contexts;
 	}
 	
 	/**
 	 * Searches for occurrences of the string <emph>seed</emph> in the lucene index at path <emph>indexDir</emph> 
-	 * and saves the contexts of all occurrences to <emph>filename</emph>.
+	 * and returns its contexts.
 	 * 
 	 * @param indexDir	name of the directory containing the lucene index to be searched
 	 * @param seed		seed for which the contexts to retrieve
-	 * @param filename	name of the output file
 	 */
-	public void getContextsForSeed(String indexDir, String seed, String filename) 
-	{
-		Search_Term_Position search = new Search_Term_Position(indexDir, filename, seed, "\"" + Search_Term_Position.normalizeQuery(seed) + "\"");
-		try 
-		{
+	public List<Context> getContextsForSeed(String seed) throws IOException, ParseException {
+		List<Context> contexts = new ArrayList<Context>();
+		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed));
+		try { contexts = search.complexSearch_getContexts(); }
+		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
+		return contexts;
+	}
+	
+	public void writeContextToXML(Context context, String filename) throws IOException {
+		try {
 			Util.prepareOutputFile(filename);
-			search.complexSearch(new File(filename), true);
+			Util.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
 			Util.completeOutputFile(filename);
 		}
-		catch (Exception e) { e.printStackTrace(); }
+		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+	}
+	
+	
+	/**
+	 * Generates extraction patterns using an iterative bootstrapping approach. 
+	 * 
+	 * <ol>
+	 * 		<li>searches for seeds in the specified corpus and extracts the surrounding words as contexts</li>
+	 * 		<li>analyzes contexts and generates extraction patterns</li>
+	 * 		<li>applies extraction patterns on corpus to extract new seeds</li>
+	 * 		<li>continues with 1) until maximum number of iterations is reached</li>
+	 * 		<li>outputs found seeds, contexts and extraction patterns</li>
+	 * </ol>
+	 * 
+	 * Method for assessing pattern validity is reliability-based.
+	 * 
+	 * @param seeds				reliable terms to be searched as starting point
+	 * @param threshold			reliability threshold
+	 **/
+	//TODO: NOT NECESSARY, CALL METHOD DIRECTLY :D
+	private void bootstrap(Collection<String> seeds, double threshold, int maxIterations) throws IOException, ParseException
+	{
+		try { bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations); }
+		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 	}
 	
 	/**
@@ -407,187 +450,61 @@ public class Learner
 	 * @param maxIterations		maximum number of iterations for algorithm
 	 *
 	 */
-	private void bootstrap_frequency(String seed, double threshold, int maxIterations, String strategy) throws IOException
+	private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, String strategy) throws IOException, ParseException
 	{
-		File contextDir = new File(this.contextPath);
-    	String[] contextFiles = contextDir.list();
-    	List<String> contextFileList = Arrays.asList(contextFiles);
-    	File arffDir = new File(this.arffPath);
-    	String[] arffFiles = arffDir.list();
-    	List<String> arffFileList = Arrays.asList(arffFiles);
-    	String seedEscaped = Util.escapeSeed(seed);
-		// 1. use lucene index to search for term in corpus
-    	// use caches from recent searches on the same corpus to increase performance
-		String filenameContext = seedEscaped + ".xml";
-		String filenameArff = seedEscaped + ".arff";
-		if (!arffFileList.contains(filenameArff))
-		{
-			if (!contextFileList.contains(filenameContext))
-			{
-				// if no cache files exist, search in corpus and generate contexts
-				getContextsForSeed(this.indexPath, seed, this.contextPath + File.separator + filenameContext);
-			}
-			TrainingSet trainingSet = new TrainingSet(new File(this.contextPath + File.separator + filenameContext));
-			try { trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff); }
-			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		}
-		//3. generate patterns
-		//4. search for patterns in corpus: 
-		try 
-		{ 
-			//TODO: separate steps, replace old readArff method
-			readArff(this.arffPath + File.separator + filenameArff, this.trainPath, threshold); 
-			this.processedSeeds.add(seed); 
-		}
-		catch (IOException e) { e.printStackTrace(); System.exit(1); }
-		// use this to compute "worst-case recall" = probability, that mentions of an unseen study will be found
-		// exclude the seed study and measure how often it will be found without being seen before
-		//this.processedPatterns = new HashSet<String>();
-		//this.foundPatterns_iteration = new HashSet<String>();
-		
-		Set<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
-		File nextIterPath = Paths.get(this.trainPath + File.separator + "iteration2").normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		switch(strategy) {
-			case "mergeCurrent": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeCurrent"); break;
-			case "mergeNew": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeNew"); break;
-			case "mergeAll": bootstrap_merge(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations, "mergeAll"); break;
-			case "separate": bootstrap_separate(newSeeds, nextIterPath.toString(), 0, threshold, maxIterations); break;
-		}
-	}
-	
-	/**
-	 * Generates extraction patterns using an iterative bootstrapping approach. 
-	 * 
-	 * <ol>
-	 * 		<li>searches for seeds in the specified corpus and extracts the surrounding words as contexts</li>
-	 * 		<li>analyzes contexts and generates extraction patterns</li>
-	 * 		<li>applies extraction patterns on corpus to extract new seeds</li>
-	 * 		<li>continues with 1) until maximum number of iterations is reached</li>
-	 * 		<li>outputs found seeds, contexts and extraction patterns</li>
-	 * </ol>
-	 * 
-	 * Method for assessing pattern validity is reliability-based.
-	 * 
-	 * @param seeds				reliable terms to be searched as starting point
-	 * @param threshold			reliability threshold
-	 **/
-	private void bootstrap(Collection<String> seeds, double threshold, int maxIterations) throws IOException
-	{
-		try { bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations); }
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-	}
-	
-	/**
-	 * Induces extraction patterns using frequency-based pattern validation. Merges contexts of new seeds before 
-	 * processing. 
-	 * 
-	 * @param terms				seed terms for pattern extraction
-	 * @param outputDirectory	output directory for context and training files
-	 * @param numIter			counter of current iteration
-	 * @param threshold			minimum relative frequency of patterns to be deemed relevant
-	 * @param maxIterations		maximum number of iterations
-	 * @param strategy			strategy for merging the seeds: "mergeCurrent" = merge all contexts found at current iteration; "mergeNew" = merge only contexts of new seeds at current iteration; "mergeAll" = merge all contexts of all iterations
-	 * @throws IOException
-	 */
-	private void bootstrap_merge(Set<String> terms, String outputDirectory, int numIter, double threshold, int maxIterations, String strategy) throws IOException {
+		Set<String[]> newPatterns = new HashSet<String[]>();
+		List<Context> contexts_currentIteration = new ArrayList<Context>();
 		numIter ++;
-		getContextsForAllSeeds(this.indexPath, terms, outputDirectory);
-		try { 
-			switch(strategy) {
-				case "mergeCurrent": Util.mergeContexts(outputDirectory, "all.xml", "all_"); break;
-				case "mergeNew": Util.mergeNewContexts(outputDirectory, "all.xml", "all_"); break;
-				case "mergeAll": Util.mergeAllContexts(outputDirectory, "all.xml", "all_"); break;
+		try {
+			for(String seed : terms) {
+			
+				// 1. use lucene index to search for term in corpus
+				List<Context> contexts = getContextsForSeed(seed);
+				contexts_currentIteration.addAll(contexts);
+				this.extractedContexts.put(seed, contexts);
+				System.out.println("Processing contexts for seed " + seed);
+				// 2. generate patterns
+				//TODO: ENUM TYPES FOR STRATEGIES
+				if (strategy.equals("separate")) {
+					Set<String[]> patterns = inducePatterns(contexts, threshold);
+					this.relevantPatterns.addAll(patterns);
+					newPatterns.addAll(patterns);
+				}
 			}
-			TrainingSet trainingSet = new TrainingSet(new File(outputDirectory + File.separator + "all.xml"));
-			trainingSet.createTrainingSet("True", outputDirectory + File.separator + "all.arff");
-			readArff(outputDirectory + File.separator + "all.arff", outputDirectory, threshold); 
+			if (strategy.equals("mergeCurrent")) { 
+				Set<String[]> patterns = inducePatterns(contexts_currentIteration, threshold); 
+				this.relevantPatterns.addAll(patterns);
+				newPatterns.addAll(patterns);
+			}
+			//TODO: add mergeAll and mergeNew
+			// 3. search for patterns in corpus
+			//TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
+			List<String[]> res = applyPatterns(newPatterns);
+			
+			Set<String> newSeeds = new HashSet<String>();
+			for (String[] entry : res) {
+				String studyName = entry[0];
+				String context = entry[1];
+				String corpusFilename = entry[2];
+				String usedPat = entry[3];
+				newSeeds.add(studyName);
+			}
+			this.processedSeeds.addAll(terms); 
+			System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
+			//TODO: NO NEED TO SEARCH FOR ALL PATTERNS AGAIN, INSTEAD USE STORED RESULTS AND SEARCH ONLY FOR NEW PATTERNS
+			if (numIter >= maxIterations -1) { 
+				System.out.println("Reached maximum number of iterations! Applying learnt patterns..."); 
+				// new learner instance needed, else previously processed patterns are ignored
+				//TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
+				Learner newLearner = new Learner(null, null, this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath);
+				List<String[]> resultList = newLearner.applyPatterns(this.relevantPatterns);
+				outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
+				return; 
+			}
+			else { bootstrap_frequency(newSeeds, numIter, threshold, maxIterations, strategy); }
 		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		if (numIter >= maxIterations-1) { return; } 
-		Set<String> newSeeds = new HashSet<String>();
-		try { newSeeds = getSeeds(outputDirectory + File.separator + "all_foundDatasets.csv"); }
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		File nextIterPath = Paths.get(outputDirectory + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrap_merge(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations, strategy);
-	}
-	
-	/**
-	 * Frequency-based pattern induction baseline 4: does not merge contexts, instead processes each 
-	 * context of each new seed separately and continues bootstrapping with this new set
-	 * ...
-	 * 
-	 * @param terms				instances to process in this iteration
-	 * @param outputPath
-	 * @param numIter			current iteration
-	 * @param threshold
-	 * @param maxIterations
-	 */
-	private void bootstrap_separate(Collection<String> terms, String outputPath, int numIter, double threshold, int maxIterations) throws IOException
-	{
-		this.foundSeeds_iteration = new HashSet<String>();
-		numIter ++;
-		File contextDir = new File(this.contextPath);
-		String[] contextFiles = contextDir.list();
-		List<String> contextFileList = Arrays.asList(contextFiles);
-		File arffDir = new File(this.arffPath);
-		String[] arffFiles = arffDir.list();
-		List<String> arffFileList = Arrays.asList(arffFiles);
-		TrainingSet trainingSet;
-		for(String seed : terms)
-		{
-			//use this to compute "worst-case recall" = probability, that mentions of an unseen study will be found
-			//exclude a particular study here and measure, how often it will be found without being seen before
-			/*if ( seed.equals("Westdeutsche Lebensverlaufsstudie") )
-			{
-				continue;
-			}*/
-			String seedEscaped = Util.escapeSeed(seed);
-			String filenameContext = seedEscaped + ".xml";
-		    String filenameArff = seedEscaped + ".arff";
-		    if (!arffFileList.contains(filenameArff))
-		    {
-		    	if(!contextFileList.contains(filenameContext))
-		    	{
-		    		getContextsForSeed(this.indexPath, seed, this.contextPath + File.separator + filenameContext);
-		    	}
-		    	trainingSet = new TrainingSet(new File(this.contextPath + File.separator + filenameContext));
-		    	try { trainingSet.createTrainingSet("True", this.arffPath + File.separator + filenameArff); }
-		    	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		    }
-	    	System.out.println("Processing " + this.arffPath + File.separator + filenameArff);
-	    	// only process previously unseen studies
-	    	//TODO: only createTrainingSet for unseen studies...
-	    	if (!this.processedSeeds.contains(seed))
-	    	{
-	    		try 
-	    		{ 
-	    			readArff(this.arffPath + File.separator + filenameArff, outputPath, threshold); 
-	    			this.processedSeeds.add(seed); 
-	    		}
-	    		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-	    	}
-		}
-		Set<String> newSeeds = new HashSet<String>(this.foundSeeds_iteration);
-		try
-		{
-			OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(outputPath + File.separator + "newSeeds.txt")),"UTF-8");
-		    BufferedWriter out = new BufferedWriter(fstream);
-		    System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
-		    
-		    for (String seed : newSeeds)
-		    {
-		    	out.write(seed + System.getProperty("line.separator"));
-		    }
-		    out.close();
-		    System.out.println("Saved seeds to file \"" + File.separator + "iteration" + (numIter + 1) + File.separator + "newSeeds.txt\"");
-		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		if (numIter >= maxIterations -1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
-		File nextIterPath = Paths.get(outputPath + File.separator + "iteration" + (numIter + 2)).normalize().toFile();
-		if(!nextIterPath.exists()) { nextIterPath.mkdir(); System.out.println("Created directory " + nextIterPath); }
-		bootstrap_separate(newSeeds, nextIterPath.toString(), numIter, threshold, maxIterations);
+		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
+		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException(); }
 	}
 	
 	/**
@@ -597,56 +514,36 @@ public class Learner
 	 * @param threshold	reliability threshold
 	 * @param numIter	current iteration
 	 */
-	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter, int maxIter) throws IOException
+	private void bootstrap_reliabilityBased(Collection<String> terms, double threshold, int numIter, int maxIter) throws IOException, ParseException
 	{
 		numIter ++;
 		System.out.println("Bootstrapping... Iteration: " + numIter);
 		File logFile = new File(this.outputPath + File.separator + "output.txt");
-		this.foundSeeds_iteration = new HashSet<String>();
-		this.reliablePatterns_iteration = new HashSet<String>();
-		File contextDir = new File(this.contextPath);
-		String[] contextFiles = contextDir.list();
-		List<String> contextFileList = Arrays.asList(contextFiles);
-		File arffDir = new File(this.arffPath);
-		String[] arffFiles = arffDir.list();
-		List<String> arffFileList = Arrays.asList(arffFiles);
-		TrainingSet trainingSet;
-		List<String> newArffFiles = new ArrayList<String>();
 		// 0. filter seeds, select only reliable ones
 		// alternatively: use all seeds extracted by reliable patterns
 		this.reliableInstances.addAll(terms);
-		// 1. search for all seeds and save contexts to arff training set
+		this.foundSeeds_iteration = new HashSet<String>();
+		this.reliablePatterns_iteration = new HashSet<String>();
+		// 1. search for all seeds and save contexts
 		for (String seed : terms)
 		{
 			System.out.println( "Bootstrapping with seed " + seed);
-			String seedEscaped = Util.escapeSeed(seed);
-			String filenameContext = seedEscaped + ".xml";
-			String filenameArff = seedEscaped + ".arff";
-			String newContextName = this.contextPath + File.separator + filenameContext;
-			String newArffName = this.arffPath + File.separator + filenameArff;
-		    if (!arffFileList.contains(filenameArff))
-		    {
-			    if (!contextFileList.contains(filenameContext)) { getContextsForSeed(this.indexPath, seed, newContextName); }
-			    trainingSet = new TrainingSet(new File(newContextName));
-			    try { trainingSet.createTrainingSet("True", newArffName); }
-			    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-			    System.out.println("Created " + newArffName);
-		    }
-		    newArffFiles.add(newArffName);
+			try { 
+				List<Context> contexts = getContextsForSeed(seed);
+				this.extractedContexts.put(seed, contexts); 
+			}
+		    catch (ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
+		    catch (IOException ioe) { ioe.printStackTrace(); throw new IOException(); }
 		}
-
-		// 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and new seeds to 
-		// this.foundSeeds_iteration
-	    try { saveReliablePatternData(newArffFiles, threshold); }
-	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-
+		// 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
+		// new seeds to this.foundSeeds_iteration
+		for (String seed : terms) { saveReliablePatternData(this.extractedContexts.get(seed), threshold); }
 		String output_iteration = getString_reliablePatternOutput( this.reliablePatternsAndContexts, numIter );
 		//TODO: output trace of decisions... (reliability of patterns, change in trusted patterns, instances...)
 		try { Util.writeToFile(logFile, "utf-8", output_iteration, true); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		//TODO: USE DIFFERENT STOP CRITERION: continue until patterns stable...
-		//TODO: NUM ITER...
-		if(numIter == maxIter - 1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
+		if(numIter >= maxIter - 1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
 		bootstrap_reliabilityBased(this.foundSeeds_iteration, threshold, numIter, maxIter);
 	}
 	
@@ -666,25 +563,6 @@ public class Learner
 		return string;	
 	}
 
-	//TODO: compare with BL4 - use method there
-	private TrainingSet searchForInstanceInCorpus(String instance)
-	{
-		File contextDir = new File(this.contextPath);
-		String[] contextFiles = contextDir.list();
-		List<String> contextFileList = Arrays.asList(contextFiles);
-		TrainingSet trainingSet;
-	
-		String seedEscaped = Util.escapeSeed(instance);
-		String filenameContext = seedEscaped + ".xml";
-
-		if ( ! contextFileList.contains( filenameContext ))
-		{
-		 	getContextsForSeed( this.indexPath, instance, this.contextPath + File.separator + filenameContext );
-		}
-		trainingSet = new TrainingSet( new File( this.contextPath + File.separator + filenameContext ) );
-		return trainingSet;
-	} 
-	
 
 	//TODO: USE METHODS FROM TOOLS PACKAGE
 	// writing the patterns to file here is used for validation and evaluation purposes 
@@ -955,18 +833,21 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private List<String[]> getStudyRefs_optimized_reliabilityCheck(Set<String[]> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs_optimized_reliabilityCheck(Set<String[]> patterns, String[] corpus) throws IOException, ParseException
 	{
 		List<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
 			// get list of documents in which to search for the regular expression
-			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
-			Set<String> patSet = new HashSet<String>();
-			patSet.add(curPat[2]);
-			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+			try { 
+				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
+				Set<String> patSet = new HashSet<String>();
+				patSet.add(curPat[2]);
+				resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
+			}
 			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 			continue;
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
@@ -985,33 +866,36 @@ public class Learner
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
 	 */
-	private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException, ParseException
 	{
 		List<String[]> resAggregated = new ArrayList<String[]>();
 		
 		for (String curPat[] : patterns)
 		{
-			String[] candidateCorpus = getStudyRef_lucene(curPat[0]);
-			Set<String> patSet = new HashSet<String>();
-			patSet.add(curPat[1]);
-			//TODO: see above...
-			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
-			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-			this.processedPatterns.add(curPat[1]);
-			continue;
+			try { 
+				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
+				Set<String> patSet = new HashSet<String>();
+				patSet.add(curPat[1]);
+				//TODO: see above...
+				try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+				catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+				this.processedPatterns.add(curPat[1]);
+				continue;
+			}
+			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
+	
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
 		return resAggregated;
 	}
 	
 	/**
-	 * Search for lucene query in index at indexPath and return documents with hits.
+	 * Search for lucene query in index at this indexPath and return documents with hits.
 	 * 
 	 * @param lucene_pattern	lucene search query
-	 * @param indexPath			path of the lucene index
 	 * @return					a list of documents with hits
 	 */
-	private String[] getStudyRef_lucene(String lucene_pattern)
+	private String[] getStudyRef_lucene(String lucene_pattern) throws IOException, ParseException
 	{
 		String[] candidateCorpus;
 		try
@@ -1019,10 +903,11 @@ public class Learner
 			// lucene query is assumed to be normalized
 			Search_Term_Position candidateSearcher = new Search_Term_Position(this.indexPath, "", "", lucene_pattern);
 			candidateCorpus = candidateSearcher.complexSearch();
-			System.out.println("Number of candidate docs: " + candidateCorpus.length);
+			//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
 		}
-		catch(Exception e) { e.printStackTrace(); candidateCorpus = new String[0]; }
-		System.out.println("Done searching lucene query. Continuing.");
+		catch(IOException ioe) { ioe.printStackTrace(); throw new IOException(); }
+		catch(ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
+		System.out.println("Done processing lucene query. Continuing.");
 		return candidateCorpus;
 	}
 	
@@ -1037,7 +922,6 @@ public class Learner
 	private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus) throws IOException
 	{
 		List<String[]> resAggregated = new ArrayList<String[]>();
-
 		for (String filename: corpus)
 		{
 			System.out.println("searching for patterns in " + filename);
@@ -1146,7 +1030,7 @@ public class Learner
 			
 			System.out.println("Searching for pattern " + curPat);
 			// if pattern was processed before, ignore
-			if (this.processedPatterns.contains(curPat)) { continue; }
+			//if (this.processedPatterns.contains(curPat)) { continue; }
 			
 			Pattern p = Pattern.compile(curPat);
 			Matcher m = p.matcher(inputClean);
@@ -1370,7 +1254,7 @@ public class Learner
 		
 		String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 		String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 		
 		// phrase consisting of 3 words before study title + fixed word behind
 		String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
@@ -1379,7 +1263,7 @@ public class Learner
 		
 		String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 		String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 		
 		// phrase consisting of 4 words before study title + fixed word behind
 		String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
@@ -1388,7 +1272,7 @@ public class Learner
 		
 		String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 		String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 		
 		// phrase consisting of 5 words before study title + fixed word behind
 		String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
@@ -1397,7 +1281,7 @@ public class Learner
 		
 		String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 		String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram5_flex_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 		
 		List<String[]> ngramPats = new ArrayList<String[]>();
 		// constraint for ngrams: at least one component not be a stopword
@@ -1511,21 +1395,25 @@ public class Learner
 	 * @param threshold		reliability threshold
 	 * @return				true if pattern is deemed reliable, false otherwise
 	 */
-	private boolean saveRelevantPatternsAndContexts(String[] newPat, double threshold) throws IOException
+	private boolean saveRelevantPatternsAndContexts(String[] newPat, double threshold) throws IOException, ParseException
 	{
-		List<String[]> extractedContexts = getReliable_pattern(newPat, threshold);
-		if (extractedContexts != null)
-		{
-			this.reliablePatternsAndContexts.put(newPat[1],  extractedContexts);
-			for (String[] studyNcontext : extractedContexts)
+		try { 
+			List<String[]> extractedContexts = getReliable_pattern(newPat, threshold); 
+			
+			if (extractedContexts != null)
 			{
-				String studyName = studyNcontext[0];
-				this.foundSeeds_iteration.add(studyName);
+				this.reliablePatternsAndContexts.put(newPat[1],  extractedContexts);
+				for (String[] studyNcontext : extractedContexts)
+				{
+					String studyName = studyNcontext[0];
+					this.foundSeeds_iteration.add(studyName);
+				}
+				System.out.println("found relevant pattern: " + newPat[1]);
+				return true;
 			}
-			System.out.println("found relevant pattern: " + newPat[1]);
-			return true;
+			return false;
 		}
-		return false;
+		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
 	}
 	
 	/**
@@ -1536,8 +1424,238 @@ public class Learner
 	 * @param threshold			threshold for pattern reliability
 	 * @return			...
 	 */
-	@SuppressWarnings("unused")
-	private void saveReliablePatternData(Collection<String> filenames_arff, double threshold) throws IOException
+	private void saveReliablePatternData(List<Context> contexts, double threshold) throws IOException, ParseException
+	{
+		int n = 0;
+		for(Context context : contexts)
+		{
+	    	n++;
+	    	System.out.println("Inducing relevant patterns for instance " + n + " of " + contexts.size() + " for " + " \"" + context.term + "\"");
+	
+			String attVal0 = context.leftWords[0]; //l5
+			String attVal1 = context.leftWords[1]; //l4
+			String attVal2 = context.leftWords[2]; //l3
+			String attVal3 = context.leftWords[3]; //l2
+			String attVal4 = context.leftWords[4]; //l1
+			String attVal5 = context.rightWords[0]; //r1
+			String attVal6 = context.rightWords[1]; //r2
+			String attVal7 = context.rightWords[2]; //r3
+			String attVal8 = context.rightWords[3]; //r4
+			String attVal9 = context.rightWords[4]; //r5
+				
+			//TODO: CONSTRUCT LUCENE QUERIES ONLY WHEN NEEDED (BELOW) 
+			String attVal0_lucene = Util.normalizeAndEscapeRegex_lucene(attVal0);
+			String attVal1_lucene = Util.normalizeAndEscapeRegex_lucene(attVal1);
+			String attVal2_lucene = Util.normalizeAndEscapeRegex_lucene(attVal2);
+			String attVal3_lucene = Util.normalizeAndEscapeRegex_lucene(attVal3);
+			String attVal4_lucene = Util.normalizeAndEscapeRegex_lucene(attVal4);
+			String attVal5_lucene = Util.normalizeAndEscapeRegex_lucene(attVal5);
+			String attVal6_lucene = Util.normalizeAndEscapeRegex_lucene(attVal6);
+			String attVal7_lucene = Util.normalizeAndEscapeRegex_lucene(attVal7);
+			String attVal8_lucene = Util.normalizeAndEscapeRegex_lucene(attVal8);
+			String attVal9_lucene = Util.normalizeAndEscapeRegex_lucene(attVal9);
+			
+			String attVal0_quoted = Pattern.quote(attVal0);
+			String attVal1_quoted = Pattern.quote(attVal1);
+			String attVal2_quoted = Pattern.quote(attVal2);
+			String attVal3_quoted = Pattern.quote(attVal3);
+			String attVal4_quoted = Pattern.quote(attVal4);
+			String attVal5_quoted = Pattern.quote(attVal5);
+			String attVal6_quoted = Pattern.quote(attVal6);
+			String attVal7_quoted = Pattern.quote(attVal7);
+			String attVal8_quoted = Pattern.quote(attVal8);
+			String attVal9_quoted = Pattern.quote(attVal9);
+					
+			String attVal4_regex = Util.normalizeAndEscapeRegex(attVal4);
+			String attVal5_regex = Util.normalizeAndEscapeRegex(attVal5);
+				
+			//...
+			if (attVal4.matches(".*\\P{Punct}")) 
+			{ 
+				attVal4_quoted += "\\s"; 
+				attVal4_regex += "\\s"; 
+			}
+			if (attVal5.matches("\\P{Punct}.*")) 
+			{ 
+				attVal5_quoted = "\\s" + attVal5_quoted; 
+				attVal5_regex = "\\s" + attVal5_regex; 
+			}
+				
+				
+			// two words enclosing study name
+			String luceneQuery1 = "\"" + attVal4_lucene + " * " + attVal5_lucene + "\"";
+			String regex_ngram1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngram1_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			
+			// phrase consisting of 2 words behind study title + fixed word before
+			String luceneQueryA = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + "\""; 
+			String regex_ngramA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngramA_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6);
+			
+			// phrase consisting of 2 words behind study title + (any) word found in data before
+			// (any word cause this pattern is induced each time for each different instance having this phrase...)
+			String luceneQueryA_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + "\""; 
+			String regex_ngramA_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted; 
+			//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 3 words behind study title + fixed word before
+			String luceneQueryB = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
+			String regex_ngramB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngramB_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7);
+			
+			String luceneQueryB_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
+			String regex_ngramB_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
+			//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			//phrase consisting of 4 words behind study title + fixed word before
+			String luceneQueryC = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
+			String regex_ngramC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+			String regex_ngramC_minimal	= attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8);
+			
+			String luceneQueryC_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
+			String regex_ngramC_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
+			//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+			
+			//phrase consisting of 5 words behind study title + fixed word before
+			String luceneQueryD = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
+			String regex_ngramD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+			String regex_ngramD_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+			
+			// now the pattern can emerge at other positions, too, and is counted here as relevant...
+			String luceneQueryD_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
+			String regex_ngramD_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
+			//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+				
+			// phrase consisting of 2 words before study title + fixed word behind
+			String luceneQuery2 = "\"" + attVal3_lucene + " " + attVal4_lucene  + " * " + attVal5_lucene + "\""; 
+			String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngram2_minimal = Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			
+			String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
+			String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
+			//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 3 words before study title + fixed word behind
+			String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
+			String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngram3_minimal = Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			
+			String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
+			String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
+			//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			//phrase consisting of 4 words before study title + fixed word behind
+			String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
+			String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngram4_minimal = Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
+			String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
+			//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				
+			// phrase consisting of 5 words before study title + fixed word behind
+			String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
+			String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram5_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex_ngram5_minimal = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			
+			String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
+			String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
+			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			// constraint for ngrams: at least one component not be a stopword
+			//TODO: CHECK DOCSTRINGS: ORDER CORRECT?
+			// first entry: luceneQuery; second entry: normalized and quoted version; third entry: minimal version (for reliability checks...)
+			String[] newPat = new String[3];
+			// prevent induction of patterns less general than already known patterns:
+			// check whether pattern is known before continuing
+			// also improves performance
+			// use pmi scores that are already stored... only compute reliability again, max may have changed
+			if (this.processedPatterns.contains(regex_ngram1_normalizedAndQuoted)) { continue; }
+			newPat[0] = luceneQuery1;
+			newPat[1] = regex_ngram1_normalizedAndQuoted;
+			newPat[2] = regex_ngram1_minimal; 
+			if (!(isStopword(attVal4) & isStopword(attVal5)))
+			{
+				if (saveRelevantPatternsAndContexts(newPat, threshold)) { this.reliablePatterns_iteration.add(newPat[1]); continue; }
+			}
+			//TODO: do not return here, instead process Type phrase behind study title terms also!
+			if (this.processedPatterns.contains( regex_ngram2_normalizedAndQuoted)) { continue; } 
+			newPat[0] = luceneQuery2;
+			newPat[1] = regex_ngram2_normalizedAndQuoted;
+			newPat[2] = regex_ngram2_minimal; 
+			if (!( (isStopword(attVal4) & isStopword(attVal5)) | (isStopword(attVal3) & isStopword(attVal5)) | (isStopword(attVal3) & isStopword(attVal4))))
+			{
+				if (saveRelevantPatternsAndContexts (newPat, threshold)) { this.reliablePatterns_iteration.add(newPat[1]); continue; }
+			}
+				
+			if (this.processedPatterns.contains(regex_ngram3_normalizedAndQuoted)) { continue; } 
+			newPat[0] = luceneQuery3; 
+			newPat[1] = regex_ngram3_normalizedAndQuoted;
+			newPat[2] = regex_ngram3_minimal; 
+			if (!(isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+			
+			if ( this.processedPatterns.contains( regex_ngram4_normalizedAndQuoted )) {  continue; }
+			newPat[0] = luceneQuery4;
+			newPat[1] = regex_ngram4_normalizedAndQuoted;
+			newPat[2] = regex_ngram4_minimal; 
+			if ( !( isStopword( attVal1 ) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+			if ( this.processedPatterns.contains( regex_ngram5_normalizedAndQuoted )) { continue; }
+			newPat[0] = luceneQuery5;
+			newPat[1] = regex_ngram5_normalizedAndQuoted;
+			newPat[2] = regex_ngram5_minimal; 
+			if ( !( isStopword( attVal0 ) & isStopword( attVal1 ) & isStopword( attVal2 ) & isStopword( attVal3 ) & isStopword( attVal4 ) & isStopword( attVal5 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+			
+			//...
+			if ( this.processedPatterns.contains( regex_ngramA_normalizedAndQuoted )) { continue; }
+			newPat[0] = luceneQueryA;
+			newPat[1] = regex_ngramA_normalizedAndQuoted;
+			newPat[2] = regex_ngramA_minimal; 
+			if (!((isStopword( attVal5 ) & isStopword( attVal6 )) | (isStopword( attVal4 ) & isStopword( attVal6 )) | (isStopword( attVal4 ) & isStopword( attVal5 )))) 
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+			
+			if ( this.processedPatterns.contains(regex_ngramB_normalizedAndQuoted )) { continue; } 
+			newPat[0] = luceneQueryB;
+			newPat[1] = regex_ngramB_normalizedAndQuoted;
+			newPat[2] = regex_ngramB_minimal; 
+			if ( !( isStopword( attVal4 ) & isStopword(attVal5) & isStopword( attVal6 ) & isStopword( attVal7 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+				
+			if ( this.processedPatterns.contains( regex_ngramC_normalizedAndQuoted )) { continue; } 
+			newPat[0] = luceneQueryC;
+			newPat[1] = regex_ngramC_normalizedAndQuoted;
+			newPat[2] = regex_ngramC_minimal; 
+			if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+				
+			if ( this.processedPatterns.contains( regex_ngramD_normalizedAndQuoted )) { continue; } 
+			newPat[0] = luceneQueryD;
+			newPat[1] = regex_ngramD_normalizedAndQuoted;
+			newPat[2] = regex_ngramD_minimal; 
+			if ( !( isStopword( attVal4 ) & isStopword( attVal5 ) & isStopword( attVal6 ) & isStopword( attVal7 ) & isStopword( attVal8 ) & isStopword( attVal9 )) )
+			{
+				if ( saveRelevantPatternsAndContexts ( newPat, threshold )) { this.reliablePatterns_iteration.add( newPat[1] ); continue; }
+			}
+	   	}
+	}
+	
+	private void saveReliablePatternData(Collection<String> filenames_arff, double threshold) throws IOException, ParseException
 	{
 		for(String filename_arff : filenames_arff)
 		{
@@ -1664,7 +1782,7 @@ public class Learner
 				
 				String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 				String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 				
 				// phrase consisting of 3 words before study title + fixed word behind
 				String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
@@ -1674,7 +1792,7 @@ public class Learner
 				
 				String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 				String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 				
 				//phrase consisting of 4 words before study title + fixed word behind
 				String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
@@ -1684,7 +1802,7 @@ public class Learner
 
 				String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 				String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 				
 				// phrase consisting of 5 words before study title + fixed word behind
 				String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
@@ -1694,7 +1812,7 @@ public class Learner
 				
 				String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 				String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram5_flex_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
 	
 				// constraint for ngrams: at least one component not be a stopword
 				//TODO: GOT ORDER WRONG IN PREVIOUS DOCSTRING
@@ -1847,6 +1965,42 @@ public class Learner
 		else { return 0; }	
 	}
 	
+	
+	/**
+	 * Determines whether a regular expression is suitable for extracting dataset references using a 
+	 * frequency-based measure
+	 * 
+	 * @param regex			regex to be tested
+	 * @param threshold		threshold for frequency-based relevance measure
+	 * @param contextStrings	set of extracted contexts as strings
+	 * @return				<emph>true</emph>, if regex is found to be relevant, <emph>false</emph> otherwise
+	 */
+	boolean isRelevant(String regex, List<String> contextStrings, double threshold)
+	{
+		System.out.println("Checking if pattern is relevant: " + regex);
+		// compute score for similar to tf-idf...
+		// count occurrences of regex in positive vs negative contexts...
+		int count_pos = 0;
+		int count_neg = 0;
+		List<String> contexts_neg = new ArrayList<String>();
+		for ( String context : contextStrings ) {	count_pos += patternFound( regex, context ); }
+		// contexts neg always empty right now
+		for ( String context : contexts_neg ) {	count_neg += patternFound( regex, context ); }
+		
+		//TODO: rename - this is not really tf-idf ;)
+		double idf = 0;
+		// compute relevance...
+		if (count_neg + count_pos > 0) { 
+			idf = log2( (double)( contextStrings.size() + contexts_neg.size() ) / ( count_neg + count_pos ) );
+		}
+		
+		double tf_idf = ( (double)count_pos / contextStrings.size() ) * idf;
+		if ( (tf_idf > threshold) & (count_pos > 1) ) {	return true; }
+		else { return false; }
+	}
+	
+	
+	
 	//TODO: use negative training examples to measure relevance?
 	/**
 	 * Determines whether a regular expression is suitable for extracting dataset references using a 
@@ -1949,7 +2103,7 @@ public class Learner
 	 * the set of patterns is formed by those of the previous iteration plus a new one. Yet, new 
 	 * statistical evidence can lead the algorithm to discard a	pattern that was previously discovered. "
 	 */
-	private List<String[]> getReliable_pattern(String[] ngramRegex, double threshold) throws IOException
+	private List<String[]> getReliable_pattern(String[] ngramRegex, double threshold) throws IOException, ParseException
 	{
 		System.out.println("Checking if pattern is reliable: " + ngramRegex[1]);
 		Reliability.Pattern newPat = this.reliability.new Pattern(ngramRegex[1]);
@@ -1964,117 +2118,117 @@ public class Learner
 		Set<String[]> pattern = new HashSet<String[]>();
 		pattern.add( ngramRegex );
 		//
-		List<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern, "?", "", this.indexPath, this.corpusPath);
-		//TODO: similar to Python, does division of two ints yield an int in Java? or is it not necessary to convert one operand to double?
-		// kba: Yes, you need to cast one of the operands to a float/double to do float/double division
-		//double p_y = extractedInfo.size() / data_size;
-		// this yields the number of documents at least one occurrence of the pattern was found
-		// multiple occurrences inside of one document are not considered
-		//double p_y = matchingDocs.length / data_size;
-		// this counts multiple occurrences inside of documents, not only document-wise
-		double p_y = (double)extractedInfo_check.size() / data_size;
-
-		// for every known instance, check whether pattern is associated with it
-		for (String instance : this.reliableInstances)
-		{
-			int totalSentences = 0;
-			int occurrencesPattern = 0;
-			/*//Alternatively, read context xml file instead of arff file
-			 //using arff file allows usage of positive vs. negative annotations though
-			String instanceContext = this.contextPath + File.separator + Util.escapeSeed( instance ) + ".xml";
-			TrainingSet trainingset_instance = new TrainingSet( new File( instanceContext ));
-			Set<String[]> contexts = trainingset_instance.getContexts();*/
-			String instanceArff = this.arffPath + File.separator + Util.escapeSeed(instance) + ".arff";
-			//search patterns in all context sentences..-.
-			Reader reader = new InputStreamReader(new FileInputStream(instanceArff), "UTF-8");
-			Instances data = new Instances(reader);
-			reader.close();
-			data.setClassIndex(data.numAttributes() - 1);
-			List<String> contexts_pos = this.contextsAsStrings.get(0);
-			//List<String> contexts_neg = this.contextsAsStrings[1];
-			System.out.println("Searching for pattern " + ngramRegex[1] + " in contexts of " + instance);
-			//TODO: USE SAFEMATCHING
-			for (String context : contexts_pos)
+		try {
+			List<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern);
+			//---
+			//double p_y = extractedInfo.size() / data_size;
+			// this yields the number of documents at least one occurrence of the pattern was found
+			// multiple occurrences inside of one document are not considered
+			//double p_y = matchingDocs.length / data_size;
+			// this counts multiple occurrences inside of documents, not only document-wise
+			double p_y = (double)extractedInfo_check.size() / data_size;
+	
+			// for every known instance, check whether pattern is associated with it
+			for (String instance : this.reliableInstances)
 			{
-				totalSentences++;
-				Pattern p = Pattern.compile(ngramRegex[1]);
-				Matcher m = p.matcher(context);
-				if (m.find()) { occurrencesPattern++; }
-			}
+				int totalSentences = 0;
+				int occurrencesPattern = 0;
+				/*//Alternatively, read context xml file instead of arff file
+				 //using arff file allows usage of positive vs. negative annotations though
+				String instanceContext = this.contextPath + File.separator + Util.escapeSeed( instance ) + ".xml";
+				TrainingSet trainingset_instance = new TrainingSet( new File( instanceContext ));
+				Set<String[]> contexts = trainingset_instance.getContexts();*/
 
-			//double p_xy = occurrencesPattern / totalSentences;
-			double p_xy = occurrencesPattern / data_size;
-			// another way to count joint occurrences
-		
-			/*for ( String[] studyNcontext : extractedInfo )
-			{
-				String studyName = studyNcontext[0];
-				String context = studyNcontext[1];
-				String corpusFilename = studyNcontext[2];
-				String usedPat = studyNcontext[3];
-				context = Util.escapeXML(context);
-				//replace all non-characters (utf-8) -> count ALLBUS 2000 and ALLBUS 2001 as instances of ALLBUS...
-				String datasetSeries = studyName.replaceAll( "[^\\p{L}]", "" ).trim();
-				datasetNames.add( datasetSeries );
-				if ( jointOccurrences.containsKey( datasetSeries ))
+				//search patterns in all context sentences..-.
+				List<Context> instanceContexts = this.extractedContexts.get(instance);
+				List<String> contexts_pos = getContextStrings(instanceContexts);
+				//List<String> contexts_neg = this.contextsAsStrings[1];
+				System.out.println("Searching for pattern " + ngramRegex[1] + " in contexts of " + instance);
+				//TODO: USE SAFEMATCHING
+				for (String context : contexts_pos)
 				{
-					jointOccurrences.put( datasetSeries, jointOccurrences.get( datasetSeries ) + 1 );
+					totalSentences++;
+					Pattern p = Pattern.compile(ngramRegex[1]);
+					Matcher m = p.matcher(context);
+					if (m.find()) { occurrencesPattern++; }
 				}
-				else { jointOccurrences.put( datasetSeries, 1 ); }
-			}
-			*/
-			Reliability.Instance newInstance = this.reliability.new Instance(instance);
-			//p_xy: P(x,y) - joint probability of pattern and instance ocurring in data 
-			// all entries in the current context file belong to one instance (seed)
-			// select those entries having the current pattern
-
-			//additional searching step here is not necessary... change that
-			//int jointOccurrences_xy = jointOccurrences.get( instance );
-			//double p_xy = jointOccurrences_xy / data_size;
-
-			//1. search for instance in the corpus
-			//creates context xml files - if dataset is searched again as seed, saved file can be used
-			//TrainingSet instanceContexts = searchForInstanceInCorpus( instance );
-			//2. process context files
-			//info needed: (1) contexts, (2) filenames (when counting occurrences per file)
+	
+				//double p_xy = occurrencesPattern / totalSentences;
+				double p_xy = occurrencesPattern / data_size;
+				// another way to count joint occurrences
 			
-			//Set<String[]> contexts = instanceContexts.getContexts();
-			//Set<String> filenames = instanceContexts.getDocuments();
-					
-			//p_x: P(x) - probability of instance occurring in the data
-			//number of times the instance occurs in the corpus
-			//int totalOccurrences_x = contexts.size();
-			//double p_x = totalOccurrences_x / data_size;
-			double p_x = totalSentences / data_size;
-			//p_x: P(y) - probability of pattern occurring in the data				
+				/*for ( String[] studyNcontext : extractedInfo )
+				{
+					String studyName = studyNcontext[0];
+					String context = studyNcontext[1];
+					String corpusFilename = studyNcontext[2];
+					String usedPat = studyNcontext[3];
+					context = Util.escapeXML(context);
+					//replace all non-characters (utf-8) -> count ALLBUS 2000 and ALLBUS 2001 as instances of ALLBUS...
+					String datasetSeries = studyName.replaceAll( "[^\\p{L}]", "" ).trim();
+					datasetNames.add( datasetSeries );
+					if ( jointOccurrences.containsKey( datasetSeries ))
+					{
+						jointOccurrences.put( datasetSeries, jointOccurrences.get( datasetSeries ) + 1 );
+					}
+					else { jointOccurrences.put( datasetSeries, 1 ); }
+				}
+				*/
+				Reliability.Instance newInstance = this.reliability.new Instance(instance);
+				//p_xy: P(x,y) - joint probability of pattern and instance ocurring in data 
+				// all entries in the current context file belong to one instance (seed)
+				// select those entries having the current pattern
+	
+				//additional searching step here is not necessary... change that
+				//int jointOccurrences_xy = jointOccurrences.get( instance );
+				//double p_xy = jointOccurrences_xy / data_size;
+	
+				//1. search for instance in the corpus
+				//creates context xml files - if dataset is searched again as seed, saved file can be used
+				//TrainingSet instanceContexts = searchForInstanceInCorpus( instance );
+				//2. process context files
+				//info needed: (1) contexts, (2) filenames (when counting occurrences per file)
 				
-			System.out.println("Computing pmi of " + ngramRegex[1] + " and " + instance);
-			double pmi_pattern = pmi(p_xy, p_x, p_y);
-			newPat.addAssociation(instance, pmi_pattern);
-			newInstance.addAssociation(newPat.pattern, pmi_pattern);
-			
-			//newInstance.setReliability( reliability_instance( instance ));
-			// addPattern and addIstance take care of adding connections to 
-			// consisting associations of entities
-			this.reliability.addPattern(newPat);
-			this.reliability.addInstance(newInstance);
-			this.reliability.setMaxPmi(pmi_pattern);		
+				//Set<String[]> contexts = instanceContexts.getContexts();
+				//Set<String> filenames = instanceContexts.getDocuments();
+						
+				//p_x: P(x) - probability of instance occurring in the data
+				//number of times the instance occurs in the corpus
+				//int totalOccurrences_x = contexts.size();
+				//double p_x = totalOccurrences_x / data_size;
+				double p_x = totalSentences / data_size;
+				//p_x: P(y) - probability of pattern occurring in the data				
+					
+				System.out.println("Computing pmi of " + ngramRegex[1] + " and " + instance);
+				double pmi_pattern = pmi(p_xy, p_x, p_y);
+				newPat.addAssociation(instance, pmi_pattern);
+				newInstance.addAssociation(newPat.pattern, pmi_pattern);
+				
+				//newInstance.setReliability( reliability_instance( instance ));
+				// addPattern and addIstance take care of adding connections to 
+				// consisting associations of entities
+				this.reliability.addPattern(newPat);
+				this.reliability.addInstance(newInstance);
+				this.reliability.setMaxPmi(pmi_pattern);		
+			}
+			System.out.println("Computing relevance of " + ngramRegex[1]);
+			double patternReliability = reliability(newPat);
+			//newPat.setReliability( patternReliability );
+			//this.reliability.addPattern( newPat );
+			//double[] pmis, double[] instanceReliabilities, double max_pmi
+			if (patternReliability >= threshold) 
+			{ 
+				System.out.println("Pattern " + ngramRegex[1] + " deemed reliable"); 
+				//List<String[]> extractedInfo = processPatterns(pattern);
+				List<String[]> extractedInfo = processPatterns(pattern);
+				// number of found contexts = number of occurrences of patterns in the corpus
+				// note: not per file though but in total
+				// (with any arbitrary dataset title = instance)
+				return extractedInfo; 
+			}
+			else { System.out.println("Pattern " + ngramRegex[1] + " deemed unreliable"); return null; }
 		}
-		System.out.println("Computing relevance of " + ngramRegex[1]);
-		double patternReliability = reliability(newPat);
-		//newPat.setReliability( patternReliability );
-		//this.reliability.addPattern( newPat );
-		//double[] pmis, double[] instanceReliabilities, double max_pmi
-		if (patternReliability >= threshold) 
-		{ 
-			System.out.println("Pattern " + ngramRegex[1] + " deemed reliable"); 
-			List<String[]> extractedInfo = processPatterns(pattern, "?", "", this.indexPath, this.corpusPath );
-			// number of found contexts = number of occurrences of patterns in the corpus
-			// note: not per file though but in total
-			// (with any arbitrary dataset title = instance)
-			return extractedInfo; 
-		}
-		else { System.out.println("Pattern " + ngramRegex[1] + " deemed unreliable"); return null; }
+		catch(ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
 	}
 	
 	/**
@@ -2131,11 +2285,10 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private List<String[]> processPatterns_reliabilityCheck(Set<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
+	private List<String[]> processPatterns_reliabilityCheck(Set<String[]> patSetIn) throws IOException, ParseException
 	{
     	//TODO: DO THIS ONLY ONCE
-    	//String dir = "data/corpus/dgs_ohneQuellen_reducedWhitespace/";
-    	String dir = path_corpus;
+    	String dir = this.corpusPath;
     	File corpus = new File(dir);
     	String[] corpus_test = corpus.list();
     	if (corpus_test == null) {
@@ -2156,10 +2309,9 @@ public class Learner
 	    	return resNgrams;
     	}
     	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+    	catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 	}
 	
-	//TODO: call this function inside of readArff - split into several methods!
-	//remember to call output method there as well
 	/**
 	 * ...
 	 * 
@@ -2171,9 +2323,9 @@ public class Learner
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	private List<String[]> processPatterns(Set<String[]> patSetIn, String seed, String outputDir, String path_index, String path_corpus) throws IOException
+	private List<String[]> processPatterns(Set<String[]> patSetIn) throws IOException, ParseException
 	{
-    	String dir = path_corpus;
+    	String dir = this.corpusPath;
     	File corpus = new File(dir);
     	String[] corpus_test = corpus.list();
     	if (corpus_test == null) {
@@ -2189,7 +2341,7 @@ public class Learner
     	try { 
     		List<String[]> resNgrams = getStudyRefs_optimized(patSetIn,corpus_test); 
 	    	System.out.println("done. ");
-	    	//outputContextFiles( resNgrams, seed, outputDir);
+	    	//outputContextFiles( resNgrams, "test", this.outputPath);
 	    	System.out.println( "Done processing patterns. ");
 	
 	    	//TODO: add after output of results / usage of results, not here?
@@ -2200,6 +2352,7 @@ public class Learner
 	    	return resNgrams;
     	}
     	catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+    	catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 	}
 	
 	private Instances getInstances(String arffFilename) throws FileNotFoundException, IOException
@@ -2244,11 +2397,263 @@ public class Learner
 	    return patterns;
 	}
 	
+	List<String> getContextStrings(List<Context> contexts) {
+		Function<Context, String> context_toString = 
+				new Function<Context, String>() {
+					public String apply(Context c) { return c.toString(); }
+		};
+		return new ArrayList<String>(Lists.transform(contexts, context_toString));	
+	}
+	
+	/**
+	 * Analyse contexts and induce relevant patterns given the specified threshold.
+	 * 
+	 * @param contexts
+	 * @param threshold
+	 */
+	Set<String[]> inducePatterns(List<Context> contexts, double threshold) {
+		Set<String[]> patterns = new HashSet<String[]>();
+		Set<String> processedPatterns_iteration = new HashSet<String>();
+		List<String> allContextStrings_iteration = getContextStrings(contexts);
+		
+		for (Context context : contexts) {
+
+			List<String> leftWords = new ArrayList<String>(Arrays.asList(context.leftWords));
+			List<String> rightWords = new ArrayList<String>(Arrays.asList(context.rightWords));
+			
+			Function<String, String> normalizeAndEscape_lucene = 
+					new Function<String, String>() {
+						public String apply(String s) { return Util.normalizeAndEscapeRegex_lucene(s); }
+			};
+			
+			Function<String, String> pattern_quote = 
+					new Function<String, String>() {
+						public String apply(String s) { return Pattern.quote(s); }
+			};
+			
+			Function<String, String> regex_escape = 
+					new Function<String, String>() {
+						public String apply(String s) { return Util.normalizeAndEscapeRegex(s); }
+			};
+			//apply normalizeAndEscape_lucene method on all words of the context
+			ArrayList<String> leftWords_lucene = new ArrayList<String>(Lists.transform(leftWords, normalizeAndEscape_lucene));
+			ArrayList<String> rightWords_lucene = new ArrayList<String>(Lists.transform(rightWords, normalizeAndEscape_lucene));
+			ArrayList<String> leftWords_quoted = new ArrayList<String>(Lists.transform(leftWords, pattern_quote));
+			ArrayList<String> rightWords_quoted = new ArrayList<String>(Lists.transform(rightWords, pattern_quote));
+			ArrayList<String> leftWords_regex = new ArrayList<String>(Lists.transform(leftWords, regex_escape));
+			ArrayList<String> rightWords_regex = new ArrayList<String>(Lists.transform(rightWords, regex_escape));
+
+			int windowSize = leftWords.size();
+			String directNeighbourLeft = leftWords.get(windowSize-1);
+			String directNeighbourRight = rightWords.get(0);
+			
+			//directly adjacent words may appear without being separated by whitespace iff those words consist of punctuation marks
+			if (directNeighbourLeft.matches(".*\\P{Punct}")) 
+			{ 
+				leftWords_quoted.set(windowSize-1, leftWords_quoted.get(windowSize-1) + "\\s");
+				leftWords_regex.set(windowSize-1, leftWords_regex.get(windowSize-1) + "\\s");
+			}
+			if (directNeighbourRight.matches("\\P{Punct}.*")) 
+			{ 
+				rightWords_quoted.set(0, "\\s" + rightWords_quoted.get(0));
+				rightWords_regex.set(0, "\\s" + rightWords_regex.get(0)); 
+			}
+			
+			// construct all allowed patterns
+		
+			//TODO: atomic regex...?
+			// most general pattern: two words enclosing study name
+			String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
+			String regex1_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 2 words behind study title + fixed word before
+			String luceneQueryA = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\""; 
+			String regexA_quoted = regex1_quoted + "\\s" + rightWords_quoted.get(1);
+			String regexA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 2 words behind study title + (any) word found in data before!
+			// (any word cause this pattern is induced each time for each different instance having this phrase...)
+			String luceneQueryA_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\""; 
+			String regexA_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1); 
+			//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 3 words behind study title + fixed word before
+			String luceneQueryB = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\""; 
+			String regexB_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
+			String regexB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			String luceneQueryB_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\""; 
+			String regexB_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
+			//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			// phrase consisting of 4 words behind study title + fixed word before
+			String luceneQueryC = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + "\""; 
+			String regexC_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3);
+			String regexC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + Util.lastWordRegex;
+								
+			String luceneQueryC_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + "\""; 
+			String regexC_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3);
+			//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + Util.lastWordRegex;
+						
+			// phrase consisting of 5 words behind study title + fixed word before
+			String luceneQueryD = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + " " + rightWords_lucene.get(4) + "\""; 
+			String regexD_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3) + "\\s" + rightWords_quoted.get(4);
+			String regexD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
+
+			// now the pattern can emerge at other positions, too, and is counted here as relevant...
+			String luceneQueryD_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + " " + rightWords_lucene.get(4) + "\""; 
+			String regexD_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3) + "\\s" + rightWords_quoted.get(4);
+			//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
+					
+			// phrase consisting of 2 words before study title + fixed word behind
+			String luceneQuery2 = "\"" + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1)  + " * " + rightWords_lucene.get(0) + "\""; 
+			String regex2_quoted = leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			String luceneQuery2_flex = "\"" + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\""; 
+			String regex2_flex_quoted = leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
+			//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			// phrase consisting of 3 words before study title + fixed word behind
+			String luceneQuery3 = "\"" + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\""; 
+			String regex3_quoted = leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			String luceneQuery3_flex = "\"" + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\""; 
+			String regex3_flex_quoted = leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
+			//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+					
+			// phrase consisting of 4 words before study title + fixed word behind
+			String luceneQuery4 = "\"" + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
+			String regex4_quoted = leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			String luceneQuery4_flex = "\"" + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\"";
+			String regex4_flex_quoted = leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
+			//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+					
+			// phrase consisting of 5 words before study title + fixed word behind
+			String luceneQuery5 = "\"" + leftWords_lucene.get(windowSize-5) + " " + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
+			String regex5_quoted = leftWords_quoted.get(windowSize-5) + "\\s" + leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex5_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+						
+			String luceneQuery5_flex = "\"" + leftWords_lucene.get(windowSize-5) + " " + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\"";
+			String regex5_flex_quoted = leftWords_quoted.get(windowSize-5) + "\\s" + leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
+			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			
+			
+			// constraint for patterns: at least one component not be a stopword
+			// prevent induction of patterns less general than already known patterns:
+			// check whether pattern is known before continuing
+			// also improves performance
+			//TODO: check for all patterns whether already found in current iteration
+			if (this.processedPatterns.contains(regex1_normalizedAndQuoted) | processedPatterns_iteration.contains(regex1_normalizedAndQuoted)) { continue; } 
+			if ( ! (isStopword(leftWords.get(windowSize-1)) & isStopword(rightWords.get(0))) & isRelevant(regex1_quoted, allContextStrings_iteration, threshold))//0.2
+			{
+				// substitute normalized numbers etc. with regex
+				String[] newPat = {luceneQuery1, regex1_normalizedAndQuoted };
+				patterns.add(newPat); processedPatterns_iteration.add(newPat[1]);
+				System.out.println("found relevant type 1 pattern (most general): " + regex1_normalizedAndQuoted);
+				continue;
+			}
+			//TODO: do not return here, instead process Type phrase behind study title terms also"
+			if ( this.processedPatterns.contains( regex2_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) ) | isStopword( leftWords.get(windowSize-2) ) & isStopword( rightWords.get(0) ) | isStopword( leftWords.get(windowSize-2) ) & isStopword( leftWords.get(windowSize-1)) ) & isRelevant( regex2_quoted, allContextStrings_iteration, threshold-0.02 ))//0.18
+			{
+				System.out.println( "found relevant type 2 pattern: " + regex2_normalizedAndQuoted );
+				String[] newPat = { luceneQuery2, regex2_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if (this.processedPatterns.contains( regex3_normalizedAndQuoted)) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-3) ) & isStopword( leftWords.get(windowSize-2) ) & isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) )) & isRelevant( regex3_quoted, allContextStrings_iteration, threshold-0.04 ))//0.16
+			{
+				System.out.println("found relevant type 3 pattern: " + regex3_normalizedAndQuoted );
+				String[] newPat = { luceneQuery3, regex3_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if ( this.processedPatterns.contains( regex4_normalizedAndQuoted )) {  continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-4)) & isStopword( leftWords.get(windowSize-3) ) & isStopword( leftWords.get(windowSize-2) ) & isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) )) & isRelevant( regex4_quoted, allContextStrings_iteration, threshold-0.06 ))//0.14
+			{
+				System.out.println("found relevant type 4 pattern: " + regex4_normalizedAndQuoted );
+				String[] newPat = { luceneQuery4, regex4_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if ( this.processedPatterns.contains( regex5_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-5) ) & isStopword( leftWords.get(windowSize-4) ) & isStopword( leftWords.get(windowSize-3) ) & isStopword( leftWords.get(windowSize-2) ) & isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) )) & isRelevant( regex5_quoted, allContextStrings_iteration, threshold-0.08 ))//0.12
+			{
+				System.out.println("found relevant type 5 pattern: " + regex5_normalizedAndQuoted );
+				String[] newPat = { luceneQuery5, regex5_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			
+			if ( this.processedPatterns.contains( regexA_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( rightWords.get(0) ) & isStopword( rightWords.get(1) ) | isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(1) ) | isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) ) ) & isRelevant( regexA_quoted, allContextStrings_iteration, threshold-0-02 ))//0.18
+			{
+				System.out.println( "found relevant type A pattern: " + regexA_normalizedAndQuoted );
+				String[] newPat = { luceneQueryA, regexA_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if ( this.processedPatterns.contains(regexB_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-1) ) & isStopword(rightWords.get(0)) & isStopword( rightWords.get(1) ) & isStopword( rightWords.get(2) )) & isRelevant( regexB_quoted, allContextStrings_iteration, threshold-0.04 ))//0.16
+			{
+				System.out.println( "found relevant type B pattern: " + regexB_normalizedAndQuoted );
+				String[] newPat = { luceneQueryB, regexB_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if ( this.processedPatterns.contains( regexC_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) ) & isStopword( rightWords.get(1) ) & isStopword( rightWords.get(2) ) & isStopword( rightWords.get(3) )) & isRelevant( regexC_quoted, allContextStrings_iteration, threshold-0.06 ))//0.14
+			{
+				System.out.println( "found relevant type C pattern: " + regexC_normalizedAndQuoted );
+				String[] newPat = { luceneQueryC, regexC_normalizedAndQuoted };
+				patterns.add( newPat ); 
+				continue;
+			}
+			if ( this.processedPatterns.contains( regexD_normalizedAndQuoted )) { continue; } 
+			if ( !( isStopword( leftWords.get(windowSize-1) ) & isStopword( rightWords.get(0) ) & isStopword( rightWords.get(1) ) & isStopword( rightWords.get(2) ) & isStopword( rightWords.get(3) ) & isStopword( rightWords.get(4) )) & isRelevant( regexD_quoted, allContextStrings_iteration, threshold-0.08 ))//0.12
+			{
+				System.out.println( "found relevant type D pattern: " + regexD_normalizedAndQuoted );
+				String[] newPat = { luceneQueryD, regexD_normalizedAndQuoted };
+				patterns.add(newPat); processedPatterns_iteration.add(newPat[1]);
+				continue;
+			}
+		}
+		return patterns;
+	}
+	
+	List<String[]> applyPatterns(Set<String[]> patterns) throws IOException, ParseException {
+		File corpus = new File(this.corpusPath);
+	    String[] corpus_test = corpus.list();
+	    if (corpus_test == null) {
+	        // Either dir does not exist or is not a directory
+	    } else {
+	        for (int i=0; i<corpus_test.length; i++) {
+	            // Get filename of file or directory
+	            corpus_test[i] = this.corpusPath + File.separator + corpus_test[i];
+	        }
+	    }
+	    System.out.println("inserted all text filenames to corpus"); 
+	    List<String[]> res = new ArrayList<String[]>();
+		try { 
+	    	res = getStudyRefs_optimized(patterns,corpus_test); 
+	    }
+	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
+		System.out.println("done applying patterns. ");
+	    return res;
+	}
+	
 	/**
 	 * rest of deprecated and deleted method readArff - delete after having integrated the remaining functionality in calling methods.
 	 * @param path_corpus
 	 */
-	private void readArff(String filename, String outputDir, double threshold) throws FileNotFoundException, IOException
+	private void readArff(String filename, String outputDir, double threshold) throws FileNotFoundException, IOException, ParseException
 	{
 		Set<String[]> ngramPats = induceRelevantPatternsFromArff(filename, threshold);
 	    File corpus = new File(this.corpusPath);
@@ -2289,6 +2694,7 @@ public class Learner
 	    	output(resNgrams, filenames_grams); 
 	    }
 	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+	    catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 	    //outputArffFile(filenames_grams[1]);
 	    System.out.println("done. ");
 	    	
@@ -2609,90 +3015,18 @@ public class Learner
 		 * @param path_contexts	name of the directory containing the context files
 		 * @param path_arffs	name of the directory containing the arff files
 		 */
-		public static void learn(String initialSeed, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations, String strategy)
+		public static void learn(Collection<String> seeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations, String strategy)
 		{
 			try
 			{
 				Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output); 
-				Collection<String> initialSeeds = new HashSet<String>();
-				initialSeeds.add(initialSeed);
-				learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency_" + strategy, threshold, maxIterations);
-				learner.reliableInstances.add(initialSeed);
-				learner.bootstrap_frequency(initialSeed, threshold, maxIterations, strategy);
-				
-				String allPatternsPath = path_train + File.separator + "allPatterns/";
-				File ap = Paths.get(allPatternsPath).normalize().toFile();
-				if(!ap.exists()) { ap.mkdirs(); System.out.println("Created directory " + ap); }
-				
-				OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(allPatternsPath + File.separator + "patterns" + initialSeed + "_distinct.txt")), "UTF-8");
-			    BufferedWriter out = new BufferedWriter(fstream);
-			    System.out.println(learner.processedPatterns.size());
-			    for(String pattern : learner.processedPatterns)
-			    {
-			    	out.write( pattern + System.getProperty("line.separator"));
-			    }
-			    out.close();
-			    System.out.println( "Saved patterns to file.");
-			    OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(new File(path_train + File.separator + "allPatterns/processedStudies" + initialSeed + "_distinct.txt")), "UTF-8");
-			    BufferedWriter out2 = new BufferedWriter(fstream2);
-			    System.out.println(learner.processedSeeds.size());
-			    for (String seed : learner.processedSeeds)
-			    {
-			    	out2.write(seed + System.getProperty("line.separator"));
-			    }
-			    out2.close();
-			    System.out.println("Saved seeds to file.");
-				
-				String[] filenames_grams = new String[3];
-				filenames_grams[0] = path_output + File.separator + "datasets.csv";
-		    	filenames_grams[1] = path_output + File.separator + "contexts.xml";
-		    	filenames_grams[2] = path_output + File.separator + "patterns.csv";
-		    	
-				Set<String> processedFiles = new HashSet<String>();
-				try 
-				{
-					File f = new File(path_output + File.separator + "processedDocs.csv");
-					InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
-					BufferedReader reader = new BufferedReader(isr);
-					String processedFile = null;
-					while ((processedFile = reader.readLine()) != null) 
-					{
-						if (!processedFile.matches("\\s*")) { processedFiles.add(processedFile); }
-					}
-					reader.close();
-				}
-				catch (IOException ioe) { System.err.println("warning: could not read processedDocs file. continuing... "); }
-		    	File corpus = new File(path_corpus);
-		    	String[] corpus_complete = corpus.list();
-		    	
-		    	Set<String> corpus_test_list = new HashSet<String>();
-		    	for (int i=0; i<corpus_complete.length; i++) {
-		    	    // Get filename of file or directory
-		    	    if ( !processedFiles.contains(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath())) 
-		    	    { corpus_test_list.add(new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath()); }
-		    	}
-		    	String[] corpus_test = new String[corpus_test_list.size()];
-		    	corpus_test_list.toArray(corpus_test);
-		    	System.out.println(corpus_test.length);
-		    	System.out.println(processedFiles.size());
-		    	System.out.println(corpus_complete.length); 
-		    	
-		    	if (corpus_complete == null) {
-		    	    // Either dir does not exist or is not a directory
-		    	} else {
-		    	    for (int i=0; i<corpus_complete.length; i++) 
-		    	    { 
-		    	    	corpus_complete[i] = new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath(); 
-		    	    }
-		    	}
-
-		    	// need new Learner instance - else, previously processed patterns will not be processed again
-		    	Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output );
-		    	List<String[]> resNgrams1 = newLearner.getStudyRefs(learner.processedPatterns, corpus_test);
-		    	newLearner.output_distinct(resNgrams1, filenames_grams, true);
+				learner.outputParameterInfo(seeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency_" + strategy, threshold, maxIterations);
+				learner.reliableInstances.addAll(seeds);
+				learner.bootstrap_frequency(seeds, -1, threshold, maxIterations, strategy);
 			}
 			catch (FileNotFoundException e) { System.err.println(e); }
 			catch (IOException ioe) { System.err.println(ioe); }
+			catch (ParseException pe) { pe.printStackTrace(); System.exit(1); }
 		}
 		
 		/**
@@ -2717,6 +3051,7 @@ public class Learner
 				learner.outputReliableReferences(); 
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); System.exit(1); }
+			catch(ParseException pe) { pe.printStackTrace(); System.exit(1); }
 		}
 		
 		public String getDateTime()
@@ -2942,7 +3277,7 @@ class OptionHandler {
 				if(termsPath != null) { Learner.searchForTerms(outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, termsPath, termsOut, constraintUC, taggingCmd, chunkingCmd); }
 			}
 		}
-		
+		//TODO: train path not needed anymore. Use flag
 		if (trainPath != null)
 		{
 			// create training and output paths if not existent
@@ -2961,7 +3296,7 @@ class OptionHandler {
 			if(frequencyThreshold != null)
 			{ 
 			    double threshold = Double.parseDouble(frequencyThreshold);
-			    Learner.learn(seedArray[0], indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, frequencyStrategy); }
+			    Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/" , trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, frequencyStrategy); }
 		}
     }
 }

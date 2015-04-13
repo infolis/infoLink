@@ -3,7 +3,11 @@ package searching;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryParser.complexPhrase.ComplexPhraseQueryParser;
@@ -19,6 +23,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.queryParser.ParseException;
+
 
 import patternLearner.Util;
 import luceneIndexing.Indexer;
@@ -30,6 +36,7 @@ import luceneIndexing.Indexer;
  * @version 2014-01-27
  *
  */
+//TODO: REMOVE FILENAME...
 public class Search_Term_Position 
 { 
 	
@@ -71,7 +78,7 @@ public class Search_Term_Position
 	 * @throws ParseException
 	 * @throws org.apache.lucene.queryParser.ParseException
 	 */
-	public static void main(String[] args) throws IOException, ParseException, org.apache.lucene.queryParser.ParseException 
+	public static void main(String[] args) throws IOException, ParseException
 	{
 		if (args.length < 4) {
 			System.out.println("Usage: Search_Term_Position <indexPath> <filename> <term> <query>");
@@ -106,6 +113,32 @@ public class Search_Term_Position
             // not thrown due to using a string reader...
         }
         analyzer.close();
+        if (result.trim().matches(".*\\s.*")) { return "\"" + result.trim() + "\""; }
+        return result.trim();
+    }  
+	
+	//TODO: No need for 2 separate methods...
+	/**
+	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the 
+	 * same as the analyzer used for indexing the text files!
+	 * 
+	 * @param 	query	the Lucene query to be normalized
+	 * @return	a normalized version of the query
+	 */
+	public static String normalizeQueryParts(String query) 
+	{
+		Analyzer analyzer = Indexer.getAnalyzer();
+		String field = "contents";
+		String result = new String();
+        TokenStream stream  = analyzer.tokenStream(field, new StringReader(query));
+        try 
+        {
+            while(stream.incrementToken()) { result += " " + (stream.getAttribute(TermAttribute.class).term()); }
+        }
+        catch(IOException e) {
+            // not thrown due to using a string reader...
+        }
+        analyzer.close();
         return result.trim();
     }  
 	
@@ -117,6 +150,8 @@ public class Search_Term_Position
 	 * @param append		if set, contexts will be appended to file, else file will be overwritten
 	 * @throws Exception
 	 */
+	//TODO: REMOVE AND REPLACE WITH OTHER METHOD
+	//REMOVE GETCONTEXT CLASS WITH IT
 	public void complexSearch(File outputFile, boolean append) throws Exception
 	{
 		Directory d = FSDirectory.open(new File(this.indexPath));
@@ -125,8 +160,8 @@ public class Search_Term_Position
 		String defaultFieldName="contents";
 		Analyzer analyzer = Indexer.getAnalyzer();
 		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
-		//qp.setFuzzyPrefixLength(1); 
-		qp.setPhraseSlop(7); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		// set phrase slop because dataset titles may consist of more than one word
+		qp.setPhraseSlop(10); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(true);
 		BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
 		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
@@ -141,20 +176,11 @@ public class Search_Term_Position
 		// add xml header if not appending to existing xml file
 		if (!append) { Util.prepareOutputFile(this.filename); }
 		
-		// highlighter does not work well with wildcard queries :-/
-		//  also, the highlighted term/s may be at the beginning or end of the fragment - context 
-		// of 5 preceding and following words not always included... therefore not usable here :(
-		/*Formatter formatter = new SimpleHTMLFormatter(highlight_startTag, highlight_endTag);
-		QueryScorer qs = new QueryScorer(q.rewrite(r), r, defaultFieldName, defaultFieldName);
-		Highlighter high = new Highlighter(formatter, qs);
-		high.setTextFragmenter(new SimpleSpanFragmenter(qs, 300));
-		high.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);*/
 		for (int i = 0; i < sd.length; i++)
 		{
 			Document doc = searcher.doc(sd[i].doc);
 			System.out.println(doc.get("path"));
-			/*String[] bestFrags = high.getBestFragments(analyzer, defaultFieldName, doc.get(defaultFieldName), 100);
-			exportContexts(bestFrags, doc.get("path"), outputFile, append);*/
+
 			new GetContext(doc.get("path"), term, 0, 10, new File(this.filename));
 		}
 		searcher.close();
@@ -164,14 +190,7 @@ public class Search_Term_Position
 		if (!append) { Util.completeOutputFile(this.filename); }
 	}
 	
-	/**
-	 * Searches for this query in this index using a ComplexPhraseQueryParser and returns the paths to 
-	 * the documents where a hit to at least one of the terms in the query was found.
-	 * 
-	 * @return	an array of all filenames where a hit was found
-	 * @throws Exception
-	 */
-	public String[] complexSearch() throws Exception
+	public List<Context> complexSearch_getContexts() throws IOException, ParseException
 	{
 		Directory d = FSDirectory.open(new File(this.indexPath));
 		IndexReader r = IndexReader.open(d);
@@ -179,14 +198,98 @@ public class Search_Term_Position
 		String defaultFieldName="contents";
 		Analyzer analyzer = Indexer.getAnalyzer();
 		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
-		qp.setPhraseSlop(7); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		//qp.setFuzzyPrefixLength(1); 
+		// set phrase slop because dataset titles may consist of more than one word
+		qp.setPhraseSlop(10); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(true);
 		BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
 		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
 		//if quotes are present in absence of any whitespace inside of query
 		Query q;
-		try { q = qp.parse(this.query.trim()); }
-		catch (IllegalArgumentException iae) { q = qp.parse(this.query.trim().replace("\"","")); }
+		q = qp.parse(this.query.trim());
+		System.out.println("Query: " + q.toString());
+		TopDocs td = searcher.search(q,10000);
+		ScoreDoc[] sd = td.scoreDocs;
+		List<Context> contextList = new ArrayList<Context>();
+		for (int i = 0; i < sd.length; i++)
+		{
+			Document doc = searcher.doc(sd[i].doc);
+			System.out.println(doc.get("path"));
+			String text = Util.readFile(new File(doc.get("path")), "UTF-8");
+			contextList.addAll(getContext(doc.get("path"), term, text));
+		}
+		searcher.close();
+		analyzer.close();
+		r.close();
+		d.close();
+		return contextList;
+	}
+	
+	List<Context> getContext(String filename, String term, String text) throws IOException
+	{
+	    // search for phrase using regex
+	    // first group: left context (consisting of 5 words)
+	    // second group: right context (consisting of 5 words)
+	    // contexts may or may not be separated from the query by whitespace!
+	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
+	    String leftContextPat = "(" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s*?" + ")";
+	    String rightContextPat = "(\\s*?" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.lastWordRegex + ")";
+	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
+	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
+	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(term) + rightContextPat);
+	    Matcher m = pat.matcher(text);
+	    List<Context> contextList = new ArrayList<Context>();
+	    //TODO: USE SAFEMATCHING
+	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..
+	    boolean matchFound = m.find();
+	    if (matchFound == false) 
+	    
+	    {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+	    	// refer to normalizeQuery for a better way to do this
+	    	String[] termParts = term.split("\\s+");
+	    	String term_normalized = "";
+	    	for (String part : termParts) {
+	    		term_normalized += Pattern.quote(part.replace("-", " ").replace("–", " ").replace(".", " ").replace("(", " ").replace(")", " ")
+	    				.replace(":", " ").replace(",", " ").replace(";", " ").replace("/", " ").replace("\\", " ").replace("&", " ")
+	    				.replace("_", "").trim()) + "[\\s\\-–\\\\/:.,;()&_]";
+	    	}
+	    	pat = Pattern.compile(leftContextPat + "[\\s\\-–\\\\/:.,;()&_]" + term_normalized + rightContextPat);
+	    	m = pat.matcher(text);
+	    	matchFound = m.find();
+	    }
+	    while (matchFound)
+	    {
+	    	Context newContext = new Context(m.group(1).trim(), term, m.group(2).trim(), filename, null);
+	    	contextList.add(newContext);
+	    	matchFound = m.find();
+	    }
+	    return contextList;
+	}
+	
+	/**
+	 * Searches for this query in this index using a ComplexPhraseQueryParser and returns the paths to 
+	 * the documents where a hit to at least one of the terms in the query was found.
+	 * 
+	 * @return	an array of all filenames where a hit was found
+	 * @throws Exception
+	 */
+	public String[] complexSearch() throws IOException, ParseException
+	{
+		Directory d = FSDirectory.open(new File(this.indexPath));
+		IndexReader r = IndexReader.open(d);
+		IndexSearcher searcher = new IndexSearcher(r);
+		String defaultFieldName="contents";
+		Analyzer analyzer = Indexer.getAnalyzer();
+		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
+		// set phrase slop because dataset titles may consist of more than one word
+		qp.setPhraseSlop(10); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		qp.setAllowLeadingWildcard(true);
+		BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);
+		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+		//if quotes are present in absence of any whitespace inside of query
+		Query q;
+		try { q = qp.parse(this.query); }
+		catch (ParseException pe) { pe.printStackTrace(); System.err.println(this.query); throw new ParseException(); }
 		System.out.println("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;

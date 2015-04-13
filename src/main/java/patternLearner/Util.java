@@ -298,10 +298,12 @@ public class Util
 	 * @return			quoted regular expression string
 	 */
 	public static String normalizeAndEscapeRegex(String string)
-	{	
+	{	//TODO: norm stuff is only needed when writing to and reading from arff files
+		//delete additional replacements
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");
+		string = normalizeRegex(string);
 		string = Pattern.quote(string).replace(yearNorm, "\\E" + yearRegex + "\\Q").replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(numberNorm, "\\E" + numberRegex + "\\Q");
 		return string;
 	}
@@ -320,201 +322,11 @@ public class Util
 		String yearPat = new String("<YEAR>");
 		String percentPat = new String("<PERCENT>");
 		String numberPat = new String("<NUMBER>");
-		
-		string = string.replaceAll(yearPat, "*").replaceAll(percentPat, "*").replaceAll(numberPat, "*");
-		String[] specialChars = {"+", "-", "&&", "||", "!", "(", ")", "{", "}", "[", "]", "^", "\"", "~", "*", "?", ":", "\\"};
-		for (String c : specialChars) { string = string.replace(c, "\\" + c) ; }
-		string = Search_Term_Position.normalizeQuery(string);
+		//string = normalizeRegex(string);
+		//string = string.replaceAll(yearPat, "*").replaceAll(percentPat, "*").replaceAll(numberPat, "*");
+		string = Search_Term_Position.normalizeQueryParts(string);
+		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
-	}
-
-	/**
-	 * Merge all context files in directory to filename.
-	 * 
-	 * Used for frequency-based bootstrapping baseline 1.
-	 * 
-	 * @param directory	input directory
-	 * @param filename	ouput filename (in directory)
-	 */
-	public static void mergeContexts(String directory, String filename, String prefix) throws IOException
-	{
-		String content = getMergedContexts(directory, prefix);
-		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File (directory + File.separator + filename),true), "UTF-8");
-	    BufferedWriter out = new BufferedWriter(fstream);
-	    out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
-	    out.write(content);
-	    out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-	    out.close();
-	}
-
-	
-	/**
-	 * Merges all new contexts in directory to filename. 
-	 * 
-	 * @param directory	input directory
-	 * @param filename 	output filename (in directory)
-	 */
-	public static void mergeNewContexts(String directory, String filename, String excludePrefix) throws IOException
-	{
-		String content = getMergedNewContexts(directory, excludePrefix);
-		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
-		out.write(content);
-		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-		out.close();
-	}
-	
-	/**
-	 * Merges all new contexts in directory with all previously found contexts (removes duplicates) and 
-	 * writes to filename. 
-	 * 
-	 * Used for frequency-based bootstrapping baseline 3.
-	 * 
-	 * @param directory	input directory
-	 * @param filename 	output filename (in directory)
-	 */
-	public static void mergeAllContexts(String directory, String filename, String prefix) throws IOException
-	{
-		moveSeenContexts(directory, prefix);
-		String content = getMergedContexts(directory, prefix);
-		OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(new File(directory + File.separator + filename),true), "UTF-8");
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
-		out.write(content);
-		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-		out.close();
-	}
-	
-	/**
-	 * Moves all seen contexts from previous iteration to folder of current iteration. 
-	 * 
-	 * @param directory	...
-	 */
-	public static void moveSeenContexts(String directory, String prefix) throws IOException
-	{
-    	File contextFileCorpus = new File(directory);
-    	String[] contextFiles = contextFileCorpus.list();
-    	List<String> contextFileList = Arrays.asList(contextFiles);
-    	File oldContextFileCorpus = contextFileCorpus.getParentFile();
-    	String[] oldContextFiles = oldContextFileCorpus.list();
-    	if (contextFiles == null) {
-    	    // Either dir does not exist or is not a directory
-    	} else 
-    	{
-    	    for (int i=0; i<oldContextFiles.length; i++) 
-    	    {
-    	        // Get filename of file or directory
-    	    	if (oldContextFiles[i].endsWith(".xml") & !(oldContextFiles[i].startsWith(prefix)) & !(oldContextFiles[i].startsWith("all.xml")) & !(oldContextFiles[i].startsWith("allNew.xml")) & !(oldContextFiles[i].startsWith("allNew_")))
-    	    	{
-    	    		// if context has not been found again in new iteration
-    	    		if (!contextFileList.contains(oldContextFiles[i]))
-    	    		{	
-    	    			// move context to current directory
-    	    	    	Path source = Paths.get(contextFileCorpus.getParent() + File.separator + oldContextFiles[i]);
-    	    	    	Path destination = Paths.get(directory);
-    	    	    	Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); 
-    	    	    }
-    	    	}
-    	    }
-    	}
-	}
-	
-	/**
-	 * ...
-	 * 
-	 * @param directory	...
-	 * @return			...
-	 */
-	public static String getMergedNewContexts(String directory, String excludedPrefix) throws IOException
-	{
-    	File contextFileCorpus = new File(directory);
-    	String[] contextFiles = contextFileCorpus.list();
-    	File oldContextFileCorpus = contextFileCorpus.getParentFile();
-    	String[] oldContextFiles = oldContextFileCorpus.list();
-    	List<String> oldContextFileList = Arrays.asList(oldContextFiles);
-    	List<String> seenFileList = new ArrayList<String>();
-    	String xmlContents = "";
-    	if (contextFiles == null) {
-    	    // Either dir does not exist or is not a directory
-    	} else 
-    	{
-    	    for (int i=0; i<contextFiles.length; i++) {
-    	        // Get filename of file or directory
-    	    	if (contextFiles[i].endsWith(".xml") & !(contextFiles[i].startsWith(excludedPrefix)))
-    	    	{
-    	    		//if seed has not already been processed in previous iterations
-    	    		if (! oldContextFileList.contains(contextFiles[i]))
-    	    		{	
-	    	    		File f = new File(directory + File.separator + contextFiles[i]);
-		    	    	InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
-		    	    	BufferedReader reader = new BufferedReader(isr);
-		    	    	StringBuffer contents = new StringBuffer();
-		    	    	String text = null;
-		    	    	// dis.available() returns 0 if the file does not have more lines.
-		    	    	while ((text = reader.readLine()) != null) {
-		    	    	   	if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
-		    	    	   	{
-		    	    	   		contents.append(text).append(System.getProperty("line.separator"));
-		    	    	   	}
-		    	    	}
-		    	    	reader.close();
-		    	    	xmlContents = xmlContents + new String(contents) + System.getProperty("line.separator");
-    	    		}
-    	    		else { seenFileList.add(contextFiles[i]); }
-    	    	}
-    	    }
-    	}
-    	// move seen files to current directory
-    	Path source;
-    	Path destination;
-    	for ( String seenFilename : seenFileList )
-    	{
-    		source = Paths.get(contextFileCorpus.getParent() + File.separator + seenFilename);
-    		destination = Paths.get(directory);
-    		Files.move(source, destination.resolve(source.getFileName()), REPLACE_EXISTING); 
-    	}
-    	return xmlContents;
-	}
-	
-
-	/**
-	 * bl1, 
-	 * 
-	 * @param directory	...
-	 * @return			...
-	 */
-	public static String getMergedContexts(String directory, String prefix) throws IOException
-	{
-    	File contextFileCorpus = new File(directory);
-    	String[] contextFiles = contextFileCorpus.list();
-    	String xmlContents = "";
-    	if (contextFiles == null) {
-    	    // Either dir does not exist or is not a directory
-    	} else 
-    	{
-    	    for (int i=0; i<contextFiles.length; i++) {
-    	        // Get filename of file or directory
-    	    	if (contextFiles[i].endsWith(".xml") & ! (contextFiles[i].endsWith("_foundContexts.xml")) & !(contextFiles[i].startsWith(prefix)) & !(contextFiles[i].startsWith("all.xml")) & !(contextFiles[i].startsWith("allNew.xml")) & !(contextFiles[i].startsWith("allNew_")))
-    	    	{
-    	    		File f = new File(directory + File.separator + contextFiles[i]);
-	    	    	InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF-8");
-	    	    	BufferedReader reader = new BufferedReader(isr);
-	    	    	StringBuffer contents = new StringBuffer();
-	    	    	String text = null;
-	    	    	// dis.available() returns 0 if the file does not have more lines.
-	    	    	while ((text = reader.readLine()) != null) {
-	    	    		if (! (text.startsWith("</contexts>") | text.startsWith("<?xml") | text.startsWith("<contexts>")))
-	    	    	    {
-	    	    	    	contents.append(text).append(System.getProperty("line.separator"));
-	    	    	    }
-	    	    	}
-	    	    	reader.close();
-	    	    	xmlContents = xmlContents + new String(contents) + System.getProperty("line.separator");
-    	    	}
-    	    }
-    	}
-    	return xmlContents;
 	}
 	
 	/**
@@ -605,33 +417,6 @@ public class Util
 	    }
 	    for (String distinctFilename: filenameSetDistinct) { out.write(distinctFilename + System.getProperty("line.separator")); } 
 	    out.close();
-	}
-	
-	/**
-	 * ...
-	 * 
-	 * @param args	...
-	 */
-	public static void main(String[] args)
-	{
-		//mergeContexts(args[0]);
-		//mergeProcessedContexts(args[0]);
-		try{
-			getDistinct(new File(args[0]),
-						new File(args[1]));
-		}
-		catch (IOException ioe) { ioe.printStackTrace(); }
-		/*try{
-			getDistinctContexts(new File(args[0]),
-						new File(args[1]));
-		}
-		catch (IOException ioe) { ioe.printStackTrace(); }*/
-		/*try {
-		getDistinctFilenames(new File(args[0]),
-					new File(args[1]));
-		}
-		catch (IOException ioe) { ioe.printStackTrace(); }
-		*/
 	}
 
 }

@@ -1,5 +1,7 @@
 package io.github.infolis.model;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,8 +22,9 @@ public class Execution {
     }
     
     private String algorithm;
-    private Status currentStatus;
+    private Status status;
     private ParameterValues inputValues;
     private ParameterValues outputValues;
+    private List<String> log;
     
 }

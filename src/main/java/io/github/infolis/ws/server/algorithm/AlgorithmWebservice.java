@@ -5,9 +5,11 @@
  */
 package io.github.infolis.ws.server.algorithm;
 
-import io.github.infolis.ws.client.FrontendClient;
+import io.github.infolis.model.ParameterValues;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +21,9 @@ import org.reflections.Reflections;
  */
 public abstract class AlgorithmWebservice implements Runnable {
 	
+    protected static Set<String> inputParameterNames = new HashSet<>();
+    protected static Set<String> outputParameterNames = new HashSet<>();
+
     public static Map<String, Class<? extends AlgorithmWebservice>> algorithms;
     
 //    @GET
@@ -38,9 +43,17 @@ public abstract class AlgorithmWebservice implements Runnable {
         }
     }
     
-    public abstract Map<String, Object> getParams();
+    public abstract ParameterValues getParams();
     
-    public abstract void setParams(Map<String, Object> params);
+    public void setParams(Map<String, List<String>> params) {        
+        for(String s : params.keySet()) {
+            System.out.println("s: " +s + " value: " + params.get(s));
+            if(inputParameterNames.contains(s)) {
+                getParams().put(s, params.get(s));
+            }
+        }
+    }
+
     
 }
 

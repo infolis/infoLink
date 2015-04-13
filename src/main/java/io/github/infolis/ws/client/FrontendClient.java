@@ -21,6 +21,8 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 /**
@@ -32,6 +34,8 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 public class FrontendClient {
 
 	private static Logger logger = LoggerFactory.getLogger(FrontendClient.class);
+	
+	private final static ObjectMapper jacksonMapper = new ObjectMapper();
 
 	@SuppressWarnings("rawtypes")
 	private final static Map<Class, String> uriForClass = new HashMap<>();
@@ -117,5 +121,16 @@ public class FrontendClient {
 				.path(FrontendClient.getUriForClass(clazz))
 				.path(id);
 		return target.request(MediaType.APPLICATION_JSON_TYPE).get(clazz);
+	}
+
+	public static String toJSON(Object object) {
+		String asString = null;
+		try {
+			asString = jacksonMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return asString;
 	}
 }

@@ -2,8 +2,6 @@ package io.github.infolis.model;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -26,5 +24,35 @@ public class Execution {
     private ParameterValues inputValues;
     private ParameterValues outputValues;
     private List<String> log;
+	public String getAlgorithm() {
+		return algorithm;
+	}
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
+	}
+	public Status getStatus() {
+		return status;
+	}
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+	public ParameterValues getInputValues() {
+		return inputValues;
+	}
+	public void setInputValues(ParameterValues inputValues) {
+		this.inputValues = inputValues;
+	}
+	public ParameterValues getOutputValues() {
+		return outputValues;
+	}
+	public void setOutputValues(ParameterValues outputValues) {
+		this.outputValues = outputValues;
+	}
+	public List<String> getLog() {
+		return log;
+	}
+	public void setLog(List<String> log) {
+		this.log = log;
+	}
     
 }

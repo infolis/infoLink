@@ -6,17 +6,15 @@
 package io.github.infolis.ws.server;
 
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.ParameterValues;
 import io.github.infolis.ws.server.algorithm.AlgorithmWebservice;
 import io.github.infolis.ws.server.algorithm.PDF2TextWebservice;
-import io.github.infolis.ws.server.algorithm.ParameterTypeAnnotation;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
@@ -84,10 +82,10 @@ public class Backend {
 //    @Consumes(MediaType.APPLICATION_JSON)
     public static void startExecution(Execution e) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
         Class<? extends AlgorithmWebservice> algo = null;
-        for (String s : e.getInput().getValues().keySet()) {
+        for (String s : e.getInputValues().keySet()) {
             //get the algorithm that should be used
-            if (s.equals("infolis:algorithm")) {
-                String algorithmName = e.getInput().getValues().get(s).toString();
+            if (s.equals("algorithm")) {
+                String algorithmName = e.getInputValues().getFirst(s);
                 if (AlgorithmWebservice.algorithms.containsKey(algorithmName)) {
                     algo = AlgorithmWebservice.algorithms.get(algorithmName);
                 }
@@ -95,8 +93,8 @@ public class Backend {
         }
         //set the input parameters (they are currently static!)
         Field[] f = algo.getDeclaredFields();
-        for (String s : e.getInput().getValues().keySet()) {
-            Object value = e.getInput().getValues().get(s);
+        for (String s : e.getInputValues().getValues().keySet()) {
+            Object value = e.getInputValues().getValues().get(s);
             for (Field fi : f) {
                 if (fi.getName().equals(s)) {
                     fi.set(null, value);
@@ -110,20 +108,20 @@ public class Backend {
         System.out.println(algo.getMethod("run", null));
 
         Field[] output = algo.getDeclaredFields();
-        OutputValues o = new OutputValues();
-        Map<String, Object> outputMap = new HashMap();
+        ParameterValues o = new ParameterValues();
+        Map<String, List<String>> outputMap = new HashMap();
         for (Field fi : f) {
-            for (Annotation a : fi.getDeclaredAnnotations()) {
-                if (a instanceof ParameterTypeAnnotation) {
-                    if (((ParameterTypeAnnotation) a).type().equals("output")) {
-                        Object t = fi.get(null);
-                        outputMap.put(fi.getName(), t);
-                    }
-                }
-            }
+//            for (Annotation a : fi.getDeclaredAnnotations()) {
+//                if (a instanceof ParameterTypeAnnotation) {
+//                    if (((ParameterTypeAnnotation) a).type().equals("output")) {
+//                        Object t = fi.get(null);
+//                        outputMap.put(fi.getName(), t);
+//                    }
+//                }
+//            }
         }
         o.setValues(outputMap);
-        e.setOutput(o);
+        e.setOutputValues(o);
     }
     
     @POST
@@ -131,27 +129,25 @@ public class Backend {
     public void startExecution2(Execution e) {
         algorithms.put("PDF2Text", new PDF2TextWebservice());
         AlgorithmWebservice a = null;
-        for (String s : e.getInput().getValues().keySet()) {            
+        for (String s : e.getInputValues().getValues().keySet()) {            
             if (s.equals("infolis:algorithm")) {
-                a = algorithms.get(e.getInput().getValues().get(s).toString());
+                a = algorithms.get(e.getInputValues().getValues().get(s).toString());
                 break;
             }
         }
-        a.setParams(e.getInput().getValues());
+        a.setParams(e.getInputValues().getValues());
         a.run();
     }
     
     public static void main(String[] args) {
         algorithms.put("PDF2Text", new PDF2TextWebservice());
         Execution e = new Execution();
-        ParameterValues i = new ParameterValues();
-        Map<String, Object> entry = new HashMap();
+        ParameterValues entry = new ParameterValues();
         entry.put("infolis:algorithm", "PDF2Text");
-        InfolisFile f = new InfolisFile();
+//        InfolisFile f = new InfolisFile();
  //       f.setFile(new File("in.pdf"));
-        entry.put("pdfInput", f);
-        i.setValues(entry);
-        e.setInput(i);
+//        entry.put("pdfInput", f);
+        e.setInputValues(entry);
  //       startExecution2(e);        
     }
     

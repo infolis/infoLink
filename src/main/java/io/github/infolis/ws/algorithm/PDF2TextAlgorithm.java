@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.ws.server.algorithm;
+package io.github.infolis.ws.algorithm;
 
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.ParameterValues;
 import io.github.infolis.model.util.FileResolver;
 import io.github.infolis.ws.client.FrontendClient;
 
@@ -15,7 +14,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -27,28 +25,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author domi
  */
-public class PDF2TextWebservice extends AlgorithmWebservice{
+public class PDF2TextAlgorithm extends BaseAlgorithm{
 	
-	private static final Logger log  = LoggerFactory.getLogger(PDF2TextWebservice.class);
+	private static final Logger log  = LoggerFactory.getLogger(PDF2TextAlgorithm.class);
    
-    static {
-    	inputParameterNames.add("pdfInput");
-		outputParameterNames.add("pdfOutput");
-    }
-
-    private ParameterValues ownParameter = new ParameterValues();
-    
-    private List<InfolisFile> pdfInputList;
-    private List<InfolisFile> pdfOutputList; 
-
     @Override
-    public void run() {
-    	for (String inputFileURIString : ownParameter.get("pdfInput")) {
+    public void execute() {
+    	for (String inputFileURIString : getExecution().getInputValues().get("pdfInput")) {
             URI inputFileURI = URI.create(inputFileURIString);
             InfolisFile inputFile = FrontendClient.get(InfolisFile.class, inputFileURI);
             
             // TODO something with inputFile
-            String asText = "This is nonsense for testing.";
+            String asText = "This is nonsense for testing. InputFile: " + inputFile.getUri();
             
             //
             // Create the file POJO
@@ -86,35 +74,19 @@ public class PDF2TextWebservice extends AlgorithmWebservice{
             //
             // Post to LD API
             outputFile = FrontendClient.post(InfolisFile.class, outputFile);
-            pdfOutputList.add(outputFile);
+            getExecution().getOutputValues().get("pdfOutput").add(outputFile.getUri());
     	}
-//        InfolisFile pdfInput = FrontendClient.get(InfolisFile.class, URI.create(ownParameter.getFirst("pdfInput")));
-////        pdfOutput = FrontendClient.get(InfolisFile.class, URI.create(ownParameter.getFirst("pdfOutput")));
-//        System.out.println("test");
-//        System.out.println(pdfInput);
-//        setPdfOutput(new InfolisFile());
-//        pdfOutput.setFileId("out");
-//        System.out.println(pdfInput);
     }
 
-
-//    /**
-//     * @param pdfInput the pdfInput to set
-//     */
-//    public void setPdfInput(InfolisFile pdfInput) {
-//        this.pdfInput = pdfInput;
-//    }
-//
-//    /**
-//     * @param pdfOutput the pdfOutput to set
-//     */
-//    public void setPdfOutput(InfolisFile pdfOutput) {
-//        this.pdfOutput = pdfOutput;
-//    }
-
 	@Override
-	public ParameterValues getParams() {
-		return ownParameter;
+	public void validate() {
+		if (! getExecution().getInputValues().containsKey("pdfInput")) {
+			throw new IllegalArgumentException("Required parameter 'pdfInput' is missing!");
+		}
+		if (! getExecution().getOutputValues().containsKey("pdfOutput")) {
+            getExecution().getOutputValues().putEmpty("pdfOutput");
+		}
 	}
+
 
 }

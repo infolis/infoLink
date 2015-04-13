@@ -1,5 +1,6 @@
 package io.github.infolis.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,10 +21,11 @@ public class Execution {
     }
     
     private String algorithm;
-    private Status status;
-    private ParameterValues inputValues;
-    private ParameterValues outputValues;
-    private List<String> log;
+    private Status status = Status.PENDING;
+    private ParameterValues inputValues = new ParameterValues();
+    private ParameterValues outputValues = new ParameterValues();
+    private List<String> log = new ArrayList<String>();
+
 	public String getAlgorithm() {
 		return algorithm;
 	}

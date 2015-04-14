@@ -2,6 +2,7 @@ package io.github.infolis.infolink.searching;
 
 import io.github.infolis.infolink.luceneIndexing.Indexer;
 import io.github.infolis.infolink.patternLearner.Util;
+import io.github.infolis.model.StudyContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -189,7 +190,7 @@ public class Search_Term_Position
 		if (!append) { Util.completeOutputFile(this.filename); }
 	}
 	
-	public List<Context> complexSearch_getContexts() throws IOException, ParseException
+	public List<StudyContext> complexSearch_getContexts() throws IOException, ParseException
 	{
 		Directory d = FSDirectory.open(new File(this.indexPath));
 		IndexReader r = IndexReader.open(d);
@@ -209,7 +210,7 @@ public class Search_Term_Position
 		System.out.println("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;
-		List<Context> contextList = new ArrayList<Context>();
+		List<StudyContext> contextList = new ArrayList<StudyContext>();
 		for (int i = 0; i < sd.length; i++)
 		{
 			Document doc = searcher.doc(sd[i].doc);
@@ -224,7 +225,7 @@ public class Search_Term_Position
 		return contextList;
 	}
 	
-	List<Context> getContext(String filename, String term, String text) throws IOException
+	List<StudyContext> getContext(String filename, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -237,7 +238,7 @@ public class Search_Term_Position
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(term) + rightContextPat);
 	    Matcher m = pat.matcher(text);
-	    List<Context> contextList = new ArrayList<Context>();
+	    List<StudyContext> contextList = new ArrayList<StudyContext>();
 	    //TODO: USE SAFEMATCHING
 	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..
 	    boolean matchFound = m.find();
@@ -258,7 +259,7 @@ public class Search_Term_Position
 	    }
 	    while (matchFound)
 	    {
-	    	Context newContext = new Context(m.group(1).trim(), term, m.group(2).trim(), filename, null);
+	    	StudyContext newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
 	    	contextList.add(newContext);
 	    	matchFound = m.find();
 	    }

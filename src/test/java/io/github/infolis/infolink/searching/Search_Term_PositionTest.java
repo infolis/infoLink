@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import io.github.infolis.infolink.searching.Context;
 import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.model.StudyContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,20 +37,20 @@ public class Search_Term_PositionTest
 		
 		Search_Term_Position stp = new Search_Term_Position(indexPath, filename, "term", "query");
 		try { 
-			List<Context> contextList1 = stp.getContext("document", "term", testString1); 
-			List<Context> contextList2 = stp.getContext("document", "term", testString2); 
-			List<Context> contextList3 = stp.getContext("document", "term", testString3);
+			List<StudyContext> contextList1 = stp.getContext("document", "term", testString1); 
+			List<StudyContext> contextList2 = stp.getContext("document", "term", testString2); 
+			List<StudyContext> contextList3 = stp.getContext("document", "term", testString3);
 			assertEquals(1,contextList1.size());
 			assertEquals(0,contextList2.size());
 			assertEquals(1,contextList3.size());
 			assertEquals(testString1, contextList1.get(0).toString());
 			assertEquals("try to find the . term . in this short text", contextList3.get(0).toString());
-			assertEquals("document", contextList1.get(0).document);
-			assertEquals("document", contextList3.get(0).document);
-			assertEquals("term", contextList1.get(0).term);
-			assertEquals("term", contextList3.get(0).term);
-			assertNull(contextList1.get(0).pattern);
-			assertNull(contextList3.get(0).pattern);
+			assertEquals("document", contextList1.get(0).getDocument());
+			assertEquals("document", contextList3.get(0).getDocument());
+			assertEquals("term", contextList1.get(0).getTerm());
+			assertEquals("term", contextList3.get(0).getTerm());
+			assertNull(contextList1.get(0).getPattern());
+			assertNull(contextList3.get(0).getPattern());
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); }
 	}
@@ -96,24 +96,24 @@ public class Search_Term_PositionTest
 		Search_Term_Position stpD = new Search_Term_Position(indexPath, filename, "the terma", "\"the term\"");
 		Search_Term_Position stpE = new Search_Term_Position(indexPath, filename, "the. term.", "\"the. term.\"");
 		try { 
-			List<Context> contextList = stp.complexSearch_getContexts(); 
+			List<StudyContext> contextList = stp.complexSearch_getContexts(); 
 			assertEquals(2, contextList.size());
-			List<Context> contextList2 = stp2.complexSearch_getContexts(); 
+			List<StudyContext> contextList2 = stp2.complexSearch_getContexts(); 
 			assertEquals(2, contextList2.size());
-			List<Context> contextList3 = stp3.complexSearch_getContexts(); 
+			List<StudyContext> contextList3 = stp3.complexSearch_getContexts(); 
 			assertEquals(2, contextList3.size());
-			List<Context> contextList4 = stp4.complexSearch_getContexts(); 
+			List<StudyContext> contextList4 = stp4.complexSearch_getContexts(); 
 			assertEquals(0, contextList4.size());
 			
-			List<Context> contextListA = stpA.complexSearch_getContexts(); 
+			List<StudyContext> contextListA = stpA.complexSearch_getContexts(); 
 			assertEquals(2, contextListA.size());
-			List<Context> contextListB = stpB.complexSearch_getContexts(); 
+			List<StudyContext> contextListB = stpB.complexSearch_getContexts(); 
 			assertEquals(2, contextListB.size());
-			List<Context> contextListC = stpC.complexSearch_getContexts(); 
+			List<StudyContext> contextListC = stpC.complexSearch_getContexts(); 
 			assertEquals(2, contextListC.size());
-			List<Context> contextListD = stpD.complexSearch_getContexts(); 
+			List<StudyContext> contextListD = stpD.complexSearch_getContexts(); 
 			assertEquals(0, contextListD.size());
-			List<Context> contextListE = stpE.complexSearch_getContexts(); 
+			List<StudyContext> contextListE = stpE.complexSearch_getContexts(); 
 			assertEquals(2, contextListE.size());
 			
 			assertEquals("please try to find the term in this short text snippet.", contextList.get(0).toString());

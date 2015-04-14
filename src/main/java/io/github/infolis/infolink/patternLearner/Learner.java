@@ -1,8 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.infolink.searching.Context;
 import io.github.infolis.infolink.searching.Search_Term_Position;
 import io.github.infolis.infolink.tagger.Tagger;
+import io.github.infolis.model.StudyContext;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -74,7 +74,7 @@ public class Learner
 	Set<String> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
 	Map<String, List<String[]>> reliablePatternsAndContexts; //reliability learner
 	Set<String> reliableInstances; //reliability learner
-	Map<String, List<Context>> extractedContexts; //todo: replace above...
+	Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
 	// basePath is used for normalizing path names when searching for known dataset names
 	// should point to the path of the input text corpus
 	Path basePath;
@@ -115,7 +115,7 @@ public class Learner
 		this.arffPath = arffPath;
 		this.outputPath = outputPath;
 		this.reliablePatternsAndContexts = new HashMap<String, List<String[]>>();
-		this.extractedContexts = new HashMap<String, List<Context>>();
+		this.extractedContexts = new HashMap<String, List<StudyContext>>();
 		this.reliableInstances = new HashSet<String>();
 		this.reliability = new Reliability();
 		this.relevantPatterns = new HashSet<String[]>();
@@ -373,8 +373,8 @@ public class Learner
 	 * @param indexDir			name of the directory containing the lucene index to be searched
 	 * @param seedList			a set of seeds whose contexts to retrieve
 	 */
-	public List<Context> getContextsForAllSeeds(String indexDir, Collection<String> seedList) throws IOException, ParseException {
-		List<Context> contexts = new ArrayList<Context>();
+	public List<StudyContext> getContextsForAllSeeds(String indexDir, Collection<String> seedList) throws IOException, ParseException {
+		List<StudyContext> contexts = new ArrayList<StudyContext>();
 		for (String seed : seedList) {
 			try { contexts.addAll(getContextsForSeed(seed)); }
 			catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
@@ -390,8 +390,8 @@ public class Learner
 	 * @param indexDir	name of the directory containing the lucene index to be searched
 	 * @param seed		seed for which the contexts to retrieve
 	 */
-	public List<Context> getContextsForSeed(String seed) throws IOException, ParseException {
-		List<Context> contexts = new ArrayList<Context>();
+	public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
+		List<StudyContext> contexts = new ArrayList<StudyContext>();
 		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed));
 		try { contexts = search.complexSearch_getContexts(); }
 		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
@@ -399,7 +399,7 @@ public class Learner
 		return contexts;
 	}
 	
-	public void writeContextToXML(Context context, String filename) throws IOException {
+	public void writeContextToXML(StudyContext context, String filename) throws IOException {
 		try {
 			Util.prepareOutputFile(filename);
 			Util.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
@@ -454,13 +454,13 @@ public class Learner
 	private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, String strategy) throws IOException, ParseException
 	{
 		Set<String[]> newPatterns = new HashSet<String[]>();
-		List<Context> contexts_currentIteration = new ArrayList<Context>();
+		List<StudyContext> contexts_currentIteration = new ArrayList<StudyContext>();
 		numIter ++;
 		try {
 			for(String seed : terms) {
 			
 				// 1. use lucene index to search for term in corpus
-				List<Context> contexts = getContextsForSeed(seed);
+				List<StudyContext> contexts = getContextsForSeed(seed);
 				contexts_currentIteration.addAll(contexts);
 				this.extractedContexts.put(seed, contexts);
 				System.out.println("Processing contexts for seed " + seed);
@@ -530,7 +530,7 @@ public class Learner
 		{
 			System.out.println( "Bootstrapping with seed " + seed);
 			try { 
-				List<Context> contexts = getContextsForSeed(seed);
+				List<StudyContext> contexts = getContextsForSeed(seed);
 				this.extractedContexts.put(seed, contexts); 
 			}
 		    catch (ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
@@ -1425,24 +1425,24 @@ public class Learner
 	 * @param threshold			threshold for pattern reliability
 	 * @return			...
 	 */
-	private void saveReliablePatternData(List<Context> contexts, double threshold) throws IOException, ParseException
+	private void saveReliablePatternData(List<StudyContext> contexts, double threshold) throws IOException, ParseException
 	{
 		int n = 0;
-		for(Context context : contexts)
+		for(StudyContext context : contexts)
 		{
 	    	n++;
-	    	System.out.println("Inducing relevant patterns for instance " + n + " of " + contexts.size() + " for " + " \"" + context.term + "\"");
+	    	System.out.println("Inducing relevant patterns for instance " + n + " of " + contexts.size() + " for " + " \"" + context.getTerm() + "\"");
 	
-			String attVal0 = context.leftWords[0]; //l5
-			String attVal1 = context.leftWords[1]; //l4
-			String attVal2 = context.leftWords[2]; //l3
-			String attVal3 = context.leftWords[3]; //l2
-			String attVal4 = context.leftWords[4]; //l1
-			String attVal5 = context.rightWords[0]; //r1
-			String attVal6 = context.rightWords[1]; //r2
-			String attVal7 = context.rightWords[2]; //r3
-			String attVal8 = context.rightWords[3]; //r4
-			String attVal9 = context.rightWords[4]; //r5
+			String attVal0 = context.getLeftWords().get(0); //l5
+			String attVal1 = context.getLeftWords().get(1); //l4
+			String attVal2 = context.getLeftWords().get(2); //l3
+			String attVal3 = context.getLeftWords().get(3); //l2
+			String attVal4 = context.getLeftWords().get(4); //l1
+			String attVal5 = context.getRightWords().get(0); //r1
+			String attVal6 = context.getRightWords().get(1); //r2
+			String attVal7 = context.getRightWords().get(2); //r3
+			String attVal8 = context.getRightWords().get(3); //r4
+			String attVal9 = context.getRightWords().get(4); //r5
 				
 			//TODO: CONSTRUCT LUCENE QUERIES ONLY WHEN NEEDED (BELOW) 
 			String attVal0_lucene = Util.normalizeAndEscapeRegex_lucene(attVal0);
@@ -2141,7 +2141,7 @@ public class Learner
 				Set<String[]> contexts = trainingset_instance.getContexts();*/
 
 				//search patterns in all context sentences..-.
-				List<Context> instanceContexts = this.extractedContexts.get(instance);
+				List<StudyContext> instanceContexts = this.extractedContexts.get(instance);
 				List<String> contexts_pos = getContextStrings(instanceContexts);
 				//List<String> contexts_neg = this.contextsAsStrings[1];
 				System.out.println("Searching for pattern " + ngramRegex[1] + " in contexts of " + instance);
@@ -2398,10 +2398,10 @@ public class Learner
 	    return patterns;
 	}
 	
-	List<String> getContextStrings(List<Context> contexts) {
-		Function<Context, String> context_toString = 
-				new Function<Context, String>() {
-					public String apply(Context c) { return c.toString(); }
+	List<String> getContextStrings(List<StudyContext> contexts) {
+		Function<StudyContext, String> context_toString = 
+				new Function<StudyContext, String>() {
+					public String apply(StudyContext c) { return c.toString(); }
 		};
 		return new ArrayList<String>(Lists.transform(contexts, context_toString));	
 	}
@@ -2412,15 +2412,15 @@ public class Learner
 	 * @param contexts
 	 * @param threshold
 	 */
-	Set<String[]> inducePatterns(List<Context> contexts, double threshold) {
+	Set<String[]> inducePatterns(List<StudyContext> contexts, double threshold) {
 		Set<String[]> patterns = new HashSet<String[]>();
 		Set<String> processedPatterns_iteration = new HashSet<String>();
 		List<String> allContextStrings_iteration = getContextStrings(contexts);
 		
-		for (Context context : contexts) {
+		for (StudyContext context : contexts) {
 
-			List<String> leftWords = new ArrayList<String>(Arrays.asList(context.leftWords));
-			List<String> rightWords = new ArrayList<String>(Arrays.asList(context.rightWords));
+			List<String> leftWords = context.getLeftWords();
+			List<String> rightWords = context.getRightWords();
 			
 			Function<String, String> normalizeAndEscape_lucene = 
 					new Function<String, String>() {

@@ -89,7 +89,7 @@ public class Cleaner
 	 * @return input text without hyphenation at line-breaks
 	 * @throws IOException
 	 */
-	public String remove_line_break(String content) throws IOException {
+	public static String remove_line_break(String content) throws IOException {
 
 		// start cleaning the text file
 		StringTokenizer loop_content = new StringTokenizer(content, " ");

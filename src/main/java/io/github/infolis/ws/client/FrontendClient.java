@@ -2,6 +2,7 @@ package io.github.infolis.ws.client;
 
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.ws.server.InfolisApplicationConfig;
 
@@ -48,6 +49,7 @@ public class FrontendClient {
 		 *                            map this
 		 */
 		uriForClass.put(InfolisFile.class, "file");
+		uriForClass.put(Execution.class, "execution");
 	}
 
 	private static <T extends BaseModel> String getUriForClass(Class<T> clazz) {
@@ -86,7 +88,9 @@ public class FrontendClient {
 			logger.error(Arrays.toString(err.getCause().entrySet().toArray()));
 			throw new BadRequestException(resp);
 		} else {
-			return get(clazz, URI.create(resp.getHeaderString("Location")));
+			thing.setUri(resp.getHeaderString("Location"));
+			logger.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());
+			return get(clazz, URI.create(thing.getUri()));
 		}
 	}
 
@@ -101,11 +105,17 @@ public class FrontendClient {
 	 */
 	public static <T extends BaseModel> T get(Class<T> clazz, URI uri) {
 		logger.debug("{}", uri);
-		WebTarget target = jerseyClient.target(uri);
-		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-		T thing = resp.readEntity(clazz);
-		thing.setUri(resp.getHeaderString("Location"));
-		return thing;
+		if (! uri.isAbsolute()) {
+			String msg = "URI must be absolute, " + uri + " is NOT.";
+			logger.error(msg);
+			throw new RuntimeException(msg);
+		}
+        WebTarget target = jerseyClient.target(uri);
+        Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+        T thing = resp.readEntity(clazz);
+
+		thing.setUri(target.getUri().toString());
+        return thing;
 	}
 
 	/**
@@ -126,7 +136,8 @@ public class FrontendClient {
 				.path(id);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		T thing = resp.readEntity(clazz);
-		thing.setUri(resp.getHeaderString("Location"));
+
+		thing.setUri(target.getUri().toString());
 		return thing;
 	}
 
@@ -144,5 +155,24 @@ public class FrontendClient {
 			e.printStackTrace();
 		}
 		return asString;
+	}
+
+	public static <T extends BaseModel> void put(Class<T> clazz, T thing) {
+		String thingURI = thing.getUri();
+		if (null == thingURI) {
+			throw new IllegalArgumentException("PUT requires a URI: " + thing);
+		}
+		WebTarget target = jerseyClient.target(URI.create(thingURI));
+		Entity<T> entity = Entity
+				.entity(thing, MediaType.APPLICATION_JSON_TYPE);
+		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).put(entity);
+		if (resp.getStatus() != 201) {
+			// TODO check whether resp actually succeeded
+			ErrorResponse err = resp.readEntity(ErrorResponse.class);
+			logger.error(err.getMessage());
+			logger.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			throw new BadRequestException(resp);
+		}
+
 	}
 }

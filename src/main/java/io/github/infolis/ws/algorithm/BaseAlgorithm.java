@@ -1,6 +1,7 @@
 package io.github.infolis.ws.algorithm;
 
 import io.github.infolis.model.Execution;
+import io.github.infolis.ws.client.FrontendClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,7 @@ public abstract class BaseAlgorithm implements Runnable,Algorithm {
 		validate();
 		getExecution().setStatus(Execution.Status.STARTED);
 		execute();
+		FrontendClient.put(Execution.class, getExecution());
 	}
 
 	@Override

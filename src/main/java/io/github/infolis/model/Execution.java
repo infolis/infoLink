@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-public class Execution {
+public class Execution extends BaseModel {
 
     public enum Status {
         PENDING, STARTED, FINISHED, FAILED
@@ -25,7 +25,7 @@ public class Execution {
     private ParameterValues inputValues = new ParameterValues();
     private ParameterValues outputValues = new ParameterValues();
     private List<String> log = new ArrayList<String>();
-
+    
 	public String getAlgorithm() {
 		return algorithm;
 	}

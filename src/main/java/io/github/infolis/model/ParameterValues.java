@@ -17,11 +17,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @JsonDeserialize(using=ParameterValuesDeserializer.class)
 public class ParameterValues {
 	
-	public ParameterValues() {
-		this.values = new HashMap<>();
-	}
-
-	private Map<String, List<String>> values;
+	private Map<String, List<String>> values = new HashMap<>();
 
 	public Map<String, List<String>> getValues() {
 		return values;
@@ -36,16 +32,10 @@ public class ParameterValues {
 	}
 	
 	public void put(String name, String value) {
-		List<String> list = this.values.get(name);
-		if (null == list) {
-			list = new ArrayList<String>();
-			this.values.put(name, list);
+		if (null == this.values.get(name)) {
+			this.values.put(name, new ArrayList<String>());
 		}
-		if (list.isEmpty()) {
-			list.add(value);
-		} else {
-			throw new IllegalArgumentException("Will not replace existing list value with single string");
-		}
+        this.values.get(name).add(value);
 	}
 	
 	public List<String> get(String name) {
@@ -71,6 +61,21 @@ public class ParameterValues {
 
 	public void putEmpty(String name) {
 		this.values.put(name, new ArrayList<String>());
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder ret = new StringBuilder();
+		for (String name : keySet()) {
+			ret.append(name);
+			ret.append("\n");
+			for (String value : get(name)) {
+				ret.append("\t");
+				ret.append(value);
+				ret.append("\n");
+			}
+		}
+		return ret.toString();
 	}
 
 }

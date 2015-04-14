@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -45,7 +44,7 @@ public class FileResolver {
 	 *            the id to resolve
 	 * @return the absolute path to the file
 	 */
-	public static Path resolvePath(String fileId) {
+	private static Path resolvePath(String fileId) {
 		return InfolisApplicationConfig.getFileSavePath().resolve(fileId);
 	}
 
@@ -107,26 +106,73 @@ public class FileResolver {
 		return outStream;
 	}
 
-	public static InputStream getInputStream(InfolisFile pdfFile) throws IOException {
+	/**
+	 * @see #getInputStream(String)
+	 * @param pdfFile
+	 *            {@link InfolisFile} referencing the PDF
+	 * @return open InputStream
+	 * @throws IOException
+	 *             if the stream can not be opened
+	 */
+	public static InputStream getInputStream(InfolisFile pdfFile)
+			throws IOException {
 		return getInputStream(pdfFile.getMd5());
 	}
 
-	public static final String getHexMd5(String asText) {
+	/**
+	 * Get a hex representation of the MD5 checksum of an array of bytes.
+	 * 
+	 * @param bytes
+	 *            array of bytes
+	 * @return lower-case hex digest of the input
+	 */
+	public static final String getHexMd5(byte[] bytes) {
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException e) {
 			/**
-			 * This really, really, really cannot happen, because "MD5" = String constant.
+			 * This really, really cannot happen, because "MD5" = String
+			 * constant.
 			 */
 		}
-		digest.update(asText.getBytes());
-		String md5 = DatatypeConverter.printHexBinary(digest.digest());
+		digest.update(bytes);
+		String md5 = DatatypeConverter.printHexBinary(digest.digest()).toLowerCase();
 		return md5;
 	}
 
-	public static OutputStream getOutputStream(InfolisFile outputFile) throws IOException {
+	/**
+	 * @see #getHexMd5(byte[])
+	 * @param asText
+	 *            String to calulate the MD5 {@link MessageDigest} for
+	 */
+	public static final String getHexMd5(String asText) {
+		return getHexMd5(asText.getBytes());
+	}
+
+	/**
+	 * @param outputFile
+	 *            the {@link InfolisFile} that should be written to
+	 * @return an open {@link OutputStream}
+	 * @throws IOException
+	 *             if the {@link OutputStream} could not be opened
+	 */
+	public static OutputStream getOutputStream(InfolisFile outputFile)
+			throws IOException {
 		return getOutputStream(outputFile.getMd5());
+	}
+
+	/**
+	 * Replace the file extension of a file with a new extension
+	 * 
+	 * @param fileName
+	 *            the original file name
+	 * @param ext
+	 *            the new extension
+	 * @return the file name with a new extension
+	 */
+	public static String changeFileExtension(String fileName, String ext) {
+		return fileName.replaceFirst("\\.[^\\.]+$", "." + ext);
 	}
 
 }

@@ -13,7 +13,7 @@ import org.apache.lucene.util.Version;
  * @author katarina.boland@gesis.org
  * @version 2014-01-27
  */
-public class CaseSensitiveStandardAnalyzer extends Analyzer
+public final class CaseSensitiveStandardAnalyzer extends Analyzer
 {
 
 	/**
@@ -23,7 +23,7 @@ public class CaseSensitiveStandardAnalyzer extends Analyzer
 	 * @param fieldName	name of the field to convert to tokenStream
 	 * @param reader	reader for conversion to tokenStream
 	 */
-	public TokenStream tokenStream(String fieldName, Reader reader)
+	public final TokenStream tokenStream(String fieldName, Reader reader)
  	{
  	    TokenStream t = null;
  	    t = new StandardTokenizer(Version.LUCENE_35, reader);

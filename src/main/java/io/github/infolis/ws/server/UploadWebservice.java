@@ -1,4 +1,4 @@
-package io.github.infolis.ws.server.testws;
+package io.github.infolis.ws.server;
 
 import io.github.infolis.model.util.FileResolver;
 

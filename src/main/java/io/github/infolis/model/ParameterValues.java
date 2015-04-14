@@ -69,4 +69,8 @@ public class ParameterValues {
 		return this.values.keySet();
 	}
 
+	public void putEmpty(String name) {
+		this.values.put(name, new ArrayList<String>());
+	}
+
 }

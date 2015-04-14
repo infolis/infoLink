@@ -157,6 +157,12 @@ public class FrontendClient {
 		return asString;
 	}
 
+	/**
+	 * PUT an resource
+	 * 
+	 * @param clazz
+	 * @param thing
+	 */
 	public static <T extends BaseModel> void put(Class<T> clazz, T thing) {
 		String thingURI = thing.getUri();
 		if (null == thingURI) {

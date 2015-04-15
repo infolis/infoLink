@@ -51,11 +51,11 @@ public class TextExtractorAlgorithmTest {
 
         assertNotNull(inFile.getUri());
 
-        execution.getInputValues().put(TextExtractorAlgorithm.PARAM_PDF_INPUT, inFile.getUri());
-        assertEquals(execution.getInputValues().get(TextExtractorAlgorithm.PARAM_PDF_INPUT).size(), 1);
-        assertEquals(execution.getInputValues().get(TextExtractorAlgorithm.PARAM_PDF_INPUT).get(0), inFile.getUri());
+        execution.getInputFiles().add(inFile.getUri());
+        assertEquals(execution.getInputFiles().size(), 1);
+        assertEquals(execution.getInputFiles().get(0), inFile.getUri());
         execution = FrontendClient.post(Execution.class, execution);
-        log.debug("{}", execution.getInputValues().keySet().size());
+//        log.debug("{}", execution.getInputValues().keySet().size());
         
         log.debug("{}", SerializationUtils.toJSON(execution));
         

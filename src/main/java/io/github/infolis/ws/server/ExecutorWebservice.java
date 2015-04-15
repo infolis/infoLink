@@ -1,18 +1,8 @@
 package io.github.infolis.ws.server;
 
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.ParameterValues;
 import io.github.infolis.ws.algorithm.BaseAlgorithm;
-import io.github.infolis.ws.algorithm.TextExtractorAlgorithm;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -116,12 +106,12 @@ public class ExecutorWebservice {
     
     public static void main(String[] args) {
         Execution e = new Execution();
-        ParameterValues entry = new ParameterValues();
-        entry.put("infolis:algorithm", "PDF2Text");
+//        ParameterValues entry = new ParameterValues();
+//        entry.put("infolis:algorithm", "PDF2Text");
 //        InfolisFile f = new InfolisFile();
  //       f.setFile(new File("in.pdf"));
 //        entry.put("pdfInput", f);
-        e.setInputValues(entry);
+//        e.setInputValues(entry);
  //       startExecution2(e);        
     }
     

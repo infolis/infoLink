@@ -91,8 +91,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	
     @Override
     public void execute() {
-    	log.debug("{}", getExecution().getInputValues().getValues());
-    	for (String inputFileURIString : getExecution().getInputValues().get(PARAM_PDF_INPUT)) {
+    	for (String inputFileURIString : getExecution().getInputFiles()) {
     		log.debug(inputFileURIString);
             URI inputFileURI = URI.create(inputFileURIString);
             InfolisFile inputFile = FrontendClient.get(InfolisFile.class, inputFileURI);
@@ -104,7 +103,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 log.debug(getExecution().getLog().toString());
                 return;
             }
-            getExecution().getOutputValues().get(PARAM_PDF_OUTPUT).add(outputFile.getUri());
+            getExecution().getParamPdfOutput().add(outputFile.getUri());
     	}
     }
 
@@ -113,14 +112,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 		if (null == getFileResolver()) {
 			throw new RuntimeException("Algorithm was not passed a FileResolver!");
 		}
-		if (! getExecution().getInputValues().containsKey(PARAM_PDF_INPUT)) {
-			throw new IllegalArgumentException("Required parameter '" + PARAM_PDF_INPUT + "' is missing!");
-		}
-		if (! getExecution().getInputValues().containsKey(PARAM_REMOVE_BIBLIOGRAPHY)) {
-            getExecution().getInputValues().put(PARAM_REMOVE_BIBLIOGRAPHY, "false");
-		}
-		if (! getExecution().getOutputValues().containsKey(PARAM_PDF_OUTPUT)) {
-            getExecution().getOutputValues().putEmpty(PARAM_PDF_OUTPUT);
+		if (null == getExecution().getInputFiles()) {
+			throw new IllegalArgumentException("Required parameter 'pdfInput' is missing!");
 		}
 	}
 

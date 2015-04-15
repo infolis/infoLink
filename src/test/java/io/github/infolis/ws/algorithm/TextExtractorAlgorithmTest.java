@@ -4,14 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.file.FileResolverStrategy;
 import io.github.infolis.model.file.FileResolver;
 import io.github.infolis.model.file.FileResolverFactory;
+import io.github.infolis.model.file.FileResolverStrategy;
 import io.github.infolis.model.util.SerializationUtils;
 import io.github.infolis.ws.client.FrontendClient;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -26,42 +25,39 @@ public class TextExtractorAlgorithmTest {
 	Logger log = LoggerFactory.getLogger(TextExtractorAlgorithmTest.class);
 		
 	@Test
-	public void testSimple() throws IOException {
-        TextExtractorAlgorithm extractorAlgo = new TextExtractorAlgorithm();
-        Execution execution = new Execution();
-
-        extractorAlgo.setExecution(execution);
+	public void testLocalFile() throws IOException {
+        TextExtractorAlgorithm algo = new TextExtractorAlgorithm();
 		FileResolver resolver = FileResolverFactory.create(FileResolverStrategy.LOCAL);
-		extractorAlgo.setFileResolver(resolver);
-		
-        String resPath = "/trivial.pdf";
-        Path tempFile = Files.createTempFile("infolis-", ".pdf");
-		IOUtils.copy(
-        		getClass().getResourceAsStream(resPath),
-        		Files.newOutputStream(tempFile));
-        byte[] pdfBytes = IOUtils.toByteArray(Files.newInputStream(tempFile));
-
         InfolisFile inFile = new InfolisFile();
+        Execution execution = new Execution();
+        Path tempFile = Files.createTempFile("infolis-", ".pdf");
+        String resPath = "/trivial.pdf";
+        byte[] pdfBytes = IOUtils.toByteArray(getClass().getResourceAsStream(resPath));
+        IOUtils.write(pdfBytes, Files.newOutputStream(tempFile));
+
+        algo.setExecution(execution);
+		algo.setFileResolver(resolver);
+		
         inFile.setFileName(tempFile.toString());
         inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes)); 
         inFile.setMediaType("application/pdf");
         inFile.setFileStatus("AVAILABLE");
-        IOUtils.write(pdfBytes, resolver.openOutputStream(inFile));
-        inFile = FrontendClient.post(InfolisFile.class, inFile);
+        FrontendClient.post(InfolisFile.class, inFile);
 
         assertNotNull(inFile.getUri());
 
         execution.getInputFiles().add(inFile.getUri());
-        assertEquals(execution.getInputFiles().size(), 1);
-        assertEquals(execution.getInputFiles().get(0), inFile.getUri());
-        execution = FrontendClient.post(Execution.class, execution);
-//        log.debug("{}", execution.getInputValues().keySet().size());
-        
-        log.debug("{}", SerializationUtils.toJSON(execution));
-        
-//        extractorAlgo.validate();
-//        extractorAlgo.execute();
-        extractorAlgo.run();
+
+        assertEquals(1, execution.getInputFiles().size());
+        assertEquals(inFile.getUri(), execution.getInputFiles().get(0));
+
+        FrontendClient.post(Execution.class, execution);
+       
+        algo.run();
+
+        log.debug("{}", execution.getOutputFiles());
+        assertEquals(Execution.Status.FINISHED, algo.getExecution().getStatus());
+        assertEquals(1, execution.getOutputFiles().size());
 	}
 
 }

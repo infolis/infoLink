@@ -9,28 +9,21 @@ import java.util.Map;
 
 /**
  *
+ * @author kba
  * @author domi
  */
-@SuppressWarnings("unchecked")
 public abstract class BaseAlgorithm implements Runnable,Algorithm {
 
 	/*
 	 * The list of algorithms
 	 */
 	public static Map<String, Class<? extends BaseAlgorithm>> algorithms = new HashMap<>();
-	@SuppressWarnings("rawtypes")
-	private final static Class[] algoList = {
-		TextExtractorAlgorithm.class
-    };
 	static {
-		for (int i = 0 ; i < algoList.length ; i++) {
-            algorithms.put(algoList[i].getSimpleName(), algoList[i]);
-		}
+		algorithms.put(TextExtractorAlgorithm.class.getSimpleName(), TextExtractorAlgorithm.class);
 	}
 	
 	private Execution execution;
 	private FileResolver fileResolver;
-
 
 	@Override
 	public final void run() {

@@ -24,7 +24,7 @@ public class ExecutorWebservice {
     public String debugMessage() {
         return "Yea Backend! ";
     }
-//
+    
 ////    @POST
 ////    @Consumes(MediaType.APPLICATION_JSON)
 //    public static void startExecution(Execution e) throws IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
@@ -100,12 +100,12 @@ public class ExecutorWebservice {
 			return Response.status(500).entity("Error instantiating algorithm " + algoClass.getName()).build();
 		}
         algo.setExecution(execution);
-        algo.run();
+        new Thread(algo).start();
         return Response.accepted(execution).build();
     }
     
     public static void main(String[] args) {
-        Execution e = new Execution();
+//        Execution e = new Execution();
 //        ParameterValues entry = new ParameterValues();
 //        entry.put("infolis:algorithm", "PDF2Text");
 //        InfolisFile f = new InfolisFile();

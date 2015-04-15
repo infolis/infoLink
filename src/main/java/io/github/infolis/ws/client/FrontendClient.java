@@ -23,8 +23,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 /**
@@ -70,7 +68,7 @@ public class FrontendClient {
 	 *            the thing
 	 * @return the server representation of the thing
 	 */
-	public static <T extends BaseModel> T post(Class<T> clazz, T thing) throws BadRequestException {
+	public static <T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException {
 		WebTarget target = jerseyClient
 				.target(InfolisApplicationConfig.getFrontendURI())
 				.path(FrontendClient.getUriForClass(clazz));
@@ -88,7 +86,6 @@ public class FrontendClient {
 		} else {
 			thing.setUri(resp.getHeaderString("Location"));
 			logger.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());
-			return get(clazz, URI.create(thing.getUri()));
 		}
 	}
 

@@ -61,7 +61,7 @@ public class Execution extends BaseModel {
 		this.paramInputFiles = paramPdfInput;
 	}
 
-	public List<String> getParamPdfOutput() {
+	public List<String> getOutputFiles() {
 		return paramPdfOutput;
 	}
 

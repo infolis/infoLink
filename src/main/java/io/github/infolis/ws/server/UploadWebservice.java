@@ -1,8 +1,8 @@
 package io.github.infolis.ws.server;
 
-import io.github.infolis.model.file.FileResolverStrategy;
 import io.github.infolis.model.file.FileResolver;
 import io.github.infolis.model.file.FileResolverFactory;
+import io.github.infolis.model.file.FileResolverStrategy;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

@@ -1,6 +1,7 @@
 package io.github.infolis.ws.algorithm;
 
 import io.github.infolis.infolink.preprocessing.Cleaner;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.util.SerializationUtils;
 import io.github.infolis.ws.client.FrontendClient;
@@ -96,14 +97,20 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             URI inputFileURI = URI.create(inputFileURIString);
             InfolisFile inputFile = FrontendClient.get(InfolisFile.class, inputFileURI);
             
+            log.debug("Will extract now");
             InfolisFile outputFile = extract(inputFile);
-            FrontendClient.post(InfolisFile.class, outputFile);
+            log.debug("LOG {}", getExecution().getLog());
+//            FrontendClient.post(InfolisFile.class, outputFile);
             if (null == outputFile) {
-                getExecution().getLog().add("Conversion failed!");
+                getExecution().getLog().add("Conversion failed for input file " + inputFileURIString);
                 log.debug(getExecution().getLog().toString());
-                return;
+                getExecution().setStatus(Execution.Status.FAILED);
+            } else {
+                getExecution().setStatus(Execution.Status.FINISHED);
+                FrontendClient.post(InfolisFile.class, outputFile);
+                getExecution().getOutputFiles().add(outputFile.getUri());
+                log.debug("{}", getExecution().getOutputFiles());
             }
-            getExecution().getParamPdfOutput().add(outputFile.getUri());
     	}
     }
 

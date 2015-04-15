@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
+
 import javax.ws.rs.BadRequestException;
 
 import io.github.infolis.model.InfolisFile;
@@ -24,7 +26,8 @@ public class FrontendClientTest {
 		inFile.setFileStatus("AVAILABLE");
 		InfolisFile serverFile;
 		try {
-			serverFile = FrontendClient.post(InfolisFile.class, inFile);
+			FrontendClient.post(InfolisFile.class, inFile);
+			serverFile = FrontendClient.get(InfolisFile.class, URI.create(inFile.getUri()));
 			assertTrue("No error posting", true);
 			assertThat(serverFile.getFileName(), equalTo(inFile.getFileName()));
 		} catch (BadRequestException e) {

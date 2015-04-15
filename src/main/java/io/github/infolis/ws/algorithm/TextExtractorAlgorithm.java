@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -31,10 +30,10 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     public static final String PARAM_PDF_OUTPUT = "pdfOutput";
     public static final String PARAM_REMOVE_BIBLIOGRAPHY = "removeBibliography";
     public static final String PARAM_PDF_INPUT = "pdfInput";
-    public static final List<String> cueWords = new ArrayList(Arrays.asList("Literatur", "Literaturverzeichnis", "Literaturliste",
+    public static final List<String> cueWords = Arrays.asList("Literatur", "Literaturverzeichnis", "Literaturliste",
             "Bibliographie", "Bibliografie", "Quellen", "Quellenangaben", "Quellenverzeichnis", "Literaturangaben", "Bibliography",
             "References", "list of literature", "List of Literature", "List of literature", "list of references", "List of References",
-            "List of references", "reference list", "Reference List", "Reference list"));
+            "List of references", "reference list", "Reference List", "Reference list");
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
 

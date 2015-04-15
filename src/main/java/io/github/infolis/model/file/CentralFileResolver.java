@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Static class encapsulating file storage in a central directory with files
+ * FileResolver encapsulating file storage in a central directory with files
  * named with the MD5 sum of the {@link InfolisFile}
  * 
  * @author kba

@@ -1,6 +1,6 @@
 package io.github.infolis.ws.server;
 
-import io.github.infolis.model.file.FileResolveStrategy;
+import io.github.infolis.model.file.FileResolverStrategy;
 import io.github.infolis.model.file.FileResolver;
 import io.github.infolis.model.file.FileResolverFactory;
 
@@ -32,7 +32,7 @@ public class UploadWebservice {
 	
     private Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
 
-	private FileResolver resolver = FileResolverFactory.create(FileResolveStrategy.CENTRAL);;
+	private FileResolver resolver = FileResolverFactory.create(FileResolverStrategy.CENTRAL);;
 	
 	/**
 	 * PUT /upload/d3b07384d113edec49eaa6238ad5ff00  -

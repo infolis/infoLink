@@ -6,6 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Implementations of this interface are able to resolve a textual ID or an
+ * {@link InfolisFile} to {@link InputStream} / {@link OutputStream}
+ * 
+ * @author kba
+ *
+ */
 public interface FileResolver {
 
 	/**

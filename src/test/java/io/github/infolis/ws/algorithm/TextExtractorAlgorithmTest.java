@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.file.FileResolveStrategy;
+import io.github.infolis.model.file.FileResolverStrategy;
 import io.github.infolis.model.file.FileResolver;
 import io.github.infolis.model.file.FileResolverFactory;
 import io.github.infolis.model.util.SerializationUtils;
@@ -31,7 +31,7 @@ public class TextExtractorAlgorithmTest {
         Execution execution = new Execution();
 
         extractorAlgo.setExecution(execution);
-		FileResolver resolver = FileResolverFactory.create(FileResolveStrategy.LOCAL);
+		FileResolver resolver = FileResolverFactory.create(FileResolverStrategy.LOCAL);
 		extractorAlgo.setFileResolver(resolver);
 		
         String resPath = "/trivial.pdf";

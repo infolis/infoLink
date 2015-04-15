@@ -10,12 +10,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
+/**
+ * {@link FileResolver} using the <code>fileName</code> of an
+ * {@link InfolisFile}.
+ * 
+ * @author kba
+ */
 class LocalFileResolver implements FileResolver {
 
 	@Override
 	public void validateFileId(String fileId) {
 		// TODO Deliberately do nothing for now
-		// TODO We could check whether path is absolute or whether parent dir exists
+		// TODO We could check whether path is absolute or whether parent dir
+		// exists
 	}
 
 	@Override
@@ -26,7 +33,7 @@ class LocalFileResolver implements FileResolver {
 	@Override
 	public InputStream openInputStream(InfolisFile file) throws IOException {
 		return openInputStream(file.getFileName());
-    }
+	}
 
 	@Override
 	public InputStream openInputStream(String fileId) throws IOException {

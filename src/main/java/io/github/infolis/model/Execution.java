@@ -25,8 +25,8 @@ public class Execution extends BaseModel {
 	private List<String> log = new ArrayList<String>();
 	
 	// Parameters
-	private List<String> paramInputFiles = new ArrayList<String>();
-	private List<String> paramPdfOutput  = new ArrayList<String>();
+	private List<String> inputFiles = new ArrayList<String>();
+	private List<String> outputFiles  = new ArrayList<String>();
     private boolean removeBib = false;
 	
 
@@ -55,19 +55,19 @@ public class Execution extends BaseModel {
 	}
 
 	public List<String> getInputFiles() {
-		return paramInputFiles;
+		return inputFiles;
 	}
 
 	public void setInputFiles(List<String> paramPdfInput) {
-		this.paramInputFiles = paramPdfInput;
+		this.inputFiles = paramPdfInput;
 	}
 
 	public List<String> getOutputFiles() {
-		return paramPdfOutput;
+		return outputFiles;
 	}
 
-	public void setParamPdfOutput(List<String> paramPdfOutput) {
-		this.paramPdfOutput = paramPdfOutput;
+	public void setOutputFiles(List<String> paramPdfOutput) {
+		this.outputFiles = paramPdfOutput;
 	}
 
 	public boolean isRemoveBib() {

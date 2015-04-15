@@ -83,7 +83,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                     }
                     //clean the page
                     pageText = Cleaner.removeControlSequences(pageText);
-                    pageText = Cleaner.remove_line_break(pageText);
+                    pageText = Cleaner.removeLineBreaks(pageText);
 
                     int numNumbers = 0;
                     int numDecimals = 0;
@@ -129,7 +129,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                     throw new NullPointerException();
                 }
                 asText = Cleaner.removeControlSequences(asText);
-                asText = Cleaner.remove_line_break(asText);
+                asText = Cleaner.removeLineBreaks(asText);
             }
 
         } catch (Exception e) {

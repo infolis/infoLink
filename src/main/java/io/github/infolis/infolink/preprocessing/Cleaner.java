@@ -55,7 +55,7 @@ public class Cleaner
 	    reader.close();
 	    text = new String(contents);
 	    System.out.println("Cleaning " + this.file);
-	    String cleaned_text = remove_line_break(text);
+	    String cleaned_text = removeLineBreaks(text);
 	    // save cleaned files in the specified output directory, mark their origin by adding 
 	    // the source directory name as prefix
 	    String trace = Paths.get(this.outDirName).relativize(Paths.get(this.file.getParent())).normalize().toString();
@@ -89,7 +89,7 @@ public class Cleaner
 	 * @return input text without hyphenation at line-breaks
 	 * @throws IOException
 	 */
-	public static String remove_line_break(String content) throws IOException {
+	public static String removeLineBreaks(String content) throws IOException {
 
 		// start cleaning the text file
 		StringTokenizer loop_content = new StringTokenizer(content, " ");

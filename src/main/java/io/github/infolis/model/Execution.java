@@ -16,57 +16,71 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class Execution extends BaseModel {
 
-	public enum Status {
-		PENDING, STARTED, FINISHED, FAILED
-	}
+    public enum Status {
 
-	private String algorithm;
-	private Status status = Status.PENDING;
-	private List<String> log = new ArrayList<String>();
-	
-	// Parameters
-	private List<String> paramInputFiles = new ArrayList<String>();
-	private List<String> paramPdfOutput  = new ArrayList<String>();
-	
+        PENDING, STARTED, FINISHED, FAILED
+    }
 
-	public String getAlgorithm() {
-		return algorithm;
-	}
+    private String algorithm;
+    private Status status = Status.PENDING;
+    private List<String> log = new ArrayList<String>();
 
-	public void setAlgorithm(String algorithm) {
-		this.algorithm = algorithm;
-	}
+    // Parameters
+    private List<String> paramInputFiles = new ArrayList<String>();
+    private List<String> paramPdfOutput = new ArrayList<String>();
+    private boolean removeBib = false;
 
-	public Status getStatus() {
-		return status;
-	}
+    public String getAlgorithm() {
+        return algorithm;
+    }
 
-	public void setStatus(Status status) {
-		this.status = status;
-	}
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
 
-	public List<String> getLog() {
-		return log;
-	}
+    public Status getStatus() {
+        return status;
+    }
 
-	public void setLog(List<String> log) {
-		this.log = log;
-	}
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
-	public List<String> getInputFiles() {
-		return paramInputFiles;
-	}
+    public List<String> getLog() {
+        return log;
+    }
 
-	public void setInputFiles(List<String> paramPdfInput) {
-		this.paramInputFiles = paramPdfInput;
-	}
+    public void setLog(List<String> log) {
+        this.log = log;
+    }
 
-	public List<String> getParamPdfOutput() {
-		return paramPdfOutput;
-	}
+    public List<String> getInputFiles() {
+        return paramInputFiles;
+    }
 
-	public void setParamPdfOutput(List<String> paramPdfOutput) {
-		this.paramPdfOutput = paramPdfOutput;
-	}
+    public void setInputFiles(List<String> paramPdfInput) {
+        this.paramInputFiles = paramPdfInput;
+    }
 
+    public List<String> getParamPdfOutput() {
+        return paramPdfOutput;
+    }
+
+    public void setParamPdfOutput(List<String> paramPdfOutput) {
+        this.paramPdfOutput = paramPdfOutput;
+    }
+
+    /**
+     * @return the removeBib
+     */
+    public boolean isRemoveBib() {
+        return removeBib;
+    }
+
+    /**
+     * @param removeBib the removeBib to set
+     */
+    public void setRemoveBib(boolean removeBib) {
+        this.removeBib = removeBib;
+    }
 }

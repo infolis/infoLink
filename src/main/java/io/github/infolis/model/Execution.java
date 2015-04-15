@@ -27,6 +27,7 @@ public class Execution extends BaseModel {
 	// Parameters
 	private List<String> paramInputFiles = new ArrayList<String>();
 	private List<String> paramPdfOutput  = new ArrayList<String>();
+    private boolean removeBib = false;
 	
 
 	public String getAlgorithm() {
@@ -67,6 +68,14 @@ public class Execution extends BaseModel {
 
 	public void setParamPdfOutput(List<String> paramPdfOutput) {
 		this.paramPdfOutput = paramPdfOutput;
+	}
+
+	public boolean isRemoveBib() {
+		return removeBib;
+	}
+
+	public void setRemoveBib(boolean removeBib) {
+		this.removeBib = removeBib;
 	}
 
 }

@@ -2,7 +2,7 @@ package io.github.infolis.ws.algorithm;
 
 import io.github.infolis.infolink.preprocessing.Cleaner;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.util.FileResolver;
+import io.github.infolis.model.util.SerializationUtils;
 import io.github.infolis.ws.client.FrontendClient;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author kba
  */
-public class TextExtractorAlgorithm extends BaseAlgorithm{
+public class TextExtractorAlgorithm extends BaseAlgorithm {
 	
 	public static final String PARAM_PDF_OUTPUT = "pdfOutput";
 	public static final String PARAM_REMOVE_BIBLIOGRAPHY = "removeBibliography";
@@ -40,7 +40,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm{
 		} catch (IOException e) {
 		}
 		try {
-			inStream = FileResolver.getInputStream(inFile);
+			inStream = getFileResolver().openInputStream(inFile);
 		} catch (IOException e) {
 			log.debug(inFile.getUri());
 			log.debug(inFile.getMd5());
@@ -70,13 +70,13 @@ public class TextExtractorAlgorithm extends BaseAlgorithm{
 		}
 		
 		InfolisFile outFile = new InfolisFile();
-		outFile.setFileName(FileResolver.changeFileExtension(inFile.getFileName(), "txt"));
+		outFile.setFileName(SerializationUtils.changeFileExtension(inFile.getFileName(), "txt"));
 		outFile.setMediaType("text/plain");
-		outFile.setMd5(FileResolver.getHexMd5(asText));
+		outFile.setMd5(SerializationUtils.getHexMd5(asText));
 		outFile.setFileStatus("AVAILABLE");
 		
 		try {
-			outStream = FileResolver.getOutputStream(outFile);
+			outStream = getFileResolver().openOutputStream(outFile);
 		} catch (IOException e) {
 			getExecution().getLog().add("Error opening output stream to text file.");
 		}
@@ -110,6 +110,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm{
 
 	@Override
 	public void validate() {
+		if (null == getFileResolver()) {
+			throw new RuntimeException("Algorithm was not passed a FileResolver!");
+		}
 		if (! getExecution().getInputValues().containsKey(PARAM_PDF_INPUT)) {
 			throw new IllegalArgumentException("Required parameter '" + PARAM_PDF_INPUT + "' is missing!");
 		}

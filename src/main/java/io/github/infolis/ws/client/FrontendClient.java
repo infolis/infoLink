@@ -37,8 +37,6 @@ public class FrontendClient {
 
 	private static Logger logger = LoggerFactory.getLogger(FrontendClient.class);
 	
-	private final static ObjectMapper jacksonMapper = new ObjectMapper();
-
 	@SuppressWarnings("rawtypes")
 	private final static Map<Class, String> uriForClass = new HashMap<>();
 	static {
@@ -141,21 +139,6 @@ public class FrontendClient {
 		return thing;
 	}
 
-	/**
-	 * Utility method to JSON-dump a POJO.
-	 *
-	 * @param object the thing to map using {@link ObjectMapper}
-	 * @return the thing as JSON-encoded String
-	 */
-	public static String toJSON(Object object) {
-		String asString = null;
-		try {
-			asString = jacksonMapper.writeValueAsString(object);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		return asString;
-	}
 
 	/**
 	 * PUT an resource

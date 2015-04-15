@@ -1,6 +1,8 @@
 package io.github.infolis.ws.server;
 
-import io.github.infolis.model.util.FileResolver;
+import io.github.infolis.model.file.FileResolveStrategy;
+import io.github.infolis.model.file.FileResolver;
+import io.github.infolis.model.file.FileResolverFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,7 +30,9 @@ import org.slf4j.LoggerFactory;
 @Path("upload")
 public class UploadWebservice {
 	
-    Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
+    private Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
+
+	private FileResolver resolver = FileResolverFactory.create(FileResolveStrategy.CENTRAL);;
 	
 	/**
 	 * PUT /upload/d3b07384d113edec49eaa6238ad5ff00  -
@@ -42,8 +46,8 @@ public class UploadWebservice {
 			InputStream requestBody) {
 		Response ret = null;
 		try {
-			FileResolver.validateFileId(fileId);
-            OutputStream outStream = FileResolver.getOutputStream(fileId);
+			resolver.validateFileId(fileId);
+            OutputStream outStream = resolver.openOutputStream(fileId);
             IOUtils.copy(requestBody, outStream);
             outStream.close();
             ret = Response.created(new URI(fileId)).build();
@@ -63,8 +67,8 @@ public class UploadWebservice {
 	public Response getFile(@PathParam("id") String fileId) {
 		Response ret = null;
 		try {
-			FileResolver.validateFileId(fileId);
-			InputStream inputStream = FileResolver.getInputStream(fileId);
+			resolver.validateFileId(fileId);
+			InputStream inputStream = resolver.openInputStream(fileId);
             ret = Response.ok(inputStream).build();
 		} catch (FileNotFoundException fnfe) {
 			ret = Response.status(404).entity(String.format("No such file '%s'.", fileId)).build();

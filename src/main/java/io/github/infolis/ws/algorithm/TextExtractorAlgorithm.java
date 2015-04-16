@@ -168,9 +168,12 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 }
             }
             // use hasBibNumberRatio_d method from python scripts
+            if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
+                startedBib = true;
+                continue;
+            }
             if (startedBib) {
                 if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
-                    startedBib = true;
                 } else if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
                 } else {
                     textWithoutBib += pageText;

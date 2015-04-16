@@ -2184,12 +2184,12 @@ public class Learner
 						public String apply(String s) { return RegexUtils.normalizeAndEscapeRegex(s); }
 			};
 			//apply normalizeAndEscape_lucene method on all words of the context
-			ArrayList<String> leftWords_lucene = new ArrayList<String>(Lists.transform(leftWords, normalizeAndEscape_lucene));
-			ArrayList<String> rightWords_lucene = new ArrayList<String>(Lists.transform(rightWords, normalizeAndEscape_lucene));
-			ArrayList<String> leftWords_quoted = new ArrayList<String>(Lists.transform(leftWords, pattern_quote));
-			ArrayList<String> rightWords_quoted = new ArrayList<String>(Lists.transform(rightWords, pattern_quote));
-			ArrayList<String> leftWords_regex = new ArrayList<String>(Lists.transform(leftWords, regex_escape));
-			ArrayList<String> rightWords_regex = new ArrayList<String>(Lists.transform(rightWords, regex_escape));
+			List<String> leftWords_lucene = new ArrayList<String>(Lists.transform(leftWords, normalizeAndEscape_lucene));
+			List<String> rightWords_lucene = new ArrayList<String>(Lists.transform(rightWords, normalizeAndEscape_lucene));
+			List<String> leftWords_quoted = new ArrayList<String>(Lists.transform(leftWords, pattern_quote));
+			List<String> rightWords_quoted = new ArrayList<String>(Lists.transform(rightWords, pattern_quote));
+			List<String> leftWords_regex = new ArrayList<String>(Lists.transform(leftWords, regex_escape));
+			List<String> rightWords_regex = new ArrayList<String>(Lists.transform(rightWords, regex_escape));
 
 			int windowSize = leftWords.size();
 			String directNeighbourLeft = leftWords.get(windowSize-1);
@@ -2469,7 +2469,7 @@ public class Learner
 		 * @param x	the value for which the log2 value is to be computed
 		 * @return	the logarithm (base 2) for the given value
 		 */
-		public double log2( double x )
+		private double log2( double x )
 		{
 		  return Math.log( x ) / Math.log( 2 );
 		}

@@ -2,6 +2,7 @@ package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.infolink.searching.Search_Term_Position;
 import io.github.infolis.infolink.tagger.Tagger;
+import io.github.infolis.model.Chunk;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
@@ -1089,11 +1090,11 @@ public class Learner
 					Tagger tagger;
 					try { tagger = new Tagger(this.taggingCmd, this.chunkingCmd, "utf-8"); }
 					catch (Exception e) { e.printStackTrace(); throw new IOException("\nerror initializing tagger\n"); }
-					List<Tagger.Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
+					List<Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
 					containedInNP = false;
 					if(nounPhrase != null)
 					{
-						for(Tagger.Chunk chunk : nounPhrase)
+						for(Chunk chunk : nounPhrase)
 						{
 							if(chunk.getString().replaceAll("\\s", "").contains(studyName.replaceAll("\\s","")))
 							{

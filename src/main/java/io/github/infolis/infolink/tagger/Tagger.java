@@ -1,5 +1,8 @@
 package io.github.infolis.infolink.tagger;
 
+import io.github.infolis.model.Chunk;
+import io.github.infolis.model.TaggedWord;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,141 +43,6 @@ public class Tagger
 		this.tagCommand = tagCommand;
 		this.chunkCommand = chunkCommand;
 		this.encoding = encoding;
-	}
-
-	/**
-	 * Class for storing words along with their POS tags
-	 * 
-	 * @author katarina.boland@gesis.org
-	 * @version 2014-01-27
-	 *
-	 */
-	public static class TaggedWord
-	{
-		String string;
-		String tag;
-
-		/**
-		 * Class constructor specifying the word and its POS tag
-		 * 
-		 * @param word
-		 *            string representation of the word
-		 * @param tag
-		 *            string representation of the word's POS tag
-		 */
-		TaggedWord(String word, String tag)
-		{
-			this.string = word;
-			this.tag = tag;
-		}
-
-		/**
-		 * Overrides the toString method: the String representation of a
-		 * TaggedWord consists of the string representation of the word + the
-		 * string representation of its tag separated by whitespace
-		 */
-		@Override
-		public String toString()
-		{
-			return this.string + " " + this.tag;
-		}
-
-		/**
-		 * Overrides the equals method: two TaggedWords are equal if the string
-		 * representations of their words are equal (case-insensitive!) and they
-		 * share the same POS-tag
-		 * 
-		 */
-		@Override
-		public boolean equals(Object w2)
-		{
-			return (w2 instanceof TaggedWord && (this.string.toLowerCase() + this.tag)
-					.equals(((TaggedWord) w2).string.toLowerCase() + ((TaggedWord) w2).tag));
-		}
-
-		/**
-		 * Overrides the hashCode method: computes the hashCode for the string
-		 * representation of the TaggedWord
-		 */
-		@Override
-		public int hashCode()
-		{
-			return (this.string.toLowerCase() + this.tag).hashCode();
-		}
-
-		/**
-		 * Converts a TaggedWord to lowerCase by applying toLowerCase on the
-		 * string representation of the word and leaving the tag unaltered
-		 * 
-		 * @return a new TaggedWord in lowerCase
-		 */
-		public TaggedWord toLowerCase()
-		{
-			return (new TaggedWord(this.string.toLowerCase(), this.tag));
-		}
-	}
-
-	/**
-	 * Class for representing phrase chunks
-	 * 
-	 * @author katarina.boland@gesis.org
-	 * @version 2014-01-27
-	 *
-	 */
-	public static class Chunk
-	{
-		String startTag;
-		String endTag;
-		ArrayList<TaggedWord> words;
-
-		/**
-		 * Class constructor specifying the startTag and endTag symbols and a
-		 * list of words constituting this phrase chunk
-		 * 
-		 * @param startTag
-		 *            symbol representing the startTag
-		 * @param endTag
-		 *            symbol representing the endTag
-		 * @param words
-		 *            list of words contained in this phrase chunk
-		 */
-		Chunk(String startTag, String endTag, ArrayList<TaggedWord> words)
-		{
-			this.startTag = startTag;
-			this.endTag = endTag;
-			this.words = words;
-		}
-
-		/**
-		 * Overrides the toString method: the string representation of a phrase
-		 * chunk consists of the string representation of the contained
-		 * TaggedWords enclosed by phrase chunk start and end tags
-		 */
-		@Override
-		public String toString()
-		{
-			String string = "";
-			for (TaggedWord word : this.words) {
-				string += " " + word;
-			}
-			return this.startTag + " " + string.trim() + " " + this.endTag;
-		}
-
-		/**
-		 * Returns the string representation of the TaggedWords contained in
-		 * this phrase chunk
-		 * 
-		 * @return the string representation of the TaggedWords contained in
-		 *         this phrase chunk
-		 */
-		public String getString()
-		{
-			String string = "";
-			for (TaggedWord word : this.words) {
-				string += " " + word.string;
-			}
-			return string.trim();
-		}
 	}
 
 	/**

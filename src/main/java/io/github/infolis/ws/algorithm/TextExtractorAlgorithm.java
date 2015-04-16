@@ -145,10 +145,10 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             pageText = Cleaner.removeControlSequences(pageText);
             pageText = Cleaner.removeLineBreaks(pageText);
 
-            int numNumbers = 0;
-            int numDecimals = 0;
-            int numChars = pageText.length();
-            if (numChars == 0) {
+            double numNumbers = 0.0;
+            double numDecimals = 0.0;
+            double numChars = pageText.length();
+            if (numChars == 0.0) {
                 continue;
             }
             // determine the amount of numbers (numeric and decimal)
@@ -183,7 +183,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                     textWithoutBib += pageText;
                 }
             }
-        }
+        }        
         return textWithoutBib;
     }
 

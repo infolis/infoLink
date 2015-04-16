@@ -521,6 +521,7 @@ public class ContextMiner
 			FileInputStream f = new FileInputStream(file);  
 			ObjectInputStream s = new ObjectInputStream(f);  
 			// TODO this could be more obvious
+			@SuppressWarnings("unchecked")
 			Map<String,Set<String[]>> resKnownStudies_ = (Map<String,Set<String[]>>)s.readObject();         
 			s.close();
 			

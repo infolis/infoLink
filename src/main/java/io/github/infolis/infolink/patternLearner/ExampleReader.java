@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -103,24 +102,25 @@ class ExampleReader
 	 * 
 	 * @param args	args[0]: path of the context file
 	 */
-	public static void main(String[] args)
-	{
-		if (args.length != 1) {
-			System.out.println("Usage: ExampleReader <path of the context file>");
-			System.exit(1);
-		}
-		ExampleReader learner = new ExampleReader(new File(args[0]));
-		Map<String,Term> termMap = learner.getTermMap();
-		
-		Collection<Term> terms = termMap.values();
-		Iterator<Term> termIter = terms.iterator(); 
-		while (termIter.hasNext())
-		{
-			Term newTerm = termIter.next();
-			Set<String[]> contexts = newTerm.contexts;
-			Set<String> documents = newTerm.documents;
-		}
-	}
+    // TODO necessary? What should this test?
+//	public static void main(String[] args)
+//	{
+//		if (args.length != 1) {
+//			System.out.println("Usage: ExampleReader <path of the context file>");
+//			System.exit(1);
+//		}
+//		ExampleReader learner = new ExampleReader(new File(args[0]));
+//		Map<String,Term> termMap = learner.getTermMap();
+//		
+//		Collection<Term> terms = termMap.values();
+//		Iterator<Term> termIter = terms.iterator(); 
+//		while (termIter.hasNext())
+//		{
+//			Term newTerm = termIter.next();
+//			Set<String[]> contexts = newTerm.contexts;
+//			Set<String> documents = newTerm.documents;
+//		}
+//	}
 	
 	/**
 	 * Parses <emph>this examples</emph> using an XMLReader and a ContentHandler instance and returns 

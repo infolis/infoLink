@@ -3,13 +3,11 @@ package io.github.infolis.model.datastore;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import io.github.infolis.model.InfolisFile;
 
 import java.net.URI;
 
 import javax.ws.rs.BadRequestException;
-
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.datastore.CentralClient;
 
 import org.junit.Test;
 

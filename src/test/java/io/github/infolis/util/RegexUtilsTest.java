@@ -1,13 +1,13 @@
 package io.github.infolis.util;
 
-import io.github.infolis.util.InfolisFileUtils;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.util.regex.Pattern;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
 
 
 public class RegexUtilsTest {

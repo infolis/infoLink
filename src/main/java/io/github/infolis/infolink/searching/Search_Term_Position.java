@@ -38,6 +38,7 @@ import org.apache.lucene.util.Version;
  *
  */
 //TODO: REMOVE FILENAME...
+@SuppressWarnings("deprecation")
 public class Search_Term_Position 
 { 
 	
@@ -119,13 +120,6 @@ public class Search_Term_Position
     }  
 	
 	//TODO: No need for 2 separate methods...
-	/**
-	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the 
-	 * same as the analyzer used for indexing the text files!
-	 * 
-	 * @param 	query	the Lucene query to be normalized
-	 * @return	a normalized version of the query
-	 */
 	public static String normalizeQueryParts(String query) 
 	{
 		Analyzer analyzer = Indexer.getAnalyzer();
@@ -289,8 +283,15 @@ public class Search_Term_Position
 		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
 		//if quotes are present in absence of any whitespace inside of query
 		Query q;
-		try { q = qp.parse(this.query); }
-		catch (ParseException pe) { pe.printStackTrace(); System.err.println(this.query); throw new ParseException(); }
+		try {
+			q = qp.parse(this.query);
+		} catch (ParseException pe) {
+			pe.printStackTrace();
+			System.err.println(this.query);
+			searcher.close();
+			r.close();
+			throw new ParseException();
+		}
 		System.out.println("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;

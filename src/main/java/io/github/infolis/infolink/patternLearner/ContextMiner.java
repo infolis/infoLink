@@ -1,6 +1,9 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.model.ExtractionMethod;
+import io.github.infolis.model.StudyLink;
+import io.github.infolis.model.StudyType;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
 
@@ -98,20 +101,6 @@ public class ContextMiner
 	{
 		return this.documentSet;
 	}
-	
-	/**
-	 * Types of InfoLink links. 
-	 * <ul>
-	 * <li>DOI: study names that could be matched to a record in the repository, identified by a DOI</li>
-	 * <li>URL: study names that are in fact a URL</li>
-	 * <li>STRING: study names that could not be matched to any record and that are not a URL</li>
-	 * </ul>
-	 * 
-	 * @author katarina.boland@gesis.org
-	 * @version 2014-01-27
-	 *
-	 */
-	private static enum StudyType { DOI, URL, STRING; }  
 	
 	/**
 	 * Searches for year, number or version specifications in the input string and returns an array 
@@ -547,113 +536,6 @@ public class ContextMiner
 	}
 	
 	/**
-	 * Enumeration class for distinguishing pattern-based search and term-based search for dataset 
-	 * references. 
-	 *
-	 */
-	private static enum ExtractionMethod {PATTERN, TERM};
-	
-	/**
-	 * Class representing the link between a publication and a dataset.
-	 * 
-	 * Instances of <emph>StudyLink</emph> have the following fields:
-	 * <ul>
-	 * 	<li>name: title of the linked dataset</li>
-	 * 	<li>alt_name: title of the referenced dataset</li>
-	 * 	<li>version: year or number of the referenced dataset</li>
-	 * 	<li>link: the linked dataset</li>
-	 * 	<li>type: a StudyType instance denoting whether <emph>link</emph> contains a DOI, a URL or a string</li>
-	 * 	<li>snippet: text snippet from which the dataset reference was extracted</li>
-	 * 	<li>confidence: probability that the StudyLink instance is correct</li>
-	 * </ul>
-	 * 
-	 * @author katarina.boland@gesis.org
-	 * @version 2014-01-27
-	 *
-	 */
-	private class StudyLink 
-	{
-		StudyType type;  
-		float confidence; // 1.0 denotes highest confidence, 0 lowest...
-		String name;
-		String version;
-		String link;
-		String alt_name;
-		String snippet;
-		ExtractionMethod method;
-
-
-		/**
-		 * Class constructor specifying the name, version, alt_name, link, type, confidence, snippet and extraction method of a 
-		 * <emph>StudyLink</emph> instance. 
-		 * 
-		 * @param name			title of the linked dataset
-		 * @param version		year or number of the referenced dataset
-		 * @param alt_name		title of the referenced dataset
-		 * @param link			the linked dataset
-		 * @param type			StudyType instance denoting whether the linked dataset is identified by a DOI, a URL or a string
-		 * @param confidence	probability that the StudyLink instance is correct
-		 * @param snippet		text snippet from which the dataset reference was extracted
-		 * @param method		method used for extraction (pattern-based vs. term-based search)
-		 */
-		StudyLink(String name, String version, String alt_name, String link, StudyType type, float confidence, String snippet, ExtractionMethod method)
-		{
-			this.name = name;
-			this.type = type;
-			this.confidence = confidence;
-			this.version = version;
-			this.link = link;
-			this.alt_name = alt_name;
-			this.snippet = snippet;
-			this.method = method;
-		}
-
-		@ Override public String toString()
-		{
-			String delimiter = RegexUtils.delimiter_csv;
-			String _alt_name;
-			String _name;
-			String _version;
-			String _link;
-			// some fields may be null, trying to replace chars will provoke NullPointerException
-			try { _alt_name = this.alt_name.replace(delimiter, "").trim(); }
-			catch (NullPointerException npe) { _alt_name = ""; }
-			try { _name = this.name.replace(delimiter, "").trim(); }
-			catch (NullPointerException npe) { _name = ""; }
-			try { _version = this.version.replace(delimiter, "").trim(); }
-			catch (NullPointerException npe) { _version = ""; }
-			try { _link = this.link.replace(delimiter, "").trim(); }
-			catch (NullPointerException npe) { _link = ""; }
-			return _name  + delimiter + (_alt_name + " " + _version).trim() + delimiter + _link + delimiter + "Study" + delimiter + this.type.toString() + delimiter + String.valueOf(this.confidence) + delimiter + this.method.toString();
-		}
-		
-		String getName()
-		{
-			return this.name;
-		}
-		
-		String getVersion()
-		{
-			return this.version;
-		}
-		
-		StudyType getType()
-		{
-			return this.type;
-		}
-		
-		float getConfidence()
-		{
-			return confidence;
-		}
-		
-		void setConfidence(int confidence)
-		{
-			this.confidence = confidence;
-		}
-	}
-	
-	/**
 	 * Checks whether the document identified by <emph>pubId</emph> is already linked to dataset 
 	 * <emph>link</emph>. Performs look-up in <emph>refMap</emph> for this purpose. 
 	 * 
@@ -781,7 +663,7 @@ public class ContextMiner
 		for (String key : linkMap.keySet())
 		{
 			Collection<StudyLink> linkList = linkMap.get(key);
-			for (StudyLink curLink : linkList) { refNameList.add(curLink.alt_name);	}
+			for (StudyLink curLink : linkList) { refNameList.add(curLink.getAltName());	}
 		}
 		return refNameList;
 	}
@@ -803,16 +685,16 @@ public class ContextMiner
 		for (StudyLink ref : linkSet)
 		{
 			Set<String> knownSnippets = new HashSet<String>();
-			studyNameVersionLinkConf = ref.name + ref.version + ref.link + ref.confidence + ref.method;
+			studyNameVersionLinkConf = ref.getName() + ref.getVersion() + ref.getLink() + ref.getConfidence() + ref.getMethod();
 			if (snippetMap.containsKey(studyNameVersionLinkConf)) { knownSnippets = snippetMap.get(studyNameVersionLinkConf); }
-			knownSnippets.add(ref.snippet);
+			knownSnippets.add(ref.getSnippet());
 			snippetMap.put(studyNameVersionLinkConf, knownSnippets);
 		}
 		// second pass: construct new linkSet with merged snippets
 		Set<StudyLink> newLinkSet = new HashSet<StudyLink>();
 		for (StudyLink ref : linkSet)
 		{
-			studyNameVersionLinkConf = ref.name + ref.version + ref.link + ref.confidence + ref.method;
+			studyNameVersionLinkConf = ref.getName() + ref.getVersion() + ref.getLink() + ref.getConfidence() + ref.getMethod();
 			Set<String> snippets = snippetMap.get(studyNameVersionLinkConf);
 			Iterator<String> snippetIter = snippets.iterator();
 			String allSnippets = "";
@@ -822,7 +704,7 @@ public class ContextMiner
 			}
 			// replace first delimiter symbol
 			if (allSnippets.length() > 0) { allSnippets = allSnippets.substring(RegexUtils.delimiter_internal.length()); }
-			StudyLink newLink = new StudyLink(ref.name, ref.version, ref.alt_name, ref.link, ref.type, ref.confidence, allSnippets, ref.method);
+			StudyLink newLink = new StudyLink(ref.getName(), ref.getVersion(), ref.getAltName(), ref.getLink(), ref.getType(), ref.getConfidence(), allSnippets, ref.getMethod());
 			newLinkSet.add(newLink);
 		}
 		return newLinkSet;
@@ -857,11 +739,11 @@ public class ContextMiner
 				{
 					Set<String> studyRefs = new HashSet<String>();
 					// ignore duplicates
-					pubStudyNameVersionLinkConf = key + ref.name + ref.version + ref.link + ref.confidence + ref.method;
+					pubStudyNameVersionLinkConf = key + ref.getName() + ref.getVersion() + ref.getLink() + ref.getConfidence() + ref.getMethod();
 					if (isDuplicate(key, pubStudyNameVersionLinkConf, refMap)) { continue; }
 					
 					String outStr = "" + delimiter + key.replace(delimiter, "") + delimiter + "Publication" + 
-							delimiter + "URN" + delimiter + ref.toString() + delimiter + ref.snippet + delimiter + 
+							delimiter + "URN" + delimiter + ref.toString() + delimiter + ref.getSnippet() + delimiter + 
 							"LitStudy_automatic" + System.getProperty("line.separator");
 					// export links for publications with unknown urn to separate files
 					if (key.endsWith(".pdf") | key.endsWith(".txt")) { out2.write(outStr.replace("URN", "Filename")); }
@@ -922,12 +804,12 @@ public class ContextMiner
 				{
 					Set<String> studyRefs = new HashSet<String>();
 					// ignore duplicates
-					pubStudyNameVersionLinkConf = key + ref.name + ref.version + ref.link + ref.confidence + ref.method;
+					pubStudyNameVersionLinkConf = key + ref.getName() + ref.getVersion() + ref.getLink() + ref.getConfidence() + ref.getMethod();
 					if (isDuplicate(key, pubStudyNameVersionLinkConf, refMap)) { continue; }
 					
 					// search for all occurences of reference study in the document and output contexts as snippets
 					// instead of only the one snippet that was mapped to study
-					Set<String> termBasedSnippets = getAllSnippetsForTermInDoc(ref.alt_name, key, linkDocMap, logFilename);
+					Set<String> termBasedSnippets = getAllSnippetsForTermInDoc(ref.getAltName(), key, linkDocMap, logFilename);
 					Iterator<String> termSnippetIter = termBasedSnippets.iterator();
 					String termSnippets = "";
 					while (termSnippetIter.hasNext())
@@ -935,10 +817,10 @@ public class ContextMiner
 						termSnippets += RegexUtils.delimiter_internal + termSnippetIter.next().replace(delimiter, "_");
 					}
 					System.out.println("term snippets: " + termSnippets); 
-					System.out.println("ref snippets: " + ref.snippet);
+					System.out.println("ref snippets: " + ref.getSnippet());
 
 					String outStr = "" + delimiter + key.replace(delimiter, "") + delimiter + "Publication" + 
-							delimiter + "URN" + delimiter + ref.toString() + delimiter + ref.snippet + termSnippets + delimiter + 
+							delimiter + "URN" + delimiter + ref.toString() + delimiter + ref.getSnippet() + termSnippets + delimiter + 
 							"LitStudy_automatic" + System.getProperty("line.separator");
 					// export links for publications with unknown urn to separate files
 					if (key.endsWith(".pdf") | key.endsWith(".txt")) { out2.write(outStr.replace("URN", "Filename")); }

@@ -1,4 +1,4 @@
-package io.github.infolis.ws.algorithm;
+package io.github.infolis.algorithm;
 
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.datastore.DataStoreClient;

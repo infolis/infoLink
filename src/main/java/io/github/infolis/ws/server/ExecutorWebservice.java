@@ -1,7 +1,7 @@
 package io.github.infolis.ws.server;
 
+import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.Execution;
-import io.github.infolis.ws.algorithm.BaseAlgorithm;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;

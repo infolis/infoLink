@@ -1,12 +1,12 @@
-package io.github.infolis.ws.algorithm;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.infolink.preprocessing.Cleaner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.datastore.DataStoreClientFactory;
 import io.github.infolis.model.datastore.DataStoreStrategy;
 import io.github.infolis.model.datastore.FileResolverFactory;
-import io.github.infolis.model.util.SerializationUtils;
+import io.github.infolis.util.SerializationUtils;
+import io.github.infolis.util.TextCleaningUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -128,8 +128,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 		if (null == asText) {
 			throw new NullPointerException();
 		}
-		asText = Cleaner.removeControlSequences(asText);
-		asText = Cleaner.removeLineBreaks(asText);
+		asText = TextCleaningUtils.removeControlSequences(asText);
+		asText = TextCleaningUtils.removeLineBreaks(asText);
 		return asText;
 	}
 
@@ -155,8 +155,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				throw new NullPointerException();
 			}
 			// clean the page
-			pageText = Cleaner.removeControlSequences(pageText);
-			pageText = Cleaner.removeLineBreaks(pageText);
+			pageText = TextCleaningUtils.removeControlSequences(pageText);
+			pageText = TextCleaningUtils.removeLineBreaks(pageText);
 
 			double numNumbers = 0.0;
 			double numDecimals = 0.0;

@@ -1,4 +1,4 @@
-package io.github.infolis.model.util;
+package io.github.infolis.util;
 
 import java.io.StringWriter;
 import java.nio.file.Paths;

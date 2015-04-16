@@ -1,7 +1,7 @@
 package io.github.infolis.model;
 
 import static org.junit.Assert.assertEquals;
-import io.github.infolis.model.util.SerializationUtils;
+import io.github.infolis.util.SerializationUtils;
 
 import org.junit.Test;
 

@@ -1,7 +1,8 @@
-package io.github.infolis.ws.algorithm;
+package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.datastore.DataStoreClient;
@@ -9,7 +10,7 @@ import io.github.infolis.model.datastore.DataStoreClientFactory;
 import io.github.infolis.model.datastore.DataStoreStrategy;
 import io.github.infolis.model.datastore.FileResolver;
 import io.github.infolis.model.datastore.FileResolverFactory;
-import io.github.infolis.model.util.SerializationUtils;
+import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

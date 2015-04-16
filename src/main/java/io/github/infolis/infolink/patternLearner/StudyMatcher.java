@@ -246,7 +246,12 @@ public class StudyMatcher
     	    		Map<String,String> res = new HashMap<String,String>();
     	    		String[] data = text.split(RegexUtils.delimiter_internal);
     	    		// query is in cache but no data can be found in dara - return empty hashmap
-    	    		if (data.length < 3) { res.put("", ""); return res; }
+					if (data.length < 3) {
+						res.put("", "");
+						reader.close();
+						isr.close();
+						return res;
+					}
     	    		// each query has n dataset names with n dois
     	    		// data[0] = the query, therefore start at index 1
     	    		// end at data.length -2 because data[i+1] is accessed in each iteration

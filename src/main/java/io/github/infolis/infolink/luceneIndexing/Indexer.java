@@ -22,6 +22,7 @@ package io.github.infolis.infolink.luceneIndexing;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -89,6 +90,7 @@ public class Indexer
 	 * 
 	 * @param fileMap	A map listing index output locations (keys) and input directories (values) containing the documents to index	
 	 */
+	@SuppressWarnings("deprecation")
 	public static void indexAllFiles(HashMap<File, File> fileMap)
 	{
 		for (File indexDir : fileMap.keySet())

@@ -3,15 +3,19 @@ package io.github.infolis.ws.algorithm;
 import io.github.infolis.infolink.preprocessing.Cleaner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.datastore.DataStoreClientFactory;
+import io.github.infolis.model.datastore.DataStoreStrategy;
+import io.github.infolis.model.datastore.FileResolverFactory;
 import io.github.infolis.model.util.SerializationUtils;
-import io.github.infolis.ws.client.FrontendClient;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +23,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,201 +35,288 @@ import org.slf4j.LoggerFactory;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
-    public static final String PARAM_PDF_OUTPUT = "pdfOutput";
-    public static final String PARAM_REMOVE_BIBLIOGRAPHY = "removeBibliography";
-    public static final String PARAM_PDF_INPUT = "pdfInput";
-    public static final List<String> cueWords = Arrays.asList("Literatur", "Literaturverzeichnis",
-            "Literaturliste",
-            "Bibliographie", "Bibliografie", "Quellen", "Quellenangaben", "Quellenverzeichnis",
-            "Literaturangaben", "Bibliography",
-            "References", "list of literature", "List of Literature", "List of literature",
-            "list of references", "List of References",
-            "List of references", "reference list", "Reference List", "Reference list");
-    public static final Pattern patternNumeric = Pattern.compile("\\d+");
-    public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
+	public static final String PARAM_PDF_OUTPUT = "pdfOutput";
+	public static final String PARAM_REMOVE_BIBLIOGRAPHY = "removeBibliography";
+	public static final String PARAM_PDF_INPUT = "pdfInput";
+	public static final List<String> cueWords = Arrays.asList("Literatur", "Literaturverzeichnis",
+			"Literaturliste",
+			"Bibliographie", "Bibliografie", "Quellen", "Quellenangaben", "Quellenverzeichnis",
+			"Literaturangaben", "Bibliography",
+			"References", "list of literature", "List of Literature", "List of literature",
+			"list of references", "List of References",
+			"List of references", "reference list", "Reference List", "Reference list");
+	public static final Pattern patternNumeric = Pattern.compile("\\d+");
+	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 
-    private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
-    private PDFTextStripper stripper;
+	private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
+	private PDFTextStripper stripper;
 
-    public TextExtractorAlgorithm() {
-        super();
-        try {
-            this.stripper = new PDFTextStripper();
-        } catch (IOException e) {
-            getExecution().getLog().add("Error instantiating PDFTextStripper.");
-            throw new RuntimeException(e);
-        }
-    }
+	public TextExtractorAlgorithm() {
+		super();
+		try {
+			this.stripper = new PDFTextStripper();
+		} catch (IOException e) {
+			getExecution().getLog().add("Error instantiating PDFTextStripper.");
+			throw new RuntimeException(e);
+		}
+	}
 
-    public InfolisFile extract(InfolisFile inFile) {
-        InputStream inStream = null;
-        OutputStream outStream = null;
-        PDDocument pdfIn;
-        String asText = null;
+	public InfolisFile extract(InfolisFile inFile) {
+		InputStream inStream = null;
+		OutputStream outStream = null;
+		PDDocument pdfIn;
+		String asText = null;
 
-        try {
-            inStream = getFileResolver().openInputStream(inFile);
-        } catch (IOException e) {
-            getExecution().getLog().add("Error opening input stream.");
-            return null;
-        }
-        try {
-            pdfIn = PDDocument.load(inStream);
-        } catch (IOException e) {
-            getExecution().getLog().add("Error reading PDF from stream.");
-            return null;
-        }
-        try {// check whether the bibliography should be reomoved
-            if (getExecution().isRemoveBib()) {
-                asText = extractTextAndRemoveBibliography(pdfIn);
-            } else {
-                asText = extractText(pdfIn);
-            }
-        } catch (Exception e) {
-            getExecution().getLog().add("Error converting PDF to text.");
-            return null;
-        }
+		try {
+			inStream = getFileResolver().openInputStream(inFile);
+		} catch (IOException e) {
+			getExecution().getLog().add("Error opening input stream.");
+			return null;
+		}
+		try {
+			pdfIn = PDDocument.load(inStream);
+		} catch (IOException e) {
+			getExecution().getLog().add("Error reading PDF from stream.");
+			return null;
+		}
+		try {// check whether the bibliography should be reomoved
+			if (getExecution().isRemoveBib()) {
+				asText = extractTextAndRemoveBibliography(pdfIn);
+			} else {
+				asText = extractText(pdfIn);
+			}
+		} catch (Exception e) {
+			getExecution().getLog().add("Error converting PDF to text.");
+			return null;
+		}
 
-        InfolisFile outFile = new InfolisFile();
-        outFile.setFileName(SerializationUtils.changeFileExtension(inFile.getFileName(), "txt"));
-        outFile.setMediaType("text/plain");
-        outFile.setMd5(SerializationUtils.getHexMd5(asText));
-        outFile.setFileStatus("AVAILABLE");
+		String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
+		if (null != getExecution().getOutputDirectory()) {
+			outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
+		}
+		InfolisFile outFile = new InfolisFile();
+		outFile.setFileName(outFileName);
+		outFile.setMediaType("text/plain");
+		outFile.setMd5(SerializationUtils.getHexMd5(asText));
+		outFile.setFileStatus("AVAILABLE");
 
-        try {
-            outStream = getFileResolver().openOutputStream(outFile);
-        } catch (IOException e) {
-            getExecution().getLog().add("Error opening output stream to text file.");
-        }
-        try {
-            IOUtils.write(asText, outStream);
-        } catch (IOException e) {
-            getExecution().getLog().add("Error copying text to output stream.");
-        }
-        return outFile;
-    }
+		try {
+			outStream = getFileResolver().openOutputStream(outFile);
+		} catch (IOException e) {
+			getExecution().getLog().add("Error opening output stream to text file.");
+		}
+		try {
+			IOUtils.write(asText, outStream);
+		} catch (IOException e) {
+			getExecution().getLog().add("Error copying text to output stream.");
+		}
+		return outFile;
+	}
 
-    /**
-     * Extract the text of a PDF and remove control sequences and line breaks.
-     *
-     * @param pdfIn {@link PDDocument} to extract text from
-     * @return text of the PDF
-     * @throws IOException
-     */
-    private String extractText(PDDocument pdfIn) throws IOException {
-        String asText;
-        asText = stripper.getText(pdfIn);
+	/**
+	 * Extract the text of a PDF and remove control sequences and line breaks.
+	 *
+	 * @param pdfIn
+	 *            {@link PDDocument} to extract text from
+	 * @return text of the PDF
+	 * @throws IOException
+	 */
+	private String extractText(PDDocument pdfIn) throws IOException {
+		String asText;
+		asText = stripper.getText(pdfIn);
 
-        if (null == asText) {
-            throw new NullPointerException();
-        }
-        asText = Cleaner.removeControlSequences(asText);
-        asText = Cleaner.removeLineBreaks(asText);
-        return asText;
-    }
+		if (null == asText) {
+			throw new NullPointerException();
+		}
+		asText = Cleaner.removeControlSequences(asText);
+		asText = Cleaner.removeLineBreaks(asText);
+		return asText;
+	}
 
-    /**
-     * Compute the ratio of numbers on page: a high number of numbers is assumed
-     * to be typical for bibliographies as they contain many years, page numbers
-     * and dates.
-     *
-     * @param pdfIn {@link PDDocument} to extract text from
-     * @return text of the PDF sans the bibliography
-     * @throws IOException
-     */
-    protected String extractTextAndRemoveBibliography(PDDocument pdfIn) throws IOException {
-        String textWithoutBib = "";
-        boolean startedBib = false;
-        // convert PDF pagewise and remove pages belonging to the bibliography
-        for (int i = 1; i <= pdfIn.getNumberOfPages(); i++) {
-            stripper.setStartPage(i);
-            stripper.setEndPage(i);
-            String pageText = stripper.getText(pdfIn);
-            if (null == pageText) {
-                throw new NullPointerException();
-            }
-            // clean the page
-            pageText = Cleaner.removeControlSequences(pageText);
-            pageText = Cleaner.removeLineBreaks(pageText);
+	/**
+	 * Compute the ratio of numbers on page: a high number of numbers is assumed
+	 * to be typical for bibliographies as they contain many years, page numbers
+	 * and dates.
+	 *
+	 * @param pdfIn
+	 *            {@link PDDocument} to extract text from
+	 * @return text of the PDF sans the bibliography
+	 * @throws IOException
+	 */
+	protected String extractTextAndRemoveBibliography(PDDocument pdfIn) throws IOException {
+		String textWithoutBib = "";
+		boolean startedBib = false;
+		// convert PDF pagewise and remove pages belonging to the bibliography
+		for (int i = 1; i <= pdfIn.getNumberOfPages(); i++) {
+			stripper.setStartPage(i);
+			stripper.setEndPage(i);
+			String pageText = stripper.getText(pdfIn);
+			if (null == pageText) {
+				throw new NullPointerException();
+			}
+			// clean the page
+			pageText = Cleaner.removeControlSequences(pageText);
+			pageText = Cleaner.removeLineBreaks(pageText);
 
-            double numNumbers = 0.0;
-            double numDecimals = 0.0;
-            double numChars = pageText.length();
-            if (numChars == 0.0) {
-                continue;
-            }
-            // determine the amount of numbers (numeric and decimal)
-            Matcher matcherNumeric = patternNumeric.matcher(pageText);
-            Matcher matcherDecimal = patternDecimal.matcher(pageText);
-            while (matcherNumeric.find()) {
-                numNumbers++;
-            }
-            while (matcherDecimal.find()) {
-                numDecimals++;
-            }
-            boolean containsCueWord = false;
-            for (String s : cueWords) {
-                if (pageText.contains(s)) {
-                    containsCueWord = true;
-                    break;
-                }
-            }
-            // use hasBibNumberRatio_d method from python scripts
-            if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
-                startedBib = true;
-                continue;
-            }
-            if (startedBib) {
-                if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            } else {
-                if (((numNumbers / numChars) >= 0.008) && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            }
-        }        
-        return textWithoutBib;
-    }
+			double numNumbers = 0.0;
+			double numDecimals = 0.0;
+			double numChars = pageText.length();
+			if (numChars == 0.0) {
+				continue;
+			}
+			// determine the amount of numbers (numeric and decimal)
+			Matcher matcherNumeric = patternNumeric.matcher(pageText);
+			Matcher matcherDecimal = patternDecimal.matcher(pageText);
+			while (matcherNumeric.find()) {
+				numNumbers++;
+			}
+			while (matcherDecimal.find()) {
+				numDecimals++;
+			}
+			boolean containsCueWord = false;
+			for (String s : cueWords) {
+				if (pageText.contains(s)) {
+					containsCueWord = true;
+					break;
+				}
+			}
+			// use hasBibNumberRatio_d method from python scripts
+			if (containsCueWord && ((numNumbers / numChars) >= 0.005)
+					&& ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
+				startedBib = true;
+				continue;
+			}
+			if (startedBib) {
+				if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1)
+						&& ((numDecimals / numChars) <= 0.004)) {
+				} else {
+					textWithoutBib += pageText;
+				}
+			} else {
+				if (((numNumbers / numChars) >= 0.008) && ((numNumbers / numChars) <= 0.1)
+						&& ((numDecimals / numChars) <= 0.004)) {
+				} else {
+					textWithoutBib += pageText;
+				}
+			}
+		}
+		return textWithoutBib;
+	}
 
-    @Override
-    public void execute() {
-        for (String inputFileURIString : getExecution().getInputFiles()) {
-            log.debug(inputFileURIString);
-            URI inputFileURI = URI.create(inputFileURIString);
-            InfolisFile inputFile = FrontendClient.get(InfolisFile.class, inputFileURI);
-            log.debug("Will extract now");
-            InfolisFile outputFile = extract(inputFile);
-            log.debug("LOG {}", getExecution().getLog());
-            // FrontendClient.post(InfolisFile.class, outputFile);
-            if (null == outputFile) {
-                getExecution().getLog().add(
-                        "Conversion failed for input file " + inputFileURIString);
-                log.debug(getExecution().getLog().toString());
-                getExecution().setStatus(Execution.Status.FAILED);
-            } else {
-                getExecution().setStatus(Execution.Status.FINISHED);
-                FrontendClient.post(InfolisFile.class, outputFile);
-                getExecution().getOutputFiles().add(outputFile.getUri());
-                log.debug("{}", getExecution().getOutputFiles());
-            }
-        }
-    }
+	@Override
+	public void execute() {
+		for (String inputFileURI : getExecution().getInputFiles()) {
+			log.debug(inputFileURI);
+			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+			if (null == inputFile) {
+				throw new RuntimeException("File was not registered with the data store: "+ inputFileURI);
+			}
+			log.debug("Will extract now");
+			InfolisFile outputFile = extract(inputFile);
+			log.debug("LOG {}", getExecution().getLog());
+			// FrontendClient.post(InfolisFile.class, outputFile);
+			if (null == outputFile) {
+				getExecution().getLog().add(
+						"Conversion failed for input file " + inputFileURI);
+				log.debug(getExecution().getLog().toString());
+				getExecution().setStatus(Execution.Status.FAILED);
+			} else {
+				getExecution().setStatus(Execution.Status.FINISHED);
+				getDataStoreClient().post(InfolisFile.class, outputFile);
+				getExecution().getOutputFiles().add(outputFile.getUri());
+				log.debug("{}", getExecution().getOutputFiles());
+			}
+		}
+	}
 
-    @Override
-    public void validate() {
-        if (null == getFileResolver()) {
-            throw new RuntimeException("Algorithm was not passed a FileResolver!");
-        }
-        if (null == getExecution().getInputFiles()) {
-            throw new IllegalArgumentException("Required parameter 'pdfInput' is missing!");
-        } else if (0 == getExecution().getInputFiles().size()) {
-            throw new IllegalArgumentException("No values for parameter 'pdfInput'!");
-        }
-        if (null == getExecution().getOutputFiles()) {
-            getExecution().setOutputFiles(new ArrayList<String>());
-        }
-    }
+	@Override
+	public void validate() {
+		if (null == getExecution().getInputFiles()) {
+			throw new IllegalArgumentException("Required parameter 'inputFiles' is missing!");
+		} else if (0 == getExecution().getInputFiles().size()) {
+			throw new IllegalArgumentException("No values for parameter 'inputFiles'!");
+		}
+//		if (null == getExecution().getOutputFiles()) {
+//			getExecution().setOutputFiles(new ArrayList<String>());
+//		}
+	}
+
+	/**
+	 * Class for processing command line options using args4j.
+	 *
+	 * @author katarina.boland@gesis.org
+	 * @author kba
+	 */
+	static class OptionHandler {
+
+		@Option(name = "-i", usage = "path to read PDF documents from", metaVar = "INPUT_PATH")
+		private String inputPathOption = System.getProperty("user.dir");
+
+		@Option(name = "-o", usage = "directory to save converted documents to", metaVar = "OUTPUT_PATH")
+		private String outputPathOption = System.getProperty("user.dir");
+
+		@Option(name = "-p", usage = "remove bibliography", metaVar = "REMOVE_BIB")
+		private boolean removeBib = false;
+
+		public void parse(String[] args)
+		{
+			CmdLineParser parser = new CmdLineParser(this);
+			try {
+				parser.parseArgument(args);
+			} catch (CmdLineException e) {
+				System.err.println(e.getMessage());
+				parser.printSingleLineUsage(System.err);
+				parser.printUsage(System.err);
+				System.exit(1);
+			}
+
+			Execution execution = new Execution();
+			Algorithm algo = new TextExtractorAlgorithm();
+			execution.setAlgorithm(algo.getClass().getName());
+			algo.setExecution(execution);
+			algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
+			algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));
+
+			Path inputPath = Paths.get(inputPathOption);
+			if (Files.isDirectory(inputPath)) {
+				try {
+					Iterator<Path> directoryStream = Files.newDirectoryStream(inputPath, "*.pdf").iterator();
+					while (directoryStream.hasNext()) {
+						InfolisFile fileToPost = new InfolisFile();
+						fileToPost.setFileName(directoryStream.next().toString());
+						fileToPost.setMediaType("application/pdf");
+						algo.getDataStoreClient().post(InfolisFile.class, fileToPost);
+						execution.getInputFiles().add(fileToPost.getUri());
+					}
+				} catch (IOException e) {
+					log.error("Could not read '*.pdf' in directory {}.", inputPath);
+					System.exit(1);
+				}
+			} else {
+				execution.getInputFiles().add(inputPathOption.toString());
+			}
+
+			Path outputPath = Paths.get(inputPathOption);
+			if (! Files.exists(outputPath)) {
+				try {
+					Files.createDirectories(outputPath);
+				} catch (IOException e) {
+					log.error("Output directory {} doesn't exist and can't be created.", outputPath);
+					System.exit(1);
+				}
+			} else if (! Files.isDirectory(outputPath)) {
+				log.error("Output directory {} is no directory.", outputPath);
+				System.exit(1);
+			}
+			execution.setOutputDirectory(outputPath.toString());
+			
+			execution.setRemoveBib(removeBib);
+
+			algo.run();
+		}
+	}
+
+	public static void main(String[] args) {
+		new OptionHandler().parse(args);
+	}
 }

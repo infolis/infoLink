@@ -1,10 +1,10 @@
-package io.github.infolis.ws.client;
+package io.github.infolis.model.datastore;
 
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.ws.server.InfolisApplicationConfig;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -31,18 +31,16 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
  * @author kba
  *
  */
-public class FrontendClient {
+class CentralClient implements DataStoreClient {
 
-	private static Logger logger = LoggerFactory.getLogger(FrontendClient.class);
-	
+	private Logger logger = LoggerFactory.getLogger(CentralClient.class);
+
 	@SuppressWarnings("rawtypes")
-	private final static Map<Class, String> uriForClass = new HashMap<>();
+	private static Map<Class, String> uriForClass = new HashMap<>();
 	static {
 		/*
 		 * Add mappings from class name to uri fragment here, e.g.
-		 * http://infolis-frontend/api/file/124
-		 *                             \__/
-		 *                            map this
+		 * http://infolis-frontend/api/file/124 \__/ map this
 		 */
 		uriForClass.put(InfolisFile.class, "file");
 		uriForClass.put(Execution.class, "execution");
@@ -53,25 +51,14 @@ public class FrontendClient {
 	}
 
 	private static Client jerseyClient = ClientBuilder.newBuilder()
-				.register(JacksonFeature.class)
-				.register(JacksonJsonProvider.class).build();
+			.register(JacksonFeature.class)
+			.register(JacksonJsonProvider.class).build();
 
-	/**
-	 * POST a resource to the frontend web service.
-	 * 
-	 * After successfully creation, {@link FrontendClient#get(Class, URI)}
-	 * request is made and the current representation returned.
-	 * 
-	 * @param clazz
-	 *            class of the thing to post
-	 * @param thing
-	 *            the thing
-	 * @return the server representation of the thing
-	 */
-	public static <T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException {
+	@Override
+	public <T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException {
 		WebTarget target = jerseyClient
-				.target(InfolisApplicationConfig.getFrontendURI())
-				.path(FrontendClient.getUriForClass(clazz));
+				.target(InfolisConfig.getFrontendURI())
+				.path(CentralClient.getUriForClass(clazz));
 		Entity<T> entity = Entity
 				.entity(thing, MediaType.APPLICATION_JSON_TYPE);
 		Response resp = target
@@ -89,45 +76,27 @@ public class FrontendClient {
 		}
 	}
 
-	/**
-	 * GET a thing with a URI.
-	 * 
-	 * @param clazz
-	 *            the class of the thing to retrieve
-	 * @param uri
-	 *            the {@link URI} of the thing to retrieve
-	 * @return the server representation of the thing
-	 */
-	public static <T extends BaseModel> T get(Class<T> clazz, URI uri) {
+	@Override
+	public <T extends BaseModel> T get(Class<T> clazz, URI uri) {
 		logger.debug("{}", uri);
-		if (! uri.isAbsolute()) {
+		if (!uri.isAbsolute()) {
 			String msg = "URI must be absolute, " + uri + " is NOT.";
 			logger.error(msg);
 			throw new RuntimeException(msg);
 		}
-        WebTarget target = jerseyClient.target(uri);
-        Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-        T thing = resp.readEntity(clazz);
+		WebTarget target = jerseyClient.target(uri);
+		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+		T thing = resp.readEntity(clazz);
 
 		thing.setUri(target.getUri().toString());
-        return thing;
+		return thing;
 	}
 
-	/**
-	 * Get a thing with a textual ID.
-	 * 
-	 * Uses the {@link FrontendClient#uriForClass} mapping.
-	 * 
-	 * @param clazz
-	 *            the class of the thing to retrieve
-	 * @param id
-	 *            the ID part of the URI of the thing to retrieve
-	 * @return the server representation of the thing
-	 */
-	public static <T extends BaseModel> T get(Class<T> clazz, String id) {
+	@Override
+	public <T extends BaseModel> T get(Class<T> clazz, String id) {
 		WebTarget target = jerseyClient
-				.target(InfolisApplicationConfig.getFrontendURI())
-				.path(FrontendClient.getUriForClass(clazz))
+				.target(InfolisConfig.getFrontendURI())
+				.path(CentralClient.getUriForClass(clazz))
 				.path(id);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		T thing = resp.readEntity(clazz);
@@ -136,14 +105,8 @@ public class FrontendClient {
 		return thing;
 	}
 
-
-	/**
-	 * PUT an resource
-	 * 
-	 * @param clazz
-	 * @param thing
-	 */
-	public static <T extends BaseModel> void put(Class<T> clazz, T thing) {
+	@Override
+	public <T extends BaseModel> void put(Class<T> clazz, T thing) {
 		String thingURI = thing.getUri();
 		if (null == thingURI) {
 			throw new IllegalArgumentException("PUT requires a URI: " + thing);

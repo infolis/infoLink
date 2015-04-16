@@ -4,11 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.file.FileResolver;
-import io.github.infolis.model.file.FileResolverFactory;
-import io.github.infolis.model.file.FileResolverStrategy;
+import io.github.infolis.model.datastore.DataStoreClient;
+import io.github.infolis.model.datastore.DataStoreClientFactory;
+import io.github.infolis.model.datastore.DataStoreStrategy;
+import io.github.infolis.model.datastore.FileResolver;
+import io.github.infolis.model.datastore.FileResolverFactory;
 import io.github.infolis.model.util.SerializationUtils;
-import io.github.infolis.ws.client.FrontendClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,23 +27,29 @@ public class TextExtractorAlgorithmTest {
 		
 	@Test
 	public void testLocalFile() throws IOException {
+		
+		FileResolver resolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
+		DataStoreClient client = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
+
         TextExtractorAlgorithm algo = new TextExtractorAlgorithm();
-		FileResolver resolver = FileResolverFactory.create(FileResolverStrategy.LOCAL);
         InfolisFile inFile = new InfolisFile();
         Execution execution = new Execution();
+
         Path tempFile = Files.createTempFile("infolis-", ".pdf");
         String resPath = "/trivial.pdf";
+
         byte[] pdfBytes = IOUtils.toByteArray(getClass().getResourceAsStream(resPath));
         IOUtils.write(pdfBytes, Files.newOutputStream(tempFile));
 
         algo.setExecution(execution);
 		algo.setFileResolver(resolver);
+		algo.setDataStoreClient(client);
 		
         inFile.setFileName(tempFile.toString());
         inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes)); 
         inFile.setMediaType("application/pdf");
         inFile.setFileStatus("AVAILABLE");
-        FrontendClient.post(InfolisFile.class, inFile);
+        client.post(InfolisFile.class, inFile);
 
         assertNotNull(inFile.getUri());
 
@@ -51,13 +58,21 @@ public class TextExtractorAlgorithmTest {
         assertEquals(1, execution.getInputFiles().size());
         assertEquals(inFile.getUri(), execution.getInputFiles().get(0));
 
-        FrontendClient.post(Execution.class, execution);
+        client.post(Execution.class, execution);
        
         algo.run();
 
         log.debug("{}", execution.getOutputFiles());
         assertEquals(Execution.Status.FINISHED, algo.getExecution().getStatus());
         assertEquals(1, execution.getOutputFiles().size());
+
+        String fileId = algo.getExecution().getOutputFiles().get(0);
+        InfolisFile outFile = client.get(InfolisFile.class, fileId);
+		String x = IOUtils.toString(resolver.openInputStream(outFile));
+//		for (char c : x.toCharArray()) {
+//            log.debug("{}", (int)c);
+//		}
+		assertEquals("Foo. Bar!\n ", x);
 	}
 
 }

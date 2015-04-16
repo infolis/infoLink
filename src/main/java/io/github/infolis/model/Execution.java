@@ -28,6 +28,7 @@ public class Execution extends BaseModel {
 	private List<String> inputFiles = new ArrayList<String>();
 	private List<String> outputFiles  = new ArrayList<String>();
     private boolean removeBib = false;
+    private String outputDirectory = "";
 	
 
 	public String getAlgorithm() {
@@ -76,6 +77,14 @@ public class Execution extends BaseModel {
 
 	public void setRemoveBib(boolean removeBib) {
 		this.removeBib = removeBib;
+	}
+
+	public String getOutputDirectory() {
+		return outputDirectory;
+	}
+
+	public void setOutputDirectory(String outputDirectory) {
+		this.outputDirectory = outputDirectory;
 	}
 
 }

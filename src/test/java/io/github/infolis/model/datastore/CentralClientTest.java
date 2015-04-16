@@ -1,4 +1,4 @@
-package io.github.infolis.ws.client;
+package io.github.infolis.model.datastore;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -9,15 +9,16 @@ import java.net.URI;
 import javax.ws.rs.BadRequestException;
 
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.datastore.CentralClient;
 
 import org.junit.Test;
 
 
-public class FrontendClientTest {
+public class CentralClientTest {
 
 	@Test
 	public void test() throws Exception {
-//		FrontendClient fc = new FrontendClient();
+		DataStoreClient client = DataStoreClientFactory.global();
 		InfolisFile inFile = new InfolisFile();
 		inFile.setFileName("foobar.quux");
 		inFile.setMediaType("text/plain");
@@ -26,9 +27,9 @@ public class FrontendClientTest {
 		inFile.setFileStatus("AVAILABLE");
 		InfolisFile serverFile;
 		try {
-			FrontendClient.post(InfolisFile.class, inFile);
-			serverFile = FrontendClient.get(InfolisFile.class, URI.create(inFile.getUri()));
+			client.post(InfolisFile.class, inFile);
 			assertTrue("No error posting", true);
+			serverFile = client.get(InfolisFile.class, URI.create(inFile.getUri()));
 			assertThat(serverFile.getFileName(), equalTo(inFile.getFileName()));
 		} catch (BadRequestException e) {
 //			e.printStackTrace();

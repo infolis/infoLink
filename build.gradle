@@ -92,7 +92,7 @@ def createScript(mainClass, scriptName) {
   }
 }
 createScript('io.github.infolis.infolink.tagger.Tagger', 'Tagger')
-createScript('io.github.infolis.infolink.preprocessing.TextExtractor', 'TextExtractor')
+createScript('io.github.infolis.ws.algorithm.TextExtractorAlgorithm', 'TextExtractor')
 createScript('io.github.infolis.infolink.luceneIndexing.Indexer', 'Indexer')
 createScript('io.github.infolis.infolink.searching.Search_Term_Position', 'Search_Term_Position')
 createScript('io.github.infolis.infolink.patternLearner.TrainingSet', 'TrainingSet')

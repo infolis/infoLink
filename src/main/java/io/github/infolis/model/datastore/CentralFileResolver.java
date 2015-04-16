@@ -1,7 +1,7 @@
-package io.github.infolis.model.file;
+package io.github.infolis.model.datastore;
 
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.ws.server.InfolisApplicationConfig;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -35,14 +35,14 @@ class CentralFileResolver implements FileResolver {
 
 	/**
 	 * Resolve a filename to a {@link java.nio.file.Path} relative to the base
-	 * directory defined by the {@link InfolisApplicationConfig}
+	 * directory defined by the {@link InfolisConfig}
 	 * 
 	 * @param fileId
 	 *            the id to resolve
 	 * @return the absolute path to the file
 	 */
 	private static Path resolvePath(String fileId) {
-		return InfolisApplicationConfig.getFileSavePath().resolve(fileId);
+		return InfolisConfig.getFileSavePath().resolve(fileId);
 	}
 
 	@Override

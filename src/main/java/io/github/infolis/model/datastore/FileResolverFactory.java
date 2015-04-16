@@ -1,4 +1,4 @@
-package io.github.infolis.model.file;
+package io.github.infolis.model.datastore;
 
 /**
  * Factory method to create FileResolvers
@@ -9,31 +9,31 @@ package io.github.infolis.model.file;
 public class FileResolverFactory {
 	
 	/**
-	 * @see FileResolverStrategy#CENTRAL
-	 * @see #create(FileResolverStrategy)
+	 * @see DataStoreStrategy#CENTRAL
+	 * @see #create(DataStoreStrategy)
 	 * @return a {@link CentralFileResolver} instance
 	 */
 	public static FileResolver global() {
-		return create(FileResolverStrategy.CENTRAL);
+		return create(DataStoreStrategy.CENTRAL);
 	}
 
 	/**
-	 * @see FileResolverStrategy#LOCAL
-	 * @see #create(FileResolverStrategy)
+	 * @see DataStoreStrategy#LOCAL
+	 * @see #create(DataStoreStrategy)
 	 * @return a {@link LocalFileResolver} instance
 	 */
 	public static FileResolver local() {
-		return create(FileResolverStrategy.LOCAL);
+		return create(DataStoreStrategy.LOCAL);
 	}
 	
 	/**
 	 * Create {@link FileResolver} using the supplied strategy. 
 	 * 
-	 * @param strategy The {@link FileResolverStrategy} to use
+	 * @param strategy The {@link DataStoreStrategy} to use
 	 * @return a {@link FileResolver} instance
 	 */
-	public static FileResolver create(FileResolverStrategy strategy) {
-		Class<? extends FileResolver> clazz = strategy.implementation;
+	public static FileResolver create(DataStoreStrategy strategy) {
+		Class<? extends FileResolver> clazz = strategy.fileResolverClass;
         FileResolver instance = null;
 		try {
 			instance = clazz.newInstance();

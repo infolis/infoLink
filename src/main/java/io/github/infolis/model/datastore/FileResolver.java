@@ -1,4 +1,4 @@
-package io.github.infolis.model.file;
+package io.github.infolis.model.datastore;
 
 import io.github.infolis.model.InfolisFile;
 

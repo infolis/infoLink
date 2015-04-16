@@ -1,24 +1,38 @@
 package io.github.infolis.ws.server;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration of the Infolis Web Services.
  * 
  * @author kba
  */
-public class InfolisApplicationConfig {
+public class InfolisConfig {
 	
-	private static final InfolisApplicationConfig INSTANCE = new InfolisApplicationConfig();
-	
+	private static final String CONFIG_PROPERTIES_NAME = "infolis-config.properties";
+	private static final Logger log = LoggerFactory.getLogger(InfolisConfig.class);
+	private static final ArrayList<String> pathsToSearch = new ArrayList<>();
+
+	private static final InfolisConfig INSTANCE;
+
 	static {
+		// Setup paths to look for config
+		pathsToSearch.add("/etc");
+		pathsToSearch.add(System.getProperty("user.home"));
+		pathsToSearch.add(System.getProperty("user.dir"));
+		
+		// Instantiate
+		INSTANCE = new InfolisConfig();
         // Make sure the configuration is loaded and valid
 		try {
 			validate();
@@ -35,25 +49,33 @@ public class InfolisApplicationConfig {
 	 * Looks for a properties file first in /etc/infolis-ws.properties. If not found, loads defaults from classpath.
 	 * 
 	 */
-	private InfolisApplicationConfig() {
+	private InfolisConfig() {
 		prop = new Properties();
+		
+		// Load default config
 		try {
-			String etcPath = "/etc/infolis-ws.properties";
-			FileInputStream inStream = new FileInputStream(etcPath);
+			InputStream inStream = InfolisConfig.class.getClassLoader().getResourceAsStream(CONFIG_PROPERTIES_NAME);
 			prop.load(inStream);
-			loadedFrom = etcPath;
-		} catch (IOException fnfe) {
-			System.out.println("Couldn't load properties from '/etc/infolis-ws.properties', reverting to default");
+		} catch (IOException | NullPointerException e) {
+			System.err.println("Couldn't load properties from classpath, deployment broken.");
+			e.printStackTrace();
+			System.exit(100);
+		}
+		
+		// Merge configs found in search paths
+		for (String dir : pathsToSearch) {
+			Path path = Paths.get(dir, CONFIG_PROPERTIES_NAME);
 			try {
-				String resourceName = "infolis-ws.properties";
-                InputStream inStream = InfolisApplicationConfig.class.getClassLoader().getResourceAsStream(resourceName);
-				prop.load(inStream);
-				loadedFrom = resourceName;
-			} catch (IOException | NullPointerException e) {
-				System.out.println("Couldn't load properties from classpath, deployment broken.");
-				e.printStackTrace();
+				Properties configFound = new Properties();
+				configFound.load(Files.newInputStream(path));
+				prop.putAll(configFound);
+				log.debug("Loaded properties from '{}'", path);
+			} catch (IOException e) {
+                log.debug("Couldn't load properties from '{}'.", path);
 			}
 		}
+		// TODO debug output
+		log.debug("Found config: {}", prop);
 	}
 
 	/**
@@ -61,9 +83,6 @@ public class InfolisApplicationConfig {
 	 * @throws IOException 
 	 */
 	public static void validate() throws IOException {
-		if (null == INSTANCE.loadedFrom) {
-			throw new IOException("Properties weren't loaded!");
-		}
 		if (! Files.exists(getFileSavePath())) {
 			Files.createDirectories(getFileSavePath());
 		}

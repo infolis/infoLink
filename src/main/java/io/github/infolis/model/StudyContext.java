@@ -1,6 +1,6 @@
 package io.github.infolis.model;
 
-import io.github.infolis.infolink.patternLearner.Util;
+import io.github.infolis.util.SerializationUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -63,7 +63,7 @@ public class StudyContext extends BaseModel {
 	}
 	
 	public String toXML() {
-		return "\t<context term=\"" + Util.escapeXML(this.getTerm()) + 
+		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) + 
 				"\" document=\"" + this.getDocument() + "\">" + System.getProperty("line.separator") + "\t\t" + 
 				"<leftContext>" + this.getLeftText() +"</leftContext>" + System.getProperty("line.separator") + "\t\t" + 
 				"<rightContext>" + this.getRightText() + "</rightContext>" + System.getProperty("line.separator") + 

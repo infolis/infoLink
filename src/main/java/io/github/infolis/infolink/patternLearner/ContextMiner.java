@@ -1,6 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.util.InfolisFileUtils;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -153,7 +155,7 @@ public class ContextMiner
 	 */
 	public String extractUrl(String string)
 	{
-		Pattern urlPat = Util.urlPat; 
+		Pattern urlPat = RegexUtils.urlPat; 
 		Matcher m = urlPat.matcher(string);
 		if (m.find()) { return m.group(); }
 		else { return null; }
@@ -272,7 +274,7 @@ public class ContextMiner
 		// -> it might be favorable to treat such references differently
 		Map<String,Set<String[]>> docNoVersionMap = new HashMap<String,Set<String[]>>();
 		// retrieve patterns of valid year / number / version specifications
-		Pattern[] patterns = Util.getContextMinerYearPatterns();
+		Pattern[] patterns = RegexUtils.getContextMinerYearPatterns();
 
 		for (String document : this.documentMap.keySet())
 		{
@@ -529,6 +531,7 @@ public class ContextMiner
 			File file = new File(filename);  
 			FileInputStream f = new FileInputStream(file);  
 			ObjectInputStream s = new ObjectInputStream(f);  
+			// TODO this could be more obvious
 			Map<String,Set<String[]>> resKnownStudies_ = (Map<String,Set<String[]>>)s.readObject();         
 			s.close();
 			
@@ -607,7 +610,7 @@ public class ContextMiner
 
 		@ Override public String toString()
 		{
-			String delimiter = Util.delimiter_csv;
+			String delimiter = RegexUtils.delimiter_csv;
 			String _alt_name;
 			String _name;
 			String _version;
@@ -753,7 +756,7 @@ public class ContextMiner
 	   */
 	public void saveAllSnippets(String indexDir, Collection<String> termList, String snippetFilename)
 	{
-		try { Util.prepareOutputFile(snippetFilename); }
+		try { InfolisFileUtils.prepareOutputFile(snippetFilename); }
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
@@ -762,7 +765,7 @@ public class ContextMiner
 			catch (IOException ioe) { ioe.printStackTrace(); }
 			catch (Exception e) { e.printStackTrace(); }
 		}
-		try { Util.completeOutputFile(snippetFilename); }
+		try { InfolisFileUtils.completeOutputFile(snippetFilename); }
 		catch (IOException e) { e.printStackTrace(); } 
 	}
 
@@ -791,7 +794,7 @@ public class ContextMiner
 	 */
 	public Set<StudyLink> mergeSnippets(Collection<StudyLink> linkSet)
 	{
-		String delimiter = Util.delimiter_csv;
+		String delimiter = RegexUtils.delimiter_csv;
 		// unique key for links
 		String studyNameVersionLinkConf = "";
 		// snippetMap: contains all different snippets for a link
@@ -815,10 +818,10 @@ public class ContextMiner
 			String allSnippets = "";
 			while (snippetIter.hasNext())
 			{
-				allSnippets += Util.delimiter_internal + snippetIter.next().replace(delimiter, "_");
+				allSnippets += RegexUtils.delimiter_internal + snippetIter.next().replace(delimiter, "_");
 			}
 			// replace first delimiter symbol
-			if (allSnippets.length() > 0) { allSnippets = allSnippets.substring(Util.delimiter_internal.length()); }
+			if (allSnippets.length() > 0) { allSnippets = allSnippets.substring(RegexUtils.delimiter_internal.length()); }
 			StudyLink newLink = new StudyLink(ref.name, ref.version, ref.alt_name, ref.link, ref.type, ref.confidence, allSnippets, ref.method);
 			newLinkSet.add(newLink);
 		}
@@ -833,7 +836,7 @@ public class ContextMiner
 	 */
 	public void outputLinkMap(Map<String, Collection<StudyLink>> linkMap, String filename)
 	{
-		String delimiter = Util.delimiter_csv;
+		String delimiter = RegexUtils.delimiter_csv;
 		String pubStudyNameVersionLinkConf = "";
 		try 
 		{
@@ -892,7 +895,7 @@ public class ContextMiner
 	 */
 	public void outputLinkMap(Map<String, Collection<StudyLink>> linkMap, String filename, String indexDir, String snippetFilename, Map<String,String> idMap, String logFilename, boolean useExistingSnippetCache)
 	{
-		String delimiter = Util.delimiter_csv;
+		String delimiter = RegexUtils.delimiter_csv;
 		String pubStudyNameVersionLinkConf = "";
 		
 		Set<String> allRefNames = getAllRefNames(linkMap);
@@ -929,7 +932,7 @@ public class ContextMiner
 					String termSnippets = "";
 					while (termSnippetIter.hasNext())
 					{
-						termSnippets += Util.delimiter_internal + termSnippetIter.next().replace(delimiter, "_");
+						termSnippets += RegexUtils.delimiter_internal + termSnippetIter.next().replace(delimiter, "_");
 					}
 					System.out.println("term snippets: " + termSnippets); 
 					System.out.println("ref snippets: " + ref.snippet);

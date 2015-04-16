@@ -18,8 +18,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Simple upload/download handler.
@@ -30,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @Path("upload")
 public class UploadWebservice {
 	
-    private Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
+//    private Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
 
 	private FileResolver resolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);;
 	

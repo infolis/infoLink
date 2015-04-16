@@ -1,5 +1,7 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.util.RegexUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -242,7 +244,7 @@ public class StudyMatcher
     	    	if (text.contains(url.toString())) 
     	    	{
     	    		Map<String,String> res = new HashMap<String,String>();
-    	    		String[] data = text.split(Util.delimiter_internal);
+    	    		String[] data = text.split(RegexUtils.delimiter_internal);
     	    		// query is in cache but no data can be found in dara - return empty hashmap
     	    		if (data.length < 3) { res.put("", ""); return res; }
     	    		// each query has n dataset names with n dois
@@ -302,7 +304,7 @@ public class StudyMatcher
 	 */
 	String[] getEnumeratedTerms(String searchTerm)
 	{
-		for (String enumerator : Util.enumeratorList)
+		for (String enumerator : RegexUtils.enumeratorList)
 		{
 			String[] newTerms = searchTerm.split(enumerator);
 			if (newTerms.length > 1) {	return newTerms; }
@@ -370,7 +372,7 @@ public class StudyMatcher
 	 */
 	private void writeToCache(String url, Map<String, String> res)
 	{
-		String delimiter = Util.delimiter_internal;
+		String delimiter = RegexUtils.delimiter_internal;
 		String newLine = url;
 
 		for (String key : res.keySet())	{ newLine = newLine + delimiter + res.get(key) + delimiter + key; }

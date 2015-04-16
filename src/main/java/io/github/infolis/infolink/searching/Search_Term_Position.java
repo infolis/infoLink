@@ -1,8 +1,9 @@
 package io.github.infolis.infolink.searching;
 
 import io.github.infolis.infolink.luceneIndexing.Indexer;
-import io.github.infolis.infolink.patternLearner.Util;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.InfolisFileUtils;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,22 +13,22 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.queryParser.complexPhrase.ComplexPhraseQueryParser;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.queryParser.complexPhrase.ComplexPhraseQueryParser;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 
 /**
  * Class for searching terms and complex phrase queries using a Lucene index.
@@ -174,7 +175,7 @@ public class Search_Term_Position
 		ScoreDoc[] sd = td.scoreDocs;
 		
 		// add xml header if not appending to existing xml file
-		if (!append) { Util.prepareOutputFile(this.filename); }
+		if (!append) { InfolisFileUtils.prepareOutputFile(this.filename); }
 		
 		for (int i = 0; i < sd.length; i++)
 		{
@@ -187,7 +188,7 @@ public class Search_Term_Position
 		analyzer.close();
 		r.close();
 		d.close();
-		if (!append) { Util.completeOutputFile(this.filename); }
+		if (!append) { InfolisFileUtils.completeOutputFile(this.filename); }
 	}
 	
 	public List<StudyContext> complexSearch_getContexts() throws IOException, ParseException
@@ -215,7 +216,7 @@ public class Search_Term_Position
 		{
 			Document doc = searcher.doc(sd[i].doc);
 			System.out.println(doc.get("path"));
-			String text = Util.readFile(new File(doc.get("path")), "UTF-8");
+			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
 			contextList.addAll(getContext(doc.get("path"), term, text));
 		}
 		searcher.close();
@@ -232,8 +233,8 @@ public class Search_Term_Position
 	    // second group: right context (consisting of 5 words)
 	    // contexts may or may not be separated from the query by whitespace!
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
-	    String leftContextPat = "(" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s*?" + ")";
-	    String rightContextPat = "(\\s*?" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.lastWordRegex + ")";
+	    String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
+	    String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(term) + rightContextPat);

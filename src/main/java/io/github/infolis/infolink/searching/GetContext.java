@@ -1,6 +1,7 @@
 package io.github.infolis.infolink.searching;
 
-import io.github.infolis.infolink.patternLearner.Util;
+import io.github.infolis.util.RegexUtils;
+import io.github.infolis.util.SerializationUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -44,9 +45,9 @@ public class GetContext
 		    // assert: leftContexts and rightContexts must always have the same size
 		    for (int i = 0; i < leftContexts.size(); i ++)
 		    {
-		    	String leftContext = io.github.infolis.infolink.patternLearner.Util.escapeXML(leftContexts.get(i));
-		    	String rightContext = io.github.infolis.infolink.patternLearner.Util.escapeXML(rightContexts.get(i));
-		    	out.write("\t<context term=\"" + io.github.infolis.infolink.patternLearner.Util.escapeXML(term) + "\" document=\"" + filename + "\">\n\t\t<leftContext>" + leftContext +"</leftContext>\n\t\t<rightContext>" + rightContext + "</rightContext>\n\t</context>\n");
+		    	String leftContext = SerializationUtils.escapeXML(leftContexts.get(i));
+		    	String rightContext = SerializationUtils.escapeXML(rightContexts.get(i));
+		    	out.write("\t<context term=\"" + SerializationUtils.escapeXML(term) + "\" document=\"" + filename + "\">\n\t\t<leftContext>" + leftContext +"</leftContext>\n\t\t<rightContext>" + rightContext + "</rightContext>\n\t</context>\n");
 		    }
 		    out.close();
 		}
@@ -150,8 +151,8 @@ public class GetContext
 	    // second group: right context (consisting of 5 words)
 	    // contexts may or may not be separated from the query by whitespace!
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
-	    String leftContextPat = "(" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s*?" + ")";
-	    String rightContextPat = "(\\s*?" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.wordRegex + "\\s+" + Util.lastWordRegex + ")";
+	    String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
+	    String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(query) + rightContextPat);

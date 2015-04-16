@@ -1,5 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.util.RegexUtils;
+import io.github.infolis.util.SerializationUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -233,8 +236,8 @@ public class TrainingSet
 
 			for ( int i = 0; i<5; i++ )
 			{
-				mergedContext[i] = Util.normalizeRegex( Util.unescapeXML( _leftContext[i] ));
-				mergedContext[i+5] = Util.normalizeRegex( Util.unescapeXML( _rightContext[i] ));
+				mergedContext[i] = RegexUtils.normalizeRegex( SerializationUtils.unescapeXML( _leftContext[i] ));
+				mergedContext[i+5] = RegexUtils.normalizeRegex( SerializationUtils.unescapeXML( _rightContext[i] ));
 			}
 			mergedContext[10] = classVal; 
 			contextSetMerged.add(mergedContext);

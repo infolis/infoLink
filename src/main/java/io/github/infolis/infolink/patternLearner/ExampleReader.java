@@ -26,7 +26,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * @version 2014-01-27
  *
  */
-public class ExampleReader
+class ExampleReader
 {
 
 	private File examples;

@@ -10,6 +10,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -111,5 +113,34 @@ public class SerializationUtils {
 	public static String changeBaseDir(String filename, String newBaseDir) {
 		return Paths.get(newBaseDir, Paths.get(filename).getFileName().toString()).toString();
 	}
+
+	/**
+	 * Escapes a string for integration into XML files.
+	 * 
+	 * @param string	the string to be escaped
+	 * @return			the escaped string
+	 */
+	public static String escapeXML(String string)
+	{
+	    String xml10pattern = "[^"
+	                + "\u0009\r\n"
+	                + "\u0020-\uD7FF"
+	                + "\uE000-\uFFFD"
+	                + "\ud800\udc00-\udbff\udfff"
+	                + "]";
+		return StringEscapeUtils.escapeXml(string).replaceAll(xml10pattern,"");
+	}
+	
+	/**
+	 * Returns an escaped XML string into its normal string representation.
+	 * 
+	 * @param string	the string to be transformed
+	 * @return			the transformed string
+	 */
+	public static String unescapeXML(String string)
+	{
+		return StringEscapeUtils.unescapeXml(string);
+	}
+	
 
 }

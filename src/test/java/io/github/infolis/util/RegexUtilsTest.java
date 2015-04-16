@@ -1,6 +1,6 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.util;
 
-import io.github.infolis.infolink.patternLearner.Util;
+import io.github.infolis.util.InfolisFileUtils;
 
 import java.util.regex.Pattern;
 
@@ -10,11 +10,11 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.*;
 
 
-public class UtilTest {
+public class RegexUtilsTest {
 
 	@Test
 	public void testGetContextMinerYearPatterns() throws Exception {
-		Pattern pat = Util.getContextMinerYearPatterns()[0];
+		Pattern pat = RegexUtils.getContextMinerYearPatterns()[0];
 		assertThat(pat, is(not(nullValue())));
 //		System.out.println(pat.toString());
 		assertThat(pat.matcher("1995").matches(), is(true));

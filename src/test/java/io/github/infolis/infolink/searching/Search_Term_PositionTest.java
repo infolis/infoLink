@@ -58,9 +58,9 @@ public class Search_Term_PositionTest
 	//TODO: delete files after testing
 	public void createInputFiles() {
 		try { 
-			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
-			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
-			io.github.infolis.infolink.patternLearner.Util.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
+			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
+			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
+			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
 			
 			io.github.infolis.infolink.luceneIndexing.Indexer.main(new String[]{ testCorpus, indexPath });
 		}

@@ -1,6 +1,6 @@
 package io.github.infolis.infolink.tagger;
 
-import io.github.infolis.infolink.patternLearner.Util;
+import io.github.infolis.util.InfolisFileUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;

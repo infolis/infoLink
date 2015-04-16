@@ -3,6 +3,9 @@ package io.github.infolis.infolink.patternLearner;
 import io.github.infolis.infolink.searching.Search_Term_Position;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.InfolisFileUtils;
+import io.github.infolis.util.RegexUtils;
+import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,7 +37,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.queryParser.ParseException;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -401,9 +403,9 @@ public class Learner
 	
 	public void writeContextToXML(StudyContext context, String filename) throws IOException {
 		try {
-			Util.prepareOutputFile(filename);
-			Util.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
-			Util.completeOutputFile(filename);
+			InfolisFileUtils.prepareOutputFile(filename);
+			InfolisFileUtils.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
+			InfolisFileUtils.completeOutputFile(filename);
 		}
 		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
 	}
@@ -541,7 +543,7 @@ public class Learner
 		for (String seed : terms) { saveReliablePatternData(this.extractedContexts.get(seed), threshold); }
 		String output_iteration = getString_reliablePatternOutput( this.reliablePatternsAndContexts, numIter );
 		//TODO: output trace of decisions... (reliability of patterns, change in trusted patterns, instances...)
-		try { Util.writeToFile(logFile, "utf-8", output_iteration, true); }
+		try { InfolisFileUtils.writeToFile(logFile, "utf-8", output_iteration, true); }
 		catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
 		//TODO: USE DIFFERENT STOP CRITERION: continue until patterns stable...
 		if(numIter >= maxIter - 1) { System.out.println("Reached maximum number of iterations! Returning."); return; }
@@ -604,7 +606,7 @@ public class Learner
 			String corpusFilename = studyNcontext[2];
 			String usedPat = studyNcontext[3];
 				
-			context = Util.escapeXML(context);
+			context = SerializationUtils.escapeXML(context);
 			
 			patSet.add(usedPat);
 			studySet.add(studyName);
@@ -621,7 +623,7 @@ public class Learner
 			{
 				// split by study name in this case...
 				//TODO: simple split at first occurrence only :) (split(term,limit))
-				contextList = context.split(Pattern.quote(Util.escapeXML(studyName)));
+				contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
 				if (contextList.length != 2)
 				{
 					System.err.println("Warning: context does not have 10 words and cannot be split around the study name. Ignoring.");
@@ -649,7 +651,7 @@ public class Learner
 					rightContext = contextList[i] + " " + rightContext;
 				}
 			}
-			out.write("\t<context term=\"" + Util.escapeXML(studyName) + "\" document=\"" + Util.escapeXML(corpusFilename) + "\" usedPattern=\"" + Util.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
+			out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
 		}
 			
 		out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
@@ -700,7 +702,7 @@ public class Learner
 			String corpusFilename = studyNcontext[2];
 			String usedPat = studyNcontext[3];
 			
-			context = Util.escapeXML(context);
+			context = SerializationUtils.escapeXML(context);
 			
 			patSet.add(usedPat);
 			studySet.add(studyName);
@@ -720,7 +722,7 @@ public class Learner
 				{
 					// split by study name in this case...
 					// TODO: (s.o.)
-					contextList = context.split(Pattern.quote(Util.escapeXML(studyName)));
+					contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
 					if (contextList.length != 2)
 					{
 						System.err.println("Warning: context has not 10 words and cannot by split around the study name. Check output method.");
@@ -748,7 +750,7 @@ public class Learner
 						rightContext = contextList[i] + " " + rightContext;
 					}
 				}
-				out.write("\t<context term=\"" + Util.escapeXML(studyName) + "\" document=\"" + Util.escapeXML(corpusFilename) + "\" usedPattern=\"" + Util.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
+				out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() +"</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
 				distinctContexts.add(context.replace("\\s+", ""));
 			}
 		}
@@ -1056,7 +1058,7 @@ public class Learner
 			// if thread was aborted due to long processing time, matchFound should be false
 			if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
 			// TODO don't hardcode this path
-			else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+			else { InfolisFileUtils.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 			
 			while(matchFound)
 			{
@@ -1074,7 +1076,7 @@ public class Learner
 					// if thread was aborted due to long processing time, matchFound should be false
 					if(threadCompleted(thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
 					// TODO don't hardcode this path
-					else { Util.writeToFile(new File("data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true); }
+					else { InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true); }
 					System.out.println( "Processing new match..." );
 					continue;
 				}
@@ -1092,7 +1094,7 @@ public class Learner
 						// if thread was aborted due to long processing time, matchFound should be false
 						if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
 						// TODO don't hardcode this path
-						else { Util.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+						else { InfolisFileUtils.writeToFile( new File( "data/abortedMatches.txt" ), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 						System.out.println("Processing new match...");
 						continue;
 					} 
@@ -1137,7 +1139,7 @@ public class Learner
 				// if thread was aborted due to long processing time, matchFound should be false
 				if (threadCompleted( thread, maxTimeMillis, startTimeMillis)) { matchFound = safeMatch.find; }
 				// TODO don't hardcode this path
-				else { Util.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
+				else { InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true ); }
 				System.out.println( "Processing new match...");
 			}
 		}
@@ -1167,16 +1169,16 @@ public class Learner
 		String attVal9 = instance.stringValue(9); //r5
 		
 		//TODO: CONSTRUCT LUCENE QUERIES ONLY WHEN NEEDED (BELOW)
-		String attVal0_lucene = Util.normalizeAndEscapeRegex_lucene(attVal0);
-		String attVal1_lucene = Util.normalizeAndEscapeRegex_lucene(attVal1);
-		String attVal2_lucene = Util.normalizeAndEscapeRegex_lucene(attVal2);
-		String attVal3_lucene = Util.normalizeAndEscapeRegex_lucene(attVal3);
-		String attVal4_lucene = Util.normalizeAndEscapeRegex_lucene(attVal4);
-		String attVal5_lucene = Util.normalizeAndEscapeRegex_lucene(attVal5);
-		String attVal6_lucene = Util.normalizeAndEscapeRegex_lucene(attVal6);
-		String attVal7_lucene = Util.normalizeAndEscapeRegex_lucene(attVal7);
-		String attVal8_lucene = Util.normalizeAndEscapeRegex_lucene(attVal8);
-		String attVal9_lucene = Util.normalizeAndEscapeRegex_lucene(attVal9);
+		String attVal0_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal0);
+		String attVal1_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal1);
+		String attVal2_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal2);
+		String attVal3_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal3);
+		String attVal4_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal4);
+		String attVal5_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal5);
+		String attVal6_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal6);
+		String attVal7_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal7);
+		String attVal8_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal8);
+		String attVal9_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal9);
 
 		String attVal0_quoted = Pattern.quote(attVal0);
 		String attVal1_quoted = Pattern.quote(attVal1);
@@ -1189,8 +1191,8 @@ public class Learner
 		String attVal8_quoted = Pattern.quote(attVal8);
 		String attVal9_quoted = Pattern.quote(attVal9);
 				
-		String attVal4_regex = Util.normalizeAndEscapeRegex(attVal4);
-		String attVal5_regex = Util.normalizeAndEscapeRegex(attVal5);
+		String attVal4_regex = RegexUtils.normalizeAndEscapeRegex(attVal4);
+		String attVal5_regex = RegexUtils.normalizeAndEscapeRegex(attVal5);
 			
 		//...
 		if (attVal4.matches(".*\\P{Punct}")) 
@@ -1206,83 +1208,83 @@ public class Learner
 		
 		// two words enclosing study name
 		String luceneQuery1 = "\"" + attVal4_lucene + " * " + attVal5_lucene + "\"";
-		String regex_ngram1_quoted = attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-		String regex_ngram1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngram1_quoted = attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+		String regex_ngram1_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 2 words behind study title + fixed word before
 		String luceneQueryA = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + "\""; 
-		String regex_ngramA_quoted = Pattern.quote(attVal4) + "\\s?" + Util.studyRegex_ngram + "\\s?" + Pattern.quote(attVal5) + "\\s" + Pattern.quote(attVal6);
-		String regex_ngramA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngramA_quoted = Pattern.quote(attVal4) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + Pattern.quote(attVal5) + "\\s" + Pattern.quote(attVal6);
+		String regex_ngramA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 2 words behind study title + (any) word found in data before!
 		// (any word cause this pattern is induced each time for each different instance having this phrase...)
 		String luceneQueryA_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + "\""; 
 		String regex_ngramA_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted; 
-		//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngramA_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 3 words behind study title + fixed word before
 		String luceneQueryB = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
-		String regex_ngramB_quoted = attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
-		String regex_ngramB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngramB_quoted = attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
+		String regex_ngramB_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		String luceneQueryB_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
 		String regex_ngramB_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
-		//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngramB_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 4 words behind study title + fixed word before
 		String luceneQueryC = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
-		String regex_ngramC_quoted = attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
-		String regex_ngramC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+		String regex_ngramC_quoted = attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
+		String regex_ngramC_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
 				
 		String luceneQueryC_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
 		String regex_ngramC_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
-		//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+		//String regex_ngramC_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 5 words behind study title + fixed word before
 		String luceneQueryD = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
-		String regex_ngramD_quoted = attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
-		String regex_ngramD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+		String regex_ngramD_quoted = attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
+		String regex_ngramD_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 
 		// now the pattern can emerge at other positions, too, and is counted here as relevant...
 		String luceneQueryD_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
 		String regex_ngramD_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
-		//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+		//String regex_ngramD_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 		
 		// phrase consisting of 2 words before study title + fixed word behind
 		String luceneQuery2 = "\"" + attVal3_lucene + " " + attVal4_lucene  + " * " + attVal5_lucene + "\""; 
-		String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-		String regex_ngram2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+		String regex_ngram2_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 		String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram2_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 3 words before study title + fixed word behind
 		String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
-		String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-		String regex_ngram3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+		String regex_ngram3_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 		String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram3_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 4 words before study title + fixed word behind
 		String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-		String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-		String regex_ngram4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+		String regex_ngram4_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 		String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram4_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		// phrase consisting of 5 words before study title + fixed word behind
 		String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-		String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-		String regex_ngram5_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+		String regex_ngram5_normalizedAndQuoted = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 		String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-		//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+		//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 		
 		List<String[]> ngramPats = new ArrayList<String[]>();
 		// constraint for ngrams: at least one component not be a stopword
@@ -1445,16 +1447,16 @@ public class Learner
 			String attVal9 = context.getRightWords().get(4); //r5
 				
 			//TODO: CONSTRUCT LUCENE QUERIES ONLY WHEN NEEDED (BELOW) 
-			String attVal0_lucene = Util.normalizeAndEscapeRegex_lucene(attVal0);
-			String attVal1_lucene = Util.normalizeAndEscapeRegex_lucene(attVal1);
-			String attVal2_lucene = Util.normalizeAndEscapeRegex_lucene(attVal2);
-			String attVal3_lucene = Util.normalizeAndEscapeRegex_lucene(attVal3);
-			String attVal4_lucene = Util.normalizeAndEscapeRegex_lucene(attVal4);
-			String attVal5_lucene = Util.normalizeAndEscapeRegex_lucene(attVal5);
-			String attVal6_lucene = Util.normalizeAndEscapeRegex_lucene(attVal6);
-			String attVal7_lucene = Util.normalizeAndEscapeRegex_lucene(attVal7);
-			String attVal8_lucene = Util.normalizeAndEscapeRegex_lucene(attVal8);
-			String attVal9_lucene = Util.normalizeAndEscapeRegex_lucene(attVal9);
+			String attVal0_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal0);
+			String attVal1_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal1);
+			String attVal2_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal2);
+			String attVal3_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal3);
+			String attVal4_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal4);
+			String attVal5_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal5);
+			String attVal6_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal6);
+			String attVal7_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal7);
+			String attVal8_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal8);
+			String attVal9_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal9);
 			
 			String attVal0_quoted = Pattern.quote(attVal0);
 			String attVal1_quoted = Pattern.quote(attVal1);
@@ -1467,8 +1469,8 @@ public class Learner
 			String attVal8_quoted = Pattern.quote(attVal8);
 			String attVal9_quoted = Pattern.quote(attVal9);
 					
-			String attVal4_regex = Util.normalizeAndEscapeRegex(attVal4);
-			String attVal5_regex = Util.normalizeAndEscapeRegex(attVal5);
+			String attVal4_regex = RegexUtils.normalizeAndEscapeRegex(attVal4);
+			String attVal5_regex = RegexUtils.normalizeAndEscapeRegex(attVal5);
 				
 			//...
 			if (attVal4.matches(".*\\P{Punct}")) 
@@ -1485,86 +1487,86 @@ public class Learner
 				
 			// two words enclosing study name
 			String luceneQuery1 = "\"" + attVal4_lucene + " * " + attVal5_lucene + "\"";
-			String regex_ngram1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngram1_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String regex_ngram1_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngram1_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 			
 			// phrase consisting of 2 words behind study title + fixed word before
 			String luceneQueryA = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + "\""; 
-			String regex_ngramA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngramA_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6);
+			String regex_ngramA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngramA_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6);
 			
 			// phrase consisting of 2 words behind study title + (any) word found in data before
 			// (any word cause this pattern is induced each time for each different instance having this phrase...)
 			String luceneQueryA_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + "\""; 
 			String regex_ngramA_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted; 
-			//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngramA_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 3 words behind study title + fixed word before
 			String luceneQueryB = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
-			String regex_ngramB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngramB_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7);
+			String regex_ngramB_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngramB_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7);
 			
 			String luceneQueryB_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
 			String regex_ngramB_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
-			//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngramB_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			//phrase consisting of 4 words behind study title + fixed word before
 			String luceneQueryC = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
-			String regex_ngramC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
-			String regex_ngramC_minimal	= attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8);
+			String regex_ngramC_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngramC_minimal	= attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8);
 			
 			String luceneQueryC_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
 			String regex_ngramC_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
-			//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+			//String regex_ngramC_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
 			
 			//phrase consisting of 5 words behind study title + fixed word before
 			String luceneQueryD = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
-			String regex_ngramD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
-			String regex_ngramD_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+			String regex_ngramD_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
+			String regex_ngramD_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 			
 			// now the pattern can emerge at other positions, too, and is counted here as relevant...
 			String luceneQueryD_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
 			String regex_ngramD_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
-			//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+			//String regex_ngramD_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 				
 			// phrase consisting of 2 words before study title + fixed word behind
 			String luceneQuery2 = "\"" + attVal3_lucene + " " + attVal4_lucene  + " * " + attVal5_lucene + "\""; 
-			String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-			String regex_ngram2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngram2_minimal = Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram2_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngram2_minimal = RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 			
 			String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 			String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
-			//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram2_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 3 words before study title + fixed word behind
 			String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
-			String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-			String regex_ngram3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngram3_minimal = Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram3_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngram3_minimal = RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 			
 			String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 			String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-			//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram3_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			//phrase consisting of 4 words before study title + fixed word behind
 			String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-			String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-			String regex_ngram4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngram4_minimal = Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram4_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngram4_minimal = RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 			String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 			String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-			//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram4_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 			// phrase consisting of 5 words before study title + fixed word behind
 			String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-			String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-			String regex_ngram5_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-			String regex_ngram5_minimal = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+			String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+			String regex_ngram5_normalizedAndQuoted = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+			String regex_ngram5_minimal = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 			
 			String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 			String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			// constraint for ngrams: at least one component not be a stopword
 			//TODO: CHECK DOCSTRINGS: ORDER CORRECT?
 			// first entry: luceneQuery; second entry: normalized and quoted version; third entry: minimal version (for reliability checks...)
@@ -1693,16 +1695,16 @@ public class Learner
 				String attVal9 = curInstance.stringValue(9); //r5
 				
 				//TODO: CONSTRUCT LUCENE QUERIES ONLY WHEN NEEDED (BELOW) 
-				String attVal0_lucene = Util.normalizeAndEscapeRegex_lucene(attVal0);
-				String attVal1_lucene = Util.normalizeAndEscapeRegex_lucene(attVal1);
-				String attVal2_lucene = Util.normalizeAndEscapeRegex_lucene(attVal2);
-				String attVal3_lucene = Util.normalizeAndEscapeRegex_lucene(attVal3);
-				String attVal4_lucene = Util.normalizeAndEscapeRegex_lucene(attVal4);
-				String attVal5_lucene = Util.normalizeAndEscapeRegex_lucene(attVal5);
-				String attVal6_lucene = Util.normalizeAndEscapeRegex_lucene(attVal6);
-				String attVal7_lucene = Util.normalizeAndEscapeRegex_lucene(attVal7);
-				String attVal8_lucene = Util.normalizeAndEscapeRegex_lucene(attVal8);
-				String attVal9_lucene = Util.normalizeAndEscapeRegex_lucene(attVal9);
+				String attVal0_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal0);
+				String attVal1_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal1);
+				String attVal2_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal2);
+				String attVal3_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal3);
+				String attVal4_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal4);
+				String attVal5_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal5);
+				String attVal6_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal6);
+				String attVal7_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal7);
+				String attVal8_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal8);
+				String attVal9_lucene = RegexUtils.normalizeAndEscapeRegex_lucene(attVal9);
 				
 				String attVal0_quoted = Pattern.quote(attVal0);
 				String attVal1_quoted = Pattern.quote(attVal1);
@@ -1715,8 +1717,8 @@ public class Learner
 				String attVal8_quoted = Pattern.quote(attVal8);
 				String attVal9_quoted = Pattern.quote(attVal9);
 						
-				String attVal4_regex = Util.normalizeAndEscapeRegex(attVal4);
-				String attVal5_regex = Util.normalizeAndEscapeRegex(attVal5);
+				String attVal4_regex = RegexUtils.normalizeAndEscapeRegex(attVal4);
+				String attVal5_regex = RegexUtils.normalizeAndEscapeRegex(attVal5);
 					
 				//...
 				if (attVal4.matches(".*\\P{Punct}")) 
@@ -1733,87 +1735,87 @@ public class Learner
 				
 				// two words enclosing study name
 				String luceneQuery1 = "\"" + attVal4_lucene + " * " + attVal5_lucene + "\"";
-				String regex_ngram1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngram1_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+				String regex_ngram1_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngram1_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 				
 				// phrase consisting of 2 words behind study title + fixed word before
 				String luceneQueryA = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + "\""; 
-				String regex_ngramA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngramA_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6);
+				String regex_ngramA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngramA_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6);
 				
 				// phrase consisting of 2 words behind study title + (any) word found in data before
 				// (any word cause this pattern is induced each time for each different instance having this phrase...)
 				String luceneQueryA_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + "\""; 
 				String regex_ngramA_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted; 
-				//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngramA_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 				// phrase consisting of 3 words behind study title + fixed word before
 				String luceneQueryB = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
-				String regex_ngramB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngramB_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7);
+				String regex_ngramB_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngramB_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7);
 				
 				String luceneQueryB_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + "\""; 
 				String regex_ngramB_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted;
-				//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngramB_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 				//phrase consisting of 4 words behind study title + fixed word before
 				String luceneQueryC = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
-				String regex_ngramC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
-				String regex_ngramC_minimal	= attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8);
+				String regex_ngramC_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngramC_minimal	= attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8);
 				
 				String luceneQueryC_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
 				String regex_ngramC_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
-				//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.lastWordRegex;
+				//String regex_ngramC_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
 				
 				//phrase consisting of 5 words behind study title + fixed word before
 				String luceneQueryD = "\"" + attVal4_lucene + " * " + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
-				String regex_ngramD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
-				String regex_ngramD_minimal = attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+				String regex_ngramD_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
+				String regex_ngramD_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 				
 				// now the pattern can emerge at other positions, too, and is counted here as relevant...
 				String luceneQueryD_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
 				String regex_ngramD_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
-				//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.normalizeAndEscapeRegex(attVal6) + "\\s" + Util.normalizeAndEscapeRegex(attVal7) + "\\s" + Util.normalizeAndEscapeRegex(attVal8) + "\\s" + Util.normalizeAndEscapeRegex(attVal9);
+				//String regex_ngramD_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 				
 				// phrase consisting of 2 words before study title + fixed word behind
 				String luceneQuery2 = "\"" + attVal3_lucene + " " + attVal4_lucene  + " * " + attVal5_lucene + "\""; 
-				String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-				String regex_ngram2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngram2_minimal = Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+				String regex_ngram2_quoted = attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+				String regex_ngram2_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngram2_minimal = RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 				
 				String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 				String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram2_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 				// phrase consisting of 3 words before study title + fixed word behind
 				String luceneQuery3 = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\""; 
-				String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-				String regex_ngram3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngram3_minimal = Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+				String regex_ngram3_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+				String regex_ngram3_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngram3_minimal = RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 				
 				String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 				String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram3_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 				//phrase consisting of 4 words before study title + fixed word behind
 				String luceneQuery4 = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-				String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-				String regex_ngram4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngram4_minimal = Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+				String regex_ngram4_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+				String regex_ngram4_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngram4_minimal = RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 
 				String luceneQuery4_flex = "\"" + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 				String regex_ngram4_flex_quoted = attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram4_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 				
 				// phrase consisting of 5 words before study title + fixed word behind
 				String luceneQuery5 = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + " * " + attVal5_lucene + "\"";
-				String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_quoted;
-				String regex_ngram5_normalizedAndQuoted = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
-				String regex_ngram5_minimal = Util.normalizeAndEscapeRegex(attVal0) + "\\s" + Util.normalizeAndEscapeRegex(attVal1) + "\\s" + Util.normalizeAndEscapeRegex(attVal2) + "\\s" + Util.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex;
+				String regex_ngram5_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted+ "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_quoted;
+				String regex_ngram5_normalizedAndQuoted = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
+				String regex_ngram5_minimal = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 				
 				String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 				String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
-				//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+				//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 	
 				// constraint for ngrams: at least one component not be a stopword
 				//TODO: GOT ORDER WRONG IN PREVIOUS DOCSTRING
@@ -2265,11 +2267,11 @@ public class Learner
 		// due to text extraction errors, whitespace is frequently added to words resulting in many single characters
 		// TODO: use this as small work-around but work on better methods for automatic text correction
 		if (word.length() < 2) { return true; }
-		if (Util.stopwordList().contains(word)) { return true; }
+		if (RegexUtils.stopwordList().contains(word)) { return true; }
 		// treat concatenations of stopwords as stopword
-		for (String stopword : Util.stopwordList())
+		for (String stopword : RegexUtils.stopwordList())
 		{
-			if (Util.stopwordList().contains(word.replace(stopword, "")))
+			if (RegexUtils.stopwordList().contains(word.replace(stopword, "")))
 			{ return true; }
 		}
 		return false; 
@@ -2424,7 +2426,7 @@ public class Learner
 			
 			Function<String, String> normalizeAndEscape_lucene = 
 					new Function<String, String>() {
-						public String apply(String s) { return Util.normalizeAndEscapeRegex_lucene(s); }
+						public String apply(String s) { return RegexUtils.normalizeAndEscapeRegex_lucene(s); }
 			};
 			
 			Function<String, String> pattern_quote = 
@@ -2434,7 +2436,7 @@ public class Learner
 			
 			Function<String, String> regex_escape = 
 					new Function<String, String>() {
-						public String apply(String s) { return Util.normalizeAndEscapeRegex(s); }
+						public String apply(String s) { return RegexUtils.normalizeAndEscapeRegex(s); }
 			};
 			//apply normalizeAndEscape_lucene method on all words of the context
 			ArrayList<String> leftWords_lucene = new ArrayList<String>(Lists.transform(leftWords, normalizeAndEscape_lucene));
@@ -2465,83 +2467,83 @@ public class Learner
 			//TODO: atomic regex...?
 			// most general pattern: two words enclosing study name
 			String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
-			String regex1_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
-			String regex1_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex1_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex1_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 2 words behind study title + fixed word before
 			String luceneQueryA = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\""; 
 			String regexA_quoted = regex1_quoted + "\\s" + rightWords_quoted.get(1);
-			String regexA_normalizedAndQuoted = Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regexA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 2 words behind study title + (any) word found in data before!
 			// (any word cause this pattern is induced each time for each different instance having this phrase...)
 			String luceneQueryA_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\""; 
 			String regexA_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1); 
-			//String regex_ngramA_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngramA_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 3 words behind study title + fixed word before
 			String luceneQueryB = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\""; 
-			String regexB_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
-			String regexB_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regexB_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
+			String regexB_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			String luceneQueryB_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\""; 
 			String regexB_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
-			//String regex_ngramB_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngramB_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			// phrase consisting of 4 words behind study title + fixed word before
 			String luceneQueryC = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + "\""; 
-			String regexC_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3);
-			String regexC_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + Util.lastWordRegex;
+			String regexC_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3);
+			String regexC_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + RegexUtils.lastWordRegex;
 								
 			String luceneQueryC_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + "\""; 
 			String regexC_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3);
-			//String regex_ngramC_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + Util.lastWordRegex;
+			//String regex_ngramC_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + RegexUtils.lastWordRegex;
 						
 			// phrase consisting of 5 words behind study title + fixed word before
 			String luceneQueryD = "\"" + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + " " + rightWords_lucene.get(4) + "\""; 
-			String regexD_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3) + "\\s" + rightWords_quoted.get(4);
-			String regexD_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
+			String regexD_quoted = leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3) + "\\s" + rightWords_quoted.get(4);
+			String regexD_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
 
 			// now the pattern can emerge at other positions, too, and is counted here as relevant...
 			String luceneQueryD_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + " " + rightWords_lucene.get(4) + "\""; 
 			String regexD_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2) + "\\s" + rightWords_quoted.get(3) + "\\s" + rightWords_quoted.get(4);
-			//String regex_ngramD_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
+			//String regex_ngramD_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
 					
 			// phrase consisting of 2 words before study title + fixed word behind
 			String luceneQuery2 = "\"" + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1)  + " * " + rightWords_lucene.get(0) + "\""; 
-			String regex2_quoted = leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
-			String regex2_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex2_quoted = leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex2_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			String luceneQuery2_flex = "\"" + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\""; 
 			String regex2_flex_quoted = leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
-			//String regex_ngram2_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram2_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			// phrase consisting of 3 words before study title + fixed word behind
 			String luceneQuery3 = "\"" + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\""; 
-			String regex3_quoted = leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
-			String regex3_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex3_quoted = leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex3_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			String luceneQuery3_flex = "\"" + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\""; 
 			String regex3_flex_quoted = leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
-			//String regex_ngram3_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram3_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 					
 			// phrase consisting of 4 words before study title + fixed word behind
 			String luceneQuery4 = "\"" + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
-			String regex4_quoted = leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
-			String regex4_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex4_quoted = leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex4_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			String luceneQuery4_flex = "\"" + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\"";
 			String regex4_flex_quoted = leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
-			//String regex_ngram4_flex_normalizedAndQuoted = Util.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram4_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 					
 			// phrase consisting of 5 words before study title + fixed word behind
 			String luceneQuery5 = "\"" + leftWords_lucene.get(windowSize-5) + " " + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + " * " + rightWords_lucene.get(0) + "\"";
-			String regex5_quoted = leftWords_quoted.get(windowSize-5) + "\\s" + leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
-			String regex5_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			String regex5_quoted = leftWords_quoted.get(windowSize-5) + "\\s" + leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
+			String regex5_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + leftWords_regex.get(windowSize-1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 						
 			String luceneQuery5_flex = "\"" + leftWords_lucene.get(windowSize-5) + " " + leftWords_lucene.get(windowSize-4) + " " + leftWords_lucene.get(windowSize-3) + " " + leftWords_lucene.get(windowSize-2) + " " + leftWords_lucene.get(windowSize-1) + "\"";
 			String regex5_flex_quoted = leftWords_quoted.get(windowSize-5) + "\\s" + leftWords_quoted.get(windowSize-4) + "\\s" + leftWords_quoted.get(windowSize-3) + "\\s" + leftWords_quoted.get(windowSize-2) + "\\s" + leftWords_quoted.get(windowSize-1);
-			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + Util.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.wordRegex + "\\s" + Util.lastWordRegex;
+			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 			
 			
 			// constraint for patterns: at least one component not be a stopword
@@ -2732,7 +2734,7 @@ public class Learner
 		public String constructTitleVersionRegex(String title)
 		{
 			// at least one whitespace required...
-			return "(" + title + ")" + "\\S*?" + "\\s+" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" +"\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "((" + Util.yearRegex + "\\s*((-)|(–))\\s*\\d\\d(\\d\\d)?"+ ")|(" + Util.yearRegex + ")|(\\d+[.,-/\\\\]?\\d*))";
+			return "(" + title + ")" + "\\S*?" + "\\s+" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" +"\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "((" + RegexUtils.yearRegex + "\\s*((-)|(–))\\s*\\d\\d(\\d\\d)?"+ ")|(" + RegexUtils.yearRegex + ")|(\\d+[.,-/\\\\]?\\d*))";
 		}
 		
 		/**
@@ -2813,7 +2815,7 @@ public class Learner
 					else
 					{
 						// TODO don't hardcode
-						Util.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
+						InfolisFileUtils.writeToFile(new File( "data/abortedMatches_studyTitles.txt" ), "utf-8", filename + ";" + p + "\n", true);
 					}
 					
 					while (matchFound)
@@ -2840,7 +2842,7 @@ public class Learner
 						else
 						{
 							// TODO don't hardcode
-							Util.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
+							InfolisFileUtils.writeToFile(new File("data/abortedMatches_studyTitles.txt"), "utf-8", filename + ";" + p + "\n", true);
 						}
 						System.out.println("Processing new match...");
 					}
@@ -2952,7 +2954,7 @@ public class Learner
 		{
 			// load saved patterns
 			Set<String> patternSet1;
-			try { patternSet1 = Util.getDisctinctPatterns(new File(path_patterns)); }
+			try { patternSet1 = InfolisFileUtils.getDisctinctPatterns(new File(path_patterns)); }
 			catch (IOException ioe) { patternSet1 = new HashSet<String>(); }
 
 			// list previously processed files to allow pausing and resuming of testing operation
@@ -3064,7 +3066,7 @@ public class Learner
 		
 		public void outputParameterInfo(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, String method, double threshold, int maxIterations)
 		{
-			String delimiter = Util.delimiter_csv;
+			String delimiter = RegexUtils.delimiter_csv;
 			String timestamp = getDateTime();
 			File logFile = new File(path_output + File.separator + "parameterInfo.csv");
 			String parameters = "initial_seeds" + delimiter + "index_path" + delimiter + "train_path" + delimiter + 
@@ -3072,14 +3074,14 @@ public class Learner
 								"arff_path" + delimiter + "constraint_NP" + delimiter + "constraint_upperCase" + delimiter + 
 								"method" + delimiter + "threshold" + delimiter + "maxIterations" + delimiter + "start_time" + 
 								System.getProperty("line.separator");
-			for(String seed : initialSeeds) { parameters += seed + Util.delimiter_internal; }
+			for(String seed : initialSeeds) { parameters += seed + RegexUtils.delimiter_internal; }
 			//remove delimiter at the end of the seed list
-			parameters = parameters.substring(0, parameters.length()-Util.delimiter_internal.length());
+			parameters = parameters.substring(0, parameters.length()-RegexUtils.delimiter_internal.length());
 			parameters = parameters.trim() + delimiter + path_index + delimiter + path_train + delimiter + path_corpus + 
 						delimiter + path_output + delimiter + path_contexts + delimiter + path_arffs + delimiter + 
 						constraint_NP + delimiter + constraint_upperCase + delimiter + method + delimiter + threshold + 
 						delimiter + maxIterations + delimiter + timestamp;
-			try { Util.writeToFile(logFile, "utf-8", parameters, false); }
+			try { InfolisFileUtils.writeToFile(logFile, "utf-8", parameters, false); }
 			catch(IOException ioe) { ioe.printStackTrace(); System.out.println(parameters); }
 		}
 		
@@ -3241,7 +3243,7 @@ class OptionHandler {
         String taggingCmd = null;
         String chunkingCmd = null;
         if(taggerArgs != null) {
-        	String[] taggerArgList = taggerArgs.split(Util.delimiter_internal);
+        	String[] taggerArgList = taggerArgs.split(RegexUtils.delimiter_internal);
         	taggingCmd = taggerArgList[0];
         	chunkingCmd = taggerArgList[1];
         }
@@ -3288,7 +3290,7 @@ class OptionHandler {
 			if(! tp_contexts.exists()) { tp_contexts.mkdirs(); System.out.println("Created directory " + tp_contexts); }
 			if(! tp_arffs.exists()) { tp_arffs.mkdirs(); System.out.println("Created directory " + tp_arffs); }
 			if(! op.exists()) { op.mkdirs(); System.out.println("Created directory " + op); }
-			String[] seedArray = seeds.split(Util.delimiter_internal);
+			String[] seedArray = seeds.split(RegexUtils.delimiter_internal);
 			if(reliabilityThreshold != null)
 			{	
 			    double threshold = Double.parseDouble(reliabilityThreshold);

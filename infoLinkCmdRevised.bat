@@ -1,0 +1,1 @@
+python.exe C:/Users/domi/InFoLiS2/backend/infoLink/src/main/python/infoLinkRevised.py "build/classes/main/;build/install/infoLink/lib/*" -c "C:/Users/domi/InFoLiS2/InfoLink/infoLink/in" -l "trainingOut" -o "output" -s "OECD" -i "C:/Users/domi/InFoLiS2/backend/infoLink/index"  -m "../data/test/urnDict.csv" -u -f "0.0" -N "2" -F "mergeAll"

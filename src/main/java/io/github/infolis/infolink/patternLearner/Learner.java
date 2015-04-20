@@ -1,8 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.infolink.tagger.Tagger;
@@ -48,6 +48,8 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -73,6 +75,9 @@ import com.google.common.collect.Lists;
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
 public class Learner implements Algorithm
 {
+	
+	Logger log = LoggerFactory.getLogger(Learner.class);
+	
 	List<List<String>> contextsAsStrings;
 	Set<String> processedSeeds; //all processed seeds
 	Set<String> foundSeeds_iteration; //seeds found at current iteration step
@@ -828,13 +833,12 @@ public class Learner implements Algorithm
 		{
 			// get list of documents in which to search for the regular expression
 			try { 
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
+				List<String> candidateCorpus = getStudyRef_lucene(curPat[0]); 
 				Set<String> patSet = new HashSet<String>();
 				patSet.add(curPat[2]);
 				resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 			continue;
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
@@ -852,6 +856,8 @@ public class Learner implements Algorithm
 	 * @param corpus	list of filenames of the text corpus
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
 	private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException, ParseException
 	{
@@ -859,17 +865,14 @@ public class Learner implements Algorithm
 		
 		for (String curPat[] : patterns)
 		{
-			try { 
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
-				Set<String> patSet = new HashSet<String>();
-				patSet.add(curPat[1]);
-				//TODO: see above...
-				try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
-				catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-				this.processedPatterns.add(curPat[1]);
-				continue;
-			}
-			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
+			List<String> candidateCorpus = getStudyRef_lucene(curPat[0]); 
+			Set<String> patSet = new HashSet<String>();
+			patSet.add(curPat[1]);
+			//TODO: see above...
+			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			this.processedPatterns.add(curPat[1]);
+			continue;
 	
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
@@ -881,19 +884,25 @@ public class Learner implements Algorithm
 	 * 
 	 * @param lucene_pattern	lucene search query
 	 * @return					a list of documents with hits
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	private String[] getStudyRef_lucene(String lucene_pattern) throws IOException, ParseException
+	private List<String> getStudyRef_lucene(String lucene_pattern)
 	{
-		String[] candidateCorpus;
-		try
-		{
-			// lucene query is assumed to be normalized
-			SearchTermPosition candidateSearcher = new SearchTermPosition(this.indexPath, "", "", lucene_pattern);
-			candidateCorpus = candidateSearcher.complexSearch();
-			//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
+		List<String> candidateCorpus;
+		// lucene query is assumed to be normalized
+		Execution exec = new Execution();
+		exec.setAlgorithm(SearchTermPosition.class);
+		exec.setFirstOutputFile("");
+		exec.setSearchTerm("");
+		exec.setSearchQuery(lucene_pattern);
+		try {
+			exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw new IOException(); }
-		catch(ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
+		candidateCorpus = exec.getMatchingFilenames();
+		//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
 		System.out.println("Done processing lucene query. Continuing.");
 		return candidateCorpus;
 	}
@@ -906,7 +915,7 @@ public class Learner implements Algorithm
 	 * @param corpus	array of filenames of text documents to search patterns in
 	 * @return			a list of extracted contexts
 	 */
-	private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs(Set<String> patterns, List<String> corpus) throws IOException
 	{
 		List<String[]> resAggregated = new ArrayList<String[]>();
 		for (String filename: corpus)
@@ -2395,8 +2404,9 @@ public class Learner implements Algorithm
 	    	res = getStudyRefs_optimized(patterns,corpus_test); 
 	    }
 	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
-		System.out.println("done applying patterns. ");
+		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); 
+		}
+		log.debug("done applying patterns. ");
 	    return res;
 	}
 	

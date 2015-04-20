@@ -1,6 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.infolink.searching.SearchTermPosition;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
@@ -28,6 +30,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Class for mapping dataset references listed in InfoLink reference extraction context files 
@@ -37,8 +42,9 @@ import java.util.regex.Pattern;
  * @version 2014-01-27
  *
  */
-public class ContextMiner 
-{
+public class ContextMiner {
+	
+	private Logger log = LoggerFactory.getLogger(ContextMiner.class);
 	Set<String> documentSet;
 	Map<String, ExampleReader.Term> termMap;
 	Map<String,Set<String[]>> documentMap;
@@ -643,10 +649,18 @@ public class ContextMiner
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + SearchTermPosition.normalizeQuery(term, true) + "\"");
-			try { search.complexSearch(new File(snippetFilename), true);	}
-			catch (IOException ioe) { ioe.printStackTrace(); }
-			catch (Exception e) { e.printStackTrace(); }
+			String query = '"' + SearchTermPosition.normalizeQuery(term, true) + '"';
+			Execution exec = new Execution();
+//			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + query + "\"");
+			exec.setSearchQuery(query);
+			exec.setSearchTerm(term.trim());
+			exec.setFirstOutputFile(snippetFilename);
+			exec.setAlgorithm(SearchTermPosition.class);
+			try {
+				exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+			} catch (InstantiationException | IllegalAccessException e) {
+				log.error("Error writing snippets: {}", e);
+			}
 		}
 		try { InfolisFileUtils.completeOutputFile(snippetFilename); }
 		catch (IOException e) { e.printStackTrace(); } 

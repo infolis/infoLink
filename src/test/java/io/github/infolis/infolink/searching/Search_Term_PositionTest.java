@@ -69,15 +69,15 @@ public class Search_Term_PositionTest
 	
 	@Test
 	public void normalizeQueryTest() {
-		assertEquals("term", Search_Term_Position.normalizeQuery("term"));
-		assertEquals("term", Search_Term_Position.normalizeQuery("term,"));
-		assertEquals("term", Search_Term_Position.normalizeQuery(".term."));
-		assertEquals("terma", Search_Term_Position.normalizeQuery("terma"));
+		assertEquals("term", Search_Term_Position.normalizeQuery("term", true));
+		assertEquals("term", Search_Term_Position.normalizeQuery("term,", true));
+		assertEquals("term", Search_Term_Position.normalizeQuery(".term.", true));
+		assertEquals("terma", Search_Term_Position.normalizeQuery("terma", true));
 		
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term"));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term,"));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery(".the term."));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the. term."));
+		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term", true));
+		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term,", true));
+		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery(".the term.", true));
+		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the. term.", true));
 	}
 	
 	@Test

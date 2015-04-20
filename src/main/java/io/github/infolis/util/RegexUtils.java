@@ -105,7 +105,7 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
 		string = string.trim();
-		string = Search_Term_Position.normalizeQueryParts(string);
+		string = Search_Term_Position.normalizeQuery(string, false);
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
 	}

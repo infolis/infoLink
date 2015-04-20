@@ -101,41 +101,26 @@ public class Search_Term_Position
 	 * @param 	query	the Lucene query to be normalized
 	 * @return	a normalized version of the query
 	 */
-	public static String normalizeQuery(String query) 
+	public static String normalizeQuery(String query, boolean quoteIfSpace)
 	{
 		Analyzer analyzer = Indexer.getAnalyzer();
 		String field = "contents";
 		String result = new String();
-        TokenStream stream  = analyzer.tokenStream(field, new StringReader(query));
-        try 
-        {
-            while(stream.incrementToken()) { result += " " + (stream.getAttribute(TermAttribute.class).term()); }
-        }
-        catch(IOException e) {
-            // not thrown due to using a string reader...
-        }
-        analyzer.close();
-        if (result.trim().matches(".*\\s.*")) { return "\"" + result.trim() + "\""; }
-        return result.trim();
-    }  
-	
-	//TODO: No need for 2 separate methods...
-	public static String normalizeQueryParts(String query) 
-	{
-		Analyzer analyzer = Indexer.getAnalyzer();
-		String field = "contents";
-		String result = new String();
-        TokenStream stream  = analyzer.tokenStream(field, new StringReader(query));
-        try 
-        {
-            while(stream.incrementToken()) { result += " " + (stream.getAttribute(TermAttribute.class).term()); }
-        }
-        catch(IOException e) {
-            // not thrown due to using a string reader...
-        }
-        analyzer.close();
-        return result.trim();
-    }  
+		TokenStream stream = analyzer.tokenStream(field, new StringReader(query));
+		try
+		{
+			while (stream.incrementToken()) {
+				result += " " + (stream.getAttribute(TermAttribute.class).term());
+			}
+		} catch (IOException e) {
+			// not thrown due to using a string reader...
+		}
+		analyzer.close();
+		if (quoteIfSpace && result.trim().matches(".*\\s.*")) {
+				return "\"" + result.trim() + "\"";
+		}
+		return result.trim();
+	}
 	
 	/**
 	 * Searches for this query in this index using a ComplexPhraseQueryParser and writes the extracted  

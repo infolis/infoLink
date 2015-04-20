@@ -643,7 +643,7 @@ public class ContextMiner
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			Search_Term_Position search = new Search_Term_Position(indexDir, snippetFilename, term.trim(), "\"" + Search_Term_Position.normalizeQuery(term) + "\"");
+			Search_Term_Position search = new Search_Term_Position(indexDir, snippetFilename, term.trim(), "\"" + Search_Term_Position.normalizeQuery(term, true) + "\"");
 			try { search.complexSearch(new File(snippetFilename), true);	}
 			catch (IOException ioe) { ioe.printStackTrace(); }
 			catch (Exception e) { e.printStackTrace(); }

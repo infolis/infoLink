@@ -376,7 +376,7 @@ public class Learner
 	 */
 	public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
 		List<StudyContext> contexts = new ArrayList<StudyContext>();
-		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed));
+		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed, true));
 		try { contexts = search.complexSearch_getContexts(); }
 		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
 		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}

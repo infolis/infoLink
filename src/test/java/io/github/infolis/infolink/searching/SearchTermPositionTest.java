@@ -1,17 +1,18 @@
 package io.github.infolis.infolink.searching;
 
-import static org.junit.Assert.*;
-
-import org.junit.Test;
-
-import io.github.infolis.infolink.searching.SearchTermPosition;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import io.github.infolis.infolink.luceneIndexing.Indexer;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.InfolisFileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import org.apache.lucene.queryParser.ParseException;
+import org.junit.Ignore;
+import org.junit.Test;
 
 
 
@@ -58,11 +59,11 @@ public class SearchTermPositionTest
 	//TODO: delete files after testing
 	public void createInputFiles() {
 		try { 
-			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
-			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
-			io.github.infolis.util.InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
+			InfolisFileUtils.writeToFile(new File(testDocument1), "UTF-8", testString4, false);
+			InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString5, false);
+			InfolisFileUtils.writeToFile(new File(testDocument2), "UTF-8", testString6, true);
 			
-			io.github.infolis.infolink.luceneIndexing.Indexer.main(new String[]{ testCorpus, indexPath });
+			Indexer.main(new String[]{ testCorpus, indexPath });
 		}
 		catch(IOException ioe) { ioe.printStackTrace(); System.exit(1); }
 	}
@@ -123,5 +124,10 @@ public class SearchTermPositionTest
 		catch (IOException ioe) { ioe.printStackTrace(); }
 		catch (ParseException pe) { pe.printStackTrace(); }
 		
+	}
+
+	@Ignore
+	public void testNormalizeQuery() throws Exception {
+		throw new RuntimeException("not yet implemented");
 	}
 }

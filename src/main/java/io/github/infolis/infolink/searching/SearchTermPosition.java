@@ -82,7 +82,7 @@ public class SearchTermPosition
 	public static void main(String[] args) throws IOException, ParseException
 	{
 		if (args.length < 4) {
-			System.out.println("Usage: Search_Term_Position <indexPath> <filename> <term> <query>");
+			System.out.println("Usage: SearchTermPosition <indexPath> <filename> <term> <query>");
 			System.out.println("<indexPath>	location of the Lucene index");
 			System.out.println("<filename>	path to the output file");
 			System.out.println("<term>	the term to retrieve");
@@ -102,7 +102,7 @@ public class SearchTermPosition
 	 */
 	public static String normalizeQuery(String query, boolean quoteIfSpace)
 	{
-		Analyzer analyzer = Indexer.getAnalyzer();
+		Analyzer analyzer = Indexer.createAnalyzer();
 		String field = "contents";
 		String result = new String();
 		TokenStream stream = analyzer.tokenStream(field, new StringReader(query));
@@ -137,7 +137,7 @@ public class SearchTermPosition
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
 		String defaultFieldName="contents";
-		Analyzer analyzer = Indexer.getAnalyzer();
+		Analyzer analyzer = Indexer.createAnalyzer();
 		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
 		// set phrase slop because dataset titles may consist of more than one word
 		qp.setPhraseSlop(10); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
@@ -175,7 +175,7 @@ public class SearchTermPosition
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
 		String defaultFieldName="contents";
-		Analyzer analyzer = Indexer.getAnalyzer();
+		Analyzer analyzer = Indexer.createAnalyzer();
 		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
 		//qp.setFuzzyPrefixLength(1); 
 		// set phrase slop because dataset titles may consist of more than one word
@@ -211,11 +211,9 @@ public class SearchTermPosition
 	    // second group: right context (consisting of 5 words)
 	    // contexts may or may not be separated from the query by whitespace!
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
-	    String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
-	    String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
-	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(term) + rightContextPat);
+	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
 	    Matcher m = pat.matcher(text);
 	    List<StudyContext> contextList = new ArrayList<StudyContext>();
 	    //TODO: USE SAFEMATCHING
@@ -232,7 +230,7 @@ public class SearchTermPosition
 	    				.replace(":", " ").replace(",", " ").replace(";", " ").replace("/", " ").replace("\\", " ").replace("&", " ")
 	    				.replace("_", "").trim()) + "[\\s\\-–\\\\/:.,;()&_]";
 	    	}
-	    	pat = Pattern.compile(leftContextPat + "[\\s\\-–\\\\/:.,;()&_]" + term_normalized + rightContextPat);
+	    	pat = Pattern.compile(RegexUtils.leftContextPat + "[\\s\\-–\\\\/:.,;()&_]" + term_normalized + RegexUtils.rightContextPat);
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    }
@@ -258,7 +256,7 @@ public class SearchTermPosition
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
 		String defaultFieldName="contents";
-		Analyzer analyzer = Indexer.getAnalyzer();
+		Analyzer analyzer = Indexer.createAnalyzer();
 		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
 		// set phrase slop because dataset titles may consist of more than one word
 		qp.setPhraseSlop(10); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...

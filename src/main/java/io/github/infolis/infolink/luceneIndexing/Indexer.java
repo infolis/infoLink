@@ -52,10 +52,8 @@ public class Indexer
 	
 	private Logger log = LoggerFactory.getLogger(Indexer.class);
 	
-	private static final Analyzer analyzer =  new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
-
-	public static Analyzer getAnalyzer() {
-		return analyzer;
+	public static Analyzer createAnalyzer() {
+		return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
 	}
 
 	/**
@@ -110,7 +108,7 @@ public class Indexer
 				System.out.println("Cannot save index to '" + indexDir + "' directory, please delete it first");
 				continue;
 			}
-			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, getAnalyzer());
+			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
 			indexWriterConfig.setOpenMode(OpenMode.CREATE);
 
 			Date start = new Date();

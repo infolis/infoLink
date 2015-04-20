@@ -3,6 +3,7 @@ package io.github.infolis.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sun.org.apache.xml.internal.security.algorithms.Algorithm;
 
 /**
  * An infolis:File

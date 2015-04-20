@@ -3,13 +3,14 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.datastore.DataStoreClient;
-import io.github.infolis.model.datastore.DataStoreClientFactory;
-import io.github.infolis.model.datastore.DataStoreStrategy;
-import io.github.infolis.model.datastore.FileResolver;
-import io.github.infolis.model.datastore.FileResolverFactory;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
@@ -64,7 +65,7 @@ public class TextExtractorAlgorithmTest {
         algo.run();
 
         log.debug("{}", execution.getOutputFiles());
-        assertEquals(Execution.Status.FINISHED, algo.getExecution().getStatus());
+        assertEquals(ExecutionStatus.FINISHED, algo.getExecution().getStatus());
         assertEquals(1, execution.getOutputFiles().size());
 
         String fileId = algo.getExecution().getOutputFiles().get(0);

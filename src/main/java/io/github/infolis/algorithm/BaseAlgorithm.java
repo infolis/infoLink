@@ -1,8 +1,9 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.datastore.DataStoreClient;
-import io.github.infolis.model.datastore.FileResolver;
+import io.github.infolis.model.ExecutionStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,7 @@ public abstract class BaseAlgorithm implements Algorithm {
 	public final void run() {
 		baseValidate();
 		validate();
-		getExecution().setStatus(Execution.Status.STARTED);
+		getExecution().setStatus(ExecutionStatus.STARTED);
 		execute();
 		getDataStoreClient().put(Execution.class, getExecution());
 	}

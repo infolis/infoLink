@@ -1,10 +1,11 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.datastore.DataStoreClientFactory;
-import io.github.infolis.model.datastore.DataStoreStrategy;
-import io.github.infolis.model.datastore.FileResolverFactory;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
 
@@ -219,9 +220,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				getExecution().getLog().add(
 						"Conversion failed for input file " + inputFileURI);
 				log.debug(getExecution().getLog().toString());
-				getExecution().setStatus(Execution.Status.FAILED);
+				getExecution().setStatus(ExecutionStatus.FAILED);
 			} else {
-				getExecution().setStatus(Execution.Status.FINISHED);
+				getExecution().setStatus(ExecutionStatus.FINISHED);
 				getDataStoreClient().post(InfolisFile.class, outputFile);
 				getExecution().getOutputFiles().add(outputFile.getUri());
 				log.debug("{}", getExecution().getOutputFiles());
@@ -272,7 +273,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
 			Execution execution = new Execution();
 			Algorithm algo = new TextExtractorAlgorithm();
-			execution.setAlgorithm(algo.getClass().getName());
+			execution.setAlgorithm(algo.getClass());
 			algo.setExecution(execution);
 			algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
 			algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));

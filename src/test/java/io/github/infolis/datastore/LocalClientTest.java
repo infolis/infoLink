@@ -1,6 +1,9 @@
-package io.github.infolis.model.datastore;
+package io.github.infolis.datastore;
 
 import static org.junit.Assert.*;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.model.InfolisFile;
 
 import org.junit.Test;

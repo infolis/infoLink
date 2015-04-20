@@ -1,8 +1,8 @@
 package io.github.infolis.ws.server;
 
-import io.github.infolis.model.datastore.DataStoreStrategy;
-import io.github.infolis.model.datastore.FileResolver;
-import io.github.infolis.model.datastore.FileResolverFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

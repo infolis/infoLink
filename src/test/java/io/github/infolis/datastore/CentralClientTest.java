@@ -1,8 +1,10 @@
-package io.github.infolis.model.datastore;
+package io.github.infolis.datastore;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.model.InfolisFile;
 
 import java.net.URI;

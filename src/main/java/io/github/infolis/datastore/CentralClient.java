@@ -1,4 +1,4 @@
-package io.github.infolis.model.datastore;
+package io.github.infolis.datastore;
 
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;

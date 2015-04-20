@@ -1,6 +1,9 @@
 package io.github.infolis.model;
 
+import io.github.infolis.algorithm.Algorithm;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,13 +19,11 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class Execution extends BaseModel {
 
-	public enum Status {
-		PENDING, STARTED, FINISHED, FAILED
-	}
-
-	private String algorithm;
-	private Status status = Status.PENDING;
+	private Class<? extends Algorithm> algorithm;
+	private ExecutionStatus status = ExecutionStatus.PENDING;
 	private List<String> log = new ArrayList<String>();
+	private Date startTime;
+	private Date endTime;
 	
 	// Parameters
 	private List<String> inputFiles = new ArrayList<String>();
@@ -31,19 +32,11 @@ public class Execution extends BaseModel {
     private String outputDirectory = "";
 	
 
-	public String getAlgorithm() {
-		return algorithm;
-	}
-
-	public void setAlgorithm(String algorithm) {
-		this.algorithm = algorithm;
-	}
-
-	public Status getStatus() {
+	public ExecutionStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(Status status) {
+	public void setStatus(ExecutionStatus status) {
 		this.status = status;
 	}
 
@@ -85,6 +78,30 @@ public class Execution extends BaseModel {
 
 	public void setOutputDirectory(String outputDirectory) {
 		this.outputDirectory = outputDirectory;
+	}
+
+	public Class<? extends Algorithm> getAlgorithm() {
+		return algorithm;
+	}
+
+	public void setAlgorithm(Class<? extends Algorithm> algorithm) {
+		this.algorithm = algorithm;
+	}
+
+	public Date getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Date startTime) {
+		this.startTime = startTime;
+	}
+
+	public Date getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Date endTime) {
+		this.endTime = endTime;
 	}
 
 }

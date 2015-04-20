@@ -1,6 +1,6 @@
 package io.github.infolis.ws.server;
 
-import io.github.infolis.algorithm.BaseAlgorithm;
+import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.model.Execution;
 
 import javax.ws.rs.GET;
@@ -88,12 +88,11 @@ public class ExecutorWebservice {
     
     @POST
     public Response postExecution(Execution execution) {
-    	String algoStr = execution.getAlgorithm();
-    	Class<? extends BaseAlgorithm> algoClass = BaseAlgorithm.algorithms.get(algoStr);
+    	Class<? extends Algorithm> algoClass = execution.getAlgorithm();
     	if (null == algoClass) {
-    		return Response.status(404).entity("No such algorithm: " + algoStr).build();
+    		return Response.status(404).entity("No such algorithm: " + algoClass).build();
     	}
-    	BaseAlgorithm algo;
+    	Algorithm algo;
         try {
 			algo = algoClass.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {

@@ -1,8 +1,8 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.datastore.DataStoreClient;
-import io.github.infolis.model.datastore.FileResolver;
 
 public interface Algorithm extends Runnable {
 

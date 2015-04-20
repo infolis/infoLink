@@ -1,4 +1,4 @@
-package io.github.infolis.model.datastore;
+package io.github.infolis.datastore;
 
 public class DataStoreClientFactory {
 	

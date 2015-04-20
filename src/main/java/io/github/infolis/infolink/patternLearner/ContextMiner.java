@@ -8,6 +8,7 @@ import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -503,10 +504,13 @@ public class ContextMiner {
 	 */
 	public static boolean ignoreStudy(String studyname)
 	{
-		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
-				| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
-				| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
-				| studyname.matches("[\\d\\s]*"));
+// TODO should work but need to test it
+		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
+			if (studyname.matches(ignorePattern)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

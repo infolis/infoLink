@@ -1,6 +1,6 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.StudyContext;
@@ -376,7 +376,7 @@ public class Learner
 	 */
 	public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
 		List<StudyContext> contexts = new ArrayList<StudyContext>();
-		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed, true));
+		SearchTermPosition search = new SearchTermPosition(this.indexPath, null, seed, SearchTermPosition.normalizeQuery(seed, true));
 		try { contexts = search.complexSearch_getContexts(); }
 		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
 		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
@@ -888,7 +888,7 @@ public class Learner
 		try
 		{
 			// lucene query is assumed to be normalized
-			Search_Term_Position candidateSearcher = new Search_Term_Position(this.indexPath, "", "", lucene_pattern);
+			SearchTermPosition candidateSearcher = new SearchTermPosition(this.indexPath, "", "", lucene_pattern);
 			candidateCorpus = candidateSearcher.complexSearch();
 			//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
 		}

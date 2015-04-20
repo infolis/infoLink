@@ -38,8 +38,7 @@ import org.apache.lucene.util.Version;
  *
  */
 //TODO: REMOVE FILENAME...
-@SuppressWarnings("deprecation")
-public class Search_Term_Position 
+public class SearchTermPosition 
 { 
 	
 	public String indexPath; // location of the lucene index
@@ -64,7 +63,7 @@ public class Search_Term_Position
 	 * @param term		the term to retrieve
 	 * @param query		the lucene query to search for term
 	 */
-	public Search_Term_Position(String indexPath, String filename, String term, String query)
+	public SearchTermPosition(String indexPath, String filename, String term, String query)
 	{
 		this.indexPath = indexPath;
 		this.filename = filename;
@@ -90,7 +89,7 @@ public class Search_Term_Position
 			System.out.println("<query>	the lucene query to search for term");
 			System.exit(1);
 		}
-		Search_Term_Position termSearcher = new Search_Term_Position(args[0], args[1], args[2], args[3]); 
+		SearchTermPosition termSearcher = new SearchTermPosition(args[0], args[1], args[2], args[3]); 
 		try { termSearcher.complexSearch(new File(termSearcher.filename), true); } catch (Exception e) { e.printStackTrace();}
 	} 
 	

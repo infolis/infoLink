@@ -1,6 +1,6 @@
 package io.github.infolis.util;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.infolink.searching.SearchTermPosition;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -105,7 +105,7 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
 		string = string.trim();
-		string = Search_Term_Position.normalizeQuery(string, false);
+		string = SearchTermPosition.normalizeQuery(string, false);
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
 	}

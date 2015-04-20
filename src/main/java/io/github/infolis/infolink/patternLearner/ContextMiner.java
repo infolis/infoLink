@@ -1,6 +1,6 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
@@ -643,7 +643,7 @@ public class ContextMiner
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			Search_Term_Position search = new Search_Term_Position(indexDir, snippetFilename, term.trim(), "\"" + Search_Term_Position.normalizeQuery(term, true) + "\"");
+			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + SearchTermPosition.normalizeQuery(term, true) + "\"");
 			try { search.complexSearch(new File(snippetFilename), true);	}
 			catch (IOException ioe) { ioe.printStackTrace(); }
 			catch (Exception e) { e.printStackTrace(); }

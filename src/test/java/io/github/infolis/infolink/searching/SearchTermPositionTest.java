@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.model.StudyContext;
 
 import java.io.File;
@@ -15,7 +15,7 @@ import org.apache.lucene.queryParser.ParseException;
 
 
 
-public class Search_Term_PositionTest
+public class SearchTermPositionTest
 {
 	String indexPath = "indexPath";
 	String testCorpus = "testCorpus";
@@ -35,7 +35,7 @@ public class Search_Term_PositionTest
 	public void getContextTest() {
 		// minimum context size is 5
 		
-		Search_Term_Position stp = new Search_Term_Position(indexPath, filename, "term", "query");
+		SearchTermPosition stp = new SearchTermPosition(indexPath, filename, "term", "query");
 		try { 
 			List<StudyContext> contextList1 = stp.getContext("document", "term", testString1); 
 			List<StudyContext> contextList2 = stp.getContext("document", "term", testString2); 
@@ -69,15 +69,15 @@ public class Search_Term_PositionTest
 	
 	@Test
 	public void normalizeQueryTest() {
-		assertEquals("term", Search_Term_Position.normalizeQuery("term", true));
-		assertEquals("term", Search_Term_Position.normalizeQuery("term,", true));
-		assertEquals("term", Search_Term_Position.normalizeQuery(".term.", true));
-		assertEquals("terma", Search_Term_Position.normalizeQuery("terma", true));
+		assertEquals("term", SearchTermPosition.normalizeQuery("term", true));
+		assertEquals("term", SearchTermPosition.normalizeQuery("term,", true));
+		assertEquals("term", SearchTermPosition.normalizeQuery(".term.", true));
+		assertEquals("terma", SearchTermPosition.normalizeQuery("terma", true));
 		
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term", true));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the term,", true));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery(".the term.", true));
-		assertEquals("\"the term\"", Search_Term_Position.normalizeQuery("the. term.", true));
+		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the term", true));
+		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the term,", true));
+		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery(".the term.", true));
+		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the. term.", true));
 	}
 	
 	@Test
@@ -85,16 +85,16 @@ public class Search_Term_PositionTest
 		createInputFiles();
 		// terms shall be found even if enclosed by characters removed by the analyzer, e.g. punctuation
 		// e.g., when "ALLBUS." is found as term, all occurrences of "ALLBUS." or "ALLBUS" or "ALLBUS," etc. are to be found
-		Search_Term_Position stp = new Search_Term_Position(indexPath, filename, "term", "term");//"\"term\""
-		Search_Term_Position stp2 = new Search_Term_Position(indexPath, filename, "term,", "term,");
-		Search_Term_Position stp3 = new Search_Term_Position(indexPath, filename, ".term.", ".term.");
-		Search_Term_Position stp4 = new Search_Term_Position(indexPath, filename, "terma", "terma");
+		SearchTermPosition stp = new SearchTermPosition(indexPath, filename, "term", "term");//"\"term\""
+		SearchTermPosition stp2 = new SearchTermPosition(indexPath, filename, "term,", "term,");
+		SearchTermPosition stp3 = new SearchTermPosition(indexPath, filename, ".term.", ".term.");
+		SearchTermPosition stp4 = new SearchTermPosition(indexPath, filename, "terma", "terma");
 		
-		Search_Term_Position stpA = new Search_Term_Position(indexPath, filename, "the term", "\"the term\"");
-		Search_Term_Position stpB = new Search_Term_Position(indexPath, filename, "the term,", "\"the term,\"");
-		Search_Term_Position stpC = new Search_Term_Position(indexPath, filename, ".the term.", "\".the term.\"");
-		Search_Term_Position stpD = new Search_Term_Position(indexPath, filename, "the terma", "\"the term\"");
-		Search_Term_Position stpE = new Search_Term_Position(indexPath, filename, "the. term.", "\"the. term.\"");
+		SearchTermPosition stpA = new SearchTermPosition(indexPath, filename, "the term", "\"the term\"");
+		SearchTermPosition stpB = new SearchTermPosition(indexPath, filename, "the term,", "\"the term,\"");
+		SearchTermPosition stpC = new SearchTermPosition(indexPath, filename, ".the term.", "\".the term.\"");
+		SearchTermPosition stpD = new SearchTermPosition(indexPath, filename, "the terma", "\"the term\"");
+		SearchTermPosition stpE = new SearchTermPosition(indexPath, filename, "the. term.", "\"the. term.\"");
 		try { 
 			List<StudyContext> contextList = stp.complexSearch_getContexts(); 
 			assertEquals(2, contextList.size());

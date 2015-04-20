@@ -8,6 +8,7 @@ import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -126,7 +127,10 @@ public class ContextMiner {
 			matcher = pat.matcher(string);
 			while (matcher.find())
 			{
-				String version = matcher.group();
+				String version = matcher.group();//		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
+//				| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
+//				| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
+//				| studyname.matches("[\\d\\s]*"));
 				// version may contain dots, therefore needs to be escaped
 				// split string into left context of version, version, right context of version
 				// remove chars directly adjacent to version (e.g. brackets)
@@ -161,7 +165,10 @@ public class ContextMiner {
 	 * 
 	 * @param completeContext	context of the dataset reference that may include a URL. Format: completeContext[0]: left context; completeContext[1]: dataset title; completeContext[2]: right context
 	 * @return					array with url and dataset title as members if URL is found, null otherwise
-	 */
+	 *///		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
+//	| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
+//	| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
+//	| studyname.matches("[\\d\\s]*"));
 	public String[] getHtmlRef(String[] completeContext, String strippedTitle)
 	{
 		// search for url in right context
@@ -503,10 +510,13 @@ public class ContextMiner {
 	 */
 	public static boolean ignoreStudy(String studyname)
 	{
-		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
-				| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
-				| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
-				| studyname.matches("[\\d\\s]*"));
+// TODO should work but need to test it
+		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
+			if (studyname.matches(ignorePattern)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

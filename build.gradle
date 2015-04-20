@@ -51,6 +51,10 @@ dependencies {
     compile 'junit:junit:4.4'
 }
 
+test {
+    systemProperties = System.properties
+}
+
 task copyPython(type:Copy) {
     def source = 'src/main/python'
     def target = new File(project.buildDir, 'bin')

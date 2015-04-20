@@ -3,8 +3,6 @@ package io.github.infolis.datastore;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.model.InfolisFile;
 
 import java.net.URI;
@@ -12,12 +10,20 @@ import java.net.URI;
 import javax.ws.rs.BadRequestException;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class CentralClientTest {
+	
+	Logger log = LoggerFactory.getLogger(CentralClientTest.class);
 
 	@Test
 	public void test() throws Exception {
+		if (Boolean.parseBoolean(System.getProperty("infolisRemoteTest", "false"))) {
+			log.debug("Skipping because 'infolisRemoteTest' is not 'true'.");
+			return;
+		}
 		DataStoreClient client = DataStoreClientFactory.global();
 		InfolisFile inFile = new InfolisFile();
 		inFile.setFileName("foobar.quux");

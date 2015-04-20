@@ -22,6 +22,11 @@ public class ExecutionTest {
 	@Test
 	public void testRoundTrip() {
 		
+		if (Boolean.parseBoolean(System.getProperty("infolisRemoteTest", "false"))) {
+			log.debug("Skipping because 'infolisRemoteTest' is not 'true'.");
+			return;
+		}
+		
 		DataStoreClient client = DataStoreClientFactory.global();
 		
 		Execution execution = new Execution();

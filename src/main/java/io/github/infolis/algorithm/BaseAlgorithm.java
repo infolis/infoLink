@@ -5,8 +5,12 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -15,6 +19,7 @@ import java.util.Map;
  */
 public abstract class BaseAlgorithm implements Algorithm {
 
+	private static final Logger log = LoggerFactory.getLogger(BaseAlgorithm.class);
 	/*
 	 * The list of algorithms
 	 */
@@ -32,7 +37,14 @@ public abstract class BaseAlgorithm implements Algorithm {
 		baseValidate();
 		validate();
 		getExecution().setStatus(ExecutionStatus.STARTED);
-		execute();
+		getExecution().setStartTime(new Date());
+		try {
+			execute();
+		} catch (Exception e) {
+			log.error("Execution threw an Exception: {}" , e);
+			getExecution().setStatus(ExecutionStatus.FAILED);
+		}
+		getExecution().setEndTime(new Date());
 		getDataStoreClient().put(Execution.class, getExecution());
 	}
 
@@ -67,13 +79,13 @@ public abstract class BaseAlgorithm implements Algorithm {
 	}
 	
 	public void baseValidate() {
-		if (null == execution) {
+		if (null == getExecution()) {
 			throw new RuntimeException("Algorithm must have a 'Excecution' set to run().");
 		}
-		if (null == fileResolver) {
+		if (null == getFileResolver()) {
 			throw new RuntimeException("Algorithm must have a 'FileResolver' set to run().");
 		}
-		if (null == dataStoreClient) {
+		if (null == getDataStoreClient()) {
 			throw new RuntimeException("Algorithm must have a 'dataStoreClient' set to run().");
 		}
 	}

@@ -147,15 +147,11 @@ public class GetContext
 	    text = new String(contents);
 	 
 	    // search for phrase using regex
-	    // first group: left context (consisting of 5 words)
-	    // second group: right context (consisting of 5 words)
 	    // contexts may or may not be separated from the query by whitespace!
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
-	    String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
-	    String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
-	    Pattern pat = Pattern.compile(leftContextPat + Pattern.quote(query) + rightContextPat);
+	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(query) + RegexUtils.rightContextPat);
 	    Matcher m = pat.matcher(text);
 	    ArrayList<String> leftContexts = new ArrayList<String>();
 	    ArrayList<String> rightContexts = new ArrayList<String>();
@@ -165,7 +161,7 @@ public class GetContext
 	    {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary 
 	    	query = query.replace("-", " ").replace("–", " ").replace(".", " ").replace("(", " ").replace(")", " ").replace(":", " ").replace(",", " ").replace(";", " ").replace("/", " ").replace("\\", " ").replace("&", " ").replace("_", "");
 	    	System.out.println(Pattern.quote(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]")));
-	    	pat = Pattern.compile( leftContextPat + Pattern.quote(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]")) + rightContextPat, Pattern.CASE_INSENSITIVE );
+	    	pat = Pattern.compile( RegexUtils.leftContextPat + Pattern.quote(query.replace(" ", "[\\s\\-–\\\\/:.,;()&_]")) + RegexUtils.rightContextPat, Pattern.CASE_INSENSITIVE );
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    }

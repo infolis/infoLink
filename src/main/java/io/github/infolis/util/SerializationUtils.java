@@ -1,5 +1,9 @@
 package io.github.infolis.util;
 
+import io.github.infolis.model.StudyContext;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -141,6 +145,16 @@ public class SerializationUtils {
 	{
 		return StringEscapeUtils.unescapeXml(string);
 	}
+	
+	public static void writeContextToXML(StudyContext context, String filename) throws IOException {
+		try {
+			InfolisFileUtils.prepareOutputFile(filename);
+			InfolisFileUtils.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
+			InfolisFileUtils.completeOutputFile(filename);
+		}
+		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+	}
+	
 	
 
 }

@@ -1,8 +1,13 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.BaseAlgorithm;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
@@ -66,7 +71,7 @@ import com.google.common.collect.Lists;
  *
  */
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
-public class Learner
+public class Learner implements Algorithm
 {
 	List<List<String>> contextsAsStrings;
 	Set<String> processedSeeds; //all processed seeds
@@ -360,9 +365,7 @@ public class Learner
 	public List<StudyContext> getContextsForAllSeeds(String indexDir, Collection<String> seedList) throws IOException, ParseException {
 		List<StudyContext> contexts = new ArrayList<StudyContext>();
 		for (String seed : seedList) {
-			try { contexts.addAll(getContextsForSeed(seed)); }
-			catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
-			catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
+			contexts.addAll(getContextsForSeed(seed));
 		}
 		return contexts;
 	}
@@ -375,23 +378,20 @@ public class Learner
 	 * @param seed		seed for which the contexts to retrieve
 	 */
 	public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
-		List<StudyContext> contexts = new ArrayList<StudyContext>();
-		SearchTermPosition search = new SearchTermPosition(this.indexPath, null, seed, SearchTermPosition.normalizeQuery(seed, true));
-		try { contexts = search.complexSearch_getContexts(); }
-		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
-		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
-		return contexts;
-	}
-	
-	public void writeContextToXML(StudyContext context, String filename) throws IOException {
-		try {
-			InfolisFileUtils.prepareOutputFile(filename);
-			InfolisFileUtils.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
-			InfolisFileUtils.completeOutputFile(filename);
+
+		Execution execution = new Execution();
+		execution.setAlgorithm(SearchTermPosition.class);
+		execution.setSearchTerm(seed);
+		
+		Algorithm algo = new SearchTermPosition();
+		algo.run();
+
+		List<StudyContext> ret = new ArrayList<>();
+		for (String sC : execution.getStudyContexts()) {
+			ret.add(this.getDataStoreClient().get(StudyContext.class, sC));
 		}
-		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+		return ret;
 	}
-	
 	
 	/**
 	 * Generates extraction patterns using an iterative bootstrapping approach. 
@@ -2912,6 +2912,69 @@ public class Learner
 		{ 
 			new OptionHandler().doMain(args);
 			System.out.println("Finished all tasks! Bye :)");
+		}
+
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void execute() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void validate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public Execution getExecution() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setExecution(Execution execution) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public FileResolver getFileResolver() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setFileResolver(FileResolver fileResolver) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public DataStoreClient getDataStoreClient() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setDataStoreClient(DataStoreClient dataStoreClient) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 

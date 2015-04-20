@@ -18,6 +18,13 @@ package io.github.infolis.infolink.luceneIndexing;
  * limitations under the License.
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.HashMap;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -27,13 +34,6 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashMap;
 
 
 /** 
@@ -51,6 +51,15 @@ public class Indexer
 	private static final int MAX_TOKEN_COUNT = 10000;
 	
 	private Logger log = LoggerFactory.getLogger(Indexer.class);
+	private OpenMode openMode = OpenMode.CREATE;
+	
+	public Indexer() {
+		this(OpenMode.CREATE);
+	}
+	
+	public Indexer(OpenMode openMode) {
+		this.openMode = openMode;
+	}
 	
 	public static Analyzer createAnalyzer() {
 		return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
@@ -102,12 +111,17 @@ public class Indexer
 		{
 			File docDir = fileMap.get(indexDir);
 
-			System.out.println("start");
-			if (indexDir.exists()) 
-			{
-				System.out.println("Cannot save index to '" + indexDir + "' directory, please delete it first");
-				continue;
+			log.debug("start");
+			if (indexDir.exists())  {
+				if (openMode == OpenMode.APPEND) {
+					String msg = "Index dir '" + indexDir + "' exists but was configured not to overwrite.";
+					log.error(msg);
+					throw new RuntimeException(msg);
+				} else {
+					log.debug("Overwriting index in '" + indexDir + "'.");
+				}
 			}
+
 			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
 			indexWriterConfig.setOpenMode(OpenMode.CREATE);
 
@@ -167,4 +181,5 @@ public class Indexer
 		Indexer indexer = new Indexer();
 		indexer.indexAllFiles(toIndex);
 	}
+	
 }

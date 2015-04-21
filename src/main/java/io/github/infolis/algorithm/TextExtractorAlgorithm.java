@@ -9,6 +9,7 @@ import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,9 +17,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.IOUtils;
@@ -36,15 +35,8 @@ import org.slf4j.LoggerFactory;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
-	public static final List<String> cueWords = Arrays.asList("Literatur", "Literaturverzeichnis",
-			"Literaturliste",
-			"Bibliographie", "Bibliografie", "Quellen", "Quellenangaben", "Quellenverzeichnis",
-			"Literaturangaben", "Bibliography",
-			"References", "list of literature", "List of Literature", "List of literature",
-			"list of references", "List of References",
-			"List of references", "reference list", "Reference List", "Reference list");
-
 	private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
+
 	private PDFTextStripper stripper;
 
 	public TextExtractorAlgorithm() {
@@ -170,7 +162,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				numDecimals++;
 			}
 			boolean containsCueWord = false;
-			for (String s : cueWords) {
+			for (String s : InfolisConfig.getBibliographyCues()) {
 				if (pageText.contains(s)) {
 					containsCueWord = true;
 					break;

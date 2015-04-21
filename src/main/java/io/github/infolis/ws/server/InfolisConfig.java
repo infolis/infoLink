@@ -113,7 +113,14 @@ public class InfolisConfig {
 	 * @return
 	 */
 	public static List<String> getIgnoreStudy() {
-		return Arrays.asList(INSTANCE.prop.getProperty("ignoreStudy").split("\\s*,\\s"));
+		return Arrays.asList(INSTANCE.prop.getProperty("ignoreStudy").trim().split("\\s*,\\s*"));
 	}
 
+	/**
+	 * Property "bibliographyCues"
+	 * @return
+	 */
+	public static List<String> getBibliographyCues() {
+		return Arrays.asList(INSTANCE.prop.getProperty("bibliographyCues").trim().split("\\s*,\\s*"));
+	}
 }

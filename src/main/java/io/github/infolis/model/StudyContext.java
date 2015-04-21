@@ -60,7 +60,7 @@ public class StudyContext extends BaseModel {
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setDocument(document);
 		this.setPattern(pattern);
-	}
+	}        
 	
 	public String toXML() {
 		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) + 

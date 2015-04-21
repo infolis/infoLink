@@ -123,4 +123,20 @@ public class InfolisConfig {
 	public static List<String> getBibliographyCues() {
 		return Arrays.asList(INSTANCE.prop.getProperty("bibliographyCues").trim().split("\\s*,\\s*"));
 	}
+        
+        /**
+	 * Property "tagCommand"
+         * @return 
+	 */
+	public static String getTagCommand(){
+		return INSTANCE.prop.getProperty("tagCommand");
+	}
+        
+        /**
+	 * Property "chunkCommand"
+         * @return 
+	 */
+	public static String getChunkCommand(){
+		return INSTANCE.prop.getProperty("chunkCommand");
+	}
 }

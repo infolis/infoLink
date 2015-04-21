@@ -30,15 +30,15 @@ public class Execution extends BaseModel {
 
 	private Class<? extends Algorithm> algorithm;
 	private ExecutionStatus status = ExecutionStatus.PENDING;
-	private List<String> log = new ArrayList<String>();
+	private List<String> log = new ArrayList<>();
 	private Date startTime;
 	private Date endTime;
 
 	//
 	// Parameters
 	//
-	private List<String> inputFiles = new ArrayList<String>();
-	private List<String> outputFiles = new ArrayList<String>();
+	private List<String> inputFiles = new ArrayList<>();
+	private List<String> outputFiles = new ArrayList<>();
 	// TextExtractor
 	private boolean removeBib = false;
 	private String outputDirectory = "";
@@ -53,7 +53,10 @@ public class Execution extends BaseModel {
 	private List<String> matchingFilenames = new ArrayList<>();
 	private boolean overwrite = false;
 	private String indexDirectory;
-
+        private List<String> patterns = new ArrayList<>();
+        private boolean upperCaseConstraint = false;
+        private boolean requiresContainedInNP = false;
+        
 	public Algorithm instantiateAlgorithm(DataStoreStrategy dataStoreStrategy)
 			throws InstantiationException, IllegalAccessException {
 		if (null == this.getAlgorithm()) {
@@ -257,5 +260,47 @@ public class Execution extends BaseModel {
 	public void setIndexDirectory(String indexDirectory) {
 		this.indexDirectory = indexDirectory;
 	}
+
+    /**
+     * @return the pattern
+     */
+    public List<String> getPattern() {
+        return patterns;
+    }
+
+    /**
+     * @param pattern the pattern to set
+     */
+    public void setPattern(List<String> pattern) {
+        this.patterns = pattern;
+    }
+
+    /**
+     * @return the upperCaseConstraint
+     */
+    public boolean isUpperCaseConstraint() {
+        return upperCaseConstraint;
+    }
+
+    /**
+     * @param upperCaseConstraint the upperCaseConstraint to set
+     */
+    public void setUpperCaseConstraint(boolean upperCaseConstraint) {
+        this.upperCaseConstraint = upperCaseConstraint;
+    }
+
+    /**
+     * @return the requiresContainedInNP
+     */
+    public boolean isRequiresContainedInNP() {
+        return requiresContainedInNP;
+    }
+
+    /**
+     * @param requiresContainedInNP the requiresContainedInNP to set
+     */
+    public void setRequiresContainedInNP(boolean requiresContainedInNP) {
+        this.requiresContainedInNP = requiresContainedInNP;
+    }
 
 }

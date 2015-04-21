@@ -12,6 +12,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.SafeMatching;
 import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,8 +78,8 @@ public class PatternApplier extends BaseAlgorithm {
             thread.start();
             boolean matchFound = false;
             // if thread was aborted due to long processing time, matchFound should be false
-            if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
-                matchFound = safeMatch.find;
+            if (safeMatch.threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
+                matchFound = safeMatch.isFind();
             } else {
                 //TODO: what to do if search was aborted?
                 //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
@@ -95,8 +96,8 @@ public class PatternApplier extends BaseAlgorithm {
                     thread.start();
                     matchFound = false;
                     // if thread was aborted due to long processing time, matchFound should be false
-                    if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
-                        matchFound = safeMatch.find;
+                    if (safeMatch.threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
+                        matchFound = safeMatch.isFind();
                     } else {
                         //TODO: what to do if search was aborted?
                         //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
@@ -114,8 +115,8 @@ public class PatternApplier extends BaseAlgorithm {
                         thread.start();
                         matchFound = false;
                         // if thread was aborted due to long processing time, matchFound should be false
-                        if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
-                            matchFound = safeMatch.find;
+                        if (safeMatch.threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
+                            matchFound = safeMatch.isFind();
                         } else {
                             //TODO: what to do if search was aborted?
                             //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
@@ -161,8 +162,8 @@ public class PatternApplier extends BaseAlgorithm {
                 thread.start();
                 matchFound = false;
                 // if thread was aborted due to long processing time, matchFound should be false
-                if (threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
-                    matchFound = safeMatch.find;
+                if (safeMatch.threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
+                    matchFound = safeMatch.isFind();
                 } else {
                     //TODO: what to do if search was aborted?
                     //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
@@ -172,67 +173,6 @@ public class PatternApplier extends BaseAlgorithm {
         }
         System.out.println("Done searching for patterns in " + file);
         return res;
-    }
-
-    /**
-     * Runnable implementation of the matcher.find() method for handling
-     * catastropic backtracking. May be passed to a thread to be monitored and
-     * cancelled in case catastrophic backtracking occurs while searching for a
-     * regular expression.
-     *
-     * @author katarina.boland@gesis.org
-     *
-     */
-    private static class SafeMatching implements Runnable {
-
-        Matcher matcher;
-        boolean find;
-
-        /**
-         * Class constructor initializing the matcher.
-         *
-         * @param m	the Matcher instance to be used for matching
-         */
-        SafeMatching(Matcher m) {
-            this.matcher = m;
-        }
-
-        @Override
-        public void run() {
-            this.find = this.matcher.find();
-        }
-    }
-
-    /**
-     * Monitors the given thread and stops it when it exceeds its time-to-live.
-     * Calls itself until the thread ends after completing its task or after
-     * being stopped.
-     *
-     * @param thread	the thread to be monitored
-     * @param maxProcessTimeMillis	the maximum time-to-live for thread
-     * @param startTimeMillis	thread's birthday :)
-     * @return	false, if thread was stopped prematurely; true if thread ended
-     * after completion of its task
-     */
-    @SuppressWarnings("deprecation")
-    public static boolean threadCompleted(Thread thread, long maxProcessTimeMillis, long startTimeMillis) {
-        if (thread.isAlive()) {
-            long curProcessTime = System.currentTimeMillis() - startTimeMillis;
-            System.out.println("Thread " + thread.getName() + " running for " + curProcessTime + " millis.");
-            if (curProcessTime > maxProcessTimeMillis) {
-                System.out.println("Thread taking too long, aborting (" + thread.getName());
-                thread.stop();
-                return false;
-            }
-        } else {
-            return true;
-        }
-
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ie) {;
-        }
-        return threadCompleted(thread, maxProcessTimeMillis, startTimeMillis);
     }
 
     @Override
@@ -246,7 +186,6 @@ public class PatternApplier extends BaseAlgorithm {
             }
             log.debug("Start extracting from " + inputFile);
             detectedContexts.addAll(searchForPatterns(inputFile));
-
         }
 
         for (StudyContext sC : detectedContexts) {

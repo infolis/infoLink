@@ -1,10 +1,10 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.Execution;

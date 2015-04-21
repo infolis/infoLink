@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.searching;
+package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

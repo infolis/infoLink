@@ -1,7 +1,7 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.infolink.searching.SearchTermPosition;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.StudyLink;

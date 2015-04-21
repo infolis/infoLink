@@ -1,6 +1,5 @@
-package io.github.infolis.infolink.searching;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolverFactory;
@@ -37,6 +36,8 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class for searching terms and complex phrase queries using a Lucene index.
@@ -64,10 +65,7 @@ public class SearchTermPosition extends BaseAlgorithm
 { 
 	
 	private Execution execution;
-//	private String indexPath; // location of the lucene index
-//	private String filename; // name of the output file
-//	private String term; // search term
-//	private String query; // search query
+	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 
 	public Execution getExecution() {
 		return execution;
@@ -77,10 +75,6 @@ public class SearchTermPosition extends BaseAlgorithm
 		this.execution = execution;
 	}
 	
-	public SearchTermPosition() {
-		//
-	}
-
 	/**
 	 * Main method calling complexSearch method for given arguments
 	 * 
@@ -114,11 +108,6 @@ public class SearchTermPosition extends BaseAlgorithm
 
 		algo.run();
 
-//		try {
-//			termSearcher.complexSearch();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
 	} 
 	
 	/**
@@ -158,8 +147,6 @@ public class SearchTermPosition extends BaseAlgorithm
 	 * @param append		if set, contexts will be appended to file, else file will be overwritten
 	 * @throws IOException 
 	 */
-	//TODO: REMOVE AND REPLACE WITH OTHER METHOD
-	//REMOVE GETCONTEXT CLASS WITH IT
 	@Override
 	public void execute() throws IOException
 	{
@@ -203,19 +190,16 @@ public class SearchTermPosition extends BaseAlgorithm
 			Document doc = searcher.doc(sd[i].doc);
 			System.out.println(doc.get("path"));
 
-			//			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
 			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
+			
+			// Add contexts
 			for (StudyContext sC : getContexts(doc.get("path"), this.getExecution().getSearchTerm(), text)) {
 				getDataStoreClient().post(StudyContext.class, sC);
 				this.execution.getStudyContexts().add(sC.getUri());
 			}
-			System.out.println(doc.get("path"));
+			log.debug(doc.get("path"));
+
 			getExecution().getMatchingFilenames().add(doc.get("path"));
-//			new GetContext(doc.get("path"),
-//					this.execution.getSearchTerm(),
-//					0,
-//					10,
-//					new File(this.execution.getFirstOutputFile()));
 		}
 		searcher.close();
 		analyzer.close();
@@ -226,47 +210,6 @@ public class SearchTermPosition extends BaseAlgorithm
 		}
 	}
 	
-//	/**
-//	 * @return
-//	 * @throws IOException
-//	 * @throws ParseException 
-//	 * @deprecated
-//	 */
-//	public List<StudyContext> complexSearch_getContexts() throws IOException, ParseException
-//	{
-//		Directory d = FSDirectory.open(new File(execution.getOutputFiles().get(0)));
-//		IndexReader r = IndexReader.open(d);
-//		IndexSearcher searcher = new IndexSearcher(r);
-//		String defaultFieldName="contents";
-//		Analyzer analyzer = Indexer.createAnalyzer();
-//		QueryParser qp=new ComplexPhraseQueryParser(Version.LUCENE_35,defaultFieldName,analyzer);
-//		//qp.setFuzzyPrefixLength(1); 
-//		// set phrase slop because dataset titles may consist of more than one word
-//		qp.setPhraseSlop(this.execution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-//		qp.setAllowLeadingWildcard(this.execution.isAllowLeadingWildcards());
-//		BooleanQuery.setMaxClauseCount(this.execution.getMaxClauseCount());
-//		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
-//		//if quotes are present in absence of any whitespace inside of query
-//		Query q;
-//		q = qp.parse(this.getExecution().getSearchQuery().trim());
-//		System.out.println("Query: " + q.toString());
-//		TopDocs td = searcher.search(q,10000);
-//		ScoreDoc[] sd = td.scoreDocs;
-//		List<StudyContext> contextList = new ArrayList<StudyContext>();
-//		for (int i = 0; i < sd.length; i++)
-//		{
-//			Document doc = searcher.doc(sd[i].doc);
-//			System.out.println(doc.get("path"));
-//			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
-//			contextList.addAll(getContexts(doc.get("path"), this.getExecution().getSearchTerm(), text));
-//		}
-//		searcher.close();
-//		analyzer.close();
-//		r.close();
-//		d.close();
-//		return contextList;
-//	}
-//	
 	protected static List<StudyContext> getContexts(String filename, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
@@ -332,51 +275,4 @@ public class SearchTermPosition extends BaseAlgorithm
 		}
 	}
 	
-//	/**
-//	 * Searches for this query in this index using a ComplexPhraseQueryParser and returns the paths to 
-//	 * the documents where a hit to at least one of the terms in the query was found.
-//	 * 
-//	 * @return	an array of all filenames where a hit was found
-//	 * @throws Exception
-//	 */
-//	public String[] complexSearch() throws IOException, ParseException
-//	{
-//		Directory d = FSDirectory.open(new File(execution.getOutputFiles().get(0)));
-//		IndexReader r = IndexReader.open(d);
-//		IndexSearcher searcher = new IndexSearcher(r);
-//		String defaultFieldName="contents";
-//		Analyzer analyzer = Indexer.createAnalyzer();
-//		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, defaultFieldName, analyzer);
-//		// set phrase slop because dataset titles may consist of more than one word
-//		qp.setPhraseSlop(this.execution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-//		qp.setAllowLeadingWildcard(this.execution.isAllowLeadingWildcards());
-//		BooleanQuery.setMaxClauseCount(this.execution.getMaxClauseCount());
-//		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
-//		//if quotes are present in absence of any whitespace inside of query
-//		Query q;
-//		try {
-//			q = qp.parse(this.getExecution().getSearchQuery());
-//		} catch (ParseException pe) {
-//			pe.printStackTrace();
-//			System.err.println(this.getExecution().getSearchQuery());
-//			searcher.close();
-//			r.close();
-//			throw new ParseException();
-//		}
-//		System.out.println("Query: " + q.toString());
-//		TopDocs td = searcher.search(q,10000);
-//		ScoreDoc[] sd = td.scoreDocs;
-//		String[] scoreDocPaths = new String[sd.length];
-//		for (int i = 0; i < sd.length; i++)
-//		{
-//			Document doc = searcher.doc(sd[i].doc);
-//			System.out.println(doc.get("path"));
-//			scoreDocPaths[i] = doc.get("path");
-//		}
-//		searcher.close();
-//		analyzer.close();
-//		r.close();
-//		d.close();
-//		return scoreDocPaths;
-//	}
 }

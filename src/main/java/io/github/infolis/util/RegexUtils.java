@@ -1,6 +1,6 @@
 package io.github.infolis.util;
 
-import io.github.infolis.infolink.searching.SearchTermPosition;
+import io.github.infolis.algorithm.SearchTermPosition;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -55,6 +55,14 @@ if options.learnpath:
     options.learnpath = os.path.abspath(options.learnpath)
 if options.extract:
     options.extract = os.path.abspath(options.extract)
+    if not os.path.exists(options.extract):
+        os.makedirs(options.extract)
+    options.extract_without_bibliography = os.path.abspath(options.extract + "_clean")
+    if not os.path.exists(options.extract_without_bibliography):
+        os.makedirs(options.extract_without_bibliography)
+    options.extract_without_bibliography = os.path.abspath(options.extract + "_clean")
+    if not os.path.exists(options.extract_without_bibliography):
+        os.makedirs(options.extract_without_bibliography)
 if options.index:
     options.index = os.path.abspath(options.index)
 if options.terms:
@@ -82,39 +90,20 @@ def getRunCommand(scriptName, args):
 #if patterns are to be learned, bibliographies must be removed
 #if bibliographies are to be removed, page-wise bib extraction is needed
 #without learning, do not extract bibliographies or split documents into pages
-if options.extract:
-    flag_pagewise = (options.learnpath != None)
+if options.extract and options.learnpath:
+    removeBib = (options.learnpath != None)
 
     # build TextExtraction command
-    textExtractionArgs = ["-i", options.corpus, "-o", options.extract]
-    if flag_pagewise:
+    textExtractionArgs = ["-i", options.corpus, "-o"]
+    if removeBib:
+        textExtractionArgs.append(options.extract_without_bibliography)
         textExtractionArgs.append("-p")
+    else:
+        textExtractionArgs.append(options.extract)
     textExtractionCmd = getRunCommand('TextExtractor', textExtractionArgs)
     p = subprocess.Popen(textExtractionCmd, cwd=infoLinkClassPath)
     p.wait()
-
-    #remove last file separator
-    if options.extract.endswith("\\") or options.extract.endswith("/"):
-        options.extract = options.extract[:-1]
-    if not os.path.exists(options.extract):
-        os.makedirs(options.extract)
-    if not os.path.exists(options.extract + "_clean"):
-        os.makedirs(options.extract + "_clean")
-
-    if options.learnpath:
-        import bibRemover
-        #remove bibliographies and make documents whole again (merge pages to documents)
-        cleanTextPagesPath = options.extract + "_clean"
-        head, tail = os.path.split(cleanTextPagesPath)
-        suspectedBibsFile = os.path.abspath(os.path.join(cleanTextPagesPath, "..", tail + "_suspectedBibs.csv"))
-        biblessDocsPath = os.path.abspath(os.path.join(cleanTextPagesPath, "..", tail + "_biblessDocs"))
-        if not os.path.exists(biblessDocsPath):
-            os.makedirs(biblessDocsPath)
-        bibRemover.makeBiblessDocs(cleanTextPagesPath, suspectedBibsFile, biblessDocsPath)
-        corpusPath = biblessDocsPath
-    else:
-        corpusPath = cleanTextPagesPath
-
+    corpusPath = options.extract_without_bibliography
 else:
     corpusPath = options.corpus
 

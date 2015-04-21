@@ -9,6 +9,7 @@ import java.net.URI;
 
 import javax.ws.rs.BadRequestException;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,8 @@ public class CentralClientTest {
 
 	@Test
 	public void test() throws Exception {
-		if (Boolean.parseBoolean(System.getProperty("infolisRemoteTest", "false"))) {
-			log.debug("Skipping because 'infolisRemoteTest' is not 'true'.");
-			return;
-		}
+		Assume.assumeNotNull(System.getProperty("infolisRemoteTest", "false"));
+
 		DataStoreClient client = DataStoreClientFactory.global();
 		InfolisFile inFile = new InfolisFile();
 		inFile.setFileName("foobar.quux");

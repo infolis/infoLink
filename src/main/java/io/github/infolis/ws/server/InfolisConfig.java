@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -105,4 +107,20 @@ public class InfolisConfig {
 		return URI.create(INSTANCE.prop.getProperty("frontendURI"));
 	}
 
+
+	/**
+	 * Property "ignoreStudy"
+	 * @return
+	 */
+	public static List<String> getIgnoreStudy() {
+		return Arrays.asList(INSTANCE.prop.getProperty("ignoreStudy").trim().split("\\s*,\\s*"));
+	}
+
+	/**
+	 * Property "bibliographyCues"
+	 * @return
+	 */
+	public static List<String> getBibliographyCues() {
+		return Arrays.asList(INSTANCE.prop.getProperty("bibliographyCues").trim().split("\\s*,\\s*"));
+	}
 }

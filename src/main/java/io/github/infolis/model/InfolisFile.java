@@ -3,7 +3,6 @@ package io.github.infolis.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.sun.org.apache.xml.internal.security.algorithms.Algorithm;
 
 /**
  * An infolis:File
@@ -18,6 +17,11 @@ public class InfolisFile extends BaseModel {
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
+
+	@Override
+	public String toString() {
+		return String.format("[FILE: %s / %s]", getFileName(), getMediaType());
+	}
 
 	public String getMd5() {
 		return md5;

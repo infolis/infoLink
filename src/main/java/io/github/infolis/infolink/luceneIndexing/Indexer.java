@@ -18,16 +18,22 @@ package io.github.infolis.infolink.luceneIndexing;
  * limitations under the License.
  */
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.store.FSDirectory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /** 
@@ -38,15 +44,25 @@ import java.util.HashMap;
  */
 public class Indexer 
 {
-	/**
-	 * Class constructor.
+
+	/*
+	 * kba: That was the old value of {@link IndexWriter.MaxFieldLength.LIMITED}
 	 */
-	private Indexer() { }
+	private static final int MAX_TOKEN_COUNT = 10000;
 	
-	public static Analyzer getAnalyzer()
-	{
-		return new CaseSensitiveStandardAnalyzer();
-		//return new StandardAnalyzer(Version.LUCENE_CURRENT, new HashSet<String>());
+	private Logger log = LoggerFactory.getLogger(Indexer.class);
+	private OpenMode openMode = OpenMode.CREATE;
+	
+	public Indexer() {
+		this(OpenMode.CREATE);
+	}
+	
+	public Indexer(OpenMode openMode) {
+		this.openMode = openMode;
+	}
+	
+	public static Analyzer createAnalyzer() {
+		return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
 	}
 
 	/**
@@ -57,7 +73,7 @@ public class Indexer
 	 * @param file		the location of the text document(s) to be added to the index
 	 * @throws IOException
 	 */
-	public static void indexDocs(IndexWriter writer, File file) throws IOException 
+	public void indexDocs(IndexWriter writer, File file) throws IOException 
 	{
 		// do not try to index files that cannot be read
 		if (file.canRead()) 
@@ -89,31 +105,37 @@ public class Indexer
 	 * 
 	 * @param fileMap	A map listing index output locations (keys) and input directories (values) containing the documents to index	
 	 */
-	@SuppressWarnings("deprecation")
-	public static void indexAllFiles(HashMap<File, File> fileMap)
+	public void indexAllFiles(HashMap<File, File> fileMap)
 	{
 		for (File indexDir : fileMap.keySet())
 		{
 			File docDir = fileMap.get(indexDir);
 
-			System.out.println("start");
-			if (indexDir.exists()) 
-			{
-				System.out.println("Cannot save index to '" + indexDir + "' directory, please delete it first");
-				continue;
+			log.debug("start");
+			if (indexDir.exists())  {
+				if (openMode == OpenMode.APPEND) {
+					String msg = "Index dir '" + indexDir + "' exists but was configured not to overwrite.";
+					log.error(msg);
+					throw new RuntimeException(msg);
+				} else {
+					log.debug("Overwriting index in '" + indexDir + "'.");
+				}
 			}
+
+			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
+			indexWriterConfig.setOpenMode(OpenMode.CREATE);
 
 			Date start = new Date();
 			try 
 			{
-				IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), Indexer.getAnalyzer(), true, IndexWriter.MaxFieldLength.LIMITED);
-				System.out.println("Indexing to directory '" + indexDir + "'...");
+				IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
+				log.debug("Indexing to directory '{}'...", indexDir);
 				indexDocs(writer, docDir);
-				System.out.println("Optimizing...");
-				writer.optimize();
+				log.debug("Merging all Lucene segments ...");
+				writer.forceMerge(1);
 				writer.close();
 				Date end = new Date();
-				System.out.println(end.getTime() - start.getTime() + " total milliseconds");
+				log.debug(end.getTime() - start.getTime() + " total milliseconds");
 			} 
 			catch (IOException e) 
 			{
@@ -155,6 +177,9 @@ public class Indexer
 			}
 		}
 		else { toIndex.put(new File(root_index), root_corpus); }
-		indexAllFiles(toIndex);
+
+		Indexer indexer = new Indexer();
+		indexer.indexAllFiles(toIndex);
 	}
+	
 }

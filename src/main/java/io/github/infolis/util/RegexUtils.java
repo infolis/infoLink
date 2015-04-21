@@ -1,6 +1,6 @@
 package io.github.infolis.util;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.algorithm.SearchTermPosition;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,30 +9,37 @@ import java.util.regex.Pattern;
 
 public class RegexUtils {
 
-	public static String yearRegex = new String("(\\d{4})");
-	public static String percentRegex = new String("\\d+[.,]?\\d*%");
-	public static String numberRegex = new String("\\d+[.,]?\\d*");
-	public static Pattern[] patterns = getContextMinerYearPatterns();
-	public static String delimiter_csv = "|";
-	public static String delimiter_internal = "--@--";
-	public static String[] enumeratorList = {",", ";", "/", "\\\\"};
-	public static String urlPatString = "((\\w+?://)|(www.*?\\.)).+\\.[a-zA-Z][a-zA-Z][a-zA-Z]*";
-	public static Pattern urlPat = Pattern.compile(urlPatString);
+	public static final String yearRegex = new String("(\\d{4})");
+	public static final String percentRegex = new String("\\d+[.,]?\\d*%");
+	public static final String numberRegex = new String("\\d+[.,]?\\d*");
+	public static final Pattern[] patterns = getContextMinerYearPatterns();
+	public static final String delimiter_csv = "|";
+	public static final String delimiter_internal = "--@--";
+	public static final String[] enumeratorList = {",", ";", "/", "\\\\"};
+	public static final String urlPatString = "((\\w+?://)|(www.*?\\.)).+\\.[a-zA-Z][a-zA-Z][a-zA-Z]*";
+	public static final Pattern urlPat = Pattern.compile(urlPatString);
 	// restricts study names to contain at most 3 words (and at least 3 characters)
 	//public static String studyRegex_ngram = new String("(\\S+?\\s?\\S+?\\s?\\S+?)");
 	// restricts study names to contain at most 5 words (and at least 3 characters)
-	public static String studyRegex_ngram = new String("(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)");
+	public static final String studyRegex_ngram = new String("(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)");
 	//public static String studyRegex_ngram = new String("(\\S*?\\s?\\S*?\\s?\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?\\s?\\S*?\\s?\\S*?)");
 	// restricts study names to contain at most 6 words (and at least 3 characters)
 	// slower and does not yield better results: 5 words seem to be optimal
 	//public static String studyRegex_ngram = new String("(\\S*?\\s?\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)");
 	// word = any char sequence not containing whitespace (punctuation is seen as part of the word here)
-	public static String studyRegex = new String("(\\S+?)");
+	public static final String studyRegex = new String("(\\S+?)");
 	// use atomic grouping where possible to prevent catastrophic backtracking
-	public static String wordRegex = new String("\\S+?");
-	public static String wordRegex_atomic = new String("\\S++");
+	public static final String wordRegex = new String("\\S+?");
+	public static final String wordRegex_atomic = new String("\\S++");
 	// use greedy variant for last word - normal wordRegex would only extract first character of last word
-	public static String lastWordRegex = new String("\\S+");
+	public static final String lastWordRegex = new String("\\S+");
+
+    public static final String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
+    public static final String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
+
+	public static final Pattern patternNumeric = Pattern.compile("\\d+");
+	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
+
 
 	//TODO: change name to denormalizeRegex or something similar...
 	/**
@@ -105,7 +112,7 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
 		string = string.trim();
-		string = Search_Term_Position.normalizeQueryParts(string);
+		string = SearchTermPosition.normalizeQuery(string, false);
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
 	}

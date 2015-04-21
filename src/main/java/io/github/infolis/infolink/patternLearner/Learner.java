@@ -1,8 +1,13 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
@@ -43,6 +48,8 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -66,8 +73,11 @@ import com.google.common.collect.Lists;
  *
  */
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
-public class Learner
+public class Learner implements Algorithm
 {
+	
+	Logger log = LoggerFactory.getLogger(Learner.class);
+	
 	List<List<String>> contextsAsStrings;
 	Set<String> processedSeeds; //all processed seeds
 	Set<String> foundSeeds_iteration; //seeds found at current iteration step
@@ -360,9 +370,7 @@ public class Learner
 	public List<StudyContext> getContextsForAllSeeds(String indexDir, Collection<String> seedList) throws IOException, ParseException {
 		List<StudyContext> contexts = new ArrayList<StudyContext>();
 		for (String seed : seedList) {
-			try { contexts.addAll(getContextsForSeed(seed)); }
-			catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
-			catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
+			contexts.addAll(getContextsForSeed(seed));
 		}
 		return contexts;
 	}
@@ -375,23 +383,20 @@ public class Learner
 	 * @param seed		seed for which the contexts to retrieve
 	 */
 	public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
-		List<StudyContext> contexts = new ArrayList<StudyContext>();
-		Search_Term_Position search = new Search_Term_Position(this.indexPath, null, seed, Search_Term_Position.normalizeQuery(seed));
-		try { contexts = search.complexSearch_getContexts(); }
-		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
-		catch (ParseException pe) { pe.printStackTrace(); throw new ParseException();}
-		return contexts;
-	}
-	
-	public void writeContextToXML(StudyContext context, String filename) throws IOException {
-		try {
-			InfolisFileUtils.prepareOutputFile(filename);
-			InfolisFileUtils.writeToFile(new File(filename), "UTF-8", context.toXML(), true);
-			InfolisFileUtils.completeOutputFile(filename);
+
+		Execution execution = new Execution();
+		execution.setAlgorithm(SearchTermPosition.class);
+		execution.setSearchTerm(seed);
+		
+		Algorithm algo = new SearchTermPosition();
+		algo.run();
+
+		List<StudyContext> ret = new ArrayList<>();
+		for (String sC : execution.getStudyContexts()) {
+			ret.add(this.getDataStoreClient().get(StudyContext.class, sC));
 		}
-		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+		return ret;
 	}
-	
 	
 	/**
 	 * Generates extraction patterns using an iterative bootstrapping approach. 
@@ -828,13 +833,12 @@ public class Learner
 		{
 			// get list of documents in which to search for the regular expression
 			try { 
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
+				List<String> candidateCorpus = getStudyRef_lucene(curPat[0]); 
 				Set<String> patSet = new HashSet<String>();
 				patSet.add(curPat[2]);
 				resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
 			}
 			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
 			continue;
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
@@ -852,6 +856,8 @@ public class Learner
 	 * @param corpus	list of filenames of the text corpus
 	 * @param indexPath	path of the lucene index for the text corpus
 	 * @return			a list of study references
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
 	private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException, ParseException
 	{
@@ -859,17 +865,14 @@ public class Learner
 		
 		for (String curPat[] : patterns)
 		{
-			try { 
-				String[] candidateCorpus = getStudyRef_lucene(curPat[0]); 
-				Set<String> patSet = new HashSet<String>();
-				patSet.add(curPat[1]);
-				//TODO: see above...
-				try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
-				catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-				this.processedPatterns.add(curPat[1]);
-				continue;
-			}
-			catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
+			List<String> candidateCorpus = getStudyRef_lucene(curPat[0]); 
+			Set<String> patSet = new HashSet<String>();
+			patSet.add(curPat[1]);
+			//TODO: see above...
+			try { resAggregated.addAll(getStudyRefs(patSet, candidateCorpus)); }
+			catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
+			this.processedPatterns.add(curPat[1]);
+			continue;
 	
 		}
 		System.out.println("Done processing complex patterns. Continuing.");
@@ -881,19 +884,25 @@ public class Learner
 	 * 
 	 * @param lucene_pattern	lucene search query
 	 * @return					a list of documents with hits
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	private String[] getStudyRef_lucene(String lucene_pattern) throws IOException, ParseException
+	private List<String> getStudyRef_lucene(String lucene_pattern)
 	{
-		String[] candidateCorpus;
-		try
-		{
-			// lucene query is assumed to be normalized
-			Search_Term_Position candidateSearcher = new Search_Term_Position(this.indexPath, "", "", lucene_pattern);
-			candidateCorpus = candidateSearcher.complexSearch();
-			//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
+		List<String> candidateCorpus;
+		// lucene query is assumed to be normalized
+		Execution exec = new Execution();
+		exec.setAlgorithm(SearchTermPosition.class);
+		exec.setFirstOutputFile("");
+		exec.setSearchTerm("");
+		exec.setSearchQuery(lucene_pattern);
+		try {
+			exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
-		catch(IOException ioe) { ioe.printStackTrace(); throw new IOException(); }
-		catch(ParseException pe) { pe.printStackTrace(); throw new ParseException(); }
+		candidateCorpus = exec.getMatchingFilenames();
+		//if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
 		System.out.println("Done processing lucene query. Continuing.");
 		return candidateCorpus;
 	}
@@ -906,7 +915,7 @@ public class Learner
 	 * @param corpus	array of filenames of text documents to search patterns in
 	 * @return			a list of extracted contexts
 	 */
-	private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus) throws IOException
+	private List<String[]> getStudyRefs(Set<String> patterns, List<String> corpus) throws IOException
 	{
 		List<String[]> resAggregated = new ArrayList<String[]>();
 		for (String filename: corpus)
@@ -2395,8 +2404,9 @@ public class Learner
 	    	res = getStudyRefs_optimized(patterns,corpus_test); 
 	    }
 	    catch(IOException ioe) { ioe.printStackTrace(); throw(new IOException()); }
-		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); }
-		System.out.println("done applying patterns. ");
+		catch(ParseException pe) { pe.printStackTrace(); throw(new ParseException()); 
+		}
+		log.debug("done applying patterns. ");
 	    return res;
 	}
 	
@@ -2912,6 +2922,69 @@ public class Learner
 		{ 
 			new OptionHandler().doMain(args);
 			System.out.println("Finished all tasks! Bye :)");
+		}
+
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void execute() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public void validate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public Execution getExecution() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setExecution(Execution execution) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public FileResolver getFileResolver() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setFileResolver(FileResolver fileResolver) {
+			// TODO Auto-generated method stub
+			
+		}
+
+
+		@Override
+		public DataStoreClient getDataStoreClient() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+
+		@Override
+		public void setDataStoreClient(DataStoreClient dataStoreClient) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 

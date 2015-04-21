@@ -10,6 +10,7 @@ import io.github.infolis.util.SerializationUtils;
 import java.net.URI;
 import java.util.Date;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,12 @@ import org.slf4j.LoggerFactory;
 public class ExecutionTest {
 
 	Logger log = LoggerFactory.getLogger(ExecutionTest.class);
+
 	
 	@Test
 	public void testRoundTrip() {
+		
+		Assume.assumeNotNull(System.getProperty("infolisRemoteTest", "false"));
 		
 		DataStoreClient client = DataStoreClientFactory.global();
 		

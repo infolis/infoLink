@@ -51,6 +51,10 @@ dependencies {
     compile 'junit:junit:4.4'
 }
 
+test {
+    systemProperties = System.properties
+}
+
 task copyPython(type:Copy) {
     def source = 'src/main/python'
     def target = new File(project.buildDir, 'bin')
@@ -94,7 +98,7 @@ def createScript(mainClass, scriptName) {
 createScript('io.github.infolis.infolink.tagger.Tagger', 'Tagger')
 createScript('io.github.infolis.algorithm.TextExtractorAlgorithm', 'TextExtractor')
 createScript('io.github.infolis.infolink.luceneIndexing.Indexer', 'Indexer')
-createScript('io.github.infolis.infolink.searching.Search_Term_Position', 'Search_Term_Position')
+createScript('io.github.infolis.infolink.searching.SearchTermPosition', 'SearchTermPosition')
 createScript('io.github.infolis.infolink.patternLearner.TrainingSet', 'TrainingSet')
 createScript('io.github.infolis.infolink.patternLearner.Learner', 'Learner')
 createScript('io.github.infolis.infolink.patternLearner.ExampleReader', 'ExampleReader')

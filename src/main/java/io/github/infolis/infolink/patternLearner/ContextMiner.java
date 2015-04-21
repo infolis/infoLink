@@ -1,11 +1,14 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.infolink.searching.Search_Term_Position;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,6 +31,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Class for mapping dataset references listed in InfoLink reference extraction context files 
@@ -37,8 +43,9 @@ import java.util.regex.Pattern;
  * @version 2014-01-27
  *
  */
-public class ContextMiner 
-{
+public class ContextMiner {
+	
+	private Logger log = LoggerFactory.getLogger(ContextMiner.class);
 	Set<String> documentSet;
 	Map<String, ExampleReader.Term> termMap;
 	Map<String,Set<String[]>> documentMap;
@@ -120,7 +127,10 @@ public class ContextMiner
 			matcher = pat.matcher(string);
 			while (matcher.find())
 			{
-				String version = matcher.group();
+				String version = matcher.group();//		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
+//				| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
+//				| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
+//				| studyname.matches("[\\d\\s]*"));
 				// version may contain dots, therefore needs to be escaped
 				// split string into left context of version, version, right context of version
 				// remove chars directly adjacent to version (e.g. brackets)
@@ -155,7 +165,10 @@ public class ContextMiner
 	 * 
 	 * @param completeContext	context of the dataset reference that may include a URL. Format: completeContext[0]: left context; completeContext[1]: dataset title; completeContext[2]: right context
 	 * @return					array with url and dataset title as members if URL is found, null otherwise
-	 */
+	 *///		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
+//	| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
+//	| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
+//	| studyname.matches("[\\d\\s]*"));
 	public String[] getHtmlRef(String[] completeContext, String strippedTitle)
 	{
 		// search for url in right context
@@ -497,10 +510,13 @@ public class ContextMiner
 	 */
 	public static boolean ignoreStudy(String studyname)
 	{
-		return ( studyname.contains("Eigene Erhebung") | studyname.contains("eigene Erhebung")
-				| studyname.contains("eigene Darstellung") | studyname.contains("Eigene Darstellung") 
-				| studyname.contains("eigene Abbildung") | studyname.contains("Eigene Abbildung") 
-				| studyname.matches("[\\d\\s]*"));
+// TODO should work but need to test it
+		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
+			if (studyname.matches(ignorePattern)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -643,10 +659,18 @@ public class ContextMiner
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			Search_Term_Position search = new Search_Term_Position(indexDir, snippetFilename, term.trim(), "\"" + Search_Term_Position.normalizeQuery(term) + "\"");
-			try { search.complexSearch(new File(snippetFilename), true);	}
-			catch (IOException ioe) { ioe.printStackTrace(); }
-			catch (Exception e) { e.printStackTrace(); }
+			String query = '"' + SearchTermPosition.normalizeQuery(term, true) + '"';
+			Execution exec = new Execution();
+//			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + query + "\"");
+			exec.setSearchQuery(query);
+			exec.setSearchTerm(term.trim());
+			exec.setFirstOutputFile(snippetFilename);
+			exec.setAlgorithm(SearchTermPosition.class);
+			try {
+				exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+			} catch (InstantiationException | IllegalAccessException e) {
+				log.error("Error writing snippets: {}", e);
+			}
 		}
 		try { InfolisFileUtils.completeOutputFile(snippetFilename); }
 		catch (IOException e) { e.printStackTrace(); } 

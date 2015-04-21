@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import java.io.IOException;
+
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -8,9 +10,10 @@ public interface Algorithm extends Runnable {
 
 	/**
 	 * Execute the algorithm.
+	 * @throws IOException 
 	 * 
 	 */
-	void execute();
+	void execute() throws IOException;
 
 	/**
 	 * Validate the execution object linking this algorithm with its

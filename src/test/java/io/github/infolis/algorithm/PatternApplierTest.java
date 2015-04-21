@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -41,9 +43,19 @@ public class PatternApplierTest {
 
     @Test
     public void testPatternApplier() throws Exception {
-        createInputFiles();
-        //pattern.add (pattern)
-        testContexts(files, pattern);
+        
+        Pattern p = Pattern.compile("Please try to find the (\\S+?) short text snippet");
+        Matcher m = p.matcher(testString1);
+        System.out.println(m.matches());
+        
+        String con = m.group();
+        String studyName = m.group(1).trim();
+        System.out.println("con: " + con + " study: " + studyName);
+        
+        
+//        createInputFiles();
+//        pattern.add ("Please try to find the (\\S+?) short text snippet");
+//        testContexts(files, pattern);
     }
     
     public void createInputFiles() {

@@ -6,6 +6,7 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
 
@@ -19,7 +20,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -36,9 +36,6 @@ import org.slf4j.LoggerFactory;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
-	public static final String PARAM_PDF_OUTPUT = "pdfOutput";
-	public static final String PARAM_REMOVE_BIBLIOGRAPHY = "removeBibliography";
-	public static final String PARAM_PDF_INPUT = "pdfInput";
 	public static final List<String> cueWords = Arrays.asList("Literatur", "Literaturverzeichnis",
 			"Literaturliste",
 			"Bibliographie", "Bibliografie", "Quellen", "Quellenangaben", "Quellenverzeichnis",
@@ -46,8 +43,6 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			"References", "list of literature", "List of Literature", "List of literature",
 			"list of references", "List of References",
 			"List of references", "reference list", "Reference List", "Reference list");
-	public static final Pattern patternNumeric = Pattern.compile("\\d+");
-	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 
 	private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
 	private PDFTextStripper stripper;
@@ -166,8 +161,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				continue;
 			}
 			// determine the amount of numbers (numeric and decimal)
-			Matcher matcherNumeric = patternNumeric.matcher(pageText);
-			Matcher matcherDecimal = patternDecimal.matcher(pageText);
+			Matcher matcherNumeric = RegexUtils.patternNumeric.matcher(pageText);
+			Matcher matcherDecimal = RegexUtils.patternDecimal.matcher(pageText);
 			while (matcherNumeric.find()) {
 				numNumbers++;
 			}

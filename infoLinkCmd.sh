@@ -31,7 +31,7 @@ CHUNKING_CMD="./tree-tagger/cmd/tagger-chunker-german"
 # restrict maximum number of iterations to 2
 # use "seaparae"-strategy
 python $PYTHON_SRC/infoLink.py \
-    -C "build/classes/main/:$INSTALL_DIR/lib/*" \
+    -C "$INSTALL_DIR/lib/" \
     -e "../data/test/small_txt" \
     -c "../data/test/small" \
     -l "../data/test/train_small" \

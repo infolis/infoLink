@@ -37,6 +37,10 @@ public class RegexUtils {
     public static final String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
     public static final String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
 
+	public static final Pattern patternNumeric = Pattern.compile("\\d+");
+	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
+
+
 	//TODO: change name to denormalizeRegex or something similar...
 	/**
 	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their 

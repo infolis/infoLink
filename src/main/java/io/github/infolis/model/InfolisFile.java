@@ -18,6 +18,11 @@ public class InfolisFile extends BaseModel {
 	private String mediaType;
 	private String fileStatus;
 
+	@Override
+	public String toString() {
+		return String.format("[FILE: %s / %s]", getFileName(), getMediaType());
+	}
+
 	public String getMd5() {
 		return md5;
 	}

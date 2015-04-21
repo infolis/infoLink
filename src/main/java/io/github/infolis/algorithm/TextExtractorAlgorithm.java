@@ -199,20 +199,20 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			if (null == inputFile) {
 				throw new RuntimeException("File was not registered with the data store: "+ inputFileURI);
 			}
-			log.debug("Will extract now");
+			log.debug("Start extracting from " + inputFile);
 			InfolisFile outputFile = extract(inputFile);
-			log.debug("LOG {}", getExecution().getLog());
+//			log.debug("LOG {}", getExecution().getLog());
 			// FrontendClient.post(InfolisFile.class, outputFile);
 			if (null == outputFile) {
 				getExecution().getLog().add(
 						"Conversion failed for input file " + inputFileURI);
-				log.debug(getExecution().getLog().toString());
+				log.debug("Log of this execution: " + getExecution().getLog());
 				getExecution().setStatus(ExecutionStatus.FAILED);
 			} else {
 				getExecution().setStatus(ExecutionStatus.FINISHED);
 				getDataStoreClient().post(InfolisFile.class, outputFile);
 				getExecution().getOutputFiles().add(outputFile.getUri());
-				log.debug("{}", getExecution().getOutputFiles());
+				log.debug("OutputFiles of this execution: {}", getExecution().getOutputFiles());
 			}
 		}
 	}

@@ -49,6 +49,7 @@ public class PatternApplier extends BaseAlgorithm {
         StringWriter writer = new StringWriter();
         IOUtils.copy(in, writer, "UTF-8");
         String input = writer.toString();
+        System.out.println("input: " +input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
 
@@ -62,7 +63,7 @@ public class PatternApplier extends BaseAlgorithm {
             // to hang
             // thus monitor runtime of threat and terminate if processing takes too long
             SafeMatching safeMatch = new SafeMatching(m);
-            Thread thread = new Thread(safeMatch, file + "\n" + pattern);
+            Thread thread = new Thread(safeMatch, file.getFileName() + "\n" + pattern);
             long startTimeMillis = System.currentTimeMillis();
             // processing time for documents depends on size of the document. 
             // Allow 1024 milliseconds per KB
@@ -152,7 +153,7 @@ public class PatternApplier extends BaseAlgorithm {
                     List<StudyContext> con = SearchTermPosition.getContexts(file.getFileName(), studyName, context);
                     for (StudyContext oneContext : con) {
                         oneContext.setPattern(pattern);
-                    }
+                    }                    
                     res.addAll(con);
                     System.out.println("Added context.");
                 }
@@ -185,7 +186,9 @@ public class PatternApplier extends BaseAlgorithm {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
             }
             log.debug("Start extracting from " + inputFile);
-            detectedContexts.addAll(searchForPatterns(inputFile));
+            List<StudyContext> test = searchForPatterns(inputFile);
+            System.out.println(test.size());
+            detectedContexts.addAll(test);
         }
 
         for (StudyContext sC : detectedContexts) {

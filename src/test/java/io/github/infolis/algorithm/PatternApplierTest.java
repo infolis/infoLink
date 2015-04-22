@@ -63,6 +63,7 @@ public class PatternApplierTest {
     	execution.setPattern(Arrays.asList("Please try to find the (\\S+?) short text snippet"));
     	execution.setAlgorithm(PatternApplier.class);
     	execution.getInputFiles().add(testFiles.get(0).getUri());
+
     	Algorithm algo = new PatternApplier();
     	algo.setDataStoreClient(client);
     	algo.setFileResolver(fileResolver);

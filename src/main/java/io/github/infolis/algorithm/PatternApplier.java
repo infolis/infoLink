@@ -5,15 +5,14 @@
  */
 package io.github.infolis.algorithm;
 
-import static io.github.infolis.algorithm.SearchTermPosition.getContexts;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.SafeMatching;
 import io.github.infolis.ws.server.InfolisConfig;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,18 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PatternApplier extends BaseAlgorithm {
 
-    private Execution execution;
     private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
-
-    @Override
-    public Execution getExecution() {
-        return execution;
-    }
-
-    @Override
-    public void setExecution(Execution execution) {
-        this.execution = execution;
-    }
 
     private List<StudyContext> searchForPatterns(InfolisFile file) throws IOException {
         InputStream in = getFileResolver().openInputStream(file);
@@ -54,7 +43,7 @@ public class PatternApplier extends BaseAlgorithm {
 
         List<StudyContext> res = new ArrayList<>();
         for (String pattern : this.getExecution().getPattern()) {
-            System.out.println("Searching for pattern " + pattern);
+            log.debug("Searching for pattern '{}'", pattern);
             Pattern p = Pattern.compile(pattern);
             Matcher m = p.matcher(inputClean);
 
@@ -179,18 +168,18 @@ public class PatternApplier extends BaseAlgorithm {
     public void execute() throws IOException {
         List<StudyContext> detectedContexts = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
-            log.debug(inputFileURI);
+            log.debug("Input file URI: '{}'", inputFileURI);
             InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
             }
-            log.debug("Start extracting from " + inputFile);
+            log.debug("Start extracting from '{}'.", inputFile);
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
 
         for (StudyContext sC : detectedContexts) {
             getDataStoreClient().post(StudyContext.class, sC);
-            this.execution.getStudyContexts().add(sC.getUri());
+            this.getExecution().getStudyContexts().add(sC.getUri());
         }
         
         if (detectedContexts.isEmpty()) {
@@ -207,11 +196,11 @@ public class PatternApplier extends BaseAlgorithm {
     @Override
     public void validate() {
         if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
+                 || this.getExecution().getInputFiles().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if (null == this.getExecution().getPattern()
-                || this.getExecution().getPattern().isEmpty()) {
+                 || this.getExecution().getPattern().isEmpty()) {
             throw new IllegalArgumentException("No patterns given.");
         }
     }

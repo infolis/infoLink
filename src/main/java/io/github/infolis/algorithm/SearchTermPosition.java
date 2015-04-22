@@ -197,6 +197,7 @@ public class SearchTermPosition extends BaseAlgorithm
 				getDataStoreClient().post(StudyContext.class, sC);
 				this.execution.getStudyContexts().add(sC.getUri());
 			}
+			// TODO outputfile
 			log.debug(doc.get("path"));
 
 			getExecution().getMatchingFilenames().add(doc.get("path"));

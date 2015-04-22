@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Class for saving contexts (= surrounding words of a term).
@@ -22,30 +22,32 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author kba
  *
  */
-@XmlRootElement(name="context")
+@XmlRootElement(name = "context")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class StudyContext extends BaseModel {
-	
+
 	@XmlTransient
 	private List<String> leftWords;
 	@XmlTransient
 	private List<String> rightWords;
-	@XmlElement(name="leftContext")
+	@XmlElement(name = "leftContext")
 	private String leftText;
-	@XmlElement(name="rightContext")
+	@XmlElement(name = "rightContext")
 	private String rightText;
-    @XmlAttribute
+	@XmlAttribute
 	private String term;
-    @XmlAttribute
-    private String document;
-    @XmlTransient
+	@XmlAttribute
+	private String document;
+	@XmlTransient
 	private String pattern;
-	
-	public StudyContext() { }
+
+	public StudyContext() {
+	}
 
 	/**
-	 * Class constructor specifying the left context, the term, the right context, the document from which 
-	 * the context was extracted and the pattern used to extract the context.
+	 * Class constructor specifying the left context, the term, the right
+	 * context, the document from which the context was extracted and the
+	 * pattern used to extract the context.
 	 * 
 	 * @param left
 	 * @param term
@@ -61,22 +63,26 @@ public class StudyContext extends BaseModel {
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setDocument(document);
 		this.setPattern(pattern);
-	}        
-	
+	}
+
 	public String toXML() {
-		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) + 
-				"\" document=\"" + this.getDocument() + "\">" + System.getProperty("line.separator") + "\t\t" + 
-				"<leftContext>" + this.getLeftText() +"</leftContext>" + System.getProperty("line.separator") + "\t\t" + 
-				"<rightContext>" + this.getRightText() + "</rightContext>" + System.getProperty("line.separator") + 
+		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) +
+				"\" document=\"" + this.getDocument() + "\">"
+				+ System.getProperty("line.separator") + "\t\t" +
+				"<leftContext>" + this.getLeftText() + "</leftContext>"
+				+ System.getProperty("line.separator") + "\t\t" +
+				"<rightContext>" + this.getRightText() + "</rightContext>"
+				+ System.getProperty("line.separator") +
 				"\t</context>" + System.getProperty("line.separator");
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.getLeftText() + " " + this.getTerm() + " " + this.getRightText();
 	}
-        
-        public String getContextWithoutTerm() {
+
+	@JsonIgnore
+	public String getContextWithoutTerm() {
 		return this.getLeftText() + " " + this.getRightText();
 	}
 
@@ -136,26 +142,25 @@ public class StudyContext extends BaseModel {
 		this.pattern = pattern;
 	}
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 29 * hash + Objects.hashCode(this.leftText);
-        hash = 29 * hash + Objects.hashCode(this.rightText);
-        return hash;
-    }
-        
-        @Override
-        public boolean equals(Object o) {
-            try {
-                StudyContext other = (StudyContext)o;
-                if(other.getContextWithoutTerm().equals(this.getContextWithoutTerm())) {
-                    return true;
-                }
-            }
-            catch(Exception e) {
-                
-            }
-            return false;
-        }
-	
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 29 * hash + Objects.hashCode(this.leftText);
+		hash = 29 * hash + Objects.hashCode(this.rightText);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		try {
+			StudyContext other = (StudyContext) o;
+			if (other.getContextWithoutTerm().equals(this.getContextWithoutTerm())) {
+				return true;
+			}
+		} catch (Exception e) {
+
+		}
+		return false;
+	}
+
 }

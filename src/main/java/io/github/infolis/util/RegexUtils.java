@@ -222,6 +222,52 @@ public class RegexUtils {
 		return seed.replace(":", "_").replace("\\", "_").replace("/", "_").replace("?",  "_").replace(">",  "_").replace("<",  "_");
 	}
 	
+			// TODO needed?
+//	/**
+//	 * Determines reliablity of instance based on instance ranking: if an instance is extracted by many 
+//	 * reliable patterns, it has a high reliability. Reliability of pattern: extracts many reliable instances 
+//	 * (in proportion to unreliable instances).
+//	 * 
+//	 * @param instance	the instance (dataset title) to be assessed
+//	 * @return			boolean value: reliablity score above threshold or not
+//	 */
+//	private double reliability_instance( String instance )
+//	{
+//		System.out.println("Checking if instance is reliable: " + instance);
+//		Reliability.Instance curInstance = this.reliability.instances.get(instance);
+//		return reliability(curInstance);
+//	}
+	//TODO: ADD INSTANCE FILTERING FOR GENERIC PATTERNS (need to substitute 
+    //google-based method there...)
+    /**
+     * Checks whether a given word is a stop word
+     *
+     * @param word	arbitrary string sequence to be checked
+     * @return	true if word is found to be a stop word, false otherwise
+     */
+    public static boolean isStopword(String word) {
+        // word consists of punctuation, whitespace and digits only
+        if (word.matches("[\\p{Punct}\\s\\d]*")) {
+            return true;
+        }
+        // trim word, lower case and remove all punctuation
+        word = word.replace("\\p{Punct}+", "").trim().toLowerCase();
+		// due to text extraction errors, whitespace is frequently added to words resulting in many single characters
+        // TODO: use this as small work-around but work on better methods for automatic text correction
+        if (word.length() < 2) {
+            return true;
+        }
+        if (RegexUtils.stopwordList().contains(word)) {
+            return true;
+        }
+        // treat concatenations of stopwords as stopword
+        for (String stopword : RegexUtils.stopwordList()) {
+            if (RegexUtils.stopwordList().contains(word.replace(stopword, ""))) {
+                return true;
+            }
+        }
+        return false;
+    }
 	
 
 }

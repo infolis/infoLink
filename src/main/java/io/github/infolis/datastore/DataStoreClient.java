@@ -53,14 +53,7 @@ public interface DataStoreClient {
 	 * @return the server representation of the thing
 	 */
 	<T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException;
-
-//	/**
-//	 * GET a resource from the data store. If it does not exist, create it.
-//	 * 
-//	 * @param clazz
-//	 * @param id
-//	 * @return
-//	 */
-//	<T extends BaseModel> T getOrPost(Class<T> clazz, String id);
+	
+	<T extends BaseModel> void patchAdd(Class<T> clazz, T thing, String fieldName, String newValue);
 
 }

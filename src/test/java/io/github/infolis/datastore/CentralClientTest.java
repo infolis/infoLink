@@ -40,5 +40,10 @@ public class CentralClientTest {
 //			e.printStackTrace();
 		}
 	}
+
+	@Test
+	public void testPatchAdd() throws Exception {
+		throw new RuntimeException("not yet implemented");
+	}
 	
 }

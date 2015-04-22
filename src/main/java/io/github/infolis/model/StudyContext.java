@@ -4,6 +4,7 @@ import io.github.infolis.util.SerializationUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -74,6 +75,10 @@ public class StudyContext extends BaseModel {
 	public String toString() {
 		return this.getLeftText() + " " + this.getTerm() + " " + this.getRightText();
 	}
+        
+        public String getContextWithoutTerm() {
+		return this.getLeftText() + " " + this.getRightText();
+	}
 
 	public List<String> getLeftWords() {
 		return leftWords;
@@ -130,5 +135,27 @@ public class StudyContext extends BaseModel {
 	public void setPattern(String pattern) {
 		this.pattern = pattern;
 	}
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 29 * hash + Objects.hashCode(this.leftText);
+        hash = 29 * hash + Objects.hashCode(this.rightText);
+        return hash;
+    }
+        
+        @Override
+        public boolean equals(Object o) {
+            try {
+                StudyContext other = (StudyContext)o;
+                if(other.getContextWithoutTerm().equals(this.getContextWithoutTerm())) {
+                    return true;
+                }
+            }
+            catch(Exception e) {
+                
+            }
+            return false;
+        }
 	
 }

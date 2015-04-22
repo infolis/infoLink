@@ -36,9 +36,9 @@ public class PatternApplierTest {
     List<String> files = new ArrayList<>();
     
 	private final static List<String> testStrings = Arrays.asList(
-			"Please try to find the term in this short text snippet.",
-			"Please try to find the _ in this short text snippet.",
-			"Please try to find the .term. in this short text snippet."
+			"Please try to find the term in this short text snippet that I provided to you.",
+			"Please try to find the _ in this short text snippet that I provided to you.",
+			"Please try to find the .term. in this short text snippet that I provided to you."
 			);
 
 	private final List<InfolisFile> testFiles = new ArrayList<>();

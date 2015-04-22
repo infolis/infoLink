@@ -221,7 +221,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
 	    Matcher m = pat.matcher(text);
-            log.debug("Pattern: " + pat + " found " + m.find());
+            log.debug("Pattern: " + pat + " found " + m.find() + " \nText: {}", text);
 	    List<StudyContext> contextList = new ArrayList<StudyContext>();
 	    //TODO: USE SAFEMATCHING
 	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..

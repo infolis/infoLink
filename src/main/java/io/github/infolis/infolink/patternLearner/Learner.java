@@ -12,7 +12,6 @@ import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
-import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -73,6 +72,11 @@ import com.google.common.collect.Lists;
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
 public class Learner implements Algorithm {
 
+    public enum Strategy {
+
+        mergeCurrent, mergeNew, mergeAll, separate, reliability;
+    }
+
     Logger log = LoggerFactory.getLogger(Learner.class);
 
     List<List<String>> contextsAsStrings;
@@ -99,6 +103,7 @@ public class Learner implements Algorithm {
     String arffPath;
     String outputPath;
     Reliability reliability;
+    Strategy startegy;
 
     /**
      * Class constructor specifying the constraints for patterns.
@@ -109,7 +114,7 @@ public class Learner implements Algorithm {
      * dataset name has at least one upper case character
      *
      */
-    public Learner(String taggingCmd, String chunkingCmd, boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath) {
+    public Learner(String taggingCmd, String chunkingCmd, boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath, Strategy strategy) {
         this.processedSeeds = new HashSet<String>();
         this.foundSeeds_iteration = new HashSet<String>();
         this.foundPatterns_iteration = new HashSet<String[]>();
@@ -130,6 +135,7 @@ public class Learner implements Algorithm {
         this.reliableInstances = new HashSet<String>();
         this.reliability = new Reliability();
         this.relevantPatterns = new HashSet<String[]>();
+        this.startegy = strategy;
     }
 
     /**
@@ -186,37 +192,6 @@ public class Learner implements Algorithm {
      * <li>outputs found seeds, contexts and extraction patterns</li>
      * </ol>
      *
-     * Method for assessing pattern validity is reliability-based.
-     *
-     * @param seeds	reliable terms to be searched as starting point
-     * @param threshold	reliability threshold
-	 *
-     */
-    //TODO: NOT NECESSARY, CALL METHOD DIRECTLY :D
-    private void bootstrap(Collection<String> seeds, double threshold, int maxIterations) throws IOException, ParseException {
-        try {
-            bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            throw (new ParseException());
-        }
-    }
-
-    /**
-     * Generates extraction patterns using an iterative bootstrapping approach.
-     *
-     * <ol>
-     * <li>searches for seeds in the specified corpus and extracts the
-     * surrounding words as contexts</li>
-     * <li>analyzes contexts and generates extraction patterns</li>
-     * <li>applies extraction patterns on corpus to extract new seeds</li>
-     * <li>continues with 1) until maximum number of iterations is reached</li>
-     * <li>outputs found seeds, contexts and extraction patterns</li>
-     * </ol>
-     *
      * Method for assessing pattern validity is frequency-based.
      *
      * @param seed	the term to be searched as starting point in the current
@@ -225,7 +200,7 @@ public class Learner implements Algorithm {
      * @param maxIterations	maximum number of iterations for algorithm
      *
      */
-    private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, String strategy) throws IOException, ParseException {
+    private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, Strategy strategy) throws IOException, ParseException {
         Set<String[]> newPatterns = new HashSet<String[]>();
         List<StudyContext> contexts_currentIteration = new ArrayList<StudyContext>();
         numIter++;
@@ -237,20 +212,19 @@ public class Learner implements Algorithm {
                 contexts_currentIteration.addAll(contexts);
                 this.extractedContexts.put(seed, contexts);
                 System.out.println("Processing contexts for seed " + seed);
-				// 2. generate patterns
-                //TODO: ENUM TYPES FOR STRATEGIES
-                if (strategy.equals("separate")) {
+                // 2. generate patterns
+                if (strategy == Strategy.separate) {
                     Set<String[]> patterns = inducePatterns(contexts, threshold);
                     this.relevantPatterns.addAll(patterns);
                     newPatterns.addAll(patterns);
                 }
             }
-            if (strategy.equals("mergeCurrent")) {
+            if (strategy == Strategy.mergeCurrent) {
                 Set<String[]> patterns = inducePatterns(contexts_currentIteration, threshold);
                 this.relevantPatterns.addAll(patterns);
                 newPatterns.addAll(patterns);
             }
-			//TODO: add mergeAll and mergeNew
+            //TODO: add mergeAll and mergeNew
             // 3. search for patterns in corpus
             //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
             List<String[]> res = applyPatterns(newPatterns);
@@ -258,7 +232,7 @@ public class Learner implements Algorithm {
             Set<String> newSeeds = new HashSet<String>();
             for (String[] entry : res) {
                 String studyName = entry[0];
-				// TODO
+                // TODO
                 // TODO
 //				String context = entry[1];
 //				String corpusFilename = entry[2];
@@ -270,11 +244,11 @@ public class Learner implements Algorithm {
             //TODO: NO NEED TO SEARCH FOR ALL PATTERNS AGAIN, INSTEAD USE STORED RESULTS AND SEARCH ONLY FOR NEW PATTERNS
             if (numIter >= maxIterations - 1) {
                 System.out.println("Reached maximum number of iterations! Applying learnt patterns...");
-				// new learner instance needed, else previously processed patterns are ignored
+                // new learner instance needed, else previously processed patterns are ignored
                 //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
-                Learner newLearner = new Learner(null, null, this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath);
+                Learner newLearner = new Learner(null, null, this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
                 List<String[]> resultList = newLearner.applyPatterns(this.relevantPatterns);
-                outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
+                OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
                 return;
             } else {
                 bootstrap_frequency(newSeeds, numIter, threshold, maxIterations, strategy);
@@ -299,7 +273,7 @@ public class Learner implements Algorithm {
         numIter++;
         System.out.println("Bootstrapping... Iteration: " + numIter);
         File logFile = new File(this.outputPath + File.separator + "output.txt");
-		// 0. filter seeds, select only reliable ones
+        // 0. filter seeds, select only reliable ones
         // alternatively: use all seeds extracted by reliable patterns
         this.reliableInstances.addAll(terms);
         this.foundSeeds_iteration = new HashSet<String>();
@@ -318,7 +292,7 @@ public class Learner implements Algorithm {
                 throw new IOException();
             }
         }
-		// 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
+        // 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
         // new seeds to this.foundSeeds_iteration
         for (String seed : terms) {
             saveReliablePatternData(this.extractedContexts.get(seed), threshold);
@@ -339,6 +313,7 @@ public class Learner implements Algorithm {
         bootstrap_reliabilityBased(this.foundSeeds_iteration, threshold, numIter, maxIter);
     }
 
+    //ONLY OUTPUT?
     private String getString_reliablePatternOutput(Map<String, List<String[]>> patternsAndContexts, int iteration) {
         String string = "Iteration " + iteration + ":\n";
         for (String pattern : patternsAndContexts.keySet()) {
@@ -352,308 +327,6 @@ public class Learner implements Algorithm {
             }
         }
         return string;
-    }
-
-	//TODO: USE METHODS FROM TOOLS PACKAGE
-    // writing the patterns to file here is used for validation and evaluation purposes 
-    // storing patterns not as set but as list would allow to rank them according to number 
-    // of contexts extracted with it
-    /**
-     * ...
-     *
-     * @param studyNcontextList	...
-     * @param filenameContexts	...
-     * @param filenamePatterns	...
-     * @param filenameStudies	...
-     */
-    private void outputContextsAndPatterns(List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException {
-        File contextFile = new File(filenameContexts);
-        File patternFile = new File(filenamePatterns);
-        File studyFile = new File(filenameStudies);
-		// write all these files for validation, do not actually read from them in the program
-        //TODO: do not put everything in the try statement, writing everything to file is not mandatory
-        OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile), "UTF-8");
-        BufferedWriter out = new BufferedWriter(fstream);
-        out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
-
-        OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile), "UTF-8");
-        BufferedWriter out2 = new BufferedWriter(fstream2);
-
-        OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
-        BufferedWriter out3 = new BufferedWriter(fstream3);
-
-        Set<String> patSet = new HashSet<String>();
-        Set<String> studySet = new HashSet<String>();
-
-        for (String[] studyNcontext : studyNcontextList) {
-            String studyName = studyNcontext[0];
-            String context = studyNcontext[1];
-            String corpusFilename = studyNcontext[2];
-            String usedPat = studyNcontext[3];
-
-            context = SerializationUtils.escapeXML(context);
-
-            patSet.add(usedPat);
-            studySet.add(studyName);
-			// split context into words
-            // join first 5 words = left context
-            // last 5 words = rightcontext
-            // middle word = studyname
-            // do not split at study name - in rare cases, it might occur more than once!
-            String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
-            String leftContext;
-            String rightContext;
-            // contextList may contain less entries if the word before or after the study name is directly attached to the study name (e.g. ALLBUS-Daten)
-            if (contextList.length != 10 + studyName.trim().split("\\s+").length) {
-				// split by study name in this case...
-                //TODO: simple split at first occurrence only :) (split(term,limit))
-                contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
-                if (contextList.length != 2) {
-                    System.err.println("Warning: context does not have 10 words and cannot be split around the study name. Ignoring.");
-                    for (String contextErr : contextList) {
-                        System.err.println("###" + contextErr + "###");
-                    }
-                    System.err.println(studyName);
-                    System.err.println(contextList.length);
-                    continue;
-                } else {
-                    leftContext = contextList[0];
-                    rightContext = contextList[1];
-                }
-            } else {
-                leftContext = "";
-                rightContext = "";
-                for (int i = 0; i < 5; i++) {
-                    leftContext += contextList[i] + " ";
-                }
-                for (int i = contextList.length - 1; i >= contextList.length - 5; i--) {
-                    rightContext = contextList[i] + " " + rightContext;
-                }
-            }
-            out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() + "</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
-        }
-
-        out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-        out.close();
-        this.foundSeeds_iteration.addAll(studySet);
-
-        for (String pat : patSet) {
-            out2.write(pat + System.getProperty("line.separator"));
-        }
-        out2.close();
-
-        for (String stud : studySet) {
-            out3.write(stud + System.getProperty("line.separator"));
-        }
-        out3.close();
-    }
-
-    //TODO: remove duplicate code... use separate method instead
-    /**
-     * ...
-     *
-     * @param studyNcontextList	...
-     * @param filenameContexts	...
-     * @param filenamePatterns	...
-     * @param filenameStudies	...
-     */
-    private void outputContextsAndPatterns_distinct(List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
-        File contextFile = new File(filenameContexts);
-        File patternFile = new File(filenamePatterns);
-        File studyFile = new File(filenameStudies);
-
-        //TODO: inserted "true" ...
-        OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile, true), "UTF-8");
-        BufferedWriter out = new BufferedWriter(fstream);
-        if (train) {
-            out.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + System.getProperty("line.separator") + "<contexts>" + System.getProperty("line.separator"));
-        }
-
-        OutputStreamWriter fstream2 = new OutputStreamWriter(new FileOutputStream(patternFile, true), "UTF-8");
-        BufferedWriter out2 = new BufferedWriter(fstream2);
-
-        OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
-        BufferedWriter out3 = new BufferedWriter(fstream3);
-
-        Set<String> patSet = new HashSet<String>();
-        Set<String> studySet = new HashSet<String>();
-        Set<String> distinctContexts = new HashSet<String>();
-
-        for (String[] studyNcontext : studyNcontextList) {
-            String studyName = studyNcontext[0];
-            String context = studyNcontext[1];
-            String corpusFilename = studyNcontext[2];
-            String usedPat = studyNcontext[3];
-
-            context = SerializationUtils.escapeXML(context);
-
-            patSet.add(usedPat);
-            studySet.add(studyName);
-
-			// split context into words
-            // join first 5 words = left context
-            // last 5 words = rightcontext
-            // middle word = studyname
-            String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
-			// do not print duplicate contexts
-            // extend check for duplicate contexts: context as part of study name...
-            if (!distinctContexts.contains(context.replace("\\s+", ""))) {
-                String leftContext;
-                String rightContext;
-                if (contextList.length != 10 + studyName.trim().split("\\s+").length) {
-					// split by study name in this case...
-                    // TODO: (s.o.)
-                    contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
-                    if (contextList.length != 2) {
-                        System.err.println("Warning: context has not 10 words and cannot by split around the study name. Check output method.");
-                        for (String contextErr : contextList) {
-                            System.err.println("###" + contextErr + "###");
-                        }
-                        System.err.println(studyName);
-                        System.err.println(contextList.length);
-                        continue;
-                    } else {
-                        leftContext = contextList[0];
-                        rightContext = contextList[1];
-                    }
-                } else {
-                    leftContext = "";
-                    rightContext = "";
-                    for (int i = 0; i < 5; i++) {
-                        leftContext += contextList[i] + " ";
-                    }
-                    for (int i = contextList.length - 1; i >= contextList.length - 5; i--) {
-                        rightContext = contextList[i] + " " + rightContext;
-                    }
-                }
-                out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() + "</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
-                distinctContexts.add(context.replace("\\s+", ""));
-            }
-        }
-        if (train) {
-            out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
-        }
-        out.close();
-
-        for (String pat : patSet) {
-            out2.write(pat + System.getProperty("line.separator"));
-        }
-        out2.close();
-
-        for (String stud : studySet) {
-            out3.write(stud + System.getProperty("line.separator"));
-        }
-        out3.close();
-    }
-
-    /**
-     * Writes instances in TrainingSet at <emph>filename</emph> to Weka's arff
-     * file format. All instances in the training set are assumed to be positive
-     * training examples (thus receiving the class value <emph>True</emph>).
-     * Name of the output file equals the name of the training set file having
-     * ".arff" as extension instead of ".xml".
-     *
-     * @param filename	name of the TrainingSet XML file
-     */
-    private void outputArffFile(String filename) throws IOException {
-        TrainingSet newTrainingSet = new TrainingSet(new File(filename));
-        //TODO: assumes patterns to be correct
-        try {
-            newTrainingSet.createTrainingSet("True", filename.replace(".xml", ".arff"));
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        }
-    }
-
-    /**
-     * Writes dataset names, contexts and patterns to the files specified in
-     * <emph>filenames</emph>
-     * and creates an arff file for using the contexts as training set.
-     *
-     * @param studyNcontextList list of extracted instances and their contexts
-     * @param filenames	array specifying the names for the distinct output files
-     * ([0]: dataset names, [1]: contexts, [2]: patterns)
-     */
-    private void output(List<String[]> studyNcontextList, String[] filenames) throws IOException {
-        String filenameStudies = filenames[0];
-        String filenameContexts = filenames[1];
-        String filenamePatterns = filenames[2];
-        try {
-            outputContextsAndPatterns(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        }
-        try {
-            outputArffFile(filenameContexts);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        }
-    }
-
-    /**
-     * Writes dataset names, contexts and patterns to the files specified in
-     * <emph>filenames</emph>. Filters out any duplicates in the process. If in
-     * training mode, additionally creates an arff file for using the contexts
-     * as training set.
-     *
-     * @param studyNcontextList	list of extracted instances and their contexts
-     * @param filenames	array specifying the names for the distinct output files
-     * ([0]: dataset names, [1]: contexts, [2]: patterns)
-     * @param train	flag specifying whether InfoLink is in training mode (i.e.
-     * learning new patterns instead of applying known ones)
-     */
-    private void output_distinct(List<String[]> studyNcontextList, String[] filenames, boolean train) throws IOException {
-        String filenameStudies = filenames[0];
-        String filenameContexts = filenames[1];
-        String filenamePatterns = filenames[2];
-        try {
-            outputContextsAndPatterns_distinct(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies, train);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        }
-        if (train) {
-            try {
-                outputArffFile(filenameContexts);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                throw (new IOException());
-            }
-        }
-    }
-
-    /**
-     * Applies a list of patterns on the text corpus to extract new dataset
-     * references.
-     *
-     * @param patterns	list of patterns. Each pattern consists of a lucene
-     * query, a simple regular expression for computing reliability score and a
-     * more complex regular expression for extracting references with contexts
-     * @param corpus	list of filenames of the text corpus
-     * @param indexPath	path of the lucene index for the text corpus
-     * @return	a list of study references
-     */
-    private List<String[]> getStudyRefs_optimized_reliabilityCheck(Set<String[]> patterns, String[] corpus) throws IOException, ParseException {
-        List<String[]> resAggregated = new ArrayList<String[]>();
-
-        for (String curPat[] : patterns) {
-            // get list of documents in which to search for the regular expression
-            try {
-                List<String> candidateCorpus = getStudyRef_lucene(curPat[0]);
-                Set<String> patSet = new HashSet<String>();
-                patSet.add(curPat[2]);
-                resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                throw (new IOException());
-            }
-            continue;
-        }
-        System.out.println("Done processing complex patterns. Continuing.");
-        return resAggregated;
     }
 
     /**
@@ -672,7 +345,7 @@ public class Learner implements Algorithm {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    private List<String[]> getStudyRefs_optimized(Set<String[]> patterns, String[] corpus) throws IOException, ParseException {
+    private List<String[]> getStudyRefs_optimized(Set<String[]> patterns) throws IOException, ParseException {
         List<String[]> resAggregated = new ArrayList<String[]>();
 
         for (String curPat[] : patterns) {
@@ -681,7 +354,7 @@ public class Learner implements Algorithm {
             patSet.add(curPat[1]);
             //TODO: see above...
             try {
-                resAggregated.addAll(getStudyRefs(patSet, candidateCorpus));
+                resAggregated.addAll(searchForPatterns(patSet, candidateCorpus));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
                 throw (new IOException());
@@ -723,95 +396,6 @@ public class Learner implements Algorithm {
     }
 
     /**
-     * Searches for dataset references in the documents contained in
-     * <emph>corpus</emph>
-     * using the regular expressions in <emph>patterns</emph>
-     *
-     * @param patterns	set of regular expressions for identification of dataset
-     * references
-     * @param corpus	array of filenames of text documents to search patterns in
-     * @return	a list of extracted contexts
-     */
-    private List<String[]> getStudyRefs(Set<String> patterns, List<String> corpus) throws IOException {
-        List<String[]> resAggregated = new ArrayList<String[]>();
-        for (String filename : corpus) {
-            System.out.println("searching for patterns in " + filename);
-            List<String[]> resList = searchForPatterns(patterns, filename);
-            resAggregated.addAll(resList);
-        }
-        return resAggregated;
-    }
-
-    /**
-     * Searches for dataset references in the documents contained in
-     * <emph>corpus</emph>
-     * using the regular expressions in <emph>patterns</emph> and outputs all
-     * found instances, contexts, patterns and processed documents
-     *
-     * @param patterns	set of regular expressions for identification of dataset
-     * references
-     * @param corpus	array of filenames of text documents to search patterns in
-     * @param path_output	output path
-     * @return	a list of extracted contexts
-     */
-    private List<String[]> getStudyRefs(Set<String> patterns, String[] corpus, String path_output) throws IOException {
-        List<String[]> resAggregated = new ArrayList<String[]>();
-
-        for (String filename : corpus) {
-            System.out.println("searching for patterns in " + filename);
-            List<String[]> resList = searchForPatterns(patterns, filename);
-            String fileLogPath = path_output + File.separator + "processedDocs.csv";
-            String[] filenames_grams = new String[3];
-            filenames_grams[0] = path_output + File.separator + "datasets.csv";
-            filenames_grams[1] = path_output + File.separator + "contexts.xml";
-            filenames_grams[2] = path_output + File.separator + "patterns.csv";
-            try {
-                output_distinct(resList, filenames_grams, false);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                throw (new IOException());
-            }
-            OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(fileLogPath, true), "UTF-8");
-            BufferedWriter out = new BufferedWriter(fstream);
-            out.write(new File(filename).getAbsolutePath() + System.getProperty("line.separator"));
-            out.close();
-
-            resAggregated.addAll(resList);
-        }
-        return resAggregated;
-    }
-
-    /**
-     * Runnable implementation of the matcher.find() method for handling
-     * catastropic backtracking. May be passed to a thread to be monitored and
-     * cancelled in case catastrophic backtracking occurs while searching for a
-     * regular expression.
-     *
-     * @author katarina.boland@gesis.org
-     *
-     */
-    private static class SafeMatching implements Runnable {
-
-        Matcher matcher;
-        boolean find;
-
-        /**
-         * Class constructor initializing the matcher.
-         *
-         * @param m	the Matcher instance to be used for matching
-         */
-        SafeMatching(Matcher m) {
-            this.matcher = m;
-        }
-
-        @Override
-        public void run() {
-            this.find = this.matcher.find();
-        }
-    }
-
-    //rather: returns all mathces as...
-    /**
      * Searches all regex in <emph>patternSet</emph> in the specified text file
      * <emph>filenameIn</emph>
      * and writes all matches to the file <emph>filenameOut</emph>.
@@ -826,31 +410,33 @@ public class Learner implements Algorithm {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private List<String[]> searchForPatterns(Set<String> patternSet, String filenameIn) throws FileNotFoundException, IOException {
-        Execution execution = new Execution();
-        execution.setPattern(new ArrayList<>(patternSet));
-        execution.setAlgorithm(PatternApplier.class);
-        execution.getInputFiles().add(filenameIn);
-        
+    private List<String[]> searchForPatterns(Set<String> patternSet, List<String> filenDirec) throws FileNotFoundException, IOException {
         List<String[]> contexts = new ArrayList<>();
-        try {
-            execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        for (String filenameIn : filenDirec) {
+            Execution execution = new Execution();
+            execution.setPattern(new ArrayList<>(patternSet));
+            execution.setAlgorithm(PatternApplier.class);
+            execution.getInputFiles().add(filenameIn);
+
+            try {
+                execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            DataStoreClient client = DataStoreClientFactory.local();
+
+            for (String uri : execution.getStudyContexts()) {
+                StudyContext sc = client.get(StudyContext.class, uri);
+                String[] oneContext = new String[4];
+                oneContext[0] = sc.getTerm();
+                oneContext[1] = sc.getLeftText() + sc.getTerm() + sc.getRightText();
+                oneContext[2] = sc.getDocument();
+                oneContext[3] = sc.getPattern();
+                contexts.add(oneContext);
+            }
         }
-        
-        DataStoreClient client = DataStoreClientFactory.local();
-        
-        for(String uri : execution.getStudyContexts()) {
-            StudyContext sc = client.get(StudyContext.class, uri);
-            String[] oneContext = new String[4];
-            oneContext[0] = sc.getTerm();
-            oneContext[1] = sc.getLeftText() + sc.getTerm() + sc.getRightText();
-            oneContext[2] = sc.getDocument();
-            oneContext[3] = sc.getPattern();
-            contexts.add(oneContext);
-        }
-        return contexts;    
+        return contexts;
     }
 
     //TODO: DOCSTRING
@@ -955,7 +541,7 @@ public class Learner implements Algorithm {
             String regex_ngramA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
             String regex_ngramA_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6);
 
-			// phrase consisting of 2 words behind study title + (any) word found in data before
+            // phrase consisting of 2 words behind study title + (any) word found in data before
             // (any word cause this pattern is induced each time for each different instance having this phrase...)
             // TODO needed?
 //			String luceneQueryA_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + "\""; 
@@ -975,7 +561,7 @@ public class Learner implements Algorithm {
             String regex_ngramC_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
             String regex_ngramC_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8);
 
-			// TODO needed?
+            // TODO needed?
 //			String luceneQueryC_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + "\""; 
 //			String regex_ngramC_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted;
             //String regex_ngramC_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.lastWordRegex;
@@ -984,7 +570,7 @@ public class Learner implements Algorithm {
             String regex_ngramD_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
             String regex_ngramD_minimal = attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal6) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal7) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal8) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal9);
 
-			// now the pattern can emerge at other positions, too, and is counted here as relevant...
+            // now the pattern can emerge at other positions, too, and is counted here as relevant...
             // TODO needed?
 //			String luceneQueryD_flex = "\"" + attVal5_lucene + " " + attVal6_lucene + " " + attVal7_lucene + " " + attVal8_lucene + " " + attVal9_lucene + "\""; 
 //			String regex_ngramD_flex_quoted = attVal5_quoted + "\\s" + attVal6_quoted + "\\s" + attVal7_quoted + "\\s" + attVal8_quoted + "\\s" + attVal9_quoted;
@@ -996,7 +582,7 @@ public class Learner implements Algorithm {
             String regex_ngram2_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
             String regex_ngram2_minimal = RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 
-			// TODO needed?
+            // TODO needed?
 //			String luceneQuery2_flex = "\"" + attVal3_lucene + " " + attVal4_lucene + "\""; 
 //			String regex_ngram2_flex_quoted = attVal3_quoted + "\\s" + attVal4_quoted;
             //String regex_ngram2_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
@@ -1007,7 +593,7 @@ public class Learner implements Algorithm {
             String regex_ngram3_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
             String regex_ngram3_minimal = RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 
-			// TODO needed?
+            // TODO needed?
 //			String luceneQuery3_flex = "\"" + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\""; 
 //			String regex_ngram3_flex_quoted = attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
             //String regex_ngram3_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
@@ -1029,7 +615,7 @@ public class Learner implements Algorithm {
             String regex_ngram5_normalizedAndQuoted = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
             String regex_ngram5_minimal = RegexUtils.normalizeAndEscapeRegex(attVal0) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal1) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal2) + "\\s" + RegexUtils.normalizeAndEscapeRegex(attVal3) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex;
 
-			// TODO needed?
+            // TODO needed?
 //			String luceneQuery5_flex = "\"" + attVal0_lucene + " " + attVal1_lucene + " " + attVal2_lucene + " " + attVal3_lucene + " " + attVal4_lucene + "\"";
 //			String regex_ngram5_flex_quoted = attVal0_quoted + "\\s" + attVal1_quoted + "\\s" + attVal2_quoted + "\\s" + attVal3_quoted + "\\s" + attVal4_quoted;
             //String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowsize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + attVal5_regex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
@@ -1037,7 +623,7 @@ public class Learner implements Algorithm {
             //TODO: CHECK DOCSTRINGS: ORDER CORRECT?
             // first entry: luceneQuery; second entry: normalized and quoted version; third entry: minimal version (for reliability checks...)
             String[] newPat = new String[3];
-			// prevent induction of patterns less general than already known patterns:
+            // prevent induction of patterns less general than already known patterns:
             // check whether pattern is known before continuing
             // also improves performance
             // use pmi scores that are already stored... only compute reliability again, max may have changed
@@ -1193,7 +779,7 @@ public class Learner implements Algorithm {
      */
     boolean isRelevant(String regex, List<String> contextStrings, double threshold) {
         System.out.println("Checking if pattern is relevant: " + regex);
-		// compute score for similar to tf-idf...
+        // compute score for similar to tf-idf...
         // count occurrences of regex in positive vs negative contexts...
         int count_pos = 0;
         int count_neg = 0;
@@ -1269,9 +855,9 @@ public class Learner implements Algorithm {
      * @param ngramRegex	the pattern to be assessed
      * @return	list of extracted contexts of pattern if pattern reliablity score
      * is above threshold, null else
-	 *
+     *
      */
-	//see: http://www.aclweb.org/anthology/P06-1#page=153 (cite here...)
+    //see: http://www.aclweb.org/anthology/P06-1#page=153 (cite here...)
 	/*"Espresso ranks all patterns in P according to reliability rπ and discards all but the top-k, where
      * k is set to the number of patterns from the previous iteration plus one. In general, we expect that
      * the set of patterns is formed by those of the previous iteration plus a new one. Yet, new 
@@ -1280,7 +866,7 @@ public class Learner implements Algorithm {
     private List<String[]> getReliable_pattern(String[] ngramRegex, double threshold) throws IOException, ParseException {
         System.out.println("Checking if pattern is reliable: " + ngramRegex[1]);
         Reliability.Pattern newPat = this.reliability.new Pattern(ngramRegex[1]);
-		// pattern hast to be searched in complete corpus to compute p_y
+        // pattern hast to be searched in complete corpus to compute p_y
         //TODO: HOW DOES IT AFFECT PRECISION / RECALL IF KNOWN CONTEXT FILES ARE USED INSTEAD?
         //TODO: count occurrences of pattern in negative contexts and compute pmi etc...
         // count sentences or count only one occurrence per document?
@@ -1293,7 +879,7 @@ public class Learner implements Algorithm {
         //
         try {
             List<String[]> extractedInfo_check = processPatterns_reliabilityCheck(pattern);
-			//---
+            //---
             //double p_y = extractedInfo.size() / data_size;
             // this yields the number of documents at least one occurrence of the pattern was found
             // multiple occurrences inside of one document are not considered
@@ -1328,7 +914,7 @@ public class Learner implements Algorithm {
 
                 //double p_xy = occurrencesPattern / totalSentences;
                 double p_xy = occurrencesPattern / data_size;
-				// another way to count joint occurrences
+                // another way to count joint occurrences
 
                 /*for ( String[] studyNcontext : extractedInfo )
                  {
@@ -1355,26 +941,26 @@ public class Learner implements Algorithm {
 				//additional searching step here is not necessary... change that
                 //int jointOccurrences_xy = jointOccurrences.get( instance );
                 //double p_xy = jointOccurrences_xy / data_size;
-				//1. search for instance in the corpus
+                //1. search for instance in the corpus
                 //creates context xml files - if dataset is searched again as seed, saved file can be used
                 //TrainingSet instanceContexts = searchForInstanceInCorpus( instance );
                 //2. process context files
                 //info needed: (1) contexts, (2) filenames (when counting occurrences per file)
-				//Set<String[]> contexts = instanceContexts.getContexts();
+                //Set<String[]> contexts = instanceContexts.getContexts();
                 //Set<String> filenames = instanceContexts.getDocuments();
-				//p_x: P(x) - probability of instance occurring in the data
+                //p_x: P(x) - probability of instance occurring in the data
                 //number of times the instance occurs in the corpus
                 //int totalOccurrences_x = contexts.size();
                 //double p_x = totalOccurrences_x / data_size;
                 double p_x = totalSentences / data_size;
-				//p_x: P(y) - probability of pattern occurring in the data				
+                //p_x: P(y) - probability of pattern occurring in the data				
 
                 System.out.println("Computing pmi of " + ngramRegex[1] + " and " + instance);
                 double pmi_pattern = MathUtils.pmi(p_xy, p_x, p_y);
                 newPat.addAssociation(instance, pmi_pattern);
                 newInstance.addAssociation(newPat.pattern, pmi_pattern);
 
-				//newInstance.setReliability( reliability_instance( instance ));
+                //newInstance.setReliability( reliability_instance( instance ));
                 // addPattern and addIstance take care of adding connections to 
                 // consisting associations of entities
                 this.reliability.addPattern(newPat);
@@ -1383,14 +969,14 @@ public class Learner implements Algorithm {
             }
             System.out.println("Computing relevance of " + ngramRegex[1]);
             double patternReliability = reliability(newPat);
-			//newPat.setReliability( patternReliability );
+            //newPat.setReliability( patternReliability );
             //this.reliability.addPattern( newPat );
             //double[] pmis, double[] instanceReliabilities, double max_pmi
             if (patternReliability >= threshold) {
                 System.out.println("Pattern " + ngramRegex[1] + " deemed reliable");
                 //List<String[]> extractedInfo = processPatterns(pattern);
                 List<String[]> extractedInfo = processPatterns(pattern);
-				// number of found contexts = number of occurrences of patterns in the corpus
+                // number of found contexts = number of occurrences of patterns in the corpus
                 // note: not per file though but in total
                 // (with any arbitrary dataset title = instance)
                 return extractedInfo;
@@ -1403,7 +989,6 @@ public class Learner implements Algorithm {
             throw new ParseException();
         }
     }
-
 
     /**
      * ...only difference to other processPatterns method: do not add processed
@@ -1433,7 +1018,7 @@ public class Learner implements Algorithm {
         System.out.println("inserted all text filenames to corpus");
         System.out.println("using patterns to extract new contexts...");
         try {
-            List<String[]> resNgrams = getStudyRefs_optimized_reliabilityCheck(patSetIn, corpus_test);
+            List<String[]> resNgrams = getStudyRefs_optimized(patSetIn, corpus_test);
             System.out.println("done. ");
             System.out.println("Done processing patterns. ");
 
@@ -1563,7 +1148,7 @@ public class Learner implements Algorithm {
             }
 
 			// construct all allowed patterns
-			//TODO: atomic regex...?
+            //TODO: atomic regex...?
             // most general pattern: two words enclosing study name
             String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
             String regex1_quoted = leftWords_quoted.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
@@ -1574,7 +1159,7 @@ public class Learner implements Algorithm {
             String regexA_quoted = regex1_quoted + "\\s" + rightWords_quoted.get(1);
             String regexA_normalizedAndQuoted = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 
-			// phrase consisting of 2 words behind study title + (any) word found in data before!
+            // phrase consisting of 2 words behind study title + (any) word found in data before!
             // (any word cause this pattern is induced each time for each different instance having this phrase...)
             // TODO needed?
 //			String luceneQueryA_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\""; 
@@ -1585,7 +1170,7 @@ public class Learner implements Algorithm {
             String regexB_quoted = leftWords_quoted.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
             String regexB_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 
-			// TODO needed?
+            // TODO needed?
 //			String luceneQueryB_flex = "\"" + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\""; 
 //			String regexB_flex_quoted = rightWords_quoted.get(0) + "\\s" + rightWords_quoted.get(1) + "\\s" + rightWords_quoted.get(2);
             //String regex_ngramB_flex_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
@@ -1644,7 +1229,7 @@ public class Learner implements Algorithm {
             String regex5_flex_quoted = leftWords_quoted.get(windowSize - 5) + "\\s" + leftWords_quoted.get(windowSize - 4) + "\\s" + leftWords_quoted.get(windowSize - 3) + "\\s" + leftWords_quoted.get(windowSize - 2) + "\\s" + leftWords_quoted.get(windowSize - 1);
 			//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 
-			// constraint for patterns: at least one component not be a stopword
+            // constraint for patterns: at least one component not be a stopword
             // prevent induction of patterns less general than already known patterns:
             // check whether pattern is known before continuing
             // also improves performance
@@ -1848,7 +1433,7 @@ public class Learner implements Algorithm {
                 // processing time for documents depends on size of the document. 1024 milliseconds allowed per KB
                 long fileSize = new File(filename).length();
                 long maxTimeMillis = fileSize;
-					// set upper limit for processing time - prevents stack overflow caused by monitoring process (threadCompleted)
+                // set upper limit for processing time - prevents stack overflow caused by monitoring process (threadCompleted)
                 //if ( maxTimeMillis > 750000 ) { maxTimeMillis = 750000; }
                 if (maxTimeMillis > 75000) {
                     maxTimeMillis = 75000;
@@ -1917,8 +1502,8 @@ public class Learner implements Algorithm {
      * @param constraint_upperCase	if set, only dataset names having at least
      * one upper case character are accepted
      */
-    public static void searchForTerms(String path_output, String path_corpus, String path_index, String path_knownTitles, String filename_knownTitlesMentions, boolean constraint_upperCase, String taggingCmd, String chunkingCmd) {
-		// list previously processed files to allow pausing and resuming of
+    public static void searchForTerms(String path_output, String path_corpus, String path_index, String path_knownTitles, String filename_knownTitlesMentions, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, Strategy strategy) {
+        // list previously processed files to allow pausing and resuming of
         // testing operation
         Set<String> processedFiles = new HashSet<String>();
         try {
@@ -1956,12 +1541,12 @@ public class Learner implements Algorithm {
             corpus_complete[i] = new File(path_corpus + corpus_complete[i]).getAbsolutePath();
         }
 
-		// need new Learner instance for each task - else, previously processed
+        // need new Learner instance for each task - else, previously processed
         // patterns will not be processed again!
         Learner newLearner2 = new Learner(taggingCmd, chunkingCmd, constraint_upperCase,
-                path_corpus, path_index, "", "", "", path_output);
+                path_corpus, path_index, "", "", "", path_output, strategy);
 
-		// get refs for known unambiguous studies
+        // get refs for known unambiguous studies
         // read study names from file
         // add study names to pattern
         Set<Pattern> patternSetKnown = newLearner2.constructPatterns(path_knownTitles);
@@ -2003,7 +1588,7 @@ public class Learner implements Algorithm {
      * @param constraint_upperCase	if set, only dataset names having at least
      * one upper case character are accepted
      */
-    public static void useExistingPatterns(String path_patterns, String path_output, String path_corpus, String path_index, boolean constraint_upperCase, String taggingCmd, String chunkingCmd) {
+    public static void useExistingPatterns(String path_patterns, String path_output, String path_corpus, String path_index, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, Strategy strategy) {
         // load saved patterns
         Set<String> patternSet1;
         try {
@@ -2047,14 +1632,14 @@ public class Learner implements Algorithm {
             corpus_complete[i] = new File(path_corpus + File.separator + corpus_complete[i]).getAbsolutePath();
         }
         // need new Learner instance for each task - else, previously processed patterns will not be processed again
-        Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output);
+        Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, "", "", "", path_output, strategy);
         try {
-            List<String[]> resNgrams1 = newLearner.getStudyRefs(patternSet1, corpus_test, path_output);
+            List<String[]> resNgrams1 = newLearner.searchForPatterns(patternSet1,Arrays.asList(corpus_test));
             String[] filenames_grams = new String[3];
             filenames_grams[0] = path_output + File.separator + "datasets_patterns.csv";
             filenames_grams[1] = path_output + File.separator + "contexts_patterns.xml";
             filenames_grams[2] = path_output + File.separator + "patterns_patterns.csv";
-            newLearner.output_distinct(resNgrams1, filenames_grams, false);
+            OutputWriter.output_distinct(resNgrams1, filenames_grams, false);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -2062,9 +1647,9 @@ public class Learner implements Algorithm {
 
     /**
      * Bootraps patterns for identifying references to datasets from initial
-     * seed (known dataset name). Pattern validity is assessed using
-     * frequency-based measure.
+     * seed (known dataset name).
      *
+     * @param seeds
      * @param initialSeed	initial term to be searched for as starting point of
      * the algorithm
      * @param path_index	name of the directory of the lucene index to be
@@ -2074,48 +1659,24 @@ public class Learner implements Algorithm {
      * @param path_output	name of the directory containing the output files
      * @param path_contexts	name of the directory containing the context files
      * @param path_arffs	name of the directory containing the arff files
+     * @param strategy strategy, either reliability or one of the frequency
+     * strategies
      */
-    public static void learn(Collection<String> seeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations, String strategy) {
+    public static void learn(Collection<String> seeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations, Strategy strategy) {
         try {
-            Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output);
+            Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output, strategy);
             learner.outputParameterInfo(seeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "frequency_" + strategy, threshold, maxIterations);
             learner.reliableInstances.addAll(seeds);
-            learner.bootstrap_frequency(seeds, -1, threshold, maxIterations, strategy);
+            if (strategy == Strategy.reliability) {
+                learner.bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
+                OutputWriter.outputReliableReferences(learner.reliablePatternsAndContexts, learner.outputPath);
+            } else {
+                learner.bootstrap_frequency(seeds, -1, threshold, maxIterations, strategy);
+            }
         } catch (FileNotFoundException e) {
             System.err.println(e);
         } catch (IOException ioe) {
             System.err.println(ioe);
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    /**
-     * Bootraps patterns for identifying references to datasets from initial set
-     * of seeds (known dataset names). This method uses pattern and instance
-     * ranking methods proposed by (cite Espresso paper here...)
-     *
-     * @param initialSeeds	initial terms to be searched for as starting point of
-     * the algorithm
-     * @param path_index	name of the directory of the lucene index to be
-     * searched
-     * @param path_train	name of the directory containing the training files
-     * @param path_corpus	name of the directory containing the text corpus
-     * @param path_output	name of the directory containing the output files
-     * @param path_contexts	name of the directory containing the context files
-     * @param path_arffs	name of the directory containing the arff files
-     */
-    public static void learn(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_upperCase, String taggingCmd, String chunkingCmd, double threshold, int maxIterations) {
-        Learner learner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, path_corpus, path_index, path_train, path_contexts, path_arffs, path_output);
-        learner.outputParameterInfo(initialSeeds, path_index, path_train, path_corpus, path_output, path_contexts, path_arffs, chunkingCmd != null, constraint_upperCase, "reliability", threshold, maxIterations);
-        learner.reliableInstances.addAll(initialSeeds);
-        try {
-            learner.bootstrap(initialSeeds, threshold, maxIterations);
-            learner.outputReliableReferences();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(1);
         } catch (ParseException pe) {
             pe.printStackTrace();
             System.exit(1);
@@ -2154,34 +1715,7 @@ public class Learner implements Algorithm {
         }
     }
 
-    /**
-     * Writes all extracted references of reliable patterns to xml context file
-     * at this output path
-     */
-    public void outputReliableReferences() throws IOException {
-        List<String[]> reliableContexts = new ArrayList<String[]>();
-        for (String pattern : this.reliablePatternsAndContexts.keySet()) {
-            List<String[]> contexts = this.reliablePatternsAndContexts.get(pattern);
-            reliableContexts.addAll(contexts);
-            //see getString_reliablePatternOutput( Map<String, List<String[]>> patternsAndContexts, int iteration )
-        }
-        String[] filenames = new String[3];
-        filenames[0] = this.outputPath + File.separator + "datasets.csv";
-        filenames[1] = this.outputPath + File.separator + "contexts.xml";
-        filenames[2] = this.outputPath + File.separator + "patterns.csv";
-        /*String[] studyNcontext = new String[4];
-         studyNcontext[0] = studyName;
-         studyNcontext[1] = context;
-         studyNcontext[2] = filenameIn;
-         studyNcontext[3] = curPat;
-         res.add( studyNcontext );*/
-        try {
-            output(reliableContexts, filenames);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        }
-    }
+   
 
     /**
      * Monitors the given thread and stops it when it exceeds its time-to-live.
@@ -2229,19 +1763,19 @@ public class Learner implements Algorithm {
 
     @Override
     public void run() {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void execute() {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void validate() {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
@@ -2253,7 +1787,7 @@ public class Learner implements Algorithm {
 
     @Override
     public void setExecution(Execution execution) {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
@@ -2265,7 +1799,7 @@ public class Learner implements Algorithm {
 
     @Override
     public void setFileResolver(FileResolver fileResolver) {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 
@@ -2277,7 +1811,7 @@ public class Learner implements Algorithm {
 
     @Override
     public void setDataStoreClient(DataStoreClient dataStoreClient) {
-			// TODO Auto-generated method stub
+        // TODO Auto-generated method stub
 
     }
 }
@@ -2327,7 +1861,7 @@ class OptionHandler {
     private String maxIterations;
 
     @Option(name = "-F", usage = "sets the strategy to use for processing new seeds within the frequency-based framework to FREQUENCY_STRATEGY. If not set, defaults to \"separate\"", metaVar = "FREQUENCY_STRATEGY")
-    private String strategy;
+    private Learner.Strategy strategy;
 
     // receives other command line parameters than options
     @Argument
@@ -2383,9 +1917,8 @@ class OptionHandler {
             maxIter = Integer.valueOf(maxIterations);
         }
 
-        String frequencyStrategy = "separate";
         if (strategy != null) {
-            frequencyStrategy = strategy;
+            strategy = Learner.Strategy.separate;
         }
 
         // call Learner.learn method with appropriate options
@@ -2411,10 +1944,10 @@ class OptionHandler {
                     System.out.println("Created directory " + op);
                 }
                 if (patternPath != null) {
-                    Learner.useExistingPatterns(patternPath, outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, constraintUC, taggingCmd, chunkingCmd);
+                    Learner.useExistingPatterns(patternPath, outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, constraintUC, taggingCmd, chunkingCmd, strategy);
                 }
                 if (termsPath != null) {
-                    Learner.searchForTerms(outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, termsPath, termsOut, constraintUC, taggingCmd, chunkingCmd);
+                    Learner.searchForTerms(outputPath + File.separator + basePath + File.separator, corpusPath + File.separator + basePath + File.separator, indexPath + "_" + basePath, termsPath, termsOut, constraintUC, taggingCmd, chunkingCmd, strategy);
                 }
             }
         }
@@ -2439,11 +1972,11 @@ class OptionHandler {
             String[] seedArray = seeds.split(RegexUtils.delimiter_internal);
             if (reliabilityThreshold != null) {
                 double threshold = Double.parseDouble(reliabilityThreshold);
-                Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter);
+                Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, strategy);
             }
             if (frequencyThreshold != null) {
                 double threshold = Double.parseDouble(frequencyThreshold);
-                Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, frequencyStrategy);
+                Learner.learn(Arrays.asList(seedArray), indexPath, trainPath, corpusPath, outputPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", constraintUC, taggingCmd, chunkingCmd, threshold, maxIter, strategy);
             }
         }
     }

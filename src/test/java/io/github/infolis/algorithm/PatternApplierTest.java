@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import static org.junit.Assert.*;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -69,45 +70,8 @@ public class PatternApplierTest {
     	algo.setFileResolver(fileResolver);
     	algo.setExecution(execution);
     	algo.run();
-        
-//        Matcher m = p.matcher(testStrings.get(0));
-//        System.out.println(m.matches());
-//        
-//        String con = m.group();
-//        String studyName = m.group(1).trim();
-//        System.out.println("con: " + con + " study: " + studyName);
-        
-//        createInputFiles();
-//        pattern.add ("Please try to find the (\\S+?) short text snippet");
-//        testContexts(files, pattern);
+    	
+    	assertEquals(1, execution.getStudyContexts().size());
     }
-        
-//        try {
-//            InfolisFileUtils.writeToFile(new File("1.txt"), "UTF-8", testString1, false);
-//            InfolisFileUtils.writeToFile(new File("2.txt"), "UTF-8", testString2, false);
-//            InfolisFileUtils.writeToFile(new File("3.txt"), "UTF-8", testString3, false);
-//                        
-//            //TODO:
-//            //files.add all files
-//            
-//        } catch (IOException ioe) {
-//            ioe.printStackTrace();
-//            System.exit(1);
-//        }
-//    }
-    
-//    private List<StudyContext> testContexts(List<String> file, List<String> pattern) throws Exception {
-//        Execution exec = new Execution();
-//        exec.setAlgorithm(PatternApplier.class);
-//        exec.setPattern(pattern);
-//        exec.setInputFiles(file);
-//        exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-//        log.debug(SerializationUtils.toJSON(exec));
-//        ArrayList<StudyContext> contextList = new ArrayList<>();
-//        for (String uri : exec.getStudyContexts()) {
-//            contextList.add(client.get(StudyContext.class, uri));
-//        }
-//        return contextList;
-//    }
 
 }

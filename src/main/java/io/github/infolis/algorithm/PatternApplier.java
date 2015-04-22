@@ -38,7 +38,7 @@ public class PatternApplier extends BaseAlgorithm {
         StringWriter writer = new StringWriter();
         IOUtils.copy(in, writer, "UTF-8");
         String input = writer.toString();
-        System.out.println("input: " +input);
+        System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
 
@@ -144,7 +144,7 @@ public class PatternApplier extends BaseAlgorithm {
                     List<StudyContext> con = SearchTermPosition.getContexts(file.getUri(), studyName, context);
                     for (StudyContext oneContext : con) {
                         oneContext.setPattern(pattern);
-                    }                    
+                    }
                     res.addAll(con);
                     log.debug("Added context.");
                 }
@@ -176,7 +176,7 @@ public class PatternApplier extends BaseAlgorithm {
             InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
-            }            
+            }
             log.debug("Start extracting from '{}'.", inputFile);
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
@@ -185,26 +185,20 @@ public class PatternApplier extends BaseAlgorithm {
             getDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
         }
-        
-        if (detectedContexts.isEmpty()) {
-            getExecution().logFatal("Pattern applier did not find anything.");
-            log.error("Log of this execution: " + getExecution().getLog());
-            getExecution().setStatus(ExecutionStatus.FAILED);
-            throw new RuntimeException("Pattern applier did not find anything.");
-        } else {
-            getExecution().setStatus(ExecutionStatus.FINISHED);
-            log.debug("No context found: {}", getExecution().getStudyContexts().size());
-        }
+
+        getExecution().setStatus(ExecutionStatus.FINISHED);
+        log.debug("No context found: {}", getExecution().getStudyContexts().size());
+
     }
 
     @Override
     public void validate() {
         if (null == this.getExecution().getInputFiles()
-                 || this.getExecution().getInputFiles().isEmpty()) {
+                || this.getExecution().getInputFiles().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if (null == this.getExecution().getPattern()
-                 || this.getExecution().getPattern().isEmpty()) {
+                || this.getExecution().getPattern().isEmpty()) {
             throw new IllegalArgumentException("No patterns given.");
         }
     }

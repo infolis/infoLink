@@ -41,7 +41,7 @@ class CentralFileResolver implements FileResolver {
 	 *            the id to resolve
 	 * @return the absolute path to the file
 	 */
-	private static Path resolvePath(String fileId) {
+	protected Path resolvePath(String fileId) {
 		return InfolisConfig.getFileSavePath().resolve(fileId);
 	}
 

@@ -17,7 +17,11 @@ public enum DataStoreStrategy {
 	/**
 	 *  @see LocalFileResolver
 	 */
-	LOCAL(LocalFileResolver.class, LocalClient.class)
+	LOCAL(LocalFileResolver.class, LocalClient.class),
+	/**
+	 *  @see TempFileResolver
+	 */
+	TEMPORARY(TempFileResolver.class, LocalClient.class)
 	;
 
 	protected Class<? extends FileResolver> fileResolverClass;

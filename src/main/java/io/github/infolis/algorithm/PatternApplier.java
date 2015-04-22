@@ -208,7 +208,7 @@ public class PatternApplier extends BaseAlgorithm {
     public void validate() {
         if (null == this.getExecution().getInputFiles()
                 || this.getExecution().getInputFiles().isEmpty()) {
-            throw new IllegalArgumentException("Must set more than one inputFile!");
+            throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if (null == this.getExecution().getPattern()
                 || this.getExecution().getPattern().isEmpty()) {

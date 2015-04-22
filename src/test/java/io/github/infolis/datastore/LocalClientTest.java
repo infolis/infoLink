@@ -1,14 +1,34 @@
 package io.github.infolis.datastore;
 
-import static org.junit.Assert.*;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
 import org.junit.Test;
 
 public class LocalClientTest {
+	
+//	public class Execution extends BaseModel {
+//		public Execution() { }
+//		private List<String> log;
+//		public List<String> getLog() { return log; }
+//		public void setLog(List<String> log) { this.log = log; }
+//	}
+//	
+	@Test
+	public void testPatchAdd() {
+		Execution foo = new Execution();
+		assertEquals(0, foo.getLog().size());
+		assertNull(foo.getUri());
+		DataStoreClient client = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
+		client.post(Execution.class, foo);
+		assertNotNull(foo.getUri());
+		client.patchAdd(Execution.class, foo, "log", "bar!");
+		foo = client.get(Execution.class, foo.getUri());
+		assertEquals(1, foo.getLog().size());
+	}
 
 	@Test
 	public void testCRUD() {

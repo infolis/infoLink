@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SerializationUtils {
 
-	private final static ObjectMapper jacksonMapper = new ObjectMapper();
+	public final static ObjectMapper jacksonMapper = new ObjectMapper();
 
 	public static String toXML(Object thing) {
 		StringWriter sw = new StringWriter();

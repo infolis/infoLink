@@ -4,11 +4,15 @@ import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.ws.server.InfolisConfig;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
@@ -19,6 +23,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +57,7 @@ class CentralClient implements DataStoreClient {
 	}
 
 	private static Client jerseyClient = ClientBuilder.newBuilder()
+			.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
 			.register(JacksonFeature.class)
 			.register(JacksonJsonProvider.class).build();
 
@@ -123,5 +130,28 @@ class CentralClient implements DataStoreClient {
 			throw new BadRequestException(resp);
 		}
 
+	}
+
+	@Override
+	public <T extends BaseModel> void patchAdd(Class<T> clazz, T thing, String fieldName, String newValue) {
+		try {
+			Method method = clazz.getDeclaredMethod("get" + StringUtils.capitalize(fieldName), List.class);
+			@SuppressWarnings("unchecked")
+			List<String> invoke = (List<String>) method.invoke(thing);
+			invoke.add(newValue);
+			
+			WebTarget target = jerseyClient.target(URI.create(thing.getUri()));
+			
+			Map<String, String> patch = new HashMap<String, String>();
+			patch.put("op", "add");
+			patch.put("path", String.format("/%s/-", fieldName));
+			patch.put("value", newValue);
+			
+			Entity<String> entity = Entity.entity(SerializationUtils.toJSON(patch), MediaType.APPLICATION_JSON_TYPE);
+			target.request(MediaType.APPLICATION_JSON_TYPE).method("PATCH", entity);
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+		
 	}
 }

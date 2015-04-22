@@ -72,16 +72,17 @@ public class PatternApplier extends BaseAlgorithm {
                 matchFound = safeMatch.isFind();
             } else {
                 //TODO: what to do if search was aborted?
+            	log.error("Search was aborted. TODO");
                 //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
             }
             while (matchFound) {
-                System.out.println("found pattern " + pattern + " in " + file);
+                log.debug("found pattern " + pattern + " in " + file);
                 String context = m.group();
                 String studyName = m.group(1).trim();
                 // if studyname contains no characters ignore
                 //TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
-                    System.out.println("Searching for next match of pattern " + pattern);
+                    log.debug("Searching for next match of pattern " + pattern);
                     thread = new Thread(safeMatch, file + "\n" + pattern);
                     thread.start();
                     matchFound = false;
@@ -90,9 +91,10 @@ public class PatternApplier extends BaseAlgorithm {
                         matchFound = safeMatch.isFind();
                     } else {
                         //TODO: what to do if search was aborted?
+                        log.error("Search was aborted. TODO");
                         //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
                     }
-                    System.out.println("Processing new match...");
+                    log.debug("Processing new match...");
                     continue;
                 }
                 // a study name is supposed to be a named entity and thus contain at least one upper-case 
@@ -100,7 +102,7 @@ public class PatternApplier extends BaseAlgorithm {
                 // supposedly does not filter out many wrong names in German though
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
-                        System.out.println("Searching for next match of pattern " + pattern);
+                        log.debug("Searching for next match of pattern " + pattern);
                         thread = new Thread(safeMatch, file + "\n" + pattern);
                         thread.start();
                         matchFound = false;
@@ -111,7 +113,7 @@ public class PatternApplier extends BaseAlgorithm {
                             //TODO: what to do if search was aborted?
                             //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
                         }
-                        System.out.println("Processing new match...");
+                        log.debug("Processing new match...");
                         continue;
                     }
                 }
@@ -139,15 +141,15 @@ public class PatternApplier extends BaseAlgorithm {
                 if (containedInNP) {
                     //String left, String term, String right, String document, String pattern
                     //String filename, String term, String text
-                    List<StudyContext> con = SearchTermPosition.getContexts(file.getFileName(), studyName, context);
+                    List<StudyContext> con = SearchTermPosition.getContexts(file.getUri(), studyName, context);
                     for (StudyContext oneContext : con) {
                         oneContext.setPattern(pattern);
                     }                    
                     res.addAll(con);
-                    System.out.println("Added context.");
+                    log.debug("Added context.");
                 }
 
-                System.out.println("Searching for next match of pattern " + pattern);
+                log.debug("Searching for next match of pattern " + pattern);
                 thread = new Thread(safeMatch, file + "\n" + pattern);
                 thread.start();
                 matchFound = false;
@@ -156,12 +158,13 @@ public class PatternApplier extends BaseAlgorithm {
                     matchFound = safeMatch.isFind();
                 } else {
                     //TODO: what to do if search was aborted?
+                    log.error("Search was aborted. TODO");
                     //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
                 }
-                System.out.println("Processing new match...");
+                log.debug("Processing new match...");
             }
         }
-        System.out.println("Done searching for patterns in " + file);
+        log.debug("Done searching for patterns in " + file);
         return res;
     }
 

@@ -226,9 +226,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    //TODO: USE SAFEMATCHING
 	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..
 	    boolean matchFound = m.find();
-	    if (matchFound == false) 
-	    
-	    {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+	    if (matchFound == false) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
 	    	String term_normalized = "";
@@ -253,9 +251,8 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    }
-            log.debug("Pattern: " + pat + " found " + matchFound);
-	    while (matchFound)
-	    {
+        log.debug("Pattern: " + pat + " found " + matchFound);
+	    while (matchFound) {
 	    	StudyContext newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
 	    	contextList.add(newContext);
 	    	matchFound = m.find();
@@ -266,7 +263,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void validate() {
 		if (null == this.getExecution().getOutputFiles()
-				|| this.execution.getOutputFiles().size() != 1) {
+				 || this.execution.getOutputFiles().size() != 1) {
 			throw new IllegalArgumentException("Must set exactly one outputFile!");
 		}
 		if (null == this.execution.getIndexDirectory()) {

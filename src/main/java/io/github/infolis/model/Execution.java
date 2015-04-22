@@ -53,9 +53,9 @@ public class Execution extends BaseModel {
 	private List<String> matchingFilenames = new ArrayList<>();
 	private boolean overwrite = false;
 	private String indexDirectory;
-        private List<String> patterns = new ArrayList<>();
-        private boolean upperCaseConstraint = false;
-        private boolean requiresContainedInNP = false;
+	private List<String> patterns = new ArrayList<>();
+	private boolean upperCaseConstraint = false;
+	private boolean requiresContainedInNP = false;
         
 	public Algorithm instantiateAlgorithm(DataStoreStrategy dataStoreStrategy)
 			throws InstantiationException, IllegalAccessException {

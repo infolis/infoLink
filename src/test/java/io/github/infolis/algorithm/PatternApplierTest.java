@@ -14,8 +14,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -62,7 +60,7 @@ public class PatternApplierTest {
     public void testPatternApplier() throws Exception {
     	
     	Execution execution = new Execution();
-    	execution.setPattern(Arrays.asList(".*Please try to find the (.*\\S+.*) short text snippet.*"));
+    	execution.getPattern().add(".*Please try to find the (.*\\S+.*) short text snippet.*");
     	execution.setAlgorithm(PatternApplier.class);
     	execution.getInputFiles().add(testFiles.get(0).getUri());
 

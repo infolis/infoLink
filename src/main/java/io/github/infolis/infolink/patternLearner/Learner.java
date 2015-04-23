@@ -3,18 +3,20 @@ package io.github.infolis.infolink.patternLearner;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.PatternApplier;
 import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.VersionPatternApplier;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.Study;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -22,20 +24,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,9 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import io.github.infolis.algorithm.VersionPatternApplier;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Study;
 
 /**
  * Class for finding references to scientific datasets in publications using a
@@ -84,20 +76,13 @@ public class Learner implements Algorithm {
 
     private Set<String> processedSeeds; //all processed seeds
     private Set<String> foundSeeds_iteration; //seeds found at current iteration step
-    private Set<InfolisPattern> foundPatterns_iteration; //lucene query, minimal regex, full regex. For frequeny learner
     private Set<InfolisPattern> relevantPatterns; //frequency learner
     private Set<InfolisPattern> reliablePatterns_iteration; //reliability learner
     private Set<InfolisPattern> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
     private Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts; //reliability learner
     private Set<String> reliableInstances; //reliability learner
     private Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
-    // basePath is used for normalizing path names when searching for known dataset names
-    // should point to the path of the input text corpus
-    private Path basePath;
     private boolean constraint_upperCase;
-    private String taggingCmd;
-    private String chunkingCmd;
-    private String language;
     private String corpusPath;
     private String indexPath;
     private String trainPath;
@@ -117,47 +102,25 @@ public class Learner implements Algorithm {
      * dataset name has at least one upper case character
      *
      */
-    public Learner(String taggingCmd, String chunkingCmd, boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath, Strategy strategy) {
-        this.processedSeeds = new HashSet();
-        this.foundSeeds_iteration = new HashSet();
-        this.foundPatterns_iteration = new HashSet();
-        this.reliablePatterns_iteration = new HashSet();
-        this.processedPatterns = new HashSet();
+    public Learner(boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath, Strategy strategy) {
+        this.processedSeeds = new HashSet<>();
+        this.foundSeeds_iteration = new HashSet<>();
+        this.reliablePatterns_iteration = new HashSet<>();
+        this.processedPatterns = new HashSet<>();
         this.constraint_upperCase = constraint_upperCase;
-        this.taggingCmd = taggingCmd;
-        this.chunkingCmd = chunkingCmd;
         this.corpusPath = corpusPath;
-        this.basePath = Paths.get(corpusPath);
         this.indexPath = indexPath;
         this.trainPath = trainPath;
         this.contextPath = contextPath;
         this.arffPath = arffPath;
         this.outputPath = outputPath;
-        this.reliablePatternsAndContexts = new HashMap();
-        this.extractedContexts = new HashMap();
-        this.reliableInstances = new HashSet();
+        this.reliablePatternsAndContexts = new HashMap<>();
+        this.extractedContexts = new HashMap<>();
+        this.reliableInstances = new HashSet<>();
         this.reliability = new Reliability();
-        this.relevantPatterns = new HashSet();
+        this.relevantPatterns = new HashSet<>();
         this.startegy = strategy;
         generateCorpus();
-    }
-
-    /**
-     * Extracts the name of all seeds from a file listing one seed per line.
-     *
-     * @param filename	name of the file listing all seeds
-     * @return	a set of all seeds contained in the file
-     */
-    private Set<String> getSeeds(String filename) throws IOException {
-        Set<String> seedList = new HashSet<>();
-        InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filename)), "UTF8");
-        BufferedReader reader = new BufferedReader(isr);
-        String text = null;
-        while ((text = reader.readLine()) != null) {
-            seedList.add(new String(text).trim());
-        }
-        reader.close();
-        return seedList;
     }
 
     /**
@@ -220,7 +183,7 @@ public class Learner implements Algorithm {
      */
     private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, Strategy strategy) throws IOException, ParseException {
         Set<InfolisPattern> newPatterns = new HashSet<>();
-        List<StudyContext> contexts_currentIteration = new ArrayList();
+        List<StudyContext> contexts_currentIteration = new ArrayList<>();
         numIter++;
         try {
             for (String seed : terms) {
@@ -246,7 +209,7 @@ public class Learner implements Algorithm {
             //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
             List<StudyContext> res = applyPattern(newPatterns);
 
-            Set<String> newSeeds = new HashSet();
+            Set<String> newSeeds = new HashSet<>();
             for (StudyContext entry : res) {
                 newSeeds.add(entry.getTerm());
             }
@@ -257,7 +220,7 @@ public class Learner implements Algorithm {
                 System.out.println("Reached maximum number of iterations! Applying learnt patterns...");
                 // new learner instance needed, else previously processed patterns are ignored
                 //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
-                Learner newLearner = new Learner(null, null, this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
+                Learner newLearner = new Learner(this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
                 List<StudyContext> resultList = newLearner.applyPattern(this.relevantPatterns);
                 OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
                 return;
@@ -287,8 +250,8 @@ public class Learner implements Algorithm {
         // 0. filter seeds, select only reliable ones
         // alternatively: use all seeds extracted by reliable patterns
         this.reliableInstances.addAll(terms);
-        this.foundSeeds_iteration = new HashSet();
-        this.reliablePatterns_iteration = new HashSet();
+        this.foundSeeds_iteration = new HashSet<>();
+        this.reliablePatterns_iteration = new HashSet<>();
         // 1. search for all seeds and save contexts
         for (String seed : terms) {
             System.out.println("Bootstrapping with seed " + seed);
@@ -782,7 +745,7 @@ public class Learner implements Algorithm {
         // count occurrences of regex in positive vs negative contexts...
         int count_pos = 0;
         int count_neg = 0;
-        List<String> contexts_neg = new ArrayList();
+        List<String> contexts_neg = new ArrayList<>();
         for (String context : contextStrings) {
             count_pos += patternFound(regex, context);
         }
@@ -870,7 +833,7 @@ public class Learner implements Algorithm {
         double data_size = fileCorpus.length;
 
         // store results for later use (if pattern deemed reliable)
-        Set<InfolisPattern> pattern = new HashSet();
+        Set<InfolisPattern> pattern = new HashSet<>();
         pattern.add(newPat);
         //
         try {
@@ -1006,8 +969,8 @@ public class Learner implements Algorithm {
      */
     @SuppressWarnings("unused")
     Set<InfolisPattern> inducePatterns(List<StudyContext> contexts, double threshold) {
-        Set<InfolisPattern> patterns = new HashSet();
-        Set<InfolisPattern> processedPatterns_iteration = new HashSet();
+        Set<InfolisPattern> patterns = new HashSet<>();
+        Set<InfolisPattern> processedPatterns_iteration = new HashSet<>();
         List<String> allContextStrings_iteration = getContextStrings(contexts);
 
         for (StudyContext context : contexts) {
@@ -1351,7 +1314,7 @@ public class Learner implements Algorithm {
 
         // need new Learner instance for each task - else, previously processed
         // patterns will not be processed again!
-        Learner newLearner2 = new Learner(this.taggingCmd, this.chunkingCmd, this.constraint_upperCase,
+        Learner newLearner2 = new Learner(this.constraint_upperCase,
                 this.corpusPath, this.indexPath, "", "", "", this.outputPath, this.startegy);
 
         Set<String> patternsURIs = new HashSet<>();
@@ -1391,7 +1354,7 @@ public class Learner implements Algorithm {
 
         }
         // need new Learner instance for each task - else, previously processed patterns will not be processed again
-        Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, corpusPath, indexPath, "", "", "", outputPath, startegy);
+        Learner newLearner = new Learner(constraint_upperCase, corpusPath, indexPath, "", "", "", outputPath, startegy);
         try {
             List<StudyContext> resNgrams1 = newLearner.searchForPatterns(patternSet1, Arrays.asList(this.fileCorpus));
             String[] filenames_grams = new String[3];
@@ -1581,13 +1544,6 @@ class OptionHandler {
          for( String s : arguments )
          System.out.println(s);
          */
-        String taggingCmd = null;
-        String chunkingCmd = null;
-        if (taggerArgs != null) {
-            String[] taggerArgList = taggerArgs.split(RegexUtils.delimiter_internal);
-            taggingCmd = taggerArgList[0];
-            chunkingCmd = taggerArgList[1];
-        }
         int maxIter = 4;
         if (maxIterations != null) {
             maxIter = Integer.valueOf(maxIterations);
@@ -1597,7 +1553,7 @@ class OptionHandler {
             strategy = Learner.Strategy.separate;
         }
 
-        Learner l = new Learner(taggerArgs, chunkingCmd, constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
+        Learner l = new Learner(constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
         // call Learner.learn method with appropriate options
         Set<String> pathSet = new HashSet<>();
         File root = new File(corpusPath);

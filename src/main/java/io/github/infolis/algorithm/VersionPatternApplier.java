@@ -7,9 +7,10 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.Study;
-import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.SafeMatching;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
         for (String patternURI : this.getExecution().getPattern()) {
-            io.github.infolis.model.InfolisPattern pattern = getDataStoreClient().get(io.github.infolis.model.InfolisPattern.class, patternURI);
+            InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
             Matcher m = p.matcher(inputClean);

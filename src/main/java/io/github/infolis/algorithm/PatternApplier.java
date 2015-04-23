@@ -9,7 +9,6 @@ import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.Study;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.SafeMatching;
 import io.github.infolis.ws.server.InfolisConfig;

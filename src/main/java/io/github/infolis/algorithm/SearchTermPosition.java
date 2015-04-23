@@ -197,7 +197,6 @@ public class SearchTermPosition extends BaseAlgorithm
 				getDataStoreClient().post(StudyContext.class, sC);
 				this.execution.getStudyContexts().add(sC.getUri());
 			}
-			// TODO outputfile
 			log.debug(doc.get("path"));
 
 			getExecution().getMatchingFilenames().add(doc.get("path"));
@@ -221,8 +220,9 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
+	    log.debug(text);
 	    Matcher m = pat.matcher(text);
-            log.debug("Pattern: " + pat + " found " + m.find() + " \nText: {}", text);
+            log.debug("Pattern: " + pat + " found " + m.find());
 	    List<StudyContext> contextList = new ArrayList<StudyContext>();
 	    //TODO: USE SAFEMATCHING
 	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..
@@ -254,16 +254,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    }
         log.debug("Pattern: " + pat + " found " + matchFound);
 	    while (matchFound) {
-                StudyContext newContext;
-//                Pattern patnew = Pattern.compile("\\d+");
-//                Matcher mnew = patnew.matcher(term);
-//                if(mnew.find()) {
-//                    term = term.replace(mnew.group(0), "").trim();
-//                    newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null, mnew.group());                   
-//                }
-//                else {
-                    newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
-//                }
+	    	StudyContext newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
 	    	contextList.add(newContext);
 	    	matchFound = m.find();
 	    }

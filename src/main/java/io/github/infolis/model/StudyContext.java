@@ -40,7 +40,7 @@ public class StudyContext extends BaseModel {
 	private String document;
 	@XmlTransient
 	private InfolisPattern pattern;
-        @XmlAttribute
+    @XmlAttribute
 	private String version;
 
 	public StudyContext() {
@@ -154,29 +154,6 @@ public class StudyContext extends BaseModel {
 	public void setPattern(InfolisPattern pattern) {
 		this.pattern = pattern;
 	}
-
-	@Override
-	public int hashCode() {
-		int hash = 7;
-		hash = 29 * hash + Objects.hashCode(this.leftText);
-		hash = 29 * hash + Objects.hashCode(this.rightText);
-                hash = 29 * hash + Objects.hashCode(this.term);
-		return hash;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		try {
-			StudyContext other = (StudyContext) o;
-			if (other.toString().equals(this.toString())) {
-				return true;
-			}
-		} catch (Exception e) {
-
-		}
-		return false;
-	}
-
     /**
      * @return the version
      */

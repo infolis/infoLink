@@ -140,13 +140,12 @@ class CentralClient implements DataStoreClient {
 			List<String> invoke = (List<String>) method.invoke(thing);
 			invoke.add(newValue);
 			
-			WebTarget target = jerseyClient.target(URI.create(thing.getUri()));
-			
 			Map<String, String> patch = new HashMap<String, String>();
 			patch.put("op", "add");
 			patch.put("path", String.format("/%s/-", fieldName));
 			patch.put("value", newValue);
 			
+			WebTarget target = jerseyClient.target(URI.create(thing.getUri()));
 			Entity<String> entity = Entity.entity(SerializationUtils.toJSON(patch), MediaType.APPLICATION_JSON_TYPE);
 			target.request(MediaType.APPLICATION_JSON_TYPE).method("PATCH", entity);
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

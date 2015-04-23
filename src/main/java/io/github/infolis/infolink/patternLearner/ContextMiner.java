@@ -664,6 +664,7 @@ public class ContextMiner {
 //			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + query + "\"");
 			exec.setSearchQuery(query);
 			exec.setSearchTerm(term.trim());
+			// TODO kba index directory
 			exec.setFirstOutputFile(snippetFilename);
 			exec.setAlgorithm(SearchTermPosition.class);
 			try {

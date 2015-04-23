@@ -1,5 +1,6 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.model.InfolisPattern;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import java.util.Map;
     class Reliability {
 
         Map<String, Instance> instances;
-        Map<String, Pattern> patterns;
+        Map<String, InfolisPattern> patterns;
         double maximumPmi;
 
         /**
@@ -22,7 +23,7 @@ import java.util.Map;
          */
         Reliability() {
             this.instances = new HashMap<String, Instance>();
-            this.patterns = new HashMap<String, Pattern>();
+            this.patterns = new HashMap<String, InfolisPattern>();
             this.maximumPmi = 0;
         }
 
@@ -60,16 +61,16 @@ import java.util.Map;
          * @return	true, if pattern was not included in this patterns before,
          * false if already in this patterns
          */
-        boolean addPattern(Pattern pattern) {
-            if (this.patterns.containsKey(pattern.pattern)) {
-                Pattern curPattern = this.patterns.get(pattern.pattern);
-                Map<String, Double> curAssociations = curPattern.associations;
-                curAssociations.putAll(pattern.associations);
-                pattern.associations = curAssociations;
-                this.patterns.put(pattern.pattern, pattern);
+        boolean addPattern(InfolisPattern pattern) {
+            if (this.patterns.containsKey(pattern.getPatternRegex())) {
+                InfolisPattern curPattern = this.patterns.get(pattern.getPatternRegex());
+                Map<String, Double> curAssociations = curPattern.getAssociations();
+                curAssociations.putAll(pattern.getAssociations());
+                pattern.setAssociations(curAssociations);
+                this.patterns.put(pattern.getPatternRegex(), pattern);
                 return false;
             }
-            this.patterns.put(pattern.pattern, pattern);
+            this.patterns.put(pattern.getPatternRegex(), pattern);
             return true;
         }
 
@@ -120,40 +121,6 @@ import java.util.Map;
                     System.err.print("Warning: association between instance " + this.name + " and pattern " + pattern + " already known!");
                 }
                 return (this.associations.put(pattern, score) == null);
-            }
-        }
-
-        /**
-         * Class for storing pattern ranking reliability scores.
-         *
-         * @author katarina.boland@gesis.org
-         * @version 2015-01-05
-         */
-        class Pattern {
-
-            String pattern;
-            Map<String, Double> associations;
-//			double reliability;
-
-            Pattern(String pattern) {
-                this.pattern = pattern;
-                this.associations = new HashMap<String, Double>();
-            }
-
-            /**
-             * Adds an association between this pattern and a specified
-             * instance.
-             *
-             * @param instance	the instance whose association to store
-             * @param score	pmi score for this pattern and instance
-             * @return	true, if association is new; false if association was
-             * already known
-             */
-            boolean addAssociation(String instanceName, double score) {
-                if (this.associations.containsKey(instanceName)) {
-                    System.err.print("Warning: association between pattern " + this.pattern + " and instance " + instanceName + " already known! ");
-                }
-                return (this.associations.put(instanceName, score) == null);
             }
         }
     }

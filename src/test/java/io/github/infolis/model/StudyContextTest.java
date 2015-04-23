@@ -13,7 +13,9 @@ public class StudyContextTest {
 	@Test
 	public void testXML() throws JsonProcessingException {
 		
-		StudyContext ctx = new StudyContext("a b c d e f", "FOOBAR!", "v w x y z", "doc1", "par1");
+                InfolisPattern p = new InfolisPattern();
+                p.setPatternRegex("par1");
+		StudyContext ctx = new StudyContext("a b c d e f", "FOOBAR!", "v w x y z", "doc1", p);
 		assertEquals(SerializationUtils.toXML(ctx).replaceAll("\\s", ""), ctx.toXML().replaceAll("\\s", ""));
 	}
 

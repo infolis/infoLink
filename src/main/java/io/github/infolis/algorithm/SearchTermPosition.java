@@ -254,7 +254,16 @@ public class SearchTermPosition extends BaseAlgorithm
 	    }
         log.debug("Pattern: " + pat + " found " + matchFound);
 	    while (matchFound) {
-	    	StudyContext newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
+                StudyContext newContext;
+//                Pattern patnew = Pattern.compile("\\d+");
+//                Matcher mnew = patnew.matcher(term);
+//                if(mnew.find()) {
+//                    term = term.replace(mnew.group(0), "").trim();
+//                    newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null, mnew.group());                   
+//                }
+//                else {
+                    newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
+//                }
 	    	contextList.add(newContext);
 	    	matchFound = m.find();
 	    }

@@ -8,6 +8,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
@@ -36,12 +37,16 @@ public class PatternApplierTest {
     List<String> files = new ArrayList<>();
     
 	private final static List<String> testStrings = Arrays.asList(
-			"Please try to find the term in this short text snippet that I provided to you.",
+			"Please try to find the term in this 2003 short text snippet that I provided to you.",
 			"Please try to find the _ in this short text snippet that I provided to you.",
 			"Please try to find the .term. in this short text snippet that I provided to you."
 			);
+        private final static List<String> testPatterns = Arrays.asList(
+                ".*Please try to find the (.*\\S+.*\\d*.*) short text snippet that I provided to you.*");
+        
 
 	private final List<InfolisFile> testFiles = new ArrayList<>();
+        private final List<InfolisPattern> testInfolisPatterns = new ArrayList<>();
 
 	@Before
     public void createInputFiles() throws IOException {
@@ -55,13 +60,19 @@ public class PatternApplierTest {
     		client.post(InfolisFile.class, file);
     		testFiles.add(file);
     	}
+        for (String str : testPatterns) {
+    		InfolisPattern p = new InfolisPattern();
+                p.setPatternRegex(str);     
+    		client.post(InfolisPattern.class, p);
+                testInfolisPatterns.add(p);
+    	}       
     }
 
     @Test
     public void testPatternApplier() throws Exception {
     	
-    	Execution execution = new Execution();
-    	execution.getPattern().add(".*Please try to find the (.*\\S+.*) short text snippet.*");
+    	Execution execution = new Execution();   
+    	execution.getPattern().add(testInfolisPatterns.get(0).getUri());
     	execution.setAlgorithm(PatternApplier.class);
     	execution.getInputFiles().add(testFiles.get(0).getUri());
 

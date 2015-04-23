@@ -5,13 +5,21 @@
  */
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.InfolisFileUtils;
+import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +31,7 @@ import java.util.regex.Pattern;
  * @author domi
  */
 public class OutputWriter {
-    
+
     //TODO: remove duplicate code... use separate method instead
     /**
      * ...
@@ -33,7 +41,7 @@ public class OutputWriter {
      * @param filenamePatterns	...
      * @param filenameStudies	...
      */
-    public static void outputContextsAndPatterns_distinct(List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
+    public static void outputContextsAndPatterns_distinct(List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
         File contextFile = new File(filenameContexts);
         File patternFile = new File(filenamePatterns);
         File studyFile = new File(filenameStudies);
@@ -51,59 +59,18 @@ public class OutputWriter {
         OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
         BufferedWriter out3 = new BufferedWriter(fstream3);
 
-        Set<String> patSet = new HashSet<String>();
-        Set<String> studySet = new HashSet<String>();
-        Set<String> distinctContexts = new HashSet<String>();
+        Set<InfolisPattern> patSet = new HashSet();
+        Set<String> studySet = new HashSet();
+        Set<StudyContext> distinctContexts = new HashSet();
 
-        for (String[] studyNcontext : studyNcontextList) {
-            String studyName = studyNcontext[0];
-            String context = studyNcontext[1];
-            String corpusFilename = studyNcontext[2];
-            String usedPat = studyNcontext[3];
-
-            context = SerializationUtils.escapeXML(context);
-
-            patSet.add(usedPat);
-            studySet.add(studyName);
-
-			// split context into words
-            // join first 5 words = left context
-            // last 5 words = rightcontext
-            // middle word = studyname
-            String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
-			// do not print duplicate contexts
+        for (StudyContext studyNcontext : studyNcontextList) {
+            patSet.add(studyNcontext.getPattern());
+            studySet.add(studyNcontext.getTerm());
+            // do not print duplicate contexts
             // extend check for duplicate contexts: context as part of study name...
-            if (!distinctContexts.contains(context.replace("\\s+", ""))) {
-                String leftContext;
-                String rightContext;
-                if (contextList.length != 10 + studyName.trim().split("\\s+").length) {
-					// split by study name in this case...
-                    // TODO: (s.o.)
-                    contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
-                    if (contextList.length != 2) {
-                        System.err.println("Warning: context has not 10 words and cannot by split around the study name. Check output method.");
-                        for (String contextErr : contextList) {
-                            System.err.println("###" + contextErr + "###");
-                        }
-                        System.err.println(studyName);
-                        System.err.println(contextList.length);
-                        continue;
-                    } else {
-                        leftContext = contextList[0];
-                        rightContext = contextList[1];
-                    }
-                } else {
-                    leftContext = "";
-                    rightContext = "";
-                    for (int i = 0; i < 5; i++) {
-                        leftContext += contextList[i] + " ";
-                    }
-                    for (int i = contextList.length - 1; i >= contextList.length - 5; i--) {
-                        rightContext = contextList[i] + " " + rightContext;
-                    }
-                }
-                out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() + "</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
-                distinctContexts.add(context.replace("\\s+", ""));
+            if (!distinctContexts.contains(studyNcontext)) {
+                out.write(studyNcontext.toXML());
+                distinctContexts.add(studyNcontext);
             }
         }
         if (train) {
@@ -111,8 +78,8 @@ public class OutputWriter {
         }
         out.close();
 
-        for (String pat : patSet) {
-            out2.write(pat + System.getProperty("line.separator"));
+        for (InfolisPattern pat : patSet) {
+            out2.write(pat.getPatternRegex() + System.getProperty("line.separator"));
         }
         out2.close();
 
@@ -121,7 +88,7 @@ public class OutputWriter {
         }
         out3.close();
     }
-    
+
     //TODO: USE METHODS FROM TOOLS PACKAGE
     // writing the patterns to file here is used for validation and evaluation purposes 
     // storing patterns not as set but as list would allow to rank them according to number 
@@ -134,11 +101,11 @@ public class OutputWriter {
      * @param filenamePatterns	...
      * @param filenameStudies	...
      */
-    public static void outputContextsAndPatterns(List<String[]> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException {
+    public static void outputContextsAndPatterns(List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException {
         File contextFile = new File(filenameContexts);
         File patternFile = new File(filenamePatterns);
         File studyFile = new File(filenameStudies);
-		// write all these files for validation, do not actually read from them in the program
+        // write all these files for validation, do not actually read from them in the program
         //TODO: do not put everything in the try statement, writing everything to file is not mandatory
         OutputStreamWriter fstream = new OutputStreamWriter(new FileOutputStream(contextFile), "UTF-8");
         BufferedWriter out = new BufferedWriter(fstream);
@@ -150,55 +117,11 @@ public class OutputWriter {
         OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
         BufferedWriter out3 = new BufferedWriter(fstream3);
 
-        Set<String> patSet = new HashSet<String>();
-        Set<String> studySet = new HashSet<String>();
+        Set<String> patSet = new HashSet();
+        Set<String> studySet = new HashSet();
 
-        for (String[] studyNcontext : studyNcontextList) {
-            String studyName = studyNcontext[0];
-            String context = studyNcontext[1];
-            String corpusFilename = studyNcontext[2];
-            String usedPat = studyNcontext[3];
-
-            context = SerializationUtils.escapeXML(context);
-
-            patSet.add(usedPat);
-            studySet.add(studyName);
-			// split context into words
-            // join first 5 words = left context
-            // last 5 words = rightcontext
-            // middle word = studyname
-            // do not split at study name - in rare cases, it might occur more than once!
-            String[] contextList = context.replace(System.getProperty("line.separator"), " ").replace("\n", " ").replace("\r", " ").trim().split("\\s+");
-            String leftContext;
-            String rightContext;
-            // contextList may contain less entries if the word before or after the study name is directly attached to the study name (e.g. ALLBUS-Daten)
-            if (contextList.length != 10 + studyName.trim().split("\\s+").length) {
-				// split by study name in this case...
-                //TODO: simple split at first occurrence only :) (split(term,limit))
-                contextList = context.split(Pattern.quote(SerializationUtils.escapeXML(studyName)));
-                if (contextList.length != 2) {
-                    System.err.println("Warning: context does not have 10 words and cannot be split around the study name. Ignoring.");
-                    for (String contextErr : contextList) {
-                        System.err.println("###" + contextErr + "###");
-                    }
-                    System.err.println(studyName);
-                    System.err.println(contextList.length);
-                    continue;
-                } else {
-                    leftContext = contextList[0];
-                    rightContext = contextList[1];
-                }
-            } else {
-                leftContext = "";
-                rightContext = "";
-                for (int i = 0; i < 5; i++) {
-                    leftContext += contextList[i] + " ";
-                }
-                for (int i = contextList.length - 1; i >= contextList.length - 5; i--) {
-                    rightContext = contextList[i] + " " + rightContext;
-                }
-            }
-            out.write("\t<context term=\"" + SerializationUtils.escapeXML(studyName) + "\" document=\"" + SerializationUtils.escapeXML(corpusFilename) + "\" usedPattern=\"" + SerializationUtils.escapeXML(usedPat) + "\">" + System.getProperty("line.separator") + "\t\t<leftContext>" + leftContext.trim() + "</leftContext>" + System.getProperty("line.separator") + "\t\t<rightContext>" + rightContext.trim() + "</rightContext>" + System.getProperty("line.separator") + "\t</context>" + System.getProperty("line.separator"));
+        for (StudyContext studyNcontext : studyNcontextList) {
+            out.write(studyNcontext.toString());
         }
 
         out.write(System.getProperty("line.separator") + "</contexts>" + System.getProperty("line.separator"));
@@ -216,8 +139,6 @@ public class OutputWriter {
         }
         out3.close();
     }
-
-    
 
     /**
      * Writes instances in TrainingSet at <emph>filename</emph> to Weka's arff
@@ -248,7 +169,7 @@ public class OutputWriter {
      * @param filenames	array specifying the names for the distinct output files
      * ([0]: dataset names, [1]: contexts, [2]: patterns)
      */
-    public static void output(List<String[]> studyNcontextList, String[] filenames) throws IOException {
+    public static void output(List<StudyContext> studyNcontextList, String[] filenames) throws IOException {
         String filenameStudies = filenames[0];
         String filenameContexts = filenames[1];
         String filenamePatterns = filenames[2];
@@ -278,7 +199,7 @@ public class OutputWriter {
      * @param train	flag specifying whether InfoLink is in training mode (i.e.
      * learning new patterns instead of applying known ones)
      */
-    public static void output_distinct(List<String[]> studyNcontextList, String[] filenames, boolean train) throws IOException {
+    public static void output_distinct(List<StudyContext> studyNcontextList, String[] filenames, boolean train) throws IOException {
         String filenameStudies = filenames[0];
         String filenameContexts = filenames[1];
         String filenamePatterns = filenames[2];
@@ -297,15 +218,15 @@ public class OutputWriter {
             }
         }
     }
-    
-     /**
+
+    /**
      * Writes all extracted references of reliable patterns to xml context file
      * at this output path
      */
-    public static void outputReliableReferences(Map<String, List<String[]>> reliablePatternsAndContexts, String output) throws IOException {
-        List<String[]> reliableContexts = new ArrayList<String[]>();
-        for (String pattern : reliablePatternsAndContexts.keySet()) {
-            List<String[]> contexts = reliablePatternsAndContexts.get(pattern);
+    public static void outputReliableReferences(Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts, String output) throws IOException {
+        List<StudyContext> reliableContexts = new ArrayList();
+        for (InfolisPattern pattern : reliablePatternsAndContexts.keySet()) {
+            List<StudyContext> contexts = reliablePatternsAndContexts.get(pattern);
             reliableContexts.addAll(contexts);
             //see getString_reliablePatternOutput( Map<String, List<String[]>> patternsAndContexts, int iteration )
         }
@@ -313,12 +234,6 @@ public class OutputWriter {
         filenames[0] = output + File.separator + "datasets.csv";
         filenames[1] = output + File.separator + "contexts.xml";
         filenames[2] = output + File.separator + "patterns.csv";
-        /*String[] studyNcontext = new String[4];
-         studyNcontext[0] = studyName;
-         studyNcontext[1] = context;
-         studyNcontext[2] = filenameIn;
-         studyNcontext[3] = curPat;
-         res.add( studyNcontext );*/
         try {
             output(reliableContexts, filenames);
         } catch (IOException ioe) {
@@ -326,5 +241,37 @@ public class OutputWriter {
             throw (new IOException());
         }
     }
-    
+
+    public void outputParameterInfo(Collection<String> initialSeeds, String path_index, String path_train, String path_corpus, String path_output, String path_contexts, String path_arffs, boolean constraint_NP, boolean constraint_upperCase, String method, double threshold, int maxIterations) {
+        String delimiter = RegexUtils.delimiter_csv;
+        String timestamp = getDateTime();
+        File logFile = new File(path_output + File.separator + "parameterInfo.csv");
+        String parameters = "initial_seeds" + delimiter + "index_path" + delimiter + "train_path" + delimiter
+                + "corpus_path" + delimiter + "output_path" + delimiter + "context_path" + delimiter
+                + "arff_path" + delimiter + "constraint_NP" + delimiter + "constraint_upperCase" + delimiter
+                + "method" + delimiter + "threshold" + delimiter + "maxIterations" + delimiter + "start_time"
+                + System.getProperty("line.separator");
+        for (String seed : initialSeeds) {
+            parameters += seed + RegexUtils.delimiter_internal;
+        }
+        //remove delimiter at the end of the seed list
+        parameters = parameters.substring(0, parameters.length() - RegexUtils.delimiter_internal.length());
+        parameters = parameters.trim() + delimiter + path_index + delimiter + path_train + delimiter + path_corpus
+                + delimiter + path_output + delimiter + path_contexts + delimiter + path_arffs + delimiter
+                + constraint_NP + delimiter + constraint_upperCase + delimiter + method + delimiter + threshold
+                + delimiter + maxIterations + delimiter + timestamp;
+        try {
+            InfolisFileUtils.writeToFile(logFile, "utf-8", parameters, false);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.out.println(parameters);
+        }
+    }
+
+    public String getDateTime() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
+    }
+
 }

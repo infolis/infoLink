@@ -1,5 +1,6 @@
 package io.github.infolis.util;
 
+import io.github.infolis.model.InfolisFile;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,13 +8,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Class containing various utility functions and definitions. 
@@ -167,5 +171,6 @@ public class InfolisFileUtils
 		    for (String distinctFilename: filenameSetDistinct) { out.write(distinctFilename + System.getProperty("line.separator")); } 
 		    out.close();
 		}
+    
 	
 }

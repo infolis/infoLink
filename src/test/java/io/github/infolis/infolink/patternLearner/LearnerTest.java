@@ -15,7 +15,7 @@ public class LearnerTest {
 	public void test() {
 		assertThat(true, is(true));
 		boolean constraint_upperCase = false;
-		Learner l = new Learner("taggingCMD", "chunkingCMD", constraint_upperCase, "corpusPath", "indexPath", "trainPath", "contextPath", "arffPath", "outputPath");
+		Learner l = new Learner("taggingCMD", "chunkingCMD", constraint_upperCase, "corpusPath", "indexPath", "trainPath", "contextPath", "arffPath", "outputPath", Learner.Strategy.separate);
 		assertThat(l, is(not(nullValue())));
 	}
 

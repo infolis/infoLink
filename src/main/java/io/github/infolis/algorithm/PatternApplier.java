@@ -9,6 +9,7 @@ import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.Study;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.SafeMatching;
 import io.github.infolis.ws.server.InfolisConfig;
@@ -32,8 +33,10 @@ import org.slf4j.LoggerFactory;
 public class PatternApplier extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
-
-    private List<StudyContext> searchForPatterns(InfolisFile file) throws IOException {
+    
+    
+    
+    private String getFileAsString(InfolisFile file) throws IOException {
         InputStream in = getFileResolver().openInputStream(file);
         StringWriter writer = new StringWriter();
         IOUtils.copy(in, writer, "UTF-8");
@@ -41,22 +44,29 @@ public class PatternApplier extends BaseAlgorithm {
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
+        return inputClean;
+    }
+ 
+    private List<StudyContext> searchForPatterns(InfolisFile file) throws IOException {
+        String inputClean = getFileAsString(file);
 
         List<StudyContext> res = new ArrayList<>();
-        for (String pattern : this.getExecution().getPattern()) {
-            log.debug("Searching for pattern '{}'", pattern);
-            Pattern p = Pattern.compile(pattern);
+        for (String patternURI : this.getExecution().getPattern()) {
+            System.out.println(patternURI);
+            io.github.infolis.model.InfolisPattern pattern = getDataStoreClient().get(io.github.infolis.model.InfolisPattern.class, patternURI);
+            log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
+            Pattern p = Pattern.compile(pattern.getPatternRegex());
             Matcher m = p.matcher(inputClean);
 
             // call m.find() as a thread: catastrophic backtracking may occur which causes application 
             // to hang
             // thus monitor runtime of threat and terminate if processing takes too long
             SafeMatching safeMatch = new SafeMatching(m);
-            Thread thread = new Thread(safeMatch, file.getFileName() + "\n" + pattern);
+            Thread thread = new Thread(safeMatch, file.getFileName() + "\n" + pattern.getPatternRegex());
             long startTimeMillis = System.currentTimeMillis();
             // processing time for documents depends on size of the document. 
             // Allow 1024 milliseconds per KB
-            long fileSize = in.available();
+            long fileSize = getFileResolver().openInputStream(file).available();
             long maxTimeMillis = fileSize;
             // set upper limit for processing time - prevents stack overflow caused by monitoring process 
             // (threadCompleted)
@@ -76,14 +86,14 @@ public class PatternApplier extends BaseAlgorithm {
                 //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
             }
             while (matchFound) {
-                log.debug("found pattern " + pattern + " in " + file);
+                log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
                 String context = m.group();
                 String studyName = m.group(1).trim();
                 // if studyname contains no characters ignore
                 //TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
-                    log.debug("Searching for next match of pattern " + pattern);
-                    thread = new Thread(safeMatch, file + "\n" + pattern);
+                    log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+                    thread = new Thread(safeMatch, file + "\n" + pattern.getPatternRegex());
                     thread.start();
                     matchFound = false;
                     // if thread was aborted due to long processing time, matchFound should be false
@@ -102,8 +112,8 @@ public class PatternApplier extends BaseAlgorithm {
                 // supposedly does not filter out many wrong names in German though
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
-                        log.debug("Searching for next match of pattern " + pattern);
-                        thread = new Thread(safeMatch, file + "\n" + pattern);
+                        log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+                        thread = new Thread(safeMatch, file + "\n" + pattern.getPatternRegex());
                         thread.start();
                         matchFound = false;
                         // if thread was aborted due to long processing time, matchFound should be false
@@ -149,8 +159,8 @@ public class PatternApplier extends BaseAlgorithm {
                     log.debug("Added context.");
                 }
 
-                log.debug("Searching for next match of pattern " + pattern);
-                thread = new Thread(safeMatch, file + "\n" + pattern);
+                log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+                thread = new Thread(safeMatch, file + "\n" + pattern.getPatternRegex());
                 thread.start();
                 matchFound = false;
                 // if thread was aborted due to long processing time, matchFound should be false

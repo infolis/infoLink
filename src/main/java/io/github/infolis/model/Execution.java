@@ -51,6 +51,7 @@ public class Execution extends BaseModel {
 	private String searchQuery;
 	private List<String> studyContexts = new ArrayList<>();
 	private List<String> matchingFilenames = new ArrayList<>();
+        private List<String> studies = new ArrayList<>();
 	private boolean overwrite = false;
 	private String indexDirectory;
 	private List<String> patterns = new ArrayList<>();
@@ -301,6 +302,20 @@ public class Execution extends BaseModel {
      */
     public void setRequiresContainedInNP(boolean requiresContainedInNP) {
         this.requiresContainedInNP = requiresContainedInNP;
+    }
+
+    /**
+     * @return the studies
+     */
+    public List<String> getStudies() {
+        return studies;
+    }
+
+    /**
+     * @param studies the studies to set
+     */
+    public void setStudies(List<String> studies) {
+        this.studies = studies;
     }
 
 }

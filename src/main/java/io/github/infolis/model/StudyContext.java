@@ -39,7 +39,9 @@ public class StudyContext extends BaseModel {
 	@XmlAttribute
 	private String document;
 	@XmlTransient
-	private String pattern;
+	private InfolisPattern pattern;
+        @XmlAttribute
+	private String version;
 
 	public StudyContext() {
 	}
@@ -55,7 +57,7 @@ public class StudyContext extends BaseModel {
 	 * @param document
 	 * @param pattern
 	 */
-	public StudyContext(String left, String term, String right, String document, String pattern) {
+	public StudyContext(String left, String term, String right, String document, InfolisPattern pattern) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
 		this.setTerm(term);
@@ -63,6 +65,17 @@ public class StudyContext extends BaseModel {
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setDocument(document);
 		this.setPattern(pattern);
+	}
+        
+        public StudyContext(String left, String term, String right, String document, InfolisPattern pattern, String version) {
+		this.setLeftText(left);
+		this.setLeftWords(Arrays.asList(left.split("\\s+")));
+		this.setTerm(term);
+		this.setRightText(right);
+		this.setRightWords(Arrays.asList(right.split("\\s+")));
+		this.setDocument(document);
+		this.setPattern(pattern);
+                this.version = version;
 	}
 
 	public String toXML() {
@@ -134,11 +147,11 @@ public class StudyContext extends BaseModel {
 		this.document = document;
 	}
 
-	public String getPattern() {
+	public InfolisPattern getPattern() {
 		return pattern;
 	}
 
-	public void setPattern(String pattern) {
+	public void setPattern(InfolisPattern pattern) {
 		this.pattern = pattern;
 	}
 
@@ -147,6 +160,7 @@ public class StudyContext extends BaseModel {
 		int hash = 7;
 		hash = 29 * hash + Objects.hashCode(this.leftText);
 		hash = 29 * hash + Objects.hashCode(this.rightText);
+                hash = 29 * hash + Objects.hashCode(this.term);
 		return hash;
 	}
 
@@ -154,7 +168,7 @@ public class StudyContext extends BaseModel {
 	public boolean equals(Object o) {
 		try {
 			StudyContext other = (StudyContext) o;
-			if (other.getContextWithoutTerm().equals(this.getContextWithoutTerm())) {
+			if (other.toString().equals(this.toString())) {
 				return true;
 			}
 		} catch (Exception e) {
@@ -162,5 +176,19 @@ public class StudyContext extends BaseModel {
 		}
 		return false;
 	}
+
+    /**
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * @param version the version to set
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
 
 }

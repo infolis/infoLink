@@ -10,3 +10,4 @@ logFile.txt
 /data/
 /tree-tagger/
 /testCorpus/
+.nb-gradle/

@@ -82,33 +82,31 @@ public class Learner implements Algorithm {
 
     Logger log = LoggerFactory.getLogger(Learner.class);
 
-    List<List<String>> contextsAsStrings;
-    Set<String> processedSeeds; //all processed seeds
-    Set<String> foundSeeds_iteration; //seeds found at current iteration step
-    Set<InfolisPattern> foundPatterns_iteration; //lucene query, minimal regex, full regex. For frequeny learner
-    Set<InfolisPattern> relevantPatterns; //frequency learner
-    Set<InfolisPattern> reliablePatterns_iteration; //reliability learner
-    Set<InfolisPattern> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
-    Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts; //reliability learner
-    Set<String> reliableInstances; //reliability learner
-    Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
+    private Set<String> processedSeeds; //all processed seeds
+    private Set<String> foundSeeds_iteration; //seeds found at current iteration step
+    private Set<InfolisPattern> foundPatterns_iteration; //lucene query, minimal regex, full regex. For frequeny learner
+    private Set<InfolisPattern> relevantPatterns; //frequency learner
+    private Set<InfolisPattern> reliablePatterns_iteration; //reliability learner
+    private Set<InfolisPattern> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
+    private Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts; //reliability learner
+    private Set<String> reliableInstances; //reliability learner
+    private Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
     // basePath is used for normalizing path names when searching for known dataset names
     // should point to the path of the input text corpus
-    Path basePath;
-    boolean constraint_upperCase;
-    String taggingCmd;
-    String chunkingCmd;
-    String language;
-    String corpusPath;
-    String indexPath;
-    String trainPath;
-    String contextPath;
-    String arffPath;
-    String outputPath;
-    Reliability reliability;
-    Strategy startegy;
-    String[] fileCorpus;
-    
+    private Path basePath;
+    private boolean constraint_upperCase;
+    private String taggingCmd;
+    private String chunkingCmd;
+    private String language;
+    private String corpusPath;
+    private String indexPath;
+    private String trainPath;
+    private String contextPath;
+    private String arffPath;
+    private String outputPath;
+    private Reliability reliability;
+    private Strategy startegy;
+    private String[] fileCorpus;
 
     /**
      * Class constructor specifying the constraints for patterns.
@@ -150,8 +148,8 @@ public class Learner implements Algorithm {
      * @param filename	name of the file listing all seeds
      * @return	a set of all seeds contained in the file
      */
-    public Set<String> getSeeds(String filename) throws IOException {
-        Set<String> seedList = new HashSet<String>();
+    private Set<String> getSeeds(String filename) throws IOException {
+        Set<String> seedList = new HashSet<>();
         InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(filename)), "UTF8");
         BufferedReader reader = new BufferedReader(isr);
         String text = null;
@@ -169,7 +167,7 @@ public class Learner implements Algorithm {
      *
      * @param seed	seed for which the contexts to retrieve
      */
-    public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
+    private List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
 
         Execution execution = new Execution();
         execution.setAlgorithm(SearchTermPosition.class);
@@ -185,7 +183,7 @@ public class Learner implements Algorithm {
         }
         return ret;
     }
-    
+
     private void generateCorpus() {
         File corpus = new File(this.corpusPath);
         String[] corpus_test = corpus.list();
@@ -246,7 +244,7 @@ public class Learner implements Algorithm {
             //TODO: add mergeAll and mergeNew
             // 3. search for patterns in corpus
             //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
-            List<StudyContext> res = applyPatterns(newPatterns);
+            List<StudyContext> res = applyPattern(newPatterns);
 
             Set<String> newSeeds = new HashSet();
             for (StudyContext entry : res) {
@@ -260,7 +258,7 @@ public class Learner implements Algorithm {
                 // new learner instance needed, else previously processed patterns are ignored
                 //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
                 Learner newLearner = new Learner(null, null, this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
-                List<StudyContext> resultList = newLearner.applyPatterns(this.relevantPatterns);
+                List<StudyContext> resultList = newLearner.applyPattern(this.relevantPatterns);
                 OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
                 return;
             } else {
@@ -352,7 +350,7 @@ public class Learner implements Algorithm {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    private List<StudyContext> getStudyRefs_optimized(Set<InfolisPattern> patterns) throws IOException, ParseException {
+    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException {
         List<StudyContext> resAggregated = new ArrayList<>();
 
         for (InfolisPattern curPat : patterns) {
@@ -365,9 +363,9 @@ public class Learner implements Algorithm {
                 ioe.printStackTrace();
                 throw (new IOException());
             }
-            
-            this.processedPatterns.add(curPat);
-            continue;
+            if (this.startegy != Strategy.reliability) {
+                this.processedPatterns.add(curPat);
+            }
 
         }
         System.out.println("Done processing complex patterns. Continuing.");
@@ -455,7 +453,7 @@ public class Learner implements Algorithm {
             List<StudyContext> exContexts = getReliable_pattern(newPat, threshold);
 
             if (exContexts != null) {
-                this.reliablePatternsAndContexts.put(newPat,exContexts);
+                this.reliablePatternsAndContexts.put(newPat, exContexts);
                 for (StudyContext studyNcontext : exContexts) {
                     this.foundSeeds_iteration.add(studyNcontext.getTerm());
                 }
@@ -869,15 +867,14 @@ public class Learner implements Algorithm {
         //TODO: HOW DOES IT AFFECT PRECISION / RECALL IF KNOWN CONTEXT FILES ARE USED INSTEAD?
         //TODO: count occurrences of pattern in negative contexts and compute pmi etc...
         // count sentences or count only one occurrence per document?
-        File corpus = new File(this.corpusPath);
-        double data_size = corpus.list().length;
+        double data_size = fileCorpus.length;
 
         // store results for later use (if pattern deemed reliable)
         Set<InfolisPattern> pattern = new HashSet();
         pattern.add(newPat);
         //
         try {
-            List<StudyContext> extractedInfo_check = processPatterns(pattern);
+            List<StudyContext> extractedInfo_check = applyPattern(pattern);
             //---
             //double p_y = extractedInfo.size() / data_size;
             // this yields the number of documents at least one occurrence of the pattern was found
@@ -937,7 +934,7 @@ public class Learner implements Algorithm {
                 // all entries in the current context file belong to one instance (seed)
                 // select those entries having the current pattern
 
-				//additional searching step here is not necessary... change that
+                //additional searching step here is not necessary... change that
                 //int jointOccurrences_xy = jointOccurrences.get( instance );
                 //double p_xy = jointOccurrences_xy / data_size;
                 //1. search for instance in the corpus
@@ -974,7 +971,7 @@ public class Learner implements Algorithm {
             if (patternReliability >= threshold) {
                 System.out.println("Pattern " + newPat.getPatternRegex() + " deemed reliable");
                 //List<String[]> extractedInfo = processPatterns(pattern);
-                List<StudyContext> extractedInfo = processPatterns(pattern);
+                List<StudyContext> extractedInfo = applyPattern(pattern);
                 // number of found contexts = number of occurrences of patterns in the corpus
                 // note: not per file though but in total
                 // (with any arbitrary dataset title = instance)
@@ -988,40 +985,8 @@ public class Learner implements Algorithm {
             throw new ParseException();
         }
     }
-    /**
-     * ...
-     *
-     * @param patSetIn	...
-     * @param seed	...
-     * @param outputDir	...
-     * @param path_index	...
-     * @param path_corpus	...
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    private List<StudyContext> processPatterns(Set<InfolisPattern> patSetIn) throws IOException, ParseException {
-        try {
-            List<StudyContext> resNgrams = getStudyRefs_optimized(patSetIn);
-            System.out.println("done. ");
-            //outputContextFiles( resNgrams, "test", this.outputPath);
-            System.out.println("Done processing patterns. ");
 
-            //TODO: add after output of results / usage of results, not here?
-            for (InfolisPattern p : patSetIn) {
-                if(this.startegy!=Strategy.reliability) {
-                    this.processedPatterns.add(p);
-                }
-            }
-            return resNgrams;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            throw (new ParseException());
-        }
-    }
-
+ 
     List<String> getContextStrings(List<StudyContext> contexts) {
         Function<StudyContext, String> context_toString
                 = new Function<StudyContext, String>() {
@@ -1092,7 +1057,7 @@ public class Learner implements Algorithm {
                 rightWords_regex.set(0, "\\s" + rightWords_regex.get(0));
             }
 
-			// construct all allowed patterns
+            // construct all allowed patterns
             //TODO: atomic regex...?
             // most general pattern: two words enclosing study name
             String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
@@ -1296,22 +1261,6 @@ public class Learner implements Algorithm {
         return patterns;
     }
 
-    List<StudyContext> applyPatterns(Set<InfolisPattern> patterns) throws IOException, ParseException {
-        System.out.println("inserted all text filenames to corpus");
-        List<StudyContext> res = new ArrayList<>();
-        try {
-            res = getStudyRefs_optimized(patterns);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw (new IOException());
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            throw (new ParseException());
-        }
-        log.debug("done applying patterns. ");
-        return res;
-    }
-
     /**
      * Generates a regular expression to capture given <emph>title</emph> as
      * dataset title along with any number specifications.
@@ -1365,7 +1314,7 @@ public class Learner implements Algorithm {
      * @return	...
      */
     public List<Study> getStudyRefs_unambiguous(Set<String> patternSet, List<String> filenDirec) throws IOException {
-                
+
         List<Study> studies = new ArrayList<>();
         for (String filenameIn : filenDirec) {
             Execution execution = new Execution();
@@ -1384,7 +1333,7 @@ public class Learner implements Algorithm {
             for (String uri : execution.getStudies()) {
                 Study s = client.get(Study.class, uri);
                 studies.add(s);
-            }            
+            }
         }
         return studies;
     }
@@ -1394,12 +1343,12 @@ public class Learner implements Algorithm {
      * Reads names of datasets from file, constructs regular expressions and
      * searches them in specified text corpus to extract dataset references.
      *
-     * TODO: not used anymore? We need another way than writing in files
-     * for the contextminer...
-     * 
+     * TODO: not used anymore? We need another way than writing in files for the
+     * contextminer...
+     *
      */
     public void searchForTerms(String termsPath) {
-        
+
         // need new Learner instance for each task - else, previously processed
         // patterns will not be processed again!
         Learner newLearner2 = new Learner(this.taggingCmd, this.chunkingCmd, this.constraint_upperCase,
@@ -1409,10 +1358,10 @@ public class Learner implements Algorithm {
         // get refs for known unambiguous studies
         // read study names from file
         // add study names to pattern
-        for(InfolisPattern p : newLearner2.constructPatterns(termsPath)) {
+        for (InfolisPattern p : newLearner2.constructPatterns(termsPath)) {
             patternsURIs.add(p.getPatternRegex());
         }
-                
+
         try {
             List<Study> resKnownStudies = newLearner2.getStudyRefs_unambiguous(patternsURIs, Arrays.asList(fileCorpus));
             // write to file for use by contextMiner
@@ -1439,12 +1388,12 @@ public class Learner implements Algorithm {
             patternSet1 = InfolisFileUtils.getDisctinctPatterns(new File(patternPath));
         } catch (IOException ioe) {
             patternSet1 = new HashSet<>();
-        
+
         }
         // need new Learner instance for each task - else, previously processed patterns will not be processed again
         Learner newLearner = new Learner(taggingCmd, chunkingCmd, constraint_upperCase, corpusPath, indexPath, "", "", "", outputPath, startegy);
         try {
-            List<StudyContext> resNgrams1 = newLearner.searchForPatterns(patternSet1,Arrays.asList(this.fileCorpus));
+            List<StudyContext> resNgrams1 = newLearner.searchForPatterns(patternSet1, Arrays.asList(this.fileCorpus));
             String[] filenames_grams = new String[3];
             filenames_grams[0] = outputPath + File.separator + "datasets_patterns.csv";
             filenames_grams[1] = outputPath + File.separator + "contexts_patterns.xml";
@@ -1459,11 +1408,12 @@ public class Learner implements Algorithm {
      * Bootraps patterns for identifying references to datasets from initial
      * seed (known dataset name).
      *
-     * @param seeds initial term to be searched for as starting point of
-     * the algorithm
+     * @param seeds initial term to be searched for as starting point of the
+     * algorithm
      */
     public void learn(Collection<String> seeds, double threshold, int maxIterations) {
-        try {this.reliableInstances.addAll(seeds);
+        try {
+            this.reliableInstances.addAll(seeds);
             if (this.startegy == Strategy.reliability) {
                 bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
                 OutputWriter.outputReliableReferences(this.reliablePatternsAndContexts, this.outputPath);
@@ -1478,39 +1428,6 @@ public class Learner implements Algorithm {
             pe.printStackTrace();
             System.exit(1);
         }
-    }
-
-
-    /**
-     * Monitors the given thread and stops it when it exceeds its time-to-live.
-     * Calls itself until the thread ends after completing its task or after
-     * being stopped.
-     *
-     * @param thread	the thread to be monitored
-     * @param maxProcessTimeMillis	the maximum time-to-live for thread
-     * @param startTimeMillis	thread's birthday :)
-     * @return	false, if thread was stopped prematurely; true if thread ended
-     * after completion of its task
-     */
-    @SuppressWarnings("deprecation")
-    public static boolean threadCompleted(Thread thread, long maxProcessTimeMillis, long startTimeMillis) {
-        if (thread.isAlive()) {
-            long curProcessTime = System.currentTimeMillis() - startTimeMillis;
-            System.out.println("Thread " + thread.getName() + " running for " + curProcessTime + " millis.");
-            if (curProcessTime > maxProcessTimeMillis) {
-                System.out.println("Thread taking too long, aborting (" + thread.getName());
-                thread.stop();
-                return false;
-            }
-        } else {
-            return true;
-        }
-
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ie) {;
-        }
-        return threadCompleted(thread, maxProcessTimeMillis, startTimeMillis);
     }
 
     /**
@@ -1629,7 +1546,7 @@ class OptionHandler {
 
     // receives other command line parameters than options
     @Argument
-    private List<String> arguments = new ArrayList<String>();
+    private List<String> arguments = new ArrayList<>();
 
     /**
      * Parses all command line options and calls <emph>Learner</emph> methods
@@ -1641,7 +1558,6 @@ class OptionHandler {
     public void doMain(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
 
-        
         // parse the arguments.
         try {
             parser.parseArgument(args);
@@ -1681,7 +1597,7 @@ class OptionHandler {
             strategy = Learner.Strategy.separate;
         }
 
-         Learner l = new Learner(taggerArgs,chunkingCmd , constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
+        Learner l = new Learner(taggerArgs, chunkingCmd, constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
         // call Learner.learn method with appropriate options
         Set<String> pathSet = new HashSet<>();
         File root = new File(corpusPath);

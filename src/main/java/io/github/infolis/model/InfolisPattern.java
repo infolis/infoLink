@@ -7,7 +7,20 @@ package io.github.infolis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.util.MathUtils;
+import io.github.infolis.util.RegexUtils;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -91,5 +104,110 @@ public class InfolisPattern extends BaseModel {
      */
     public void setMinimal(String minimal) {
         this.minimal = minimal;
+    }
+    
+    //TODO: the regex are not created as Patterns in the PatternInducer
+    /**
+     * Determines whether a regular expression is suitable for extracting
+     * dataset references using a frequency-based measure
+     *
+     * @param regex	regex to be tested
+     * @param threshold	threshold for frequency-based relevance measure
+     * @param contextStrings	set of extracted contexts as strings
+     * @return				<emph>true</emph>, if regex is found to be relevant,
+     * <emph>false</emph> otherwise
+     */
+    public static boolean isRelevant(String regex, List<String> contextStrings, double threshold) {
+        System.out.println("Checking if pattern is relevant: " + regex);
+        // compute score for similar to tf-idf...
+        // count occurrences of regex in positive vs negative contexts...
+        int count_pos = 0;
+        int count_neg = 0;
+        List<String> contexts_neg = new ArrayList<>();
+        for (String context : contextStrings) {
+            count_pos += patternFound(regex, context);
+        }
+        // contexts neg always empty right now
+        for (String context : contexts_neg) {
+            count_neg += patternFound(regex, context);
+        }
+
+        //TODO: rename - this is not really tf-idf ;)
+        double idf = 0;
+        // compute relevance...
+        if (count_neg + count_pos > 0) {
+            idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
+        }
+
+        double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
+        if ((tf_idf > threshold) & (count_pos > 1)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    //TODO: use safeMatching instead of m.find()!
+    /**
+     * Returns whether regular expression <emph>pattern</emph> can be found in
+     * string <emph>text</emph>.
+     *
+     * @param pattern	regular expression to be searched in <emph>text</emph>
+     * @param text	input string sequence to search <emph>pattern</emph> in
+     * @return	true, if <emph>pattern</emph> is found in <emph>text</emph>,
+     * false otherwise
+     */
+    private static int patternFound(String pattern, String text) {
+        Pattern pat = Pattern.compile(pattern);
+        Matcher m = pat.matcher(text);
+        boolean patFound = m.find();
+        if (patFound) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    /**
+     * Generates a regular expression to capture given <emph>title</emph> as
+     * dataset title along with any number specifications.
+     *
+     * @param title	name of the dataset to find inside the regex
+     * @return	a regular expression for finding the given title along with any
+     * number specifications
+     */
+    private static String constructTitleVersionRegex(String title) {
+        // at least one whitespace required...
+        return "(" + title + ")" + "\\S*?" + "\\s+" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "\\S*?" + "\\s*" + "((" + RegexUtils.yearRegex + "\\s*((-)|(–))\\s*\\d\\d(\\d\\d)?" + ")|(" + RegexUtils.yearRegex + ")|(\\d+[.,-/\\\\]?\\d*))";
+    }
+
+    /**
+     * Generates regular expressions for finding dataset names listed in
+     * <emph>filename</emph>
+     * with titles and number specifications.
+     *
+     * @param filename	Name of the file containing a list of dataset names (one
+     * name per line)
+     * @return	A Set of Patterns
+     */
+    public static Set<InfolisPattern> constructPatterns(String filename) {
+        Set<InfolisPattern> patternSet = new HashSet<>();
+        try {
+            File f = new File(filename);
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(f), "UTF8");
+            BufferedReader reader = new BufferedReader(isr);
+            String studyTitle;
+            while ((studyTitle = reader.readLine()) != null) {
+                if (!studyTitle.matches("\\s*")) {
+                    InfolisPattern p = new InfolisPattern();
+                    p.setPatternRegex(constructTitleVersionRegex(studyTitle));
+                    patternSet.add(p);
+                }
+            }
+            reader.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        return patternSet;
     }
 }

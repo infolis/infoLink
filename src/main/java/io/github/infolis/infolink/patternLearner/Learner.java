@@ -130,7 +130,7 @@ public class Learner implements Algorithm {
      *
      * @param seed	seed for which the contexts to retrieve
      */
-    private List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
+    public List<StudyContext> getContextsForSeed(String seed) throws IOException, ParseException {
 
         Execution execution = new Execution();
         execution.setAlgorithm(SearchTermPosition.class);
@@ -950,7 +950,7 @@ public class Learner implements Algorithm {
     }
 
  
-    List<String> getContextStrings(List<StudyContext> contexts) {
+    public List<String> getContextStrings(List<StudyContext> contexts) {
         Function<StudyContext, String> context_toString
                 = new Function<StudyContext, String>() {
                     public String apply(StudyContext c) {

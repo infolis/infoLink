@@ -28,6 +28,11 @@ public class Execution extends BaseModel {
 
 	private static final Logger logger = LoggerFactory.getLogger(Execution.class);
 
+        
+        public enum Strategy {
+            mergeCurrent, mergeNew, mergeAll, separate, reliability;
+        }
+
 	private Class<? extends Algorithm> algorithm;
 	private ExecutionStatus status = ExecutionStatus.PENDING;
 	private List<String> log = new ArrayList<>();
@@ -57,6 +62,11 @@ public class Execution extends BaseModel {
 	private List<String> patterns = new ArrayList<>();
 	private boolean upperCaseConstraint = false;
 	private boolean requiresContainedInNP = false;
+        private List<String> terms = new ArrayList<>();
+        private int maxIterations= 10;
+        private double threshold = 0.8;
+        private Strategy bootstrapStrategy = Strategy.separate;
+        
         
 	public Algorithm instantiateAlgorithm(DataStoreStrategy dataStoreStrategy)
 			throws InstantiationException, IllegalAccessException {
@@ -318,4 +328,61 @@ public class Execution extends BaseModel {
         this.studies = studies;
     }
 
+    
+    /**
+     * @return the terms
+     */
+    public List<String> getTerms() {
+        return terms;
+    }
+
+    /**
+     * @param terms the terms to set
+     */
+    public void setTerms(List<String> terms) {
+        this.terms = terms;
+    }
+
+    /**
+     * @return the maxIterations
+     */
+    public int getMaxIterations() {
+        return maxIterations;
+    }
+
+    /**
+     * @param maxIterations the maxIterations to set
+     */
+    public void setMaxIterations(int maxIterations) {
+        this.maxIterations = maxIterations;
+    }
+
+    /**
+     * @return the threshold
+     */
+    public double getThreshold() {
+        return threshold;
+    }
+
+    /**
+     * @param threshold the threshold to set
+     */
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
+    }
+
+    /**
+     * @return the bootstrapStrategy
+     */
+    public Strategy getBootstrapStrategy() {
+        return bootstrapStrategy;
+    }
+
+    /**
+     * @param bootstrapStrategy the bootstrapStrategy to set
+     */
+    public void setBootstrapStrategy(Strategy bootstrapStrategy) {
+        this.bootstrapStrategy = bootstrapStrategy;
+    }
+    
 }

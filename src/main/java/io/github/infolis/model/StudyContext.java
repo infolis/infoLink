@@ -14,6 +14,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 
 /**
  * Class for saving contexts (= surrounding words of a term).
@@ -166,6 +169,16 @@ public class StudyContext extends BaseModel {
      */
     public void setVersion(String version) {
         this.version = version;
+    }
+    
+    //TODO: not the best place
+    public static List<String> getContextStrings(List<StudyContext> contexts) {
+        Function<StudyContext, String> context_toString = new Function<StudyContext, String>() {
+                    public String apply(StudyContext c) {
+                        return c.toString();
+                    }
+                };
+        return new ArrayList(Lists.transform(contexts, context_toString));
     }
 
 }

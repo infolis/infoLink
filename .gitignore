@@ -11,3 +11,4 @@ logFile.txt
 /tree-tagger/
 /testCorpus/
 .nb-gradle/
+.nb-gradle-properties

@@ -7,6 +7,10 @@ package io.github.infolis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.infolink.patternLearner.Reliability;
+import io.github.infolis.infolink.patternLearner.Reliability.Instance;
 import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
 import java.io.BufferedReader;
@@ -21,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.lucene.queryParser.ParseException;
 
 /**
  *
@@ -105,7 +110,7 @@ public class InfolisPattern extends BaseModel {
     public void setMinimal(String minimal) {
         this.minimal = minimal;
     }
-    
+
     //TODO: the regex are not created as Patterns in the PatternInducer
     /**
      * Determines whether a regular expression is suitable for extracting
@@ -146,7 +151,7 @@ public class InfolisPattern extends BaseModel {
             return false;
         }
     }
-    
+
     //TODO: use safeMatching instead of m.find()!
     /**
      * Returns whether regular expression <emph>pattern</emph> can be found in
@@ -167,7 +172,7 @@ public class InfolisPattern extends BaseModel {
             return 0;
         }
     }
-    
+
     /**
      * Generates a regular expression to capture given <emph>title</emph> as
      * dataset title along with any number specifications.
@@ -209,5 +214,50 @@ public class InfolisPattern extends BaseModel {
             ioe.printStackTrace();
         }
         return patternSet;
+    }
+
+    public List<StudyContext> isReliable(double threshold, int dataSize, Set<String> reliableInstances, Set<StudyContext> extractedContexts, Reliability r) throws IOException, ParseException {
+        int patternCounter = 0;
+        List<StudyContext> contextOfPattern = new ArrayList<>();
+        for (StudyContext sc : extractedContexts) {
+            if (sc.getPattern().equals(this)) {
+                contextOfPattern.add(sc);
+                patternCounter++;
+            }
+        }
+
+        // for every known instance, check whether pattern is associated with it            
+        for (String instance : reliableInstances) {
+            int occurrencesPattern = 0;
+            int totalSentences = 0;
+            for (StudyContext sc : extractedContexts) {
+                if (sc.getTerm().equals(instance)) {
+                    totalSentences++;
+                    if (sc.getPattern().equals(this)) {
+                        occurrencesPattern++;
+                    }
+                }
+                double p_x = (double) totalSentences / (double) dataSize;
+                double p_y = (double) patternCounter / (double) dataSize;
+                double p_xy = (double) occurrencesPattern / (double) dataSize;
+                Instance newInstance = r.new Instance(instance);
+                double pmi_pattern = MathUtils.pmi(p_xy, p_x, p_y);
+                this.addAssociation(instance, pmi_pattern);
+                newInstance.addAssociation(this.getPatternRegex(), pmi_pattern);
+                r.addPattern(this);
+                r.addInstance(newInstance);
+                r.setMaxPmi(pmi_pattern);
+            }
+        }
+
+        System.out.println("Computing relevance of " + this.getPatternRegex());
+        double patternReliability = r.reliability(this);
+
+        if (patternReliability >= threshold) {
+            return contextOfPattern;
+        } else {
+            System.out.println("Pattern " + this.getPatternRegex() + " deemed unreliable");
+            return new ArrayList<>();
+        }
     }
 }

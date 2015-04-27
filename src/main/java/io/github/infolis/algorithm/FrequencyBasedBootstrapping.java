@@ -4,29 +4,25 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
-import io.github.infolis.infolink.patternLearner.Learner;
-import io.github.infolis.infolink.patternLearner.OutputWriter;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.lucene.queryParser.ParseException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author domi
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
+    
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
 
     @Override
     public void execute() throws IOException {
@@ -34,8 +30,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         List<StudyContext> detectedContexts = new ArrayList<>();
         try {
             detectedContexts = bootstrap_frequency(this.getExecution().getTerms(), this.getExecution().getThreshold(), this.getExecution().getMaxIterations(), this.getExecution().getBootstrapStrategy());
-        } catch (ParseException ex) {
-            Logger.getLogger(FrequencyBasedBootstrapping.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            log.error("Could not apply frequency bootstrapping: " + ex);
         }
 
         for (StudyContext sC : detectedContexts) {
@@ -62,7 +58,27 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         }
     }
 
-    private List<StudyContext> bootstrap_frequency(Collection<String> terms, double threshold, int maxIterations, Execution.Strategy strategy) throws IOException, ParseException {
+    /**
+     * Generates extraction patterns using an iterative bootstrapping approach.
+     *
+     * <ol>
+     * <li>searches for seeds in the specified corpus and extracts the
+     * surrounding words as contexts</li>
+     * <li>analyzes contexts and generates extraction patterns</li>
+     * <li>applies extraction patterns on corpus to extract new seeds</li>
+     * <li>continues with 1) until maximum number of iterations is reached</li>
+     * <li>outputs found seeds, contexts and extraction patterns</li>
+     * </ol>
+     *
+     * Method for assessing pattern validity is frequency-based.
+     *
+     * @param seed	the term to be searched as starting point in the current
+     * iteration
+     * @param threshold	threshold for accepting patterns
+     * @param maxIterations	maximum number of iterations for algorithm
+     *
+     */
+    private List<StudyContext> bootstrap_frequency(Collection<String> terms, double threshold, int maxIterations, Execution.Strategy strategy) throws ParseException, IOException {
         int numIter = 0;
         List<StudyContext> extractedContexts = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
@@ -74,6 +90,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
             numIter++;
             for (String seed : seeds) {
+                //TODO: not in the original code, processed seeds is not checked there
+                if(processedSeeds.contains(seed)) {
+                    continue;
+                }
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
@@ -90,7 +110,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
                 contexts_currentIteration.addAll(detectedContexts);
                 extractedContexts.addAll(detectedContexts);
-                System.out.println("Processing contexts for seed " + seed);
+                log.debug("Processing contexts for seed " + seed);
                 // 2. generate patterns
                 if (strategy == Execution.Strategy.separate) {
                     Set<InfolisPattern> patterns = PatternInducer.inducePatterns(detectedContexts, threshold, processedPatterns);
@@ -113,7 +133,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 seeds.add(entry.getTerm());
             }
             processedSeeds.addAll(terms);
-            System.out.println("Found " + seeds.size() + " new seeds in current iteration");
+            log.debug("Found " + seeds.size() + " new seeds in current iteration");
             numIter++;
         }
         return extractedContexts;

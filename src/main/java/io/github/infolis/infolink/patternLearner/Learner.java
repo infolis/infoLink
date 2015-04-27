@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
+import io.github.infolis.model.Execution.Strategy;
 
 /**
  * Class for finding references to scientific datasets in publications using a
@@ -66,11 +68,6 @@ import com.google.common.collect.Lists;
  */
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
 public class Learner implements Algorithm {
-
-    public enum Strategy {
-
-        mergeCurrent, mergeNew, mergeAll, separate, reliability;
-    }
 
     Logger log = LoggerFactory.getLogger(Learner.class);
 
@@ -181,59 +178,69 @@ public class Learner implements Algorithm {
      * @param maxIterations	maximum number of iterations for algorithm
      *
      */
-    private void bootstrap_frequency(Collection<String> terms, int numIter, double threshold, int maxIterations, Strategy strategy) throws IOException, ParseException {
-        Set<InfolisPattern> newPatterns = new HashSet<>();
-        List<StudyContext> contexts_currentIteration = new ArrayList<>();
-        numIter++;
-        try {
-            for (String seed : terms) {
-                // 1. use lucene index to search for term in corpus
-                List<StudyContext> contexts = getContextsForSeed(seed);
-                contexts_currentIteration.addAll(contexts);
-                this.extractedContexts.put(seed, contexts);
-                System.out.println("Processing contexts for seed " + seed);
-                // 2. generate patterns
-                if (strategy == Strategy.separate) {
-                    Set<InfolisPattern> patterns = inducePatterns(contexts, threshold);
-                    this.relevantPatterns.addAll(patterns);
-                    newPatterns.addAll(patterns);
-                }
-            }
-            if (strategy == Strategy.mergeCurrent) {
-                Set<InfolisPattern> patterns = inducePatterns(contexts_currentIteration, threshold);
-                this.relevantPatterns.addAll(patterns);
-                newPatterns.addAll(patterns);
-            }
-            //TODO: add mergeAll and mergeNew
-            // 3. search for patterns in corpus
-            //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
-            List<StudyContext> res = applyPattern(newPatterns);
-
-            Set<String> newSeeds = new HashSet<>();
-            for (StudyContext entry : res) {
-                newSeeds.add(entry.getTerm());
-            }
-            this.processedSeeds.addAll(terms);
-            System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
-            //TODO: NO NEED TO SEARCH FOR ALL PATTERNS AGAIN, INSTEAD USE STORED RESULTS AND SEARCH ONLY FOR NEW PATTERNS
-            if (numIter >= maxIterations - 1) {
-                System.out.println("Reached maximum number of iterations! Applying learnt patterns...");
-                // new learner instance needed, else previously processed patterns are ignored
-                //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
-                Learner newLearner = new Learner(this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
-                List<StudyContext> resultList = newLearner.applyPattern(this.relevantPatterns);
-                OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
-                return;
-            } else {
-                bootstrap_frequency(newSeeds, numIter, threshold, maxIterations, strategy);
-            }
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            throw new ParseException();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            throw new IOException();
-        }
+    private void bootstrap_frequency(Collection<String> terms, double threshold, int maxIterations, Execution.Strategy strategy) throws IOException, ParseException {
+        Execution e = new Execution();
+        e.setAlgorithm(FrequencyBasedBootstrapping.class);
+        e.setInputFiles(Arrays.asList(fileCorpus));
+        e.setTerms(new ArrayList(terms));
+        e.setBootstrapStrategy(strategy);
+        e.setThreshold(threshold);
+        e.setMaxIterations(maxIterations);
+        Algorithm algo = new FrequencyBasedBootstrapping();
+        algo.run();
+//        
+//        Set<InfolisPattern> newPatterns = new HashSet<>();
+//        List<StudyContext> contexts_currentIteration = new ArrayList<>();
+//        numIter++;
+//        try {
+//            for (String seed : terms) {
+//                // 1. use lucene index to search for term in corpus
+//                List<StudyContext> contexts = getContextsForSeed(seed);
+//                contexts_currentIteration.addAll(contexts);
+//                this.extractedContexts.put(seed, contexts);
+//                System.out.println("Processing contexts for seed " + seed);
+//                // 2. generate patterns
+//                if (strategy == Strategy.separate) {
+//                    Set<InfolisPattern> patterns = inducePatterns(contexts, threshold);
+//                    this.relevantPatterns.addAll(patterns);
+//                    newPatterns.addAll(patterns);
+//                }
+//            }
+//            if (strategy == Strategy.mergeCurrent) {
+//                Set<InfolisPattern> patterns = inducePatterns(contexts_currentIteration, threshold);
+//                this.relevantPatterns.addAll(patterns);
+//                newPatterns.addAll(patterns);
+//            }
+//            //TODO: add mergeAll and mergeNew
+//            // 3. search for patterns in corpus
+//            //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
+//            List<StudyContext> res = applyPattern(newPatterns);
+//
+//            Set<String> newSeeds = new HashSet<>();
+//            for (StudyContext entry : res) {
+//                newSeeds.add(entry.getTerm());
+//            }
+//            this.processedSeeds.addAll(terms);
+//            System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
+//            //TODO: NO NEED TO SEARCH FOR ALL PATTERNS AGAIN, INSTEAD USE STORED RESULTS AND SEARCH ONLY FOR NEW PATTERNS
+//            if (numIter >= maxIterations - 1) {
+//                System.out.println("Reached maximum number of iterations! Applying learnt patterns...");
+//                // new learner instance needed, else previously processed patterns are ignored
+//                //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
+//                Learner newLearner = new Learner(this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
+//                List<StudyContext> resultList = newLearner.applyPattern(this.relevantPatterns);
+//                OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
+//                return;
+//            } else {
+//                bootstrap_frequency(newSeeds, numIter, threshold, maxIterations, strategy);
+//            }
+//        } catch (ParseException pe) {
+//            pe.printStackTrace();
+//            throw new ParseException();
+//        } catch (IOException ioe) {
+//            ioe.printStackTrace();
+//            throw new IOException();
+//        }
     }
 
     /**
@@ -1381,7 +1388,7 @@ public class Learner implements Algorithm {
                 bootstrap_reliabilityBased(seeds, threshold, -1, maxIterations);
                 OutputWriter.outputReliableReferences(this.reliablePatternsAndContexts, this.outputPath);
             } else {
-                bootstrap_frequency(seeds, -1, threshold, maxIterations, this.startegy);
+                bootstrap_frequency(seeds, threshold, maxIterations, this.startegy);
             }
         } catch (FileNotFoundException e) {
             System.err.println(e);
@@ -1505,7 +1512,7 @@ class OptionHandler {
     private String maxIterations;
 
     @Option(name = "-F", usage = "sets the strategy to use for processing new seeds within the frequency-based framework to FREQUENCY_STRATEGY. If not set, defaults to \"separate\"", metaVar = "FREQUENCY_STRATEGY")
-    private Learner.Strategy strategy;
+    private Execution.Strategy strategy;
 
     // receives other command line parameters than options
     @Argument
@@ -1550,7 +1557,7 @@ class OptionHandler {
         }
 
         if (strategy != null) {
-            strategy = Learner.Strategy.separate;
+            strategy = Execution.Strategy.separate;
         }
 
         Learner l = new Learner(constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);

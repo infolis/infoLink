@@ -187,9 +187,11 @@ public class Learner implements Algorithm {
         e.setBootstrapStrategy(strategy);
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
-        Algorithm algo = new FrequencyBasedBootstrapping();
-        algo.setExecution(e);
-        algo.run();
+        try {
+            e.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
 //        
 //        Set<InfolisPattern> newPatterns = new HashSet<>();
 //        List<StudyContext> contexts_currentIteration = new ArrayList<>();
@@ -259,9 +261,11 @@ public class Learner implements Algorithm {
         e.setTerms(new ArrayList(terms));
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
-        Algorithm algo = new FrequencyBasedBootstrapping();
-        algo.setExecution(e);
-        algo.run();
+        try {
+            e.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
         
 //        numIter++;
 //        System.out.println("Bootstrapping... Iteration: " + numIter);

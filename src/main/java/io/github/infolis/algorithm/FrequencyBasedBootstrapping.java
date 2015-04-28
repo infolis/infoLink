@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * @author domi
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
-    
+
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
 
     @Override
@@ -93,7 +93,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             numIter++;
             for (String seed : seeds) {
                 //TODO: not in the original code, processed seeds is not checked there
-                if(processedSeeds.contains(seed)) {
+                if (processedSeeds.contains(seed)) {
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
@@ -102,9 +102,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchTerm(seed);
                 execution.setIndexDirectory(this.getExecution().getIndexDirectory());
 
-                Algorithm algo = new SearchTermPosition();
-                algo.setExecution(execution);
-                algo.run();
+                try {
+                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
 
                 List<StudyContext> detectedContexts = new ArrayList<>();
                 for (String sC : execution.getStudyContexts()) {
@@ -131,11 +133,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
             List<StudyContext> res = applyPattern(newPatterns);
             processedSeeds.addAll(seeds);
-            
+
             seeds = new HashSet<>();
             for (StudyContext entry : res) {
                 seeds.add(entry.getTerm());
-            }            
+            }
             log.debug("Found " + seeds.size() + " new seeds in current iteration");
             numIter++;
         }
@@ -159,7 +161,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             List<String> candidateCorpus = exec.getMatchingFilenames();
             Set<String> patSet = new HashSet<>();
             patSet.add(curPat.getUri());
-            
+
             for (String filenameIn : candidateCorpus) {
                 Execution execution = new Execution();
                 execution.setPattern(new ArrayList<>(patSet));

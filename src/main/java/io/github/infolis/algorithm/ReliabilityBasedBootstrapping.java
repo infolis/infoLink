@@ -1,6 +1,6 @@
-
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author domi
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
-    
+
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
 
     private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
@@ -29,29 +29,31 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         Set<StudyContext> extractedContexts = new HashSet();
         Set<String> processedPattern = new HashSet<>();
         List<StudyContext> reliableContexts = new ArrayList<>();
-        int numIter =0;
+        int numIter = 0;
         Reliability r = new Reliability();
         Set<String> seeds = new HashSet<>();
         seeds.addAll(getExecution().getTerms());
-        while (numIter<getExecution().getMaxIterations()) {
+        while (numIter < getExecution().getMaxIterations()) {
             numIter++;
-            log.debug("Bootstrapping... Iteration: " + numIter);            
+            log.debug("Bootstrapping... Iteration: " + numIter);
             // 0. filter seeds, select only reliable ones
             // alternatively: use all seeds extracted by reliable patterns
             reliableInstances.addAll(seeds);
             // 1. search for all seeds and save contexts
             for (String seed : seeds) {
                 log.debug("Bootstrapping with seed " + seed);
-                    
+
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
                 execution.setIndexDirectory(this.getExecution().getIndexDirectory());
 
-                Algorithm algo = new SearchTermPosition();
-                algo.setExecution(execution);
-                algo.run();
+                try {
+                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
 
                 List<StudyContext> detectedContexts = new ArrayList<>();
                 for (String sC : execution.getStudyContexts()) {
@@ -63,10 +65,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             }
             // 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
             // new seeds to this.foundSeeds_iteration
-            reliablePatterns_iteration = PatternInducer.saveReliablePatternData(extractedContexts, getExecution().getThreshold(), processedPattern, getExecution().getInputFiles().size(),reliableInstances,r);
+            reliablePatterns_iteration = PatternInducer.saveReliablePatternData(extractedContexts, getExecution().getThreshold(), processedPattern, getExecution().getInputFiles().size(), reliableInstances, r);
             seeds = new HashSet<>();
             for (StudyContext sc : extractedContexts) {
-                if(reliablePatterns_iteration.contains(sc.getPattern())) {
+                if (reliablePatterns_iteration.contains(sc.getPattern())) {
                     seeds.add(sc.getTerm());
                     reliableContexts.add(sc);
                 }

@@ -65,18 +65,18 @@ public class FrequencyBootstrappingTest {
     }
 
     @Test
-    public void testPatternApplier() throws Exception {
+    public void testBootstrapping() throws Exception {
     	
     	Execution execution = new Execution();   
     	execution.getTerms().addAll(terms);
     	execution.setAlgorithm(FrequencyBasedBootstrapping.class);
     	execution.getInputFiles().addAll(testFiles);
-
-    	Algorithm algo = new PatternApplier();
+        
+        Algorithm algo = new FrequencyBasedBootstrapping();
     	algo.setDataStoreClient(client);
     	algo.setFileResolver(fileResolver);
     	algo.setExecution(execution);
-    	algo.run();
+    	algo.run();        
     	
     	System.out.println(execution.getStudyContexts());
         System.out.println(execution.getPattern());

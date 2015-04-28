@@ -18,12 +18,20 @@ package io.github.infolis.infolink.luceneIndexing;
  * limitations under the License.
  */
 
+import io.github.infolis.algorithm.BaseAlgorithm;
+import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.InfolisFile;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
@@ -40,146 +48,103 @@ import org.slf4j.LoggerFactory;
  * Class for adding text files to a Lucene index. 
  * 
  * @author	katarina.boland@gesis.org
+ * @author kba
  * @version	2014-01-27
  */
-public class Indexer 
+public class Indexer extends BaseAlgorithm
 {
+	
+	private Logger log = LoggerFactory.getLogger(Indexer.class);
 
 	/*
 	 * kba: That was the old value of {@link IndexWriter.MaxFieldLength.LIMITED}
 	 */
 	private static final int MAX_TOKEN_COUNT = 10000;
-	
-	private Logger log = LoggerFactory.getLogger(Indexer.class);
-	private OpenMode openMode = OpenMode.CREATE;
-	
-	public Indexer() {
-		this(OpenMode.CREATE);
-	}
-	
-	public Indexer(OpenMode openMode) {
-		this.openMode = openMode;
-	}
-	
+
 	public static Analyzer createAnalyzer() {
 		return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
 	}
-
-	/**
-	 * Converts all text files in a directory and all subdirectories to lucene documents and 
-	 * adds them to a lucene index.
-	 * 
-	 * @param writer	lucene IndexWriter instance to add the document(s) to
-	 * @param file		the location of the text document(s) to be added to the index
-	 * @throws IOException
-	 */
-	public void indexDocs(IndexWriter writer, File file) throws IOException 
-	{
-		// do not try to index files that cannot be read
-		if (file.canRead()) 
-		{
-			//call indexDocs recursively to index all documents in all subdirectories
-			if (file.isDirectory()) 
-			{
-				String[] files = file.list();
-				// an IO error could occur
-				if (files != null) 
-				{
-					for (int i = 0; i < files.length; i++) { indexDocs(writer, new File(file, files[i])); }
-				}
-			} 
-			else 
-			{
-				System.out.println("adding " + file);
-				try { writer.addDocument(FileDocument.Document(file)); }
-				// at least on windows, some temporary files raise this exception with an "access denied" message
-				// checking if the file can be read doesn't help
-				catch (FileNotFoundException fnfe) { ;}
-			}
-		}
-	}
 	
-	/**
-	 * Initializes the Lucene IndexWriter instance, starts the indexing process and prints some status 
-	 * information. 
-	 * 
-	 * @param fileMap	A map listing index output locations (keys) and input directories (values) containing the documents to index	
-	 */
-	public void indexAllFiles(HashMap<File, File> fileMap)
-	{
-		for (File indexDir : fileMap.keySet())
-		{
-			File docDir = fileMap.get(indexDir);
+	@Override
+	public void execute() throws IOException {
+		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
+		indexWriterConfig.setOpenMode(OpenMode.CREATE);
+		File indexDir = new File(getExecution().getIndexDirectory());
+		IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
+		List<InfolisFile> files = new ArrayList<>();
 
-			log.debug("start");
-			if (indexDir.exists())  {
-				if (openMode == OpenMode.APPEND) {
-					String msg = "Index dir '" + indexDir + "' exists but was configured not to overwrite.";
-					log.error(msg);
-					throw new RuntimeException(msg);
-				} else {
-					log.debug("Overwriting index in '" + indexDir + "'.");
-				}
-			}
-
-			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
-			indexWriterConfig.setOpenMode(OpenMode.CREATE);
-
-			Date start = new Date();
-			try 
-			{
-				IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
-				log.debug("Indexing to directory '{}'...", indexDir);
-				indexDocs(writer, docDir);
-				log.debug("Merging all Lucene segments ...");
-				writer.forceMerge(1);
-				writer.close();
-				Date end = new Date();
-				log.debug(end.getTime() - start.getTime() + " total milliseconds");
-			} 
-			catch (IOException e) 
-			{
-				System.out.println(" caught a " + e.getClass() + "\n with message: " + e.getMessage());
-			}
-			System.out.println("end");
+		for (String fileUri : getExecution().getInputFiles()) {
+			files.add(this.getDataStoreClient().get(InfolisFile.class, URI.create(fileUri)));
 		}
+
+		Date start = new Date();
+		log.debug("Starting to index");
+		for (InfolisFile file : files) {
+			
+//			log.debug("Indexing file " + file);
+			try {
+				writer.addDocument(FileDocument.toLuceneDocument(getFileResolver(), file));
+			} catch (FileNotFoundException fnfe) {
+				// NOTE: at least on windows, some temporary files raise this
+				// exception with an "access denied" message checking if the
+				// file can be read doesn't help
+				writer.close();
+				throw new RuntimeException("Could not write index entry for " + file);
+			}
+		}
+		Date end = new Date();
+		log.debug(String.format("Indexing %s documents took %s ms", files.size(), end.getTime() - start.getTime()));
+		log.debug("Merging all Lucene segments ...");
+		writer.forceMerge(1);
+		writer.close();
+	}
+
+	@Override
+	public void validate() {
+		Execution exec = this.getExecution();
+		if (null == exec.getInputFiles() || exec.getInputFiles().isEmpty())
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");
+		if (null == exec.getIndexDirectory())
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");
+		if (! Files.exists(Paths.get(getExecution().getIndexDirectory())))
+			throw new IllegalAlgorithmArgumentException(getClass(), "indexDirectory", "doesn't exist");
 	}
   
 	
-	/** 
-	 * Selects either all subdirectories in the specified directory (recursive mode) or only the root 
-	 * directory, specifies a path for the indexes to be created and starts the indexing process. 
-	 * 
-	 * @param	args	args[0]: path to the corpus root directory; args[1]: path to the index directory; args[2]: "r" to set recursive mode
-	 */
-	public static void main(String[] args) {
-		if (args.length < 2) {
-			System.out.println("Usage: Indexer <corpusPath> <indexPath> <recursiveFlag>");
-			System.out.println("	corpusPath	path to the corpus root directory");
-			System.out.println("	indexPath	path to the index directory");
-			System.out.println("	<recursiveFlag>	\"r\" (without quotes) to select directories recursively [OPTIONAL]");
-			System.exit(1);
-		}
-		HashMap<File, File> toIndex = new HashMap<File, File>();
-		File root_corpus = new File(args[0]);
-		String root_index = new File (Paths.get(args[1]).normalize().toString()).getAbsolutePath();
-		boolean recursive;
-		try { recursive = args[2].toLowerCase().equals("r"); }
-		catch (ArrayIndexOutOfBoundsException e) { recursive = false; }
-		if (recursive) 
-		{
-			for (File file : root_corpus.listFiles()) 
-			{
-				if (file.isDirectory())
-				{
-					toIndex.put(new File(root_index + "_" + file.getName()), new File(root_corpus + File.separator + file.getName()));
-				}
-			}
-		}
-		else { toIndex.put(new File(root_index), root_corpus); }
-
-		Indexer indexer = new Indexer();
-		indexer.indexAllFiles(toIndex);
-	}
+//	/** 
+//	 * Selects either all subdirectories in the specified directory (recursive mode) or only the root 
+//	 * directory, specifies a path for the indexes to be created and starts the indexing process. 
+//	 * 
+//	 * @param	args	args[0]: path to the corpus root directory; args[1]: path to the index directory; args[2]: "r" to set recursive mode
+//	 */
+//	public static void main(String[] args) {
+//		if (args.length < 2) {
+//			System.out.println("Usage: Indexer <corpusPath> <indexPath> <recursiveFlag>");
+//			System.out.println("	corpusPath	path to the corpus root directory");
+//			System.out.println("	indexPath	path to the index directory");
+//			System.out.println("	<recursiveFlag>	\"r\" (without quotes) to select directories recursively [OPTIONAL]");
+//			System.exit(1);
+//		}
+//		HashMap<File, File> toIndex = new HashMap<File, File>();
+//		File root_corpus = new File(args[0]);
+//		String root_index = new File (Paths.get(args[1]).normalize().toString()).getAbsolutePath();
+//		boolean recursive;
+//		try { recursive = args[2].toLowerCase().equals("r"); }
+//		catch (ArrayIndexOutOfBoundsException e) { recursive = false; }
+//		if (recursive) 
+//		{
+//			for (File file : root_corpus.listFiles()) 
+//			{
+//				if (file.isDirectory())
+//				{
+//					toIndex.put(new File(root_index + "_" + file.getName()), new File(root_corpus + File.separator + file.getName()));
+//				}
+//			}
+//		}
+//		else { toIndex.put(new File(root_index), root_corpus); }
+//
+//		Indexer indexer = new Indexer();
+//		indexer.indexAllFiles(toIndex);
+//	}
 	
 }

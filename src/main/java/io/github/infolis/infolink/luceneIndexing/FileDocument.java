@@ -19,19 +19,20 @@ package io.github.infolis.infolink.luceneIndexing;
  */
 
  
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-//import java.util.StringTokenizer;
-import org.apache.lucene.document.DateTools;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.InfolisFile;
+
 /*import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;*/
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+//import java.util.StringTokenizer;
 
 /** 
  * Creates a Lucene Document from a File.
@@ -74,7 +75,7 @@ public class FileDocument {
 	 * @return a	lucene document	
 	 * @throws IOException	
 	 */
-	public static Document Document(File f) throws IOException {
+	public static Document toLuceneDocument(FileResolver fileResolver, InfolisFile f) throws IOException {
 	  
 	  //use code below to process pdfs instead of text (requires pdfBox)
 	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));   
@@ -84,7 +85,7 @@ public class FileDocument {
 	  PDFTextStripper stripper = new PDFTextStripper();   
 	  String text = stripper.getText(new PDDocument(cd));  */
 	  
-	  InputStreamReader isr = new InputStreamReader( new FileInputStream(f), "UTF8" );
+	  InputStreamReader isr = new InputStreamReader(fileResolver.openInputStream(f) , "UTF8" );
 	  BufferedReader reader = new BufferedReader( isr );
       StringBuffer contents = new StringBuffer();
       String text = null;
@@ -100,15 +101,16 @@ public class FileDocument {
 
       // Add the path of the file as a field named "path".  Use a field that is 
       // indexed (i.e. searchable), but don't tokenize the field into words.
-      doc.add( new Field( "path", f.getPath(), Field.Store.YES, Field.Index.NOT_ANALYZED ) );  
-      doc.add( new Field( "fileName",  f.getName(), Field.Store.YES, Field.Index.ANALYZED ) );
+      doc.add( new Field( "path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED ) );  
+      doc.add( new Field( "fileName",  f.getFileName(), Field.Store.YES, Field.Index.ANALYZED ) );
     
       // Add the last modified date of the file a field named "modified".  Use 
       // a field that is indexed (i.e. searchable), but don't tokenize the field
       // into words.
-      doc.add( new Field( "modified", 
-    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
-    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+      // TODO kba: Add modified to InfolisFile
+//      doc.add( new Field( "modified", 
+//    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
+//    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
      
 	  // save the content (text files) in the index
 	  // Add the contents of the file to a field named "contents".  Specify a Reader,

@@ -1,18 +1,15 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.luceneIndexing.Indexer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
-import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -22,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -76,40 +74,40 @@ public class SearchTermPosition extends BaseAlgorithm
 		this.execution = execution;
 	}
 	
-	/**
-	 * Main method calling complexSearch method for given arguments
-	 * 
-	 * @param args	args[0]: path to lucene index; args[1]: path to output file; args[2]: search term; args[3]: lucene query
-	 * @throws IOException
-	 * @throws ParseException
-	 * @throws org.apache.lucene.queryParser.ParseException
-	 */
-	public static void main(String[] args) throws IOException, ParseException
-	{
-		if (args.length < 4) {
-			System.out.println("Usage: SearchTermPosition <indexPath> <filename> <term> <query>");
-			System.out.println("<indexPath>	location of the Lucene index");
-			System.out.println("<filename>	path to the output file");
-			System.out.println("<term>	the term to retrieve");
-			System.out.println("<query>	the lucene query to search for term");
-			System.exit(1);
-		}
-		Execution execution = new Execution();
-		execution.setAlgorithm(SearchTermPosition.class);
-
-		execution.getInputFiles().add(args[0]);
-//		execution.getOutputFiles().add(args[1]);
-		execution.setSearchTerm(args[2]);
-		execution.setSearchQuery(args[3]);
-		
-		SearchTermPosition algo = new SearchTermPosition();
-		algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
-		algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));
-		algo.setExecution(execution);
-
-		algo.run();
-
-	} 
+//	/**
+//	 * Main method calling complexSearch method for given arguments
+//	 * 
+//	 * @param args	args[0]: path to lucene index; args[1]: path to output file; args[2]: search term; args[3]: lucene query
+//	 * @throws IOException
+//	 * @throws ParseException
+//	 * @throws org.apache.lucene.queryParser.ParseException
+//	 */
+//	public static void main(String[] args) throws IOException, ParseException
+//	{
+//		if (args.length < 4) {
+//			System.out.println("Usage: SearchTermPosition <indexPath> <filename> <term> <query>");
+//			System.out.println("<indexPath>	location of the Lucene index");
+//			System.out.println("<filename>	path to the output file");
+//			System.out.println("<term>	the term to retrieve");
+//			System.out.println("<query>	the lucene query to search for term");
+//			System.exit(1);
+//		}
+//		Execution execution = new Execution();
+//		execution.setAlgorithm(SearchTermPosition.class);
+//
+//		execution.getInputFiles().add(args[0]);
+////		execution.getOutputFiles().add(args[1]);
+//		execution.setSearchTerm(args[2]);
+//		execution.setSearchQuery(args[3]);
+//		
+//		SearchTermPosition algo = new SearchTermPosition();
+//		algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
+//		algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));
+//		algo.setExecution(execution);
+//
+//		algo.run();
+//
+//	} 
 	
 	/**
 	 * Searches for this query in this index using a ComplexPhraseQueryParser and writes the extracted  
@@ -124,8 +122,10 @@ public class SearchTermPosition extends BaseAlgorithm
 	{
 		Path tempPath = Files.createTempDirectory("infolis-test-");
 		FileUtils.forceDeleteOnExit(tempPath.toFile());
+		
+		createIndex(tempPath);
+		
 		Directory d = FSDirectory.open(tempPath.toFile());
-
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
 		Analyzer analyzer = Indexer.createAnalyzer();
@@ -158,20 +158,19 @@ public class SearchTermPosition extends BaseAlgorithm
 		{
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
-			String fileUri = doc.get("path");
-			execution.getMatchingFilenames().add(fileUri);
-
-			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
-			// TODO FileResolver
+			InfolisFile file = getDataStoreClient().get(InfolisFile.class, URI.create(doc.get("path")));
+			log.debug("{}", file);
+			
+			String text = IOUtils.toString(this.getFileResolver().openInputStream(file));
 			
 			// Add contexts
-			// TODO only if term != null
-			for (StudyContext sC : getContexts(doc.get("path"), this.getExecution().getSearchTerm(), text)) {
-				getDataStoreClient().post(StudyContext.class, sC);
-				this.execution.getStudyContexts().add(sC.getUri());
+			if (this.getExecution().getSearchTerm() != null) {
+				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
+					getDataStoreClient().post(StudyContext.class, sC);
+					this.execution.getStudyContexts().add(sC.getUri());
+				}
 			}
-//			log.debug(doc.get("path"));
-			getExecution().getMatchingFilenames().add(doc.get("path"));
+			getExecution().getMatchingFilenames().add(file.getUri());
 		}
 		searcher.close();
 		analyzer.close();
@@ -179,6 +178,19 @@ public class SearchTermPosition extends BaseAlgorithm
 		d.close();
 	}
 	
+	private void createIndex(Path tempPath) throws IOException {
+		Execution execution = new Execution();
+		execution.setAlgorithm(Indexer.class);
+		execution.setInputFiles(this.getExecution().getInputFiles());
+		execution.setIndexDirectory(tempPath.toString());
+		
+		Algorithm algo = new Indexer();
+		algo.setExecution(execution);
+		algo.setDataStoreClient(getDataStoreClient());
+		algo.setFileResolver(getFileResolver());
+		algo.execute();
+	}
+
 	protected static List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
@@ -188,8 +200,8 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
-	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
 	    InfolisPattern infolisPat = new InfolisPattern();
+	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
 	    log.debug(text);
 	    Matcher m = pat.matcher(text);
             log.debug("Pattern: " + pat + " found " + m.find());
@@ -246,9 +258,12 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void validate() {
 		if (null != this.getExecution().getOutputFiles()
-				&& !this.getExecution().getOutputFiles().isEmpty())
-			throw new IllegalArgumentException("Must NOT set outputFiles!");
+				 && !this.getExecution().getOutputFiles().isEmpty())
+			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");
+		if (null == this.getExecution().getInputFiles()
+				 || this.getExecution().getInputFiles().isEmpty())
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "must be set and non-empty");
 		if (null == this.getExecution().getSearchQuery())
-			throw new IllegalArgumentException("Must set searchQuery!");
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "must be set and non-empty");
 	}
 }

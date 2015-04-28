@@ -103,10 +103,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setSearchQuery(getExecution().getSearchQuery());
+                execution.setSearchQuery(getExecution().getSearchQuery()); // TODO: dommi this looks wrong
+                execution.setInputFiles(getExecution().getInputFiles());
 
                 try {
-                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+                    execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
                 } catch (InstantiationException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }

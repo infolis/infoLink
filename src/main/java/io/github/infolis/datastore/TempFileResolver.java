@@ -18,8 +18,12 @@ public class TempFileResolver extends CentralFileResolver {
 	
 	private Path tempDir;
 
-	public TempFileResolver() throws IOException {
-		this.tempDir = Files.createTempDirectory("infolis-");
+	public TempFileResolver() {
+		try {
+			this.tempDir = Files.createTempDirectory("infolis-");
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override

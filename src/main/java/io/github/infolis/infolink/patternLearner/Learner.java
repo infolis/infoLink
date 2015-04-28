@@ -7,7 +7,6 @@ import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.VersionPatternApplier;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.Execution.Strategy;
@@ -182,7 +181,7 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
         try {
-            e.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+            e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
@@ -256,7 +255,7 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
         try {
-            e.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+            e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
@@ -404,7 +403,7 @@ public class Learner implements Algorithm {
             execution.getInputFiles().add(filenameIn);
 
             try {
-                execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+            	execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -1303,7 +1302,7 @@ public class Learner implements Algorithm {
             execution.getInputFiles().add(filenameIn);
 
             try {
-                execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+            	execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

@@ -55,7 +55,7 @@ class CentralFileResolver implements FileResolver {
 	@Override
 	public InputStream openInputStream(String fileId) throws IOException {
 		Path fileName = resolvePath(fileId);
-		logger.debug("Reading data from file {}", fileName);
+		logger.trace("Reading data from file {}", fileName);
 		InputStream ret;
 		if (!Files.exists(fileName)) {
 			throw new FileNotFoundException();
@@ -68,7 +68,7 @@ class CentralFileResolver implements FileResolver {
 	@Override
 	public OutputStream openOutputStream(String fileId) throws IOException {
 		Path fileName = resolvePath(fileId);
-		logger.debug("Writing data to file {}", fileName);
+		logger.trace("Writing data to file {}", fileName);
 		OutputStream outStream = Files
 				.newOutputStream(fileName,
 						StandardOpenOption.TRUNCATE_EXISTING,

@@ -1,9 +1,8 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,7 +57,7 @@ public class Execution extends BaseModel {
 	private List<String> matchingFilenames = new ArrayList<>();
         private List<String> studies = new ArrayList<>();
 	private boolean overwrite = false;
-//	private String indexDirectory;
+	private String indexDirectory;
 	private List<String> patterns = new ArrayList<>();
 	private boolean upperCaseConstraint = false;
 	private boolean requiresContainedInNP = false;
@@ -68,7 +67,7 @@ public class Execution extends BaseModel {
         private Strategy bootstrapStrategy = Strategy.separate;
         
         
-	public Algorithm instantiateAlgorithm(DataStoreStrategy dataStoreStrategy)
+	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver)
 			throws InstantiationException, IllegalAccessException {
 		if (null == this.getAlgorithm()) {
 			throw new IllegalArgumentException(
@@ -76,8 +75,8 @@ public class Execution extends BaseModel {
 		}
 		Algorithm algo = this.algorithm.newInstance();
 		algo.setExecution(this);
-		algo.setFileResolver(FileResolverFactory.create(dataStoreStrategy));
-		algo.setDataStoreClient(DataStoreClientFactory.create(dataStoreStrategy));
+		algo.setFileResolver(fileResolver);
+		algo.setDataStoreClient(client);
 		logger.debug("Created instance for algorithm '{}'", this.getAlgorithm());
 		return algo;
 	}
@@ -376,5 +375,13 @@ public class Execution extends BaseModel {
     public void setBootstrapStrategy(Strategy bootstrapStrategy) {
         this.bootstrapStrategy = bootstrapStrategy;
     }
+
+	public String getIndexDirectory() {
+		return indexDirectory;
+	}
+
+	public void setIndexDirectory(String indexDirectory) {
+		this.indexDirectory = indexDirectory;
+	}
     
 }

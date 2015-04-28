@@ -22,7 +22,7 @@ public class LocalClient implements DataStoreClient {
 
 	// private static final Logger log =
 	// LoggerFactory.getLogger(LocalClient.class);
-	private static final Map<String, String> jsonDB = new HashMap<>();
+	public static final Map<String, String> jsonDB = new HashMap<>();
 
 	@Override
 	public <T extends BaseModel> T get(Class<T> clazz, String id) throws BadRequestException {

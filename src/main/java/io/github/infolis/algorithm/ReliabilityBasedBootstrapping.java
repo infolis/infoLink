@@ -52,7 +52,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchTerm(seed);
 
                 try {
-                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+                    execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
                 } catch (InstantiationException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }

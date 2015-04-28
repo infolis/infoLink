@@ -1,24 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package io.github.infolis.algorithm;
 
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
-import io.github.infolis.util.InfolisFileUtils;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -31,7 +23,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
 
-    private List<StudyContext> bootstrap_reliabilityBased(Collection<String> terms, double threshold, int maxIter) throws IOException, ParseException {
+    private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
         Set<String> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns_iteration;
         Set<StudyContext> extractedContexts = new HashSet();
@@ -40,8 +32,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         int numIter =0;
         Reliability r = new Reliability();
         Set<String> seeds = new HashSet<>();
-        seeds.addAll(terms);
-        while (numIter<maxIter) {
+        seeds.addAll(getExecution().getTerms());
+        while (numIter<getExecution().getMaxIterations()) {
             numIter++;
             log.debug("Bootstrapping... Iteration: " + numIter);            
             // 0. filter seeds, select only reliable ones
@@ -58,6 +50,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 execution.setIndexDirectory(this.getExecution().getIndexDirectory());
 
                 Algorithm algo = new SearchTermPosition();
+                algo.setExecution(execution);
                 algo.run();
 
                 List<StudyContext> detectedContexts = new ArrayList<>();
@@ -70,7 +63,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             }
             // 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
             // new seeds to this.foundSeeds_iteration
-            reliablePatterns_iteration = PatternInducer.saveReliablePatternData(extractedContexts, threshold, processedPattern, getExecution().getInputFiles().size(),reliableInstances,r);
+            reliablePatterns_iteration = PatternInducer.saveReliablePatternData(extractedContexts, getExecution().getThreshold(), processedPattern, getExecution().getInputFiles().size(),reliableInstances,r);
             seeds = new HashSet<>();
             for (StudyContext sc : extractedContexts) {
                 if(reliablePatterns_iteration.contains(sc.getPattern())) {
@@ -86,9 +79,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     public void execute() throws IOException {
         List<StudyContext> detectedContexts = new ArrayList<>();
         try {
-            detectedContexts = bootstrap_reliabilityBased(this.getExecution().getTerms(), this.getExecution().getThreshold(), this.getExecution().getMaxIterations());
-        } catch (Exception ex) {
+            detectedContexts = bootstrapReliabilityBased();
+        } catch (IOException | ParseException ex) {
             log.error("Could not apply reliability bootstrapping: " + ex);
+            getExecution().setStatus(ExecutionStatus.FAILED);
         }
 
         for (StudyContext sC : detectedContexts) {
@@ -99,6 +93,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             getDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getPattern().add(sC.getPattern().getUri());
         }
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     @Override

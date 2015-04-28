@@ -135,6 +135,7 @@ public class Learner implements Algorithm {
         execution.setIndexDirectory(indexPath);
 
         Algorithm algo = new SearchTermPosition();
+        algo.setExecution(execution);
         algo.run();
 
         List<StudyContext> ret = new ArrayList<>();
@@ -187,6 +188,7 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
         Algorithm algo = new FrequencyBasedBootstrapping();
+        algo.setExecution(e);
         algo.run();
 //        
 //        Set<InfolisPattern> newPatterns = new HashSet<>();
@@ -258,6 +260,7 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
         Algorithm algo = new FrequencyBasedBootstrapping();
+        algo.setExecution(e);
         algo.run();
         
 //        numIter++;

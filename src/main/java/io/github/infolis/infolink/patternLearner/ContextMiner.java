@@ -659,7 +659,7 @@ public class ContextMiner {
 		catch (IOException e) { e.printStackTrace(); }  
 		for (String term : termList)
 		{
-			String query = '"' + SearchTermPosition.normalizeQuery(term, true) + '"';
+			String query = '"' + RegexUtils.normalizeQuery(term, true) + '"';
 			Execution exec = new Execution();
 //			SearchTermPosition search = new SearchTermPosition(indexDir, snippetFilename, term.trim(), "\"" + query + "\"");
 			exec.setSearchQuery(query);

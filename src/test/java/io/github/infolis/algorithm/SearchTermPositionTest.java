@@ -96,19 +96,6 @@ public class SearchTermPositionTest {
 	}
 	
 	@Test
-	public void normalizeQueryTest() {
-		assertEquals("term", SearchTermPosition.normalizeQuery("term", true));
-		assertEquals("term", SearchTermPosition.normalizeQuery("term,", true));
-		assertEquals("term", SearchTermPosition.normalizeQuery(".term.", true));
-		assertEquals("terma", SearchTermPosition.normalizeQuery("terma", true));
-		
-		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the term", true));
-		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the term,", true));
-		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery(".the term.", true));
-		assertEquals("\"the term\"", SearchTermPosition.normalizeQuery("the. term.", true));
-	}
-	
-	@Test
 	public void complexSearch_getContextTest() throws Exception {
 		createInputFiles();
 

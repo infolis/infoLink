@@ -13,7 +13,6 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -24,8 +23,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
@@ -69,6 +66,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	
 	private Execution execution;
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
+	private static final String DEFAULT_FIELD_NAME = "contents";
 
 	public Execution getExecution() {
 		return execution;
@@ -100,7 +98,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		execution.setAlgorithm(SearchTermPosition.class);
 
 		execution.getInputFiles().add(args[0]);
-		execution.getOutputFiles().add(args[1]);
+//		execution.getOutputFiles().add(args[1]);
 		execution.setSearchTerm(args[2]);
 		execution.setSearchQuery(args[3]);
 		
@@ -112,35 +110,6 @@ public class SearchTermPosition extends BaseAlgorithm
 		algo.run();
 
 	} 
-	
-	/**
-	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the 
-	 * same as the analyzer used for indexing the text files!
-	 * 
-	 * @param 	query	the Lucene query to be normalized
-	 * @return	a normalized version of the query
-	 */
-	@SuppressWarnings("deprecation")
-	public static String normalizeQuery(String query, boolean quoteIfSpace)
-	{
-		Analyzer analyzer = Indexer.createAnalyzer();
-		String field = "contents";
-		String result = new String();
-		TokenStream stream = analyzer.tokenStream(field, new StringReader(query));
-		try
-		{
-			while (stream.incrementToken()) {
-				result += " " + (stream.getAttribute(TermAttribute.class).term());
-			}
-		} catch (IOException e) {
-			// not thrown due to using a string reader...
-		}
-		analyzer.close();
-		if (quoteIfSpace && result.trim().matches(".*\\s.*")) {
-				return "\"" + result.trim() + "\"";
-		}
-		return result.trim();
-	}
 	
 	/**
 	 * Searches for this query in this index using a ComplexPhraseQueryParser and writes the extracted  
@@ -159,9 +128,8 @@ public class SearchTermPosition extends BaseAlgorithm
 
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
-		String defaultFieldName = "contents";
 		Analyzer analyzer = Indexer.createAnalyzer();
-		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, defaultFieldName, analyzer);
+		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, analyzer);
 		// set phrase slop because dataset titles may consist of more than one word
 		qp.setPhraseSlop(this.execution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(this.execution.isAllowLeadingWildcards());
@@ -190,10 +158,14 @@ public class SearchTermPosition extends BaseAlgorithm
 		{
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
+			String fileUri = doc.get("path");
+			execution.getMatchingFilenames().add(fileUri);
 
 			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
+			// TODO FileResolver
 			
 			// Add contexts
+			// TODO only if term != null
 			for (StudyContext sC : getContexts(doc.get("path"), this.getExecution().getSearchTerm(), text)) {
 				getDataStoreClient().post(StudyContext.class, sC);
 				this.execution.getStudyContexts().add(sC.getUri());
@@ -250,6 +222,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    	infolisPat.setPatternRegex(pat.toString());
+	    	// TODO use PatternApplier
 	    }
         log.debug("Pattern: " + pat + " found " + matchFound);
 	    while (matchFound) {
@@ -272,9 +245,10 @@ public class SearchTermPosition extends BaseAlgorithm
 
 	@Override
 	public void validate() {
-		if (null == this.getExecution().getOutputFiles()
-				 || this.execution.getOutputFiles().size() != 1) {
-			throw new IllegalArgumentException("Must set exactly one outputFile!");
-		}
+		if (null != this.getExecution().getOutputFiles()
+				&& !this.getExecution().getOutputFiles().isEmpty())
+			throw new IllegalArgumentException("Must NOT set outputFiles!");
+		if (null == this.getExecution().getSearchQuery())
+			throw new IllegalArgumentException("Must set searchQuery!");
 	}
 }

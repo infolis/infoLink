@@ -7,12 +7,15 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.lucene.queryParser.ParseException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -21,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
+    private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
 
     private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
         Set<String> reliableInstances = new HashSet<>();

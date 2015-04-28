@@ -7,14 +7,15 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
 
@@ -102,9 +103,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setFirstOutputFile(getExecution().getFirstOutputFile());
                 execution.setSearchQuery(getExecution().getSearchQuery());
-                execution.setSearchTerm(getExecution().getSearchTerm());
 
                 try {
                     execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
@@ -154,26 +153,19 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         for (InfolisPattern curPat : patterns) {
             Execution exec = new Execution();
             exec.setAlgorithm(SearchTermPosition.class);
-            exec.setFirstOutputFile("");
             exec.setSearchTerm("");
             exec.setSearchQuery(curPat.getLuceneQuery());
-            exec.setIndexDirectory(getExecution().getIndexDirectory());
-            exec.setFirstOutputFile(getExecution().getFirstOutputFile());
             Algorithm algo = new SearchTermPosition();
             algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.TEMPORARY));
             algo.setExecution(exec);
             algo.setDataStoreClient(DataStoreClientFactory.local());
             algo.run();
-//            try {
-//                exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-//            } catch (InstantiationException | IllegalAccessException e) {
-//                throw new RuntimeException(e);
-//            }
-            //List<String> candidateCorpus = exec.getMatchingFilenames();
+
+            List<String> candidateCorpus = exec.getMatchingFilenames();
             Set<String> patSet = new HashSet<>();
             patSet.add(curPat.getUri());
 
-            for (String filenameIn : getExecution().getInputFiles()) {
+            for (String filenameIn : candidateCorpus) {
                 
                 Execution execution = new Execution();
                 execution.setPattern(new ArrayList<>(patSet));

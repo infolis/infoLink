@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author domi
  */
-public class FrequencyBootstrappingTest {
+public class FrequencyBasedBootstrappingTest {
 
     private final static DataStoreClient client = DataStoreClientFactory.local();
     private final static FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
@@ -109,9 +109,6 @@ public class FrequencyBootstrappingTest {
         execution.getTerms().addAll(terms);
         execution.setAlgorithm(FrequencyBasedBootstrapping.class);
         execution.getInputFiles().addAll(testFiles);
-        //TODO: not very nice
-//        execution.setIndexDirectory(indexDir);
-        execution.setFirstOutputFile(Files.createTempFile("infolis-", ".txt").toString());
         execution.setSearchTerm(terms.get(0));
         execution.setSearchQuery("\""+terms.get(0)+"\"");
         execution.setThreshold(0.0);

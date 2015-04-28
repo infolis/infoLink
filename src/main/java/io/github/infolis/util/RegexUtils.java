@@ -1,11 +1,17 @@
 package io.github.infolis.util;
 
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.infolink.luceneIndexing.Indexer;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 
 public class RegexUtils {
 
@@ -112,9 +118,38 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
 		string = string.trim();
-		string = SearchTermPosition.normalizeQuery(string, false);
+		string = normalizeQuery(string, false);
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
+	}
+	
+	/**
+	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the 
+	 * same as the analyzer used for indexing the text files!
+	 * 
+	 * @param 	query	the Lucene query to be normalized
+	 * @return	a normalized version of the query
+	 */
+	@SuppressWarnings("deprecation")
+	public static String normalizeQuery(String query, boolean quoteIfSpace)
+	{
+		Analyzer analyzer = Indexer.createAnalyzer();
+		String field = "contents";
+		String result = new String();
+		TokenStream stream = analyzer.tokenStream(field, new StringReader(query));
+		try
+		{
+			while (stream.incrementToken()) {
+				result += " " + (stream.getAttribute(TermAttribute.class).term());
+			}
+		} catch (IOException e) {
+			// not thrown due to using a string reader...
+		}
+		analyzer.close();
+		if (quoteIfSpace && result.trim().matches(".*\\s.*")) {
+				return "\"" + result.trim() + "\"";
+		}
+		return result.trim();
 	}
 
 	/**

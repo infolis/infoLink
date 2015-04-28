@@ -3,9 +3,11 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import java.io.IOException;
@@ -39,10 +41,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             getDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
         }
-        for (StudyContext sC : detectedContexts) {
-            getDataStoreClient().post(StudyContext.class, sC);
-            this.getExecution().getPattern().add(sC.getPattern().getUri());
-        }
+//        for (StudyContext sC : detectedContexts) {
+//            getDataStoreClient().post(StudyContext.class, sC);
+//            this.getExecution().getPattern().add(sC.getPattern().getUri());
+//        }
         getExecution().setStatus(ExecutionStatus.FINISHED);
 
     }
@@ -100,6 +102,9 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
+                execution.setFirstOutputFile(getExecution().getFirstOutputFile());
+                execution.setSearchQuery(getExecution().getSearchQuery());
+                execution.setSearchTerm(getExecution().getSearchTerm());
 
                 try {
                     execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
@@ -152,26 +157,39 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             exec.setFirstOutputFile("");
             exec.setSearchTerm("");
             exec.setSearchQuery(curPat.getLuceneQuery());
-            try {
-                exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            List<String> candidateCorpus = exec.getMatchingFilenames();
+            exec.setIndexDirectory(getExecution().getIndexDirectory());
+            exec.setFirstOutputFile(getExecution().getFirstOutputFile());
+            Algorithm algo = new SearchTermPosition();
+            algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.TEMPORARY));
+            algo.setExecution(exec);
+            algo.setDataStoreClient(DataStoreClientFactory.local());
+            algo.run();
+//            try {
+//                exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+//            } catch (InstantiationException | IllegalAccessException e) {
+//                throw new RuntimeException(e);
+//            }
+            //List<String> candidateCorpus = exec.getMatchingFilenames();
             Set<String> patSet = new HashSet<>();
             patSet.add(curPat.getUri());
 
-            for (String filenameIn : candidateCorpus) {
+            for (String filenameIn : getExecution().getInputFiles()) {
+                
                 Execution execution = new Execution();
                 execution.setPattern(new ArrayList<>(patSet));
-                execution.setAlgorithm(PatternApplier.class);
+                execution.setAlgorithm(PatternApplier.class);                
                 execution.getInputFiles().add(filenameIn);
-
-                try {
-                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                Algorithm algo2 = new PatternApplier();
+                algo2.setFileResolver(FileResolverFactory.create(DataStoreStrategy.TEMPORARY));
+                algo2.setExecution(execution);
+                algo2.setDataStoreClient(DataStoreClientFactory.local());
+                algo2.run();
+//
+//                try {
+//                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+//                } catch (InstantiationException | IllegalAccessException e) {
+//                    throw new RuntimeException(e);
+//                }
 
                 DataStoreClient client = DataStoreClientFactory.local();
 

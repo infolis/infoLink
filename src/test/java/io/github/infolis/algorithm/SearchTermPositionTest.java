@@ -62,7 +62,7 @@ public class SearchTermPositionTest {
 		
 		try { 
 			List<StudyContext> contextList1 = SearchTermPosition.getContexts("document", "term", testString1); 
-			List<StudyContext> contextList2 = SearchTermPosition.getContexts("document", "term", testString2); 
+//			List<StudyContext> contextList2 = SearchTermPosition.getContexts("document", "term", testString2); 
 			List<StudyContext> contextList3 = SearchTermPosition.getContexts("document", "term", testString3);
 //			assertEquals(1,contextList1.size());
 //			assertEquals(0,contextList2.size());

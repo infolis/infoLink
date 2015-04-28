@@ -193,7 +193,8 @@ public class WekaUtils {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private Set<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException {
+    @SuppressWarnings("unused")
+	private Set<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException {
         Instances data = getInstances(filename);
         Instances data_positive = WekaUtils.getInstances(data, "True");
         // TODO

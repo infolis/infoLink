@@ -9,7 +9,7 @@ import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
-import io.github.infolis.util.SerializationUtils;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -59,9 +58,9 @@ public class OutputWriter {
         OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile, true), "UTF-8");
         BufferedWriter out3 = new BufferedWriter(fstream3);
 
-        Set<InfolisPattern> patSet = new HashSet();
-        Set<String> studySet = new HashSet();
-        Set<StudyContext> distinctContexts = new HashSet();
+        Set<InfolisPattern> patSet = new HashSet<>();
+        Set<String> studySet = new HashSet<>();
+        Set<StudyContext> distinctContexts = new HashSet<>();
 
         for (StudyContext studyNcontext : studyNcontextList) {
             patSet.add(studyNcontext.getPattern());
@@ -117,8 +116,8 @@ public class OutputWriter {
         OutputStreamWriter fstream3 = new OutputStreamWriter(new FileOutputStream(studyFile), "UTF-8");
         BufferedWriter out3 = new BufferedWriter(fstream3);
 
-        Set<String> patSet = new HashSet();
-        Set<String> studySet = new HashSet();
+        Set<String> patSet = new HashSet<>();
+        Set<String> studySet = new HashSet<>();
 
         for (StudyContext studyNcontext : studyNcontextList) {
             out.write(studyNcontext.toString());

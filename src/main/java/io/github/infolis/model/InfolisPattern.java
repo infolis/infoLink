@@ -5,14 +5,11 @@
  */
 package io.github.infolis.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.infolink.patternLearner.Reliability.Instance;
 import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,7 +22,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.lucene.queryParser.ParseException;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  *

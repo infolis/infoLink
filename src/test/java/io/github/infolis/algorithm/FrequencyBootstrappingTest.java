@@ -12,15 +12,15 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

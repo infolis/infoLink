@@ -26,7 +26,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
         Set<String> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns_iteration;
-        Set<StudyContext> extractedContexts = new HashSet();
+        Set<StudyContext> extractedContexts = new HashSet<>();
         Set<String> processedPattern = new HashSet<>();
         List<StudyContext> reliableContexts = new ArrayList<>();
         int numIter = 0;
@@ -47,7 +47,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setIndexDirectory(this.getExecution().getIndexDirectory());
 
                 try {
                     execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();

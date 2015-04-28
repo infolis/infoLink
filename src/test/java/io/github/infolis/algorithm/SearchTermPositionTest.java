@@ -1,7 +1,6 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -15,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -40,7 +40,7 @@ public class SearchTermPositionTest {
 	
 	String testString1 = "Please try to find the term in this short text snippet.";
 	String testString2 = "Please try to find the _ in this short text snippet.";
-	String testString3 = "Please try to find the .term. in this short text snippet.";
+	String testString3 = "Please try to find the . term . in this short text snippet.";
 	
 	String testString4 = "Hallo, please try to find the term in this short text snippet. Thank you.";
 	String testString5 = "Hallo, please try to find the _ in this short text snippet. Thank you.";
@@ -68,10 +68,14 @@ public class SearchTermPositionTest {
 //			assertEquals(0,contextList2.size());
 //			assertEquals(1,contextList3.size());
 //			assertEquals(testString1, contextList1.get(0).toString());
-			assertEquals("try to find the . term . in this short text", contextList3.get(0).toString());
-//			assertEquals("document", contextList1.get(0).getDocument());
-//			assertEquals("document", contextList3.get(0).getDocument());
+			assertEquals(1, contextList3.size());
+			assertEquals(Arrays.asList("try", "to", "find", "the", "."), contextList3.get(0).getLeftWords());
+			assertEquals("term", contextList3.get(0).getTerm());
+			assertEquals(Arrays.asList(".", "in", "this", "short", "text"), contextList3.get(0).getRightWords());
+			assertEquals("document", contextList1.get(0).getFile());
+			assertEquals("document", contextList3.get(0).getFile());
 //			assertEquals("term", contextList1.get(0).getTerm());
+//			assertEquals("term", contextList3.get(0).getTerm());
 //			assertEquals("term", contextList3.get(0).getTerm());
 //			assertNull(contextList1.get(0).getPattern());
 //			assertNull(contextList3.get(0).getPattern());
@@ -129,7 +133,7 @@ public class SearchTermPositionTest {
 		exec.setAlgorithm(SearchTermPosition.class);
 		exec.setSearchTerm(searchTerm);
 		exec.setSearchQuery(searchQuery);
-		exec.setIndexDirectory(indexDir);
+//		exec.setIndexDirectory(indexDir);
 		exec.setFirstOutputFile(Files.createTempFile("infolis-", ".txt").toString());
 		exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
 		log.debug(SerializationUtils.toJSON(exec));

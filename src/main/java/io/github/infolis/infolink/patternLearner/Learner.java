@@ -1,6 +1,7 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.algorithm.PatternApplier;
 import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.VersionPatternApplier;
@@ -9,11 +10,11 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.Execution.Strategy;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.Study;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
-import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.BufferedReader;
@@ -34,8 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.kohsuke.args4j.Argument;
@@ -44,11 +43,6 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
-import io.github.infolis.model.Execution.Strategy;
 
 /**
  * Class for finding references to scientific datasets in publications using a
@@ -71,22 +65,22 @@ public class Learner implements Algorithm {
 
     Logger log = LoggerFactory.getLogger(Learner.class);
 
-    private Set<String> processedSeeds; //all processed seeds
-    private Set<String> foundSeeds_iteration; //seeds found at current iteration step
-    private Set<InfolisPattern> relevantPatterns; //frequency learner
-    private Set<InfolisPattern> reliablePatterns_iteration; //reliability learner
-    private Set<InfolisPattern> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
+//    private Set<String> processedSeeds; //all processed seeds
+//    private Set<String> foundSeeds_iteration; //seeds found at current iteration step
+//    private Set<InfolisPattern> relevantPatterns; //frequency learner
+//    private Set<InfolisPattern> reliablePatterns_iteration; //reliability learner
+//    private Set<InfolisPattern> processedPatterns; //may contain patterns that were judged not to be relevant - prevents multiple searches for same patterns (all learner)
     private Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts; //reliability learner
     private Set<String> reliableInstances; //reliability learner
-    private Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
+//    private Map<String, List<StudyContext>> extractedContexts; //todo: replace above...
     private boolean constraint_upperCase;
     private String corpusPath;
-    private String indexPath;
-    private String trainPath;
-    private String contextPath;
-    private String arffPath;
+//    private String indexPath;
+//    private String trainPath;
+//    private String contextPath;
+//    private String arffPath;
     private String outputPath;
-    private Reliability reliability;
+//    private Reliability reliability;
     private Strategy startegy;
     private String[] fileCorpus;
 
@@ -99,23 +93,23 @@ public class Learner implements Algorithm {
      * dataset name has at least one upper case character
      *
      */
-    public Learner(boolean constraint_upperCase, String corpusPath, String indexPath, String trainPath, String contextPath, String arffPath, String outputPath, Strategy strategy) {
-        this.processedSeeds = new HashSet<>();
-        this.foundSeeds_iteration = new HashSet<>();
-        this.reliablePatterns_iteration = new HashSet<>();
-        this.processedPatterns = new HashSet<>();
+    public Learner(boolean constraint_upperCase, String corpusPath, String trainPath, String contextPath, String arffPath, String outputPath, Strategy strategy) {
+//        this.processedSeeds = new HashSet<>();
+//        this.foundSeeds_iteration = new HashSet<>();
+//        this.reliablePatterns_iteration = new HashSet<>();
+//        this.processedPatterns = new HashSet<>();
         this.constraint_upperCase = constraint_upperCase;
         this.corpusPath = corpusPath;
-        this.indexPath = indexPath;
-        this.trainPath = trainPath;
-        this.contextPath = contextPath;
-        this.arffPath = arffPath;
+//        this.indexPath = indexPath;
+//        this.trainPath = trainPath;
+//        this.contextPath = contextPath;
+//        this.arffPath = arffPath;
         this.outputPath = outputPath;
         this.reliablePatternsAndContexts = new HashMap<>();
-        this.extractedContexts = new HashMap<>();
+//        this.extractedContexts = new HashMap<>();
         this.reliableInstances = new HashSet<>();
-        this.reliability = new Reliability();
-        this.relevantPatterns = new HashSet<>();
+//        this.reliability = new Reliability();
+//        this.relevantPatterns = new HashSet<>();
         this.startegy = strategy;
         generateCorpus();
     }
@@ -132,7 +126,7 @@ public class Learner implements Algorithm {
         Execution execution = new Execution();
         execution.setAlgorithm(SearchTermPosition.class);
         execution.setSearchTerm(seed);
-        execution.setIndexDirectory(indexPath);
+//        execution.setIndexDirectory(indexPath);
 
         Algorithm algo = new SearchTermPosition();
         algo.setExecution(execution);
@@ -183,7 +177,7 @@ public class Learner implements Algorithm {
         Execution e = new Execution();
         e.setAlgorithm(FrequencyBasedBootstrapping.class);
         e.setInputFiles(Arrays.asList(fileCorpus));
-        e.setTerms(new ArrayList(terms));
+        e.setTerms(new ArrayList<>(terms));
         e.setBootstrapStrategy(strategy);
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
@@ -258,7 +252,7 @@ public class Learner implements Algorithm {
         Execution e = new Execution();
         e.setAlgorithm(FrequencyBasedBootstrapping.class);
         e.setInputFiles(Arrays.asList(fileCorpus));
-        e.setTerms(new ArrayList(terms));
+        e.setTerms(new ArrayList<>(terms));
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
         try {
@@ -322,69 +316,69 @@ public class Learner implements Algorithm {
 //        return string;
 //    }
 
-    /**
-     * Applies a list of patterns on the text corpus to extract new dataset
-     * references.
-     *
-     * Retrieves candidate documents containing all the words first using lucene
-     * index, then searches for regular expressions in these candidates to
-     * extract contexts
-     *
-     * @param patterns	list of patterns. Each pattern consists of a lucene query
-     * and a regular expression for extracting references with contexts
-     * @return	a list of study references
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException {
-        List<StudyContext> resAggregated = new ArrayList<>();
+//    /**
+//     * Applies a list of patterns on the text corpus to extract new dataset
+//     * references.
+//     *
+//     * Retrieves candidate documents containing all the words first using lucene
+//     * index, then searches for regular expressions in these candidates to
+//     * extract contexts
+//     *
+//     * @param patterns	list of patterns. Each pattern consists of a lucene query
+//     * and a regular expression for extracting references with contexts
+//     * @return	a list of study references
+//     * @throws IllegalAccessException
+//     * @throws InstantiationException
+//     */
+//    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException {
+//        List<StudyContext> resAggregated = new ArrayList<>();
+//
+//        for (InfolisPattern curPat : patterns) {
+//            List<String> candidateCorpus = getStudyRef_lucene(curPat.getLuceneQuery());
+//            Set<String> patSet = new HashSet<>();
+//            patSet.add(curPat.getUri());
+//            try {
+//                resAggregated.addAll(searchForPatterns(patSet, candidateCorpus));
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//                throw (new IOException());
+//            }
+//            if (this.startegy != Strategy.reliability) {
+//                this.processedPatterns.add(curPat);
+//            }
+//
+//        }
+//        System.out.println("Done processing complex patterns. Continuing.");
+//        return resAggregated;
+//    }
 
-        for (InfolisPattern curPat : patterns) {
-            List<String> candidateCorpus = getStudyRef_lucene(curPat.getLuceneQuery());
-            Set<String> patSet = new HashSet<>();
-            patSet.add(curPat.getUri());
-            try {
-                resAggregated.addAll(searchForPatterns(patSet, candidateCorpus));
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                throw (new IOException());
-            }
-            if (this.startegy != Strategy.reliability) {
-                this.processedPatterns.add(curPat);
-            }
-
-        }
-        System.out.println("Done processing complex patterns. Continuing.");
-        return resAggregated;
-    }
-
-    /**
-     * Search for lucene query in index at this indexPath and return documents
-     * with hits.
-     *
-     * @param lucene_pattern	lucene search query
-     * @return	a list of documents with hits
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    private List<String> getStudyRef_lucene(String lucene_pattern) {
-        List<String> candidateCorpus;
-        // lucene query is assumed to be normalized
-        Execution exec = new Execution();
-        exec.setAlgorithm(SearchTermPosition.class);
-        exec.setFirstOutputFile("");
-        exec.setSearchTerm("");
-        exec.setSearchQuery(lucene_pattern);
-        try {
-            exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        candidateCorpus = exec.getMatchingFilenames();
-        //if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
-        System.out.println("Done processing lucene query. Continuing.");
-        return candidateCorpus;
-    }
+//    /**
+//     * Search for lucene query in index at this indexPath and return documents
+//     * with hits.
+//     *
+//     * @param lucene_pattern	lucene search query
+//     * @return	a list of documents with hits
+//     * @throws IllegalAccessException
+//     * @throws InstantiationException
+//     */
+//    private List<String> getStudyRef_lucene(String lucene_pattern) {
+//        List<String> candidateCorpus;
+//        // lucene query is assumed to be normalized
+//        Execution exec = new Execution();
+//        exec.setAlgorithm(SearchTermPosition.class);
+//        exec.setFirstOutputFile("");
+//        exec.setSearchTerm("");
+//        exec.setSearchQuery(lucene_pattern);
+//        try {
+//            exec.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
+//        } catch (InstantiationException | IllegalAccessException e) {
+//            throw new RuntimeException(e);
+//        }
+//        candidateCorpus = exec.getMatchingFilenames();
+//        //if(candidateCorpus.length < 1) { System.err.println("Warning: found no candidate documents. Check pattern."); throw new ParseException(); }
+//        System.out.println("Done processing lucene query. Continuing.");
+//        return candidateCorpus;
+//    }
 
     /**
      * Searches all regex in <emph>patternSet</emph> in the specified text file
@@ -1338,7 +1332,7 @@ public class Learner implements Algorithm {
         // need new Learner instance for each task - else, previously processed
         // patterns will not be processed again!
         Learner newLearner2 = new Learner(this.constraint_upperCase,
-                this.corpusPath, this.indexPath, "", "", "", this.outputPath, this.startegy);
+                this.corpusPath, "", "", "", this.outputPath, this.startegy);
 
         Set<String> patternsURIs = new HashSet<>();
         // get refs for known unambiguous studies
@@ -1377,7 +1371,7 @@ public class Learner implements Algorithm {
 
         }
         // need new Learner instance for each task - else, previously processed patterns will not be processed again
-        Learner newLearner = new Learner(constraint_upperCase, corpusPath, indexPath, "", "", "", outputPath, startegy);
+        Learner newLearner = new Learner(constraint_upperCase, corpusPath, "", "", "", outputPath, startegy);
         try {
             List<StudyContext> resNgrams1 = newLearner.searchForPatterns(patternSet1, Arrays.asList(this.fileCorpus));
             String[] filenames_grams = new String[3];
@@ -1576,7 +1570,7 @@ class OptionHandler {
             strategy = Execution.Strategy.separate;
         }
 
-        Learner l = new Learner(constraintUC, corpusPath, indexPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
+        Learner l = new Learner(constraintUC, corpusPath, trainPath, trainPath + File.separator + "contexts/", trainPath + File.separator + "arffs/", outputPath, strategy);
         // call Learner.learn method with appropriate options
         Set<String> pathSet = new HashSet<>();
         File root = new File(corpusPath);

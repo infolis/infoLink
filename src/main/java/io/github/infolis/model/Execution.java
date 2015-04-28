@@ -264,14 +264,6 @@ public class Execution extends BaseModel {
 		this.matchingFilenames = matchingFilenames;
 	}
 
-	public String getIndexDirectory() {
-		return indexDirectory;
-	}
-
-	public void setIndexDirectory(String indexDirectory) {
-		this.indexDirectory = indexDirectory;
-	}
-
     /**
      * @return the pattern
      */

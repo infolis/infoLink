@@ -6,6 +6,7 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.luceneIndexing.Indexer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
@@ -14,12 +15,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
@@ -150,10 +154,13 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException
 	{
-		Directory d = FSDirectory.open(new File(execution.getIndexDirectory()));
+		Path tempPath = Files.createTempDirectory("infolis-test-");
+		FileUtils.forceDeleteOnExit(tempPath.toFile());
+		Directory d = FSDirectory.open(tempPath.toFile());
+
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
-		String defaultFieldName="contents";
+		String defaultFieldName = "contents";
 		Analyzer analyzer = Indexer.createAnalyzer();
 		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, defaultFieldName, analyzer);
 		// set phrase slop because dataset titles may consist of more than one word
@@ -176,19 +183,14 @@ public class SearchTermPosition extends BaseAlgorithm
 				throw new RuntimeException();
 			}
 		}
-		System.out.println("Query: " + q.toString());
+		log.debug("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
 		ScoreDoc[] sd = td.scoreDocs;
-		
-		// add xml header if not appending to existing xml file
-		if (this.execution.isOverwrite()) {
-			InfolisFileUtils.prepareOutputFile(this.execution.getFirstOutputFile());
-		}
 		
 		for (int i = 0; i < sd.length; i++)
 		{
 			Document doc = searcher.doc(sd[i].doc);
-			System.out.println(doc.get("path"));
+//			log.debug(doc.get("path"));
 
 			String text = InfolisFileUtils.readFile(new File(doc.get("path")), "UTF-8");
 			
@@ -197,20 +199,16 @@ public class SearchTermPosition extends BaseAlgorithm
 				getDataStoreClient().post(StudyContext.class, sC);
 				this.execution.getStudyContexts().add(sC.getUri());
 			}
-			log.debug(doc.get("path"));
-
+//			log.debug(doc.get("path"));
 			getExecution().getMatchingFilenames().add(doc.get("path"));
 		}
 		searcher.close();
 		analyzer.close();
 		r.close();
 		d.close();
-		if (!this.execution.isOverwrite()) {
-			InfolisFileUtils.completeOutputFile(this.execution.getFirstOutputFile());
-		}
 	}
 	
-	protected static List<StudyContext> getContexts(String filename, String term, String text) throws IOException
+	protected static List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -220,6 +218,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
+	    InfolisPattern infolisPat = new InfolisPattern();
 	    log.debug(text);
 	    Matcher m = pat.matcher(text);
             log.debug("Pattern: " + pat + " found " + m.find());
@@ -251,11 +250,22 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	pat = Pattern.compile(RegexUtils.leftContextPat + "[\\s\\-–\\\\/:.,;()&_]" + term_normalized + RegexUtils.rightContextPat);
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
+	    	infolisPat.setPatternRegex(pat.toString());
 	    }
         log.debug("Pattern: " + pat + " found " + matchFound);
 	    while (matchFound) {
-	    	StudyContext newContext = new StudyContext(m.group(1).trim(), term, m.group(2).trim(), filename, null);
-	    	contextList.add(newContext);
+	    	StudyContext sC = new StudyContext();
+	    	sC.setLeftText(m.group(1).trim());
+	    	sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
+	    	sC.setTerm(term);
+	    	sC.setRightText(m.group(2).trim());
+	    	sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
+
+	    	sC.setFile(fileName);
+	    	
+	    	sC.setPattern(infolisPat);
+
+	    	contextList.add(sC);
 	    	matchFound = m.find();
 	    }
 	    return contextList;
@@ -267,12 +277,5 @@ public class SearchTermPosition extends BaseAlgorithm
 				 || this.execution.getOutputFiles().size() != 1) {
 			throw new IllegalArgumentException("Must set exactly one outputFile!");
 		}
-		if (null == this.execution.getIndexDirectory()) {
-			throw new IllegalArgumentException("Index directory not set.");
-		}
-		if (!Files.exists(Paths.get(this.execution.getIndexDirectory()))) {
-			throw new IllegalArgumentException("Index directory doesn't exist.");
-		}
 	}
-	
 }

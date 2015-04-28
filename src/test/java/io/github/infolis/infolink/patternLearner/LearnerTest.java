@@ -16,8 +16,13 @@ public class LearnerTest {
 	public void test() {
 		assertThat(true, is(true));
 		boolean constraint_upperCase = false;
-		Learner l = new Learner(constraint_upperCase, "corpusPath", "indexPath", "trainPath", "contextPath", "arffPath", "outputPath", Execution.Strategy.separate);
+		Learner l = new Learner(constraint_upperCase, "corpusPath", "trainPath", "contextPath", "arffPath", "outputPath", Execution.Strategy.separate);
 		assertThat(l, is(not(nullValue())));
+	}
+
+	@Test
+	public void testLearner() throws Exception {
+		throw new RuntimeException("not yet implemented");
 	}
 
 }

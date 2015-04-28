@@ -224,7 +224,7 @@ public class OutputWriter {
      * at this output path
      */
     public static void outputReliableReferences(Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts, String output) throws IOException {
-        List<StudyContext> reliableContexts = new ArrayList();
+        List<StudyContext> reliableContexts = new ArrayList<>();
         for (InfolisPattern pattern : reliablePatternsAndContexts.keySet()) {
             List<StudyContext> contexts = reliablePatternsAndContexts.get(pattern);
             reliableContexts.addAll(contexts);

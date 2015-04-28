@@ -2,9 +2,9 @@ package io.github.infolis.model;
 
 import io.github.infolis.util.SerializationUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -16,7 +16,6 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 
 /**
  * Class for saving contexts (= surrounding words of a term).
@@ -40,7 +39,7 @@ public class StudyContext extends BaseModel {
 	@XmlAttribute
 	private String term;
 	@XmlAttribute
-	private String document;
+	private String file;
 	@XmlTransient
 	private InfolisPattern pattern;
     @XmlAttribute
@@ -66,7 +65,7 @@ public class StudyContext extends BaseModel {
 		this.setTerm(term);
 		this.setRightText(right);
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
-		this.setDocument(document);
+		this.setFile(document);
 		this.setPattern(pattern);
 	}
         
@@ -76,14 +75,14 @@ public class StudyContext extends BaseModel {
 		this.setTerm(term);
 		this.setRightText(right);
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
-		this.setDocument(document);
+		this.setFile(document);
 		this.setPattern(pattern);
                 this.version = version;
 	}
 
 	public String toXML() {
 		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) +
-				"\" document=\"" + this.getDocument() + "\">"
+				"\" document=\"" + this.getFile() + "\">"
 				+ System.getProperty("line.separator") + "\t\t" +
 				"<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" +
@@ -142,12 +141,12 @@ public class StudyContext extends BaseModel {
 		this.term = term;
 	}
 
-	public String getDocument() {
-		return document;
+	public String getFile() {
+		return file;
 	}
 
-	public void setDocument(String document) {
-		this.document = document;
+	public void setFile(String document) {
+		this.file = document;
 	}
 
 	public InfolisPattern getPattern() {
@@ -178,7 +177,7 @@ public class StudyContext extends BaseModel {
                         return c.toString();
                     }
                 };
-        return new ArrayList(Lists.transform(contexts, context_toString));
+        return new ArrayList<String>(Lists.transform(contexts, context_toString));
     }
 
 }

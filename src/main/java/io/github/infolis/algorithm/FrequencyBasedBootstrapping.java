@@ -100,7 +100,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setIndexDirectory(this.getExecution().getIndexDirectory());
 
                 try {
                     execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();

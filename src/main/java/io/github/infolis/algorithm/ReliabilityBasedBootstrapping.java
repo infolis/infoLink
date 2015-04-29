@@ -50,6 +50,9 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
+                execution.setSearchQuery("\""+seed+"\"");
+                execution.setInputFiles(getExecution().getInputFiles());
+                execution.setThreshold(getExecution().getThreshold());
 
                 try {
                     execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();

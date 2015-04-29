@@ -257,12 +257,12 @@ public class SearchTermPosition extends BaseAlgorithm
 
 	@Override
 	public void validate() {
-		if (null != this.getExecution().getOutputFiles()
-				 && !this.getExecution().getOutputFiles().isEmpty())
-			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");
-		if (null == this.getExecution().getInputFiles()
-				 || this.getExecution().getInputFiles().isEmpty())
-			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "must be set and non-empty");
+//		if (null != this.getExecution().getOutputFiles()
+//				 && !this.getExecution().getOutputFiles().isEmpty())
+//			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");
+//		if (null == this.getExecution().getInputFiles()
+//				 || this.getExecution().getInputFiles().isEmpty())
+//			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "must be set and non-empty");
 		if (null == this.getExecution().getSearchQuery())
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "must be set and non-empty");
 	}

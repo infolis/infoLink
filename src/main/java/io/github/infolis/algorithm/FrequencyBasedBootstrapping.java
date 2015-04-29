@@ -103,8 +103,9 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setSearchQuery(getExecution().getSearchQuery()); // TODO: dommi this looks wrong
+                execution.setSearchQuery("\""+seed+"\""); // TODO: dommi this looks wrong -> better?
                 execution.setInputFiles(getExecution().getInputFiles());
+                execution.setThreshold(getExecution().getThreshold());
 
                 try {
                     execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();

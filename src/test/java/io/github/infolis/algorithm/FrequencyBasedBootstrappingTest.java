@@ -42,8 +42,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
         execution.getTerms().addAll(terms);
         execution.setInputFiles(uris);
         execution.setSearchTerm(terms.get(0));
-		execution.setSearchQuery("\"" + terms.get(0) + "\"");
-		execution.setThreshold(0.0);
+	execution.setThreshold(0.0);
 
         Algorithm algo = new FrequencyBasedBootstrapping();
         algo.setDataStoreClient(localClient);

@@ -9,6 +9,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
+ * @author kata
  * @author domi
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
@@ -62,6 +64,14 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             throw new IllegalArgumentException("Must set at least one input file!");
         }
     }
+   
+    private StudyContext getContextForTerm(List<StudyContext> contextList, String term) {
+    	
+    	for (StudyContext context : contextList) {
+    		if (context.getTerm().equals(term)) return context;
+    	}
+    	return new StudyContext();
+    }
 
     /**
      * Generates extraction patterns using an iterative bootstrapping approach.
@@ -95,15 +105,21 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
             numIter++;
             for (String seed : seeds) {
-                //TODO: not in the original code, processed seeds is not checked there
+
+            	List<StudyContext> detectedContexts = new ArrayList<>();
+            	
                 if (processedSeeds.contains(seed)) {
+                	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
+                		contexts_currentIteration.add(getContextForTerm(extractedContexts, seed));
+                	}
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setSearchQuery("\""+seed+"\""); // TODO: dommi this looks wrong -> better?
+                execution.setSearchQuery("\"" + seed + "\""); // TODO: dommi this looks wrong -> better?
+                //execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true)); 
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
 
@@ -113,7 +129,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                     throw new RuntimeException(e);
                 }
 
-                List<StudyContext> detectedContexts = new ArrayList<>();
                 for (String sC : execution.getStudyContexts()) {
                     detectedContexts.add(this.getDataStoreClient().get(StudyContext.class, sC));
                 }
@@ -125,17 +140,21 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 if (getExecution().getBootstrapStrategy() == Execution.Strategy.separate) {
                     Set<InfolisPattern> patterns = PatternInducer.inducePatterns(detectedContexts, getExecution().getThreshold(), processedPatterns);
                     newPatterns.addAll(patterns);
-
                 }
             }
-            if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
+            
+            // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
+            if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent || getExecution().getBootstrapStrategy() == Execution.Strategy.mergeNew) {
                 Set<InfolisPattern> patterns = PatternInducer.inducePatterns(contexts_currentIteration, getExecution().getThreshold(), processedPatterns);
                 newPatterns.addAll(patterns);
             }
-            //TODO: add mergeAll and mergeNew
+            
+            if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeAll) {
+                Set<InfolisPattern> patterns = PatternInducer.inducePatterns(extractedContexts, getExecution().getThreshold(), processedPatterns);
+                newPatterns.addAll(patterns);
+            }
+            
             // 3. search for patterns in corpus
-            //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
-
             List<StudyContext> res = applyPattern(newPatterns);
             processedSeeds.addAll(seeds);
 

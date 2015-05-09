@@ -13,6 +13,7 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +36,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         List<StudyContext> detectedContexts = new ArrayList<>();
         try {
             detectedContexts = bootstrapFrequencyBased();
-        } catch (ParseException | IOException ex) {
+        } catch (ParseException | IOException | InstantiationException | IllegalAccessException ex) {
             log.error("Could not apply frequency bootstrapping: " + ex);
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
@@ -91,9 +92,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
      * iteration
      * @param threshold	threshold for accepting patterns
      * @param maxIterations	maximum number of iterations for algorithm
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      *
      */
-    private List<StudyContext> bootstrapFrequencyBased() throws ParseException, IOException {
+    private List<StudyContext> bootstrapFrequencyBased() throws ParseException, IOException, InstantiationException, IllegalAccessException {
         int numIter = 0;
         List<StudyContext> extractedContexts = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
@@ -118,8 +121,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setSearchQuery("\"" + seed + "\""); // TODO: dommi this looks wrong -> better?
-                //execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true)); 
+                execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
 
@@ -146,7 +148,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
             if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent || getExecution().getBootstrapStrategy() == Execution.Strategy.mergeNew) {
                 Set<InfolisPattern> patterns = PatternInducer.inducePatterns(contexts_currentIteration, getExecution().getThreshold(), processedPatterns);
-                newPatterns.addAll(patterns);
+                newPatterns.addAll(patterns);         
             }
             
             if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeAll) {
@@ -168,41 +170,34 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         return extractedContexts;
     }
 
-    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException {
+    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
         List<StudyContext> contexts = new ArrayList<>();
 
         for (InfolisPattern curPat : patterns) {
-            Execution exec = new Execution();
+        	if (curPat.getUri() == null) throw new RuntimeException("Pattern does not have a URI!");
+        	Execution exec = new Execution();
             exec.setAlgorithm(SearchTermPosition.class);
             exec.setSearchTerm("");
-            exec.setSearchQuery(curPat.getLuceneQuery());
-            Algorithm algo = new SearchTermPosition();
-            algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.TEMPORARY));
-            algo.setExecution(exec);
-            algo.setDataStoreClient(DataStoreClientFactory.local());
-            algo.run();
+    		exec.setSearchQuery(curPat.getLuceneQuery());
+    		exec.setInputFiles(getExecution().getInputFiles());
+    		//Algorithm algo = exec.instantiateAlgorithm(DataStoreClientFactory.local(), getFileResolver());
+    		Algorithm algo = exec.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+    		algo.setExecution(exec);
+    		log.debug("Lucene pattern: " + curPat.getLuceneQuery());
+			log.debug("Regex: " + curPat.getPatternRegex());
+			algo.run();
 
             List<String> candidateCorpus = exec.getMatchingFilenames();
-            Set<String> patSet = new HashSet<>();
-            patSet.add(curPat.getUri());
 
             for (String filenameIn : candidateCorpus) {
                 
                 Execution execution = new Execution();
-                execution.setPattern(new ArrayList<>(patSet));
+                execution.setPattern(Arrays.asList(curPat.getUri()));
                 execution.setAlgorithm(PatternApplier.class);                
                 execution.getInputFiles().add(filenameIn);
-                Algorithm algo2 = new PatternApplier();
-                algo2.setFileResolver(FileResolverFactory.create(DataStoreStrategy.TEMPORARY));
+                Algorithm algo2 = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
                 algo2.setExecution(execution);
-                algo2.setDataStoreClient(DataStoreClientFactory.local());
                 algo2.run();
-//
-//                try {
-//                    execution.instantiateAlgorithm(DataStoreStrategy.LOCAL).run();
-//                } catch (InstantiationException | IllegalAccessException e) {
-//                    throw new RuntimeException(e);
-//                }
 
                 DataStoreClient client = DataStoreClientFactory.local();
 

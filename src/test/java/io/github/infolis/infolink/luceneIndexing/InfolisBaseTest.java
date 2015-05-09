@@ -32,9 +32,12 @@ public class InfolisBaseTest {
 	
 	protected List<InfolisFile> createTestFiles() throws Exception {
 		ArrayList<InfolisFile> ret = new ArrayList<>();
+		int j = 0;
 		for (int i = 0; i < 100; i++) {
 			Path tempFile = Files.createTempFile("infolis-", ".txt");
-			String data = testStrings[i % 3];
+			if (j > 6) j = 0;
+			String data = testStrings[j];
+			j++;
 			FileUtils.write(tempFile.toFile(), data);
 
 			InfolisFile file = new InfolisFile();

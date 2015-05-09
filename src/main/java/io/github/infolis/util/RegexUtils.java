@@ -42,7 +42,11 @@ public class RegexUtils {
 
     public static final String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
     public static final String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
-
+    //this is a fix for SearchTermPosition.getContexts: words may be separated by punctuation, not only by whitespace. Left original patterns for compatibility reasons. 
+    //TODO: Check where leftContextPat and rightContextPat are used and replace by these new versions:
+    public static final String leftContextPat_ = "((" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s*?" + ")";
+    public static final String rightContextPat_ = "(\\s*?(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.lastWordRegex + "))";
+    
 	public static final Pattern patternNumeric = Pattern.compile("\\d+");
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 

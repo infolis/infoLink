@@ -54,11 +54,10 @@ import org.slf4j.LoggerFactory;
  * {@link Execution#getSearchQuery()}
  * {@link Execution#getSearchTerm())}
  * 
- * @author katarina.boland@gesis.org
- * @version 2014-01-27
+ * @author kata
  *
  */
-//TODO: REMOVE FILENAME...
+
 public class SearchTermPosition extends BaseAlgorithm
 { 
 	
@@ -126,6 +125,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		createIndex(tempPath);
 		
 		Directory d = FSDirectory.open(tempPath.toFile());
+		
 		IndexReader r = IndexReader.open(d);
 		IndexSearcher searcher = new IndexSearcher(r);
 		Analyzer analyzer = Indexer.createAnalyzer();
@@ -134,24 +134,24 @@ public class SearchTermPosition extends BaseAlgorithm
 		qp.setPhraseSlop(this.execution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		qp.setAllowLeadingWildcard(this.execution.isAllowLeadingWildcards());
 		BooleanQuery.setMaxClauseCount(this.execution.getMaxClauseCount());
-		//throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
-		//if quotes are present in absence of any whitespace inside of query
+		// throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+		// if quotes are present in absence of any whitespace inside of query
+		// however, queries should be passed in correct form instead of being changed here
 		Query q;
 		try {
 			q = qp.parse(this.execution.getSearchQuery().trim());
-		} catch (ParseException iae) {
-			try {
-				q = qp.parse(this.execution.getSearchQuery().trim().replace("\"", ""));
-			} catch (ParseException e) {
-				this.execution.logFatal("Could not parse searchquery '" + this.execution.getSearchQuery() + "'.");
-				this.execution.setStatus(ExecutionStatus.FAILED);
-				
-				searcher.close();
-				throw new RuntimeException();
-			}
 		}
+		catch (ParseException e) {
+			this.execution.logFatal("Could not parse searchquery '" + this.execution.getSearchQuery() + "'.");
+			this.execution.setStatus(ExecutionStatus.FAILED);
+				
+			searcher.close();
+			throw new RuntimeException();
+		}
+
 		log.debug("Query: " + q.toString());
 		TopDocs td = searcher.search(q,10000);
+		log.debug("Number of hits: " + td.totalHits);
 		ScoreDoc[] sd = td.scoreDocs;
 		
 		for (int i = 0; i < sd.length; i++)
@@ -201,23 +201,25 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
 	    InfolisPattern infolisPat = new InfolisPattern();
-	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat + Pattern.quote(term) + RegexUtils.rightContextPat);
+	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat_ + Pattern.quote(term) + RegexUtils.rightContextPat_);
 	    log.debug(text);
 	    Matcher m = pat.matcher(text);
-            log.debug("Pattern: " + pat + " found " + m.find());
+        //    log.debug("Pattern: " + pat + " found " + m.find());
 	    List<StudyContext> contextList = new ArrayList<StudyContext>();
 	    //TODO: USE SAFEMATCHING
-	    //TODO: PUT SAFEMATCHING IN OTHER CLASS..
 	    boolean matchFound = m.find();
 	    if (matchFound == false) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
 	    	String term_normalized = "";
+	    	String allowedChars = "[\\s\\-–\\\\/:.,;()&_?!]";
 	    	for (String part : termParts) {
 	    		term_normalized += Pattern.quote(
 	    				part.replace("-", " ")
 	    					.replace("–", " ")
 	    					.replace(".", " ")
+	    					.replace("<", " ")
+	    					.replace(">", " ")
 	    					.replace("(", " ")
 	    					.replace(")", " ")
 	    					.replace(":", " ")
@@ -227,10 +229,12 @@ public class SearchTermPosition extends BaseAlgorithm
 	    					.replace("\\", " ")
 	    					.replace("&", " ")
                             .replace("_", "")
+                            .replace("?", "")
+                            .replace("!", "")
                             .trim()
-                        ) + "[\\s\\-–\\\\/:.,;()&_]";
+                        ) + allowedChars;
 	    	}
-	    	pat = Pattern.compile(RegexUtils.leftContextPat + "[\\s\\-–\\\\/:.,;()&_]" + term_normalized + RegexUtils.rightContextPat);
+	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + allowedChars + term_normalized + RegexUtils.rightContextPat_);
 	    	m = pat.matcher(text);
 	    	matchFound = m.find();
 	    	infolisPat.setPatternRegex(pat.toString());
@@ -240,11 +244,12 @@ public class SearchTermPosition extends BaseAlgorithm
 	    while (matchFound) {
 	    	StudyContext sC = new StudyContext();
 	    	sC.setLeftText(m.group(1).trim());
-	    	sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
+	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
+	    	sC.setLeftWords(Arrays.asList(m.group(2).trim(), m.group(3).trim(), m.group(4).trim(), m.group(5).trim(), m.group(6).trim()));
 	    	sC.setTerm(term);
-	    	sC.setRightText(m.group(2).trim());
-	    	sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
-
+	    	sC.setRightText(m.group(7).trim());
+	    	//sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
+	    	sC.setRightWords(Arrays.asList(m.group(8).trim(), m.group(9).trim(), m.group(10).trim(), m.group(11).trim(), m.group(12).trim()));
 	    	sC.setFile(fileName);
 	    	
 	    	sC.setPattern(infolisPat);

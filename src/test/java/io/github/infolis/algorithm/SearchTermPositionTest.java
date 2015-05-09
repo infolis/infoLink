@@ -86,7 +86,6 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setSearchTerm(searchTerm);
 		exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);
-        exec.setIndexDirectory("infolis-test-");
         exec.setAllowLeadingWildcards(true);
 		exec.setPhraseSlop(5);
 		exec.setMaxClauseCount(250);

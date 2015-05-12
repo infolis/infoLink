@@ -27,8 +27,9 @@ public class PatternInducer {
      *
      * @param contexts
      * @param threshold
+     * @param processedPattern
+     * @return Set of created Infolis Patterns
      */
-    @SuppressWarnings("unused")
     public static Set<InfolisPattern> inducePatterns(List<StudyContext> contexts, double threshold, List<InfolisPattern> processedPattern) {
         Set<InfolisPattern> patterns = new HashSet<>();
         Set<InfolisPattern> processedPatterns_iteration = new HashSet<>();
@@ -60,12 +61,12 @@ public class PatternInducer {
                         }
                     };
             //apply normalizeAndEscape_lucene method on all words of the context
-            List<String> leftWords_lucene = new ArrayList<String>(Lists.transform(leftWords, normalizeAndEscape_lucene));
-            List<String> rightWords_lucene = new ArrayList<String>(Lists.transform(rightWords, normalizeAndEscape_lucene));
-            List<String> leftWords_quoted = new ArrayList<String>(Lists.transform(leftWords, pattern_quote));
-            List<String> rightWords_quoted = new ArrayList<String>(Lists.transform(rightWords, pattern_quote));
-            List<String> leftWords_regex = new ArrayList<String>(Lists.transform(leftWords, regex_escape));
-            List<String> rightWords_regex = new ArrayList<String>(Lists.transform(rightWords, regex_escape));
+            List<String> leftWords_lucene = new ArrayList<>(Lists.transform(leftWords, normalizeAndEscape_lucene));
+            List<String> rightWords_lucene = new ArrayList<>(Lists.transform(rightWords, normalizeAndEscape_lucene));
+            List<String> leftWords_quoted = new ArrayList<>(Lists.transform(leftWords, pattern_quote));
+            List<String> rightWords_quoted = new ArrayList<>(Lists.transform(rightWords, pattern_quote));
+            List<String> leftWords_regex = new ArrayList<>(Lists.transform(leftWords, regex_escape));
+            List<String> rightWords_regex = new ArrayList<>(Lists.transform(rightWords, regex_escape));
 
             int windowSize = leftWords.size();
             String directNeighbourLeft = leftWords.get(windowSize - 1);
@@ -294,7 +295,6 @@ public class PatternInducer {
      * @param threshold	threshold for pattern reliability
      * @return	...
      */
-    @SuppressWarnings("unused")
     public static Set<InfolisPattern> saveReliablePatternData(Set<StudyContext> contexts, double threshold, Set<String> processedPattern, int size, Set<String> relInstances, Reliability r) throws IOException, ParseException {
         int n = 0;
         Set<InfolisPattern> reliablePatterns_iteration = new HashSet<>();

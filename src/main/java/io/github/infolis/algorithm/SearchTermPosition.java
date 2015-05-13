@@ -65,10 +65,12 @@ public class SearchTermPosition extends BaseAlgorithm
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 	private static final String DEFAULT_FIELD_NAME = "contents";
 
+        @Override
 	public Execution getExecution() {
 		return execution;
 	}
 
+        @Override
 	public void setExecution(Execution execution) {
 		this.execution = execution;
 	}

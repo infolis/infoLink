@@ -22,7 +22,9 @@ public class CaseInsensitiveWhitespaceAnalyzer extends Analyzer
 	 * 
 	 * @param fieldName	name of the field to convert to tokenStream
 	 * @param reader	reader for conversion to tokenStream
+         * @return 
 	 */
+        @Override
 	public TokenStream tokenStream(String fieldName, Reader reader)
  	{
  	    TokenStream t = null;

@@ -86,4 +86,10 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	testFrequencyBasedBootstrapping(Execution.Strategy.mergeAll);
     }
 
+
+	@Test
+	public void testBootstrapFrequencyBased() throws Exception {
+		throw new RuntimeException("not yet implemented");
+	}
+
 }

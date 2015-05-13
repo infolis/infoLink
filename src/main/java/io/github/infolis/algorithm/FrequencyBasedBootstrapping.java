@@ -2,8 +2,6 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -154,6 +152,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeAll) {
                 Set<InfolisPattern> patterns = PatternInducer.inducePatterns(extractedContexts, getExecution().getThreshold(), processedPatterns);
                 newPatterns.addAll(patterns);
+            }
+            
+            // TODO post them kba
+            for (InfolisPattern pattern : newPatterns) {
+            	this.getDataStoreClient().post(InfolisPattern.class, pattern);
             }
             
             // 3. search for patterns in corpus

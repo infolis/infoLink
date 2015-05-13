@@ -3,7 +3,6 @@ package io.github.infolis.infolink.patternLearner;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExtractionMethod;

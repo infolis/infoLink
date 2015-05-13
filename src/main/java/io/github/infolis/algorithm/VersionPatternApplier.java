@@ -97,7 +97,17 @@ public class VersionPatternApplier extends BaseAlgorithm {
         log.debug("No study found: {}", getExecution().getStudyContexts().size());
     }
 
-    @Override
+    @Override                thread = new Thread(safeMatch, file + "\n" + pattern.getPatternRegex());
+    thread.start();
+    matchFound = false;
+    // if thread was aborted due to long processing time, matchFound should be false
+    if (safeMatch.threadCompleted(thread, maxTimeMillis, startTimeMillis)) {
+        matchFound = safeMatch.isFind();
+    } else {
+        //TODO: what to do if search was aborted?
+        log.error("Search was aborted. TODO");
+        //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
+    }
     public void validate() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

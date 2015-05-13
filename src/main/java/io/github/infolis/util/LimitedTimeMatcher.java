@@ -37,7 +37,7 @@ public class LimitedTimeMatcher implements Runnable {
 	private Matcher matcher;
 
 	protected String threadName;
-	private final int lastPos = 0;
+	private int lastPos = 0;
 	
 
     public LimitedTimeMatcher(final Pattern pattern, final String str, long maxTimeMillis, final String threadName) {
@@ -54,6 +54,7 @@ public class LimitedTimeMatcher implements Runnable {
 			public void run() {
 				// NOTE this is the blocking call
 				matched = matcher.find();
+				lastPos = matched ? matcher.end() : 0;
 				finished = true;
 			}
 		}, threadName);

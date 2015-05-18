@@ -33,9 +33,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
     private List<Study> searchForStudyPatterns(InfolisFile file) throws IOException {
         List<Study> foundStudies = new ArrayList<>();
         InputStream in = getFileResolver().openInputStream(file);
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(in, writer, "UTF-8");
-        String input = writer.toString();
+        String input = IOUtils.toString(in);
+        in.close();
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");

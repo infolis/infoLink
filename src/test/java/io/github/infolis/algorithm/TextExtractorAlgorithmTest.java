@@ -14,6 +14,7 @@ import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -70,7 +71,9 @@ public class TextExtractorAlgorithmTest {
 
         String fileId = algo.getExecution().getOutputFiles().get(0);
         InfolisFile outFile = client.get(InfolisFile.class, fileId);
-		String x = IOUtils.toString(resolver.openInputStream(outFile));
+		InputStream in = resolver.openInputStream(outFile);
+		String x = IOUtils.toString(in);
+		in.close();
 //		for (char c : x.toCharArray()) {
 //            log.debug("{}", (int)c);
 //		}

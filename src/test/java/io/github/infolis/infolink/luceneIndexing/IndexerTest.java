@@ -4,6 +4,7 @@ import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,9 +47,13 @@ public class IndexerTest extends InfolisBaseTest {
 		algo.run();
 
 		log.debug("File 0: {} " , inputFiles.get(0));
-		assertEquals("Hallo, please try to find the FOOBAR in this short text snippet. Thank you.", IOUtils.toString(tempFileResolver.openInputStream(inputFiles.get(0))));
+		InputStream in0 = tempFileResolver.openInputStream(inputFiles.get(0));
+		assertEquals("Hallo, please try to find the FOOBAR in this short text snippet. Thank you.", IOUtils.toString(in0));
+		in0.close();
 		log.debug("File 10: {} " , inputFiles.get(10));
-		assertEquals("Hallo, please try to find the term in this short text snippet. Thank you.", IOUtils.toString(tempFileResolver.openInputStream(inputFiles.get(10))));
+		InputStream in10 = tempFileResolver.openInputStream(inputFiles.get(10));
+		assertEquals("Hallo, please try to find the term in this short text snippet. Thank you.", IOUtils.toString(in10));
+		in10.close();
 	}
 
 }

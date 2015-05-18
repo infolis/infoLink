@@ -10,6 +10,7 @@ import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -165,7 +166,9 @@ public class SearchTermPosition extends BaseAlgorithm
 			InfolisFile file = getDataStoreClient().get(InfolisFile.class, URI.create(doc.get("path")));
 //			log.debug("{}", file);
 			
-			String text = IOUtils.toString(this.getFileResolver().openInputStream(file));
+			InputStream openInputStream = this.getFileResolver().openInputStream(file);
+			String text = IOUtils.toString(openInputStream);
+			openInputStream.close();
 			
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {

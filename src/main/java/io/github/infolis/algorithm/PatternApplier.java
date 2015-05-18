@@ -41,6 +41,7 @@ public class PatternApplier extends BaseAlgorithm {
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
+        in.close();
         return inputClean;
     }
  
@@ -60,7 +61,9 @@ public class PatternApplier extends BaseAlgorithm {
             // if ( maxTimeMillis > 750000 ) { maxTimeMillis = 750000; }
             // processing time for documents depends on size of the document. 
             // Allow 1024 milliseconds per KB
-            long maxTimeMillis = Math.min(75_000, getFileResolver().openInputStream(file).available());
+            InputStream openInputStream = getFileResolver().openInputStream(file);
+			long maxTimeMillis = Math.min(75_000, openInputStream.available());
+			openInputStream.close();
 
             // call m.find() as a thread: catastrophic backtracking may occur which causes application to hang
             // thus monitor runtime of threat and terminate if processing takes too long

@@ -102,6 +102,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				throw e;
 			}
 			pdfIn.close();
+			inStream.close();
 			return outFile;
 		} catch (Exception e) {
 			getExecution().getLog().add("Error converting PDF to text: " + e);

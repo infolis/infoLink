@@ -82,7 +82,7 @@ public class StudyContext extends BaseModel {
 
 	public String toXML() {
 		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) +
-				"\" document=\"" + this.getFile() + "\">"
+				"\" file=\"" + this.getFile() + "\">"
 				+ System.getProperty("line.separator") + "\t\t" +
 				"<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" +

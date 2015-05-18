@@ -13,6 +13,7 @@ import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +41,9 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	public FrequencyBasedBootstrappingTest() throws Exception {
 		for (InfolisFile file : createTestFiles(7)) {
 			uris.add(file.getUri());
-			String str = IOUtils.toString(tempFileResolver.openInputStream(file));
+			InputStream openInputStream = tempFileResolver.openInputStream(file);
+			String str = IOUtils.toString(openInputStream);
+			openInputStream.close();
 			termCount += StringUtils.countMatches(str, term);
 		}
 	}

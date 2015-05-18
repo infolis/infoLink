@@ -8,6 +8,7 @@ import io.github.infolis.algorithm.VersionPatternApplier;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.Execution.Strategy;
 import io.github.infolis.model.InfolisPattern;
@@ -180,64 +181,7 @@ public class Learner implements Algorithm {
         e.setBootstrapStrategy(strategy);
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
-        try {
-            e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        }
-//        
-//        Set<InfolisPattern> newPatterns = new HashSet<>();
-//        List<StudyContext> contexts_currentIteration = new ArrayList<>();
-//        numIter++;
-//        try {
-//            for (String seed : terms) {
-//                // 1. use lucene index to search for term in corpus
-//                List<StudyContext> contexts = getContextsForSeed(seed);
-//                contexts_currentIteration.addAll(contexts);
-//                this.extractedContexts.put(seed, contexts);
-//                System.out.println("Processing contexts for seed " + seed);
-//                // 2. generate patterns
-//                if (strategy == Strategy.separate) {
-//                    Set<InfolisPattern> patterns = inducePatterns(contexts, threshold);
-//                    this.relevantPatterns.addAll(patterns);
-//                    newPatterns.addAll(patterns);
-//                }
-//            }
-//            if (strategy == Strategy.mergeCurrent) {
-//                Set<InfolisPattern> patterns = inducePatterns(contexts_currentIteration, threshold);
-//                this.relevantPatterns.addAll(patterns);
-//                newPatterns.addAll(patterns);
-//            }
-//            //TODO: add mergeAll and mergeNew
-//            // 3. search for patterns in corpus
-//            //TODO: RETURN CONTEXT INSTANCE HERE! Adjust regex part for this
-//            List<StudyContext> res = applyPattern(newPatterns);
-//
-//            Set<String> newSeeds = new HashSet<>();
-//            for (StudyContext entry : res) {
-//                newSeeds.add(entry.getTerm());
-//            }
-//            this.processedSeeds.addAll(terms);
-//            System.out.println("Found " + newSeeds.size() + " new seeds in current iteration");
-//            //TODO: NO NEED TO SEARCH FOR ALL PATTERNS AGAIN, INSTEAD USE STORED RESULTS AND SEARCH ONLY FOR NEW PATTERNS
-//            if (numIter >= maxIterations - 1) {
-//                System.out.println("Reached maximum number of iterations! Applying learnt patterns...");
-//                // new learner instance needed, else previously processed patterns are ignored
-//                //TODO: INSERT CORRECT VALUES FOR CHUNKING CONSTRAINT
-//                Learner newLearner = new Learner(this.constraint_upperCase, this.corpusPath, this.indexPath, this.trainPath, this.contextPath, this.arffPath, this.outputPath, this.startegy);
-//                List<StudyContext> resultList = newLearner.applyPattern(this.relevantPatterns);
-//                OutputWriter.outputContextsAndPatterns(resultList, this.outputPath + File.separator + "contexts.xml", this.outputPath + File.separator + "patterns.csv", this.outputPath + File.separator + "datasets.csv");
-//                return;
-//            } else {
-//                bootstrap_frequency(newSeeds, numIter, threshold, maxIterations, strategy);
-//            }
-//        } catch (ParseException pe) {
-//            pe.printStackTrace();
-//            throw new ParseException();
-//        } catch (IOException ioe) {
-//            ioe.printStackTrace();
-//            throw new IOException();
-//        }
+        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
     }
 
     /**
@@ -254,11 +198,7 @@ public class Learner implements Algorithm {
         e.setTerms(new ArrayList<>(terms));
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
-        try {
-            e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        }
+        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
         
 //        numIter++;
 //        System.out.println("Bootstrapping... Iteration: " + numIter);
@@ -306,7 +246,7 @@ public class Learner implements Algorithm {
 //    //ONLY OUTPUT?
 //    private String getString_reliablePatternOutput(Map<InfolisPattern, List<StudyContext>> patternsAndContexts, int iteration) {
 //        String string = "Iteration " + iteration + ":\n";
-//        for (InfolisPattern pattern : patternsAndContexts.keySet()) {
+//        for (InfolisPattern pattere.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();n : patternsAndContexts.keySet()) {
 //            string += "\tPattern " + pattern + "\n";
 //            for (StudyContext context : patternsAndContexts.get(pattern)) {
 //                string += "\t\t" + context.toString() + "\n";
@@ -402,11 +342,7 @@ public class Learner implements Algorithm {
             execution.setAlgorithm(PatternApplier.class);
             execution.getInputFiles().add(filenameIn);
 
-            try {
-            	execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
 
             DataStoreClient client = DataStoreClientFactory.local();
 
@@ -1271,8 +1207,7 @@ public class Learner implements Algorithm {
             String studyTitle;
             while ((studyTitle = reader.readLine()) != null) {
                 if (!studyTitle.matches("\\s*")) {
-                    InfolisPattern p = new InfolisPattern();
-                    p.setPatternRegex(constructTitleVersionRegex(studyTitle));
+                    InfolisPattern p = new InfolisPattern(constructTitleVersionRegex(studyTitle));
                     patternSet.add(p);
                 }
             }
@@ -1301,11 +1236,7 @@ public class Learner implements Algorithm {
             execution.setAlgorithm(VersionPatternApplier.class);
             execution.getInputFiles().add(filenameIn);
 
-            try {
-            	execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
 
             DataStoreClient client = DataStoreClientFactory.local();
 
@@ -1360,7 +1291,7 @@ public class Learner implements Algorithm {
      * Reads existing patterns (regular expressions) from file and searches them
      * in specified text corpus to extract dataset references.
      */
-    public void useExistingPatterns(String patternPath) {
+    public void useExistingPatterns(DataStoreClient client, String patternPath) {
         // load saved patterns
         Set<String> patternSet1;
         try {
@@ -1377,7 +1308,7 @@ public class Learner implements Algorithm {
             filenames_grams[0] = outputPath + File.separator + "datasets_patterns.csv";
             filenames_grams[1] = outputPath + File.separator + "contexts_patterns.xml";
             filenames_grams[2] = outputPath + File.separator + "patterns_patterns.csv";
-            OutputWriter.output_distinct(resNgrams1, filenames_grams, false);
+            OutputWriter.output_distinct(client, resNgrams1, filenames_grams, false);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -1536,6 +1467,7 @@ class OptionHandler {
      */
     public void doMain(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
+        DataStoreClient client = new LocalClient();
 
         // parse the arguments.
         try {
@@ -1593,7 +1525,7 @@ class OptionHandler {
                     System.out.println("Created directory " + op);
                 }
                 if (patternPath != null) {
-                    l.useExistingPatterns(patternPath);
+                    l.useExistingPatterns(client, patternPath);
                 }
                 if (termsPath != null) {
                     l.searchForTerms(termsPath);

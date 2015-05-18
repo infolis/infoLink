@@ -53,17 +53,14 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
 
-                try {
-                    execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
 
                 List<StudyContext> detectedContexts = new ArrayList<>();
                 for (String sC : execution.getStudyContexts()) {
                     StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+                    InfolisPattern pat = this.getDataStoreClient().get(InfolisPattern.class, context.getPattern());
                     detectedContexts.add(context);
-                    processedPattern.add(context.getPattern().getPatternRegex());
+                    processedPattern.add(pat.getPatternRegex());
                 }
                 extractedContexts.addAll(detectedContexts);
             }
@@ -97,7 +94,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
         for (StudyContext sC : detectedContexts) {
             getDataStoreClient().post(StudyContext.class, sC);
-            this.getExecution().getPattern().add(sC.getPattern().getUri());
+            this.getExecution().getPattern().add(sC.getPattern());
         }
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }

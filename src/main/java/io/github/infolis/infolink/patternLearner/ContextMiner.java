@@ -731,13 +731,8 @@ public class ContextMiner {
             // TODO kba index directory
             exec.setFirstOutputFile(snippetFilename);
             exec.setAlgorithm(SearchTermPosition.class);
-            try {
-
-                Algorithm algo = exec.instantiateAlgorithm(DataStoreClientFactory.local(), new TempFileResolver());
-                algo.run();
-            } catch (InstantiationException | IllegalAccessException e) {
-                log.error("Error writing snippets: {}", e);
-            }
+            Algorithm algo = exec.instantiateAlgorithm(DataStoreClientFactory.local(), new TempFileResolver());
+			algo.run();
         }
         try {
             InfolisFileUtils.completeOutputFile(snippetFilename);

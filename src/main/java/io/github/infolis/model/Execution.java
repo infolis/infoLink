@@ -67,13 +67,17 @@ public class Execution extends BaseModel {
         private Strategy bootstrapStrategy = Strategy.separate;
         
         
-	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver)
-			throws InstantiationException, IllegalAccessException {
+	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver) {
 		if (null == this.getAlgorithm()) {
 			throw new IllegalArgumentException(
 					"Must set 'algorithm' of execution before calling instantiateAlgorithm.");
 		}
-		Algorithm algo = this.algorithm.newInstance();
+		Algorithm algo;
+		try {
+			algo = this.algorithm.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
 		algo.setExecution(this);
 		algo.setFileResolver(fileResolver);
 		algo.setDataStoreClient(client);

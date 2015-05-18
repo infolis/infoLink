@@ -94,6 +94,7 @@ public class FileDocument {
     	  contents.append( text ).append( System.getProperty( "line.separator" ) );
       }
       reader.close();
+      isr.close();
       text = new String( contents );
 	   
       // make a new, empty document

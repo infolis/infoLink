@@ -6,16 +6,17 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
  * {@link Execution#getSearchTerm())}
  * 
  * @author kata
+ * @author kba
  *
  */
 
@@ -64,6 +66,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	private Execution execution;
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 	private static final String DEFAULT_FIELD_NAME = "contents";
+	private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
 
         @Override
 	public Execution getExecution() {
@@ -121,7 +124,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException
 	{
-		Path tempPath = Files.createTempDirectory("infolis-test-");
+		Path tempPath = Files.createTempDirectory("infolis-index-");
 		FileUtils.forceDeleteOnExit(tempPath.toFile());
 		
 		createIndex(tempPath);
@@ -161,14 +164,17 @@ public class SearchTermPosition extends BaseAlgorithm
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
 			InfolisFile file = getDataStoreClient().get(InfolisFile.class, URI.create(doc.get("path")));
-			log.debug("{}", file);
+//			log.debug("{}", file);
 			
-			String text = IOUtils.toString(this.getFileResolver().openInputStream(file));
+			InputStream openInputStream = this.getFileResolver().openInputStream(file);
+			String text = IOUtils.toString(openInputStream);
+			openInputStream.close();
 			
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
 				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
 					getDataStoreClient().post(StudyContext.class, sC);
+					// TODO post pattern!
 					this.execution.getStudyContexts().add(sC.getUri());
 				}
 			}
@@ -186,14 +192,15 @@ public class SearchTermPosition extends BaseAlgorithm
 		execution.setInputFiles(this.getExecution().getInputFiles());
 		execution.setIndexDirectory(tempPath.toString());
 		
-		Algorithm algo = new Indexer();
-		algo.setExecution(execution);
-		algo.setDataStoreClient(getDataStoreClient());
-		algo.setFileResolver(getFileResolver());
+		Algorithm algo = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+//		Algorithm algo = new Indexer();
+//		algo.setExecution(execution);
+//		algo.setDataStoreClient(getDataStoreClient());
+//		algo.setFileResolver(getFileResolver());
 		algo.execute();
 	}
 
-	protected static List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
+	List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -202,19 +209,18 @@ public class SearchTermPosition extends BaseAlgorithm
 	    // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
 	    // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
 	    // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
-	    InfolisPattern infolisPat = new InfolisPattern();
+	    InfolisPattern infolisPat = null;
 	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat_ + Pattern.quote(term) + RegexUtils.rightContextPat_);
-	    log.debug(text);
-	    Matcher m = pat.matcher(text);
-        //    log.debug("Pattern: " + pat + " found " + m.find());
-	    List<StudyContext> contextList = new ArrayList<StudyContext>();
-	    //TODO: USE SAFEMATCHING
-	    boolean matchFound = m.find();
-	    if (matchFound == false) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+	    String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
+		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
+//	    log.debug(text);
+	    List<StudyContext> contextList = new LinkedList<StudyContext>();
+	    ltm.run();
+	    log.debug("Pattern: " + pat + " found " + ltm.matched());
+	    if (ltm.finished() && !ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
 	    	String term_normalized = "";
-	    	String allowedChars = "[\\s\\-–\\\\/:.,;()&_?!]";
 	    	for (String part : termParts) {
 	    		term_normalized += Pattern.quote(
 	    				part.replace("-", " ")
@@ -234,30 +240,34 @@ public class SearchTermPosition extends BaseAlgorithm
                             .replace("?", "")
                             .replace("!", "")
                             .trim()
-                        ) + allowedChars;
+                        ) + ALLOWED_CHARS;
 	    	}
-	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + allowedChars + term_normalized + RegexUtils.rightContextPat_);
-	    	m = pat.matcher(text);
-	    	matchFound = m.find();
-	    	infolisPat.setPatternRegex(pat.toString());
-	    	// TODO use PatternApplier
+	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + term_normalized + RegexUtils.rightContextPat_);
+	    	threadName = String.format("2222221212 Term '%s%s' in '%s[...]'", ALLOWED_CHARS, term_normalized, text.substring(0, Math.min(100, text.length())));
+	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
+	    	ltm.run();
 	    }
-        log.debug("Pattern: " + pat + " found " + matchFound);
-	    while (matchFound) {
+	    if (ltm.finished() && ltm.matched()) {
+	    	infolisPat = new InfolisPattern(pat.toString());
+	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
+	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
+	    }
+	    while (ltm.matched()) {
+	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    	StudyContext sC = new StudyContext();
-	    	sC.setLeftText(m.group(1).trim());
+	    	sC.setLeftText(ltm.group(1).trim());
 	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
-	    	sC.setLeftWords(Arrays.asList(m.group(2).trim(), m.group(3).trim(), m.group(4).trim(), m.group(5).trim(), m.group(6).trim()));
+	    	sC.setLeftWords(Arrays.asList(ltm.group(2).trim(), ltm.group(3).trim(), ltm.group(4).trim(), ltm.group(5).trim(), ltm.group(6).trim()));
 	    	sC.setTerm(term);
-	    	sC.setRightText(m.group(7).trim());
+	    	sC.setRightText(ltm.group(7).trim());
 	    	//sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
-	    	sC.setRightWords(Arrays.asList(m.group(8).trim(), m.group(9).trim(), m.group(10).trim(), m.group(11).trim(), m.group(12).trim()));
+	    	sC.setRightWords(Arrays.asList(ltm.group(8).trim(), ltm.group(9).trim(), ltm.group(10).trim(), ltm.group(11).trim(), ltm.group(12).trim()));
 	    	sC.setFile(fileName);
 	    	
-	    	sC.setPattern(infolisPat);
+	    	sC.setPattern(infolisPat.getUri());
 
 	    	contextList.add(sC);
-	    	matchFound = m.find();
+	    	ltm.run();
 	    }
 	    return contextList;
 	}

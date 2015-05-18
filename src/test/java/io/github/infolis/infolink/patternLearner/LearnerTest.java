@@ -37,7 +37,7 @@ public class LearnerTest extends InfolisBaseTest {
     private final static List<String> terms = Arrays.asList(term);
 
     public LearnerTest() throws Exception {
-		for (InfolisFile file : createTestFiles()) {
+		for (InfolisFile file : createTestFiles(100)) {
             uris.add(file.getUri());
             String str = FileUtils.readFileToString(new File(file.getFileName()));
             System.out.println(str);

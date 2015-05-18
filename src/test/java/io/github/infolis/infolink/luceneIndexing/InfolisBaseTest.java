@@ -30,14 +30,13 @@ public class InfolisBaseTest {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 	};
 	
-	protected List<InfolisFile> createTestFiles() throws Exception {
+	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
 		ArrayList<InfolisFile> ret = new ArrayList<>();
 		int j = 0;
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < nrFiles; i++) {
+			j = i % testStrings.length;
 			Path tempFile = Files.createTempFile("infolis-", ".txt");
-			if (j > 6) j = 0;
 			String data = testStrings[j];
-			j++;
 			FileUtils.write(tempFile.toFile(), data);
 
 			InfolisFile file = new InfolisFile();

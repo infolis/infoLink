@@ -61,10 +61,9 @@ public class PatternApplierTest {
     		testFiles.add(file);
     	}
         for (String str : testPatterns) {
-    		InfolisPattern p = new InfolisPattern();
-                p.setPatternRegex(str);     
+    		InfolisPattern p = new InfolisPattern(str);
     		client.post(InfolisPattern.class, p);
-                testInfolisPatterns.add(p);
+    		testInfolisPatterns.add(p);
     	}       
     }
 

@@ -6,7 +6,6 @@
 package io.github.infolis.model;
 
 import io.github.infolis.infolink.patternLearner.Reliability;
-import io.github.infolis.infolink.patternLearner.Reliability.Instance;
 import io.github.infolis.util.MathUtils;
 import io.github.infolis.util.RegexUtils;
 
@@ -31,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  *
  * @author domi
+ * @author kba
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -40,8 +40,20 @@ public class InfolisPattern extends BaseModel {
     private String luceneQuery;
     private String minimal;
     private Map<String, Double> associations;
+    
+    public InfolisPattern(String patternRegex, String luceneQuery) {
+    	this.setLuceneQuery(luceneQuery);
+    	this.setPatternRegex(patternRegex);
+	}
 
-    /**
+    public InfolisPattern(String patternRegex) {
+    	this.setPatternRegex(patternRegex);
+	}
+
+	public InfolisPattern() {
+	}
+
+	/**
      * @return the patternRegex
      */
     public String getPatternRegex() {
@@ -49,24 +61,10 @@ public class InfolisPattern extends BaseModel {
     }
 
     /**
-     * @param patternRegex the patternRegex to set
-     */
-    public void setPatternRegex(String patternRegex) {
-        this.patternRegex = patternRegex;
-    }
-
-    /**
      * @return the luceneQuery
      */
     public String getLuceneQuery() {
         return luceneQuery;
-    }
-
-    /**
-     * @param luceneQuery the luceneQuery to set
-     */
-    public void setLuceneQuery(String luceneQuery) {
-        this.luceneQuery = luceneQuery;
     }
 
     /**
@@ -79,7 +77,7 @@ public class InfolisPattern extends BaseModel {
      */
     public boolean addAssociation(String instanceName, double score) {
         if (this.getAssociations().containsKey(instanceName)) {
-            System.err.print("Warning: association between pattern " + this.patternRegex + " and instance " + instanceName + " already known! ");
+            System.err.print("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
         }
         return (this.getAssociations().put(instanceName, score) == null);
     }
@@ -205,8 +203,7 @@ public class InfolisPattern extends BaseModel {
             String studyTitle;
             while ((studyTitle = reader.readLine()) != null) {
                 if (!studyTitle.matches("\\s*")) {
-                    InfolisPattern p = new InfolisPattern();
-                    p.setPatternRegex(constructTitleVersionRegex(studyTitle));
+                    InfolisPattern p = new InfolisPattern(constructTitleVersionRegex(studyTitle));
                     patternSet.add(p);
                 }
             }
@@ -241,7 +238,7 @@ public class InfolisPattern extends BaseModel {
                 double p_x = (double) totalSentences / (double) dataSize;
                 double p_y = (double) patternCounter / (double) dataSize;
                 double p_xy = (double) occurrencesPattern / (double) dataSize;
-                Instance newInstance = r.new Instance(instance);
+                Reliability.Instance newInstance = r.new Instance(instance);
                 double pmi_pattern = MathUtils.pmi(p_xy, p_x, p_y);
                 this.addAssociation(instance, pmi_pattern);
                 newInstance.addAssociation(this.getPatternRegex(), pmi_pattern);
@@ -261,4 +258,13 @@ public class InfolisPattern extends BaseModel {
             return new ArrayList<>();
         }
     }
+
+	public void setPatternRegex(String patternRegex) {
+		this.patternRegex = patternRegex;
+	}
+
+	public void setLuceneQuery(String luceneQuery) {
+		this.luceneQuery = luceneQuery;
+	}
+
 }

@@ -64,7 +64,7 @@ public class LimitedTimeMatcher implements Runnable {
 
 	private static Logger log = LoggerFactory.getLogger(LimitedTimeMatcher.class);
 
-	private static final long SLEEP_TIME_MILLIS = 100;
+	private static final long SLEEP_TIME_MILLIS = 10;
 
 	private boolean matched;
 	private boolean finished;
@@ -101,7 +101,6 @@ public class LimitedTimeMatcher implements Runnable {
 		Thread matcherThread = new Thread(new Runnable() {
 			// NOTE this is the blocking call
 			public void run() {
-				log.debug("{}", getTimePassedMillis());
 				if (timedOut()) {
 					log.error("Calling run() on a LimitedTimeMatcher that timed out before!");
 					return;
@@ -123,7 +122,7 @@ public class LimitedTimeMatcher implements Runnable {
 				break;
 			}
 			if (finished()) {
-				log.debug("Thread '{}' took {} ms to finish", threadName, getTimePassedMillis());
+				log.trace("Thread '{}' took {} ms to finish", threadName, getTimePassedMillis());
 				break;
 			} else if (timePassedMillis > maxTime) {
 				timedOut(true);
@@ -132,11 +131,11 @@ public class LimitedTimeMatcher implements Runnable {
 				matcherThread.interrupt();
 				break;
 			}
-			log.debug("Thread '{}' running for {}ms", threadName, getTimePassedMillis());
+			log.trace("Thread '{}' running for {}ms", threadName, getTimePassedMillis());
 		}
 	}
 
-	private synchronized Matcher getMatcher() {
+	private Matcher getMatcher() {
 		return matcher;
 	}
 

@@ -33,8 +33,6 @@ public class PatternApplier extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
     
-    
-    
     private String getFileAsString(InfolisFile file) throws IOException {
         InputStream in = getFileResolver().openInputStream(file);
         StringWriter writer = new StringWriter();
@@ -120,9 +118,12 @@ public class PatternApplier extends BaseAlgorithm {
                 if (containedInNP) {
                     //String left, String term, String right, String document, String pattern
                     //String filename, String term, String text
-                    List<StudyContext> con = SearchTermPosition.getContexts(file.getUri(), studyName, context);
+                	SearchTermPosition stp = new SearchTermPosition();
+                	stp.setDataStoreClient(getDataStoreClient());
+                	stp.setFileResolver(getFileResolver());
+                    List<StudyContext> con = stp.getContexts(file.getUri(), studyName, context);
                     for (StudyContext oneContext : con) {
-                        oneContext.setPattern(pattern);
+                        oneContext.setPattern(pattern.getUri());
                     }
                     res.addAll(con);
                     log.debug("Added context.");

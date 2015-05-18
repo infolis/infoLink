@@ -27,7 +27,7 @@ public class IndexerTest extends InfolisBaseTest {
 		Path tempPath = Files.createTempDirectory("infolis-test-");
 		FileUtils.forceDeleteOnExit(tempPath.toFile());
 		
-		List<InfolisFile> inputFiles = createTestFiles();
+		List<InfolisFile> inputFiles = createTestFiles(100);
 
 		List<String> uris = new ArrayList<>();
 		for (InfolisFile file : inputFiles) {

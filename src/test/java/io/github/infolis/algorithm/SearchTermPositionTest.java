@@ -69,11 +69,11 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
 		// terms shall be found even if enclosed by characters removed by the analyzer, e.g. punctuation
 		// e.g., when "ALLBUS." is found as term, all occurrences of "ALLBUS." or "ALLBUS" or "ALLBUS," etc. are to be found
-//		assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
-//		assertEquals(28, testContexts("term", "term").size());
+		assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
+		assertEquals(28, testContexts("term", "term").size());
 		assertEquals(28, testContexts(".term.", "term").size());
 		assertEquals(0, testContexts("terma", "terma").size());
-
+//
 		assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"").size());
 		assertEquals(28, testContexts("the term,", "\"the term\"").size());
 		assertEquals(28, testContexts(".the term.", "\"the term\"").size());

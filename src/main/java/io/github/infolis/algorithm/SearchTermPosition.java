@@ -211,10 +211,10 @@ public class SearchTermPosition extends BaseAlgorithm
 	    String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 //	    log.debug(text);
-        //    log.debug("Pattern: " + pat + " found " + m.find());
 	    List<StudyContext> contextList = new LinkedList<StudyContext>();
 	    ltm.run();
-	    if (ltm.finished() && ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+	    log.debug("Pattern: " + pat + " found " + ltm.matched());
+	    if (ltm.finished() && !ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
 	    	String term_normalized = "";
@@ -239,17 +239,15 @@ public class SearchTermPosition extends BaseAlgorithm
                             .trim()
                         ) + ALLOWED_CHARS;
 	    	}
-	    	Pattern newPattern = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + term_normalized + RegexUtils.rightContextPat_);
-	    	String newThreadName = String.format("2222221212 Term '%s%s' in '%s[...]'", ALLOWED_CHARS, term_normalized, text.substring(0, Math.min(100, text.length())));
-	    	ltm = new LimitedTimeMatcher(newPattern, text, 10_000, newThreadName);
+	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + term_normalized + RegexUtils.rightContextPat_);
+	    	threadName = String.format("2222221212 Term '%s%s' in '%s[...]'", ALLOWED_CHARS, term_normalized, text.substring(0, Math.min(100, text.length())));
+	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 	    	ltm.run();
-	    	if (ltm.finished() && ltm.matched()) {
-	    		infolisPat = new InfolisPattern(newPattern.toString());
-	    		this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
-	    		assert(null != infolisPat.getUri());
-	    	} else  {
-	    		throw new RuntimeException();
-	    	}
+	    }
+	    if (ltm.finished() && ltm.matched()) {
+	    	infolisPat = new InfolisPattern(pat.toString());
+	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
+	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {
 	    	log.debug("Pattern: " + pat + " found " + ltm.matched());

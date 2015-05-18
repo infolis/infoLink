@@ -37,7 +37,7 @@ public class LearnerTest extends InfolisBaseTest {
     private final static List<String> terms = Arrays.asList(term);
 
     public LearnerTest() throws Exception {
-		for (InfolisFile file : createTestFiles()) {
+		for (InfolisFile file : createTestFiles(100)) {
             uris.add(file.getUri());
             String str = FileUtils.readFileToString(new File(file.getFileName()));
             System.out.println(str);
@@ -88,7 +88,12 @@ public class LearnerTest extends InfolisBaseTest {
     	}
     	return termSet;
     }
-    
+
+	@Test
+	public void testPatchAdd() throws Exception {
+		throw new RuntimeException("not yet implemented");
+	}
+
     private class ExpectedOutput {
     	Class<? extends Algorithm> algorithm;
     	Execution.Strategy strategy;
@@ -136,7 +141,12 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
     			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find the R2 in this short text snippet.",
+    			"please try to find the R2 in this short text 
+	@Test
+	public void testPatchAdd() throws Exception {
+		throw new RuntimeException("not yet implemented");
+	}
+snippet.",
     			"please try to find the D2 in this short text snippet.",
     			"please try to find the _ in this short text snippet.",
     			"please try to find .the term . in this short text"));

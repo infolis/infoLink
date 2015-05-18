@@ -36,19 +36,21 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InfolisPattern extends BaseModel {
 
-    private final String patternRegex;
-    private final String luceneQuery;
+    private String patternRegex;
+    private String luceneQuery;
     private String minimal;
     private Map<String, Double> associations;
     
     public InfolisPattern(String patternRegex, String luceneQuery) {
-    	this.luceneQuery = luceneQuery;
-    	this.patternRegex = patternRegex;
+    	this.setLuceneQuery(luceneQuery);
+    	this.setPatternRegex(patternRegex);
 	}
 
     public InfolisPattern(String patternRegex) {
-    	this.patternRegex = patternRegex;
-    	this.luceneQuery = null;
+    	this.setPatternRegex(patternRegex);
+	}
+
+	public InfolisPattern() {
 	}
 
 	/**
@@ -75,7 +77,7 @@ public class InfolisPattern extends BaseModel {
      */
     public boolean addAssociation(String instanceName, double score) {
         if (this.getAssociations().containsKey(instanceName)) {
-            System.err.print("Warning: association between pattern " + this.patternRegex + " and instance " + instanceName + " already known! ");
+            System.err.print("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
         }
         return (this.getAssociations().put(instanceName, score) == null);
     }
@@ -256,4 +258,13 @@ public class InfolisPattern extends BaseModel {
             return new ArrayList<>();
         }
     }
+
+	public void setPatternRegex(String patternRegex) {
+		this.patternRegex = patternRegex;
+	}
+
+	public void setLuceneQuery(String luceneQuery) {
+		this.luceneQuery = luceneQuery;
+	}
+
 }

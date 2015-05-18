@@ -124,11 +124,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
 
-                try {
-                    execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+                execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
 
                 for (String studyContextUri : execution.getStudyContexts()) {
                     StudyContext studyContext = this.getDataStoreClient().get(StudyContext.class, studyContextUri);

@@ -5,6 +5,7 @@
  */
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
@@ -33,6 +34,7 @@ public class OutputWriter {
 
     //TODO: remove duplicate code... use separate method instead
     /**
+     * TODO hacky
      * ...
      *
      * @param studyNcontextList	...
@@ -40,7 +42,7 @@ public class OutputWriter {
      * @param filenamePatterns	...
      * @param filenameStudies	...
      */
-    public static void outputContextsAndPatterns_distinct(List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
+    public static void outputContextsAndPatterns_distinct(DataStoreClient client, List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
         File contextFile = new File(filenameContexts);
         File patternFile = new File(filenamePatterns);
         File studyFile = new File(filenameStudies);
@@ -63,7 +65,8 @@ public class OutputWriter {
         Set<StudyContext> distinctContexts = new HashSet<>();
 
         for (StudyContext studyNcontext : studyNcontextList) {
-            patSet.add(studyNcontext.getPattern());
+        	InfolisPattern pat = client.get(InfolisPattern.class, studyNcontext.getPattern());
+            patSet.add(pat);
             studySet.add(studyNcontext.getTerm());
             // do not print duplicate contexts
             // extend check for duplicate contexts: context as part of study name...
@@ -198,12 +201,12 @@ public class OutputWriter {
      * @param train	flag specifying whether InfoLink is in training mode (i.e.
      * learning new patterns instead of applying known ones)
      */
-    public static void output_distinct(List<StudyContext> studyNcontextList, String[] filenames, boolean train) throws IOException {
+    public static void output_distinct(DataStoreClient client, List<StudyContext> studyNcontextList, String[] filenames, boolean train) throws IOException {
         String filenameStudies = filenames[0];
         String filenameContexts = filenames[1];
         String filenamePatterns = filenames[2];
         try {
-            OutputWriter.outputContextsAndPatterns_distinct(studyNcontextList, filenameContexts, filenamePatterns, filenameStudies, train);
+            OutputWriter.outputContextsAndPatterns_distinct(client, studyNcontextList, filenameContexts, filenamePatterns, filenameStudies, train);
         } catch (IOException ioe) {
             ioe.printStackTrace();
             throw (new IOException());

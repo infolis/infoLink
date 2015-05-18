@@ -27,9 +27,7 @@ public class LimitedTimeMatcher implements Runnable {
 	 * CharSequence that noticed thread interrupts -- as might be necessary to
 	 * recover from a loose regex on unexpected challenging input.
 	 * 
-	 * @see {@linkplain http
-	 *      ://stackoverflow.com/questions/910740/cancelling-a-long
-	 *      -running-regex-match}
+	 * @see {@linkplain http://stackoverflow.com/questions/910740/cancelling-a-long-running-regex-match}
 	 * @author gojomo
 	 */
 	public class InterruptibleCharSequence implements CharSequence {
@@ -124,7 +122,7 @@ public class LimitedTimeMatcher implements Runnable {
 			if (finished()) {
 				log.trace("Thread '{}' took {} ms to finish", threadName, getTimePassedMillis());
 				break;
-			} else if (timePassedMillis > maxTime) {
+			} else if (getTimePassedMillis() > maxTime) {
 				timedOut(true);
 				log.warn("Thread '{}' took {} ms, longer than the maximum of {} ms, shutting down to avoid pathological backtacking.",
 						threadName, getTimePassedMillis(), maxTime);

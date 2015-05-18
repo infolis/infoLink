@@ -32,18 +32,23 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 	String testString5 = "Hallo, please try to find the _ in this short text snippet. Thank you.";
 	String testString6 = "Hallo, please try to find .the term. in this short text snippet. Thank you.";
 	List<String> uris = new ArrayList<>();
+
+	private SearchTermPosition stp;
 	public SearchTermPositionTest() throws Exception {
-		for (InfolisFile file : createTestFiles()) {
+		for (InfolisFile file : createTestFiles(100)) {
             uris.add(file.getUri());
 		}
+		stp = new SearchTermPosition();
+		stp.setDataStoreClient(localClient);
+		stp.setFileResolver(tempFileResolver);
 	}
 
 	@Test
 	public void getContextTest() throws IOException {
 
-			List<StudyContext> contextList1 = SearchTermPosition.getContexts("document", "term", testString1); 
-			List<StudyContext> contextList2 = SearchTermPosition.getContexts("document", "term", testString2); 
-			List<StudyContext> contextList3 = SearchTermPosition.getContexts("document", "term", testString3);
+			List<StudyContext> contextList1 = stp.getContexts("document", "term", testString1); 
+			List<StudyContext> contextList2 = stp.getContexts("document", "term", testString2); 
+			List<StudyContext> contextList3 = stp.getContexts("document", "term", testString3);
 			assertEquals(1,contextList1.size());
 			assertEquals(0,contextList2.size());
 			assertEquals(1,contextList3.size());
@@ -64,7 +69,8 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
 		// terms shall be found even if enclosed by characters removed by the analyzer, e.g. punctuation
 		// e.g., when "ALLBUS." is found as term, all occurrences of "ALLBUS." or "ALLBUS" or "ALLBUS," etc. are to be found
-		assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
+//		assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
+//		assertEquals(28, testContexts("term", "term").size());
 		assertEquals(28, testContexts(".term.", "term").size());
 		assertEquals(0, testContexts("terma", "terma").size());
 
@@ -90,7 +96,6 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		exec.setPhraseSlop(5);
 		exec.setMaxClauseCount(250);
         Algorithm algo = exec.instantiateAlgorithm(localClient, tempFileResolver);
-        algo.setExecution(exec);
         algo.run();
 
 		ArrayList<StudyContext> contextList = new ArrayList<StudyContext>();
@@ -100,4 +105,5 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		return contextList;
 		
 	}
+
 }

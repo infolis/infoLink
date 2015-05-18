@@ -115,6 +115,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 	}
                     continue;
                 }
+
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
@@ -129,8 +130,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                     throw new RuntimeException(e);
                 }
 
-                for (String sC : execution.getStudyContexts()) {
-                    detectedContexts.add(this.getDataStoreClient().get(StudyContext.class, sC));
+                for (String studyContextUri : execution.getStudyContexts()) {
+                    StudyContext studyContext = this.getDataStoreClient().get(StudyContext.class, studyContextUri);
+					detectedContexts.add(studyContext);
+                    log.warn("{}", studyContext.getPattern());
                 }
 
                 contexts_currentIteration.addAll(detectedContexts);

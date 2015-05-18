@@ -41,8 +41,8 @@ public class StudyContext extends BaseModel {
 	@XmlAttribute
 	private String file;
 	@XmlTransient
-	private InfolisPattern pattern;
-    @XmlAttribute
+	private String patternUri;
+	@XmlAttribute
 	private String version;
 
 	public StudyContext() {
@@ -66,18 +66,18 @@ public class StudyContext extends BaseModel {
 		this.setRightText(right);
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setFile(document);
-		this.setPattern(pattern);
+		this.setPattern(pattern.getUri());
 	}
-        
-        public StudyContext(String left, String term, String right, String document, InfolisPattern pattern, String version) {
+
+	public StudyContext(String left, String term, String right, String document, InfolisPattern pattern, String version) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
 		this.setTerm(term);
 		this.setRightText(right);
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setFile(document);
-		this.setPattern(pattern);
-                this.version = version;
+		this.setPattern(pattern.getUri());
+		this.version = version;
 	}
 
 	public String toXML() {
@@ -149,35 +149,37 @@ public class StudyContext extends BaseModel {
 		this.file = document;
 	}
 
-	public InfolisPattern getPattern() {
-		return pattern;
+	public String getPattern() {
+		return patternUri;
 	}
 
-	public void setPattern(InfolisPattern pattern) {
-		this.pattern = pattern;
+	public void setPattern(String patternUri) {
+		this.patternUri = patternUri;
 	}
-    /**
-     * @return the version
-     */
-    public String getVersion() {
-        return version;
-    }
 
-    /**
-     * @param version the version to set
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-    
-    //TODO: not the best place
-    public static List<String> getContextStrings(List<StudyContext> contexts) {
-        Function<StudyContext, String> context_toString = new Function<StudyContext, String>() {
-                    public String apply(StudyContext c) {
-                        return c.toString();
-                    }
-                };
-        return new ArrayList<String>(Lists.transform(contexts, context_toString));
-    }
+	/**
+	 * @return the version
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
+	 * @param version
+	 *            the version to set
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	// TODO: not the best place
+	public static List<String> getContextStrings(List<StudyContext> contexts) {
+		Function<StudyContext, String> context_toString = new Function<StudyContext, String>() {
+			public String apply(StudyContext c) {
+				return c.toString();
+			}
+		};
+		return new ArrayList<String>(Lists.transform(contexts, context_toString));
+	}
 
 }

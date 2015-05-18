@@ -9,6 +9,7 @@ import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.ws.server.InfolisConfig;
@@ -18,7 +19,6 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -50,10 +50,9 @@ public class PatternApplier extends BaseAlgorithm {
         String inputClean = getFileAsString(file);
 
         List<StudyContext> res = new ArrayList<>();
-		boolean matchFound;
 		for (String patternURI : this.getExecution().getPattern()) {
             System.out.println(patternURI);
-            io.github.infolis.model.InfolisPattern pattern = getDataStoreClient().get(io.github.infolis.model.InfolisPattern.class, patternURI);
+            InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
@@ -67,27 +66,23 @@ public class PatternApplier extends BaseAlgorithm {
 
             // call m.find() as a thread: catastrophic backtracking may occur which causes application to hang
             // thus monitor runtime of threat and terminate if processing takes too long
-            LimitedTimeMatcher safeMatch = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file.getFileName() + "\n" + pattern.getPatternRegex()); 
-            safeMatch.run();
+            LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file.getFileName() + "\n" + pattern.getPatternRegex()); 
+            ltm.run();
             // if thread was aborted due to long processing time, matchFound should be false
-            if (! safeMatch.finished()) {
+            if (! ltm.finished()) {
                 //TODO: what to do if search was aborted?
             	log.error("Search was aborted. TODO");
                 //InfolisFileUtils.writeToFile(new File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" + curPat + "\n", true);
             }
-            matchFound = safeMatch.matched();
-            while (matchFound) {
-            	Matcher m = safeMatch.getMatcher();
+            while (ltm.matched()) {
                 log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
-                String context = m.group();
-                String studyName = m.group(1).trim();
+                String context = ltm.group();
+                String studyName = ltm.group(1).trim();
                 // if studyname contains no characters ignore
                 //TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
                     log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
-                    safeMatch.run();
-                    matchFound = safeMatch.matched();
-                    // if thread was aborted due to long processing time, matchFound should be false
+                    ltm.run();
                     log.debug("Processing new match...");
                     continue;
                 }
@@ -96,8 +91,7 @@ public class PatternApplier extends BaseAlgorithm {
                 // supposedly does not filter out many wrong names in German though
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
-                    	safeMatch.run();
-                    	matchFound = safeMatch.matched();
+                    	ltm.run();
                         log.debug("Processing new match...");
                         continue;
                     }
@@ -135,8 +129,7 @@ public class PatternApplier extends BaseAlgorithm {
                 }
 
                 log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
-                safeMatch.run();
-                matchFound = safeMatch.matched();
+                ltm.run();
                 log.debug("Processing new match...");
             }
         }

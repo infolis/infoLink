@@ -83,18 +83,19 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 		}
 		// find all contexts for seed term in the first iteration
 		assertEquals(termCount, termCount_algo);
-		// also find all contexts for remaining terms using the pattern
-		// generated in iteration 1
-		assertEquals(uris.size(), execution.getStudyContexts().size());
+		// find all contexts for terms "FOOBAR" and "term"
+		// "R2", "D2" and "_" are to be rejected: study titles must consist of at least 
+		// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)
+		assertEquals(4, execution.getStudyContexts().size());
 	}
 
 	@Test
 	public void testBootstrapping_basic() throws Exception {
 
-		// testFrequencyBasedBootstrapping(Execution.Strategy.separate);
-		// testFrequencyBasedBootstrapping(Execution.Strategy.mergeCurrent);
+		testFrequencyBasedBootstrapping(Execution.Strategy.separate);
+		testFrequencyBasedBootstrapping(Execution.Strategy.mergeCurrent);
 		testFrequencyBasedBootstrapping(Execution.Strategy.mergeNew);
-		// testFrequencyBasedBootstrapping(Execution.Strategy.mergeAll);
+		testFrequencyBasedBootstrapping(Execution.Strategy.mergeAll);
 	}
 
 }

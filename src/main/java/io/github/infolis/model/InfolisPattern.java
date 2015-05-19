@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  *
+ * @author kata
  * @author domi
  * @author kba
  */
@@ -44,6 +46,7 @@ public class InfolisPattern extends BaseModel {
     public InfolisPattern(String patternRegex, String luceneQuery) {
     	this.setLuceneQuery(luceneQuery);
     	this.setPatternRegex(patternRegex);
+    	this.associations = new HashMap<>();
 	}
 
     public InfolisPattern(String patternRegex) {
@@ -51,6 +54,7 @@ public class InfolisPattern extends BaseModel {
 	}
 
 	public InfolisPattern() {
+		this.associations = new HashMap<>();
 	}
 
 	/**
@@ -126,22 +130,24 @@ public class InfolisPattern extends BaseModel {
         // compute score for similar to tf-idf...
         // count occurrences of regex in positive vs negative contexts...
         int count_pos = 0;
-        int count_neg = 0;
+        //int count_neg = 0;
         List<String> contexts_neg = new ArrayList<>();
         for (String context : contextStrings) {
             count_pos += patternFound(regex, context);
         }
-        // contexts neg always empty right now
+        /*
         for (String context : contexts_neg) {
             count_neg += patternFound(regex, context);
-        }
+        }*/
 
         //TODO: rename - this is not really tf-idf ;)
-        double idf = 0;
         // compute relevance...
+        /*
+        double idf = 0;
         if (count_neg + count_pos > 0) {
             idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
-        }
+        }*/
+        int idf = 1;
 
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
         if ((tf_idf > threshold) & (count_pos > 1)) {

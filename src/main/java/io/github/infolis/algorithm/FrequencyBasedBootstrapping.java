@@ -100,22 +100,24 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         List<String> processedSeeds = new ArrayList<>();
         List<InfolisPattern> processedPatterns = new ArrayList<>();
         Set<String> seeds = new HashSet<>();
-        seeds.addAll(getExecution().getTerms());
+        Set<String> newSeedsIteration = new HashSet<>(getExecution().getTerms());
         while (numIter < getExecution().getMaxIterations()) {
+        	seeds = newSeedsIteration;
+        	newSeedsIteration = new HashSet<>();
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
-            numIter++;
             for (String seed : seeds) {
-
+            	
             	List<StudyContext> detectedContexts = new ArrayList<>();
             	
                 if (processedSeeds.contains(seed)) {
                 	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
                 		contexts_currentIteration.add(getContextForTerm(extractedContexts, seed));
                 	}
+                	log.debug("seed " + seed + " already known, continuing.");
                     continue;
                 }
-
+                log.debug("Processing seed " + seed);
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
@@ -123,7 +125,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
-
                 execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
 
                 for (String studyContextUri : execution.getStudyContexts()) {
@@ -134,7 +135,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
                 contexts_currentIteration.addAll(detectedContexts);
                 extractedContexts.addAll(detectedContexts);
-                log.debug("Processing contexts for seed " + seed);
                 // 2. generate patterns
                 if (getExecution().getBootstrapStrategy() == Execution.Strategy.separate) {
                     Set<InfolisPattern> patterns = PatternInducer.inducePatterns(detectedContexts, getExecution().getThreshold(), processedPatterns);
@@ -162,11 +162,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             List<StudyContext> res = applyPattern(newPatterns);
             processedSeeds.addAll(seeds);
 
-            seeds = new HashSet<>();
             for (StudyContext entry : res) {
-                seeds.add(entry.getTerm());
+            	newSeedsIteration.add(entry.getTerm());
             }
-            log.debug("Found " + seeds.size() + " new seeds in current iteration");
+            log.debug("Found " + newSeedsIteration.size() + " seeds in current iteration");
             numIter++;
         }
         return extractedContexts;

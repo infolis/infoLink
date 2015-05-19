@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  *
  * @author domi
+ * @author kata
  */
 public class PatternApplier extends BaseAlgorithm {
 
@@ -35,14 +36,11 @@ public class PatternApplier extends BaseAlgorithm {
     
     private String getFileAsString(InfolisFile file) throws IOException {
         InputStream in = getFileResolver().openInputStream(file);
-        StringWriter writer = new StringWriter();
-        IOUtils.copy(in, writer, "UTF-8");
-        String input = writer.toString();
-        System.out.println("input: " + input);
-        // makes regex matching a bit easier
-        String inputClean = input.replaceAll("\\s+", " ");
+        String input = IOUtils.toString(in);
         in.close();
-        return inputClean;
+        log.debug("input: " + input);
+        // makes regex matching a bit easier
+        return input.replaceAll("\\s+", " ");
     }
  
     private List<StudyContext> searchForPatterns(InfolisFile file) throws IOException {
@@ -50,15 +48,14 @@ public class PatternApplier extends BaseAlgorithm {
 
         List<StudyContext> res = new ArrayList<>();
 		for (String patternURI : this.getExecution().getPattern()) {
-            System.out.println(patternURI);
+            log.debug(patternURI);
             InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
             // set upper limit for processing time - prevents stack overflow caused by monitoring process 
-            // (threadCompleted)
+            // (LimitedTimeMatcher)
             // 750000 suitable for -Xmx2g -Xms2g
-            // if ( maxTimeMillis > 750000 ) { maxTimeMillis = 750000; }
             // processing time for documents depends on size of the document. 
             // Allow 1024 milliseconds per KB
             InputStream openInputStream = getFileResolver().openInputStream(file);
@@ -69,7 +66,7 @@ public class PatternApplier extends BaseAlgorithm {
             // thus monitor runtime of threat and terminate if processing takes too long
             LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file.getFileName() + "\n" + pattern.getPatternRegex()); 
             ltm.run();
-            // if thread was aborted due to long processing time, matchFound should be false
+            // thread was aborted due to long processing time
             if (! ltm.finished()) {
                 //TODO: what to do if search was aborted?
             	log.error("Search was aborted. TODO");
@@ -79,21 +76,20 @@ public class PatternApplier extends BaseAlgorithm {
                 log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
                 String context = ltm.group();
                 String studyName = ltm.group(1).trim();
-                // if studyname contains no characters ignore
+                // if studyname contains no characters: ignore
                 //TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
                     log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
                     ltm.run();
-                    log.debug("Processing new match...");
                     continue;
                 }
-                // a study name is supposed to be a named entity and thus contain at least one upper-case 
+                // a study name is supposed to be a named entity and thus should contain at least one upper-case 
                 // character 
                 // supposedly does not filter out many wrong names in German though
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
                     	ltm.run();
-                        log.debug("Processing new match...");
+                        log.debug("Match does not satisfy uppercase-constraint \"" + studyName + "\". Processing new match...");
                         continue;
                     }
                 }
@@ -119,8 +115,6 @@ public class PatternApplier extends BaseAlgorithm {
                     containedInNP = true;
                 }
                 if (containedInNP) {
-                    //String left, String term, String right, String document, String pattern
-                    //String filename, String term, String text
                 	SearchTermPosition stp = new SearchTermPosition();
                 	stp.setDataStoreClient(getDataStoreClient());
                 	stp.setFileResolver(getFileResolver());
@@ -134,7 +128,6 @@ public class PatternApplier extends BaseAlgorithm {
 
                 log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
                 ltm.run();
-                log.debug("Processing new match...");
             }
         }
         log.debug("Done searching for patterns in " + file);

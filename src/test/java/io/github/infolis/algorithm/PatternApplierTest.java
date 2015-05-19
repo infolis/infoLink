@@ -1,87 +1,58 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.*;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
+
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.util.SerializationUtils;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
+ * @author kata
  * @author domi
  */
-public class PatternApplierTest {
+public class PatternApplierTest extends InfolisBaseTest {
 
-    private final static DataStoreClient client = DataStoreClientFactory.local();
-    private final static FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
     Logger log = LoggerFactory.getLogger(SearchTermPositionTest.class);
-
-    List<String> pattern = new ArrayList<>();
-    List<String> files = new ArrayList<>();
+    private List<String> uris = new ArrayList<>();
+    // left context: <word> <word> to find the 
+    // study title: <word>* <word> <word> <word> <word>* 
+    // right context: in <word> <word> <word> <word>
+    // where word is an arbitrary string consisting of at least one character
+    private final static InfolisPattern testPattern = new InfolisPattern(
+    		"\\S++\\s\\S++\\s\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
     
-	private final static List<String> testStrings = Arrays.asList(
-			"Please try to find the term in this 2003 short text snippet that I provided to you.",
-			"Please try to find the _ in this short text snippet that I provided to you.",
-			"Please try to find the .term. in this short text snippet that I provided to you."
-			);
-        private final static List<String> testPatterns = Arrays.asList(
-                ".*Please try to find the (.*\\S+.*\\d*.*) short text snippet that I provided to you.*");
-        
-
-	private final List<InfolisFile> testFiles = new ArrayList<>();
-        private final List<InfolisPattern> testInfolisPatterns = new ArrayList<>();
-
-	@Before
-    public void createInputFiles() throws IOException {
-		testFiles.clear();
-    	for (String str : testStrings) {
-    		String hexMd5 = SerializationUtils.getHexMd5(str);
-    		InfolisFile file = new InfolisFile();
-    		file.setMd5(hexMd5);
-    		OutputStream outputStream = fileResolver.openOutputStream(file);
-    		IOUtils.write(str, outputStream);
-    		client.post(InfolisFile.class, file);
-    		testFiles.add(file);
-    	}
-        for (String str : testPatterns) {
-    		InfolisPattern p = new InfolisPattern(str);
-    		client.post(InfolisPattern.class, p);
-    		testInfolisPatterns.add(p);
-    	}       
+    public PatternApplierTest() throws Exception {
+	    for (InfolisFile file : createTestFiles(7)) {
+			uris.add(file.getUri());
+	    }
+	    localClient.post(InfolisPattern.class, testPattern);
     }
 
     @Test
     public void testPatternApplier() throws Exception {
     	
     	Execution execution = new Execution();   
-    	execution.getPattern().add(testInfolisPatterns.get(0).getUri());
+    	execution.getPattern().add(testPattern.getUri());
     	execution.setAlgorithm(PatternApplier.class);
-    	execution.getInputFiles().add(testFiles.get(0).getUri());
-
+    	execution.getInputFiles().addAll(uris);
+    	
     	Algorithm algo = new PatternApplier();
-    	algo.setDataStoreClient(client);
-    	algo.setFileResolver(fileResolver);
+    	algo.setDataStoreClient(localClient);
+    	algo.setFileResolver(tempFileResolver);
     	algo.setExecution(execution);
     	algo.run();
     	
-    	assertEquals(1, execution.getStudyContexts().size());
+    	// find the contexts of "FOOBAR" and "term" (see also FrequencyBasedBootstrappingTest)
+    	assertEquals(3, execution.getStudyContexts().size());
     }
 
 }

@@ -37,7 +37,7 @@ public class LearnerTest extends InfolisBaseTest {
     private final static List<String> terms = Arrays.asList(term);
 
     public LearnerTest() throws Exception {
-		for (InfolisFile file : createTestFiles(10)) {
+		for (InfolisFile file : createTestFiles(20)) {
             uris.add(file.getUri());
             String str = FileUtils.readFileToString(new File(file.getFileName()));
             log.debug(str);
@@ -64,7 +64,7 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> regexSet = new HashSet<String>();
     	for (String uri : patternURIs) {
     		InfolisPattern pattern = localClient.get(InfolisPattern.class, uri);
-    		regexSet.add(pattern.getPatternRegex());
+    		regexSet.add(pattern.getMinimal());
     	}
     	return regexSet;
     }
@@ -107,7 +107,6 @@ public class LearnerTest extends InfolisBaseTest {
     }
     
     //TODO: add values for reliability-based bootstrapping
-    //TODO: insert correct expected patterns and corresponding contexts
     Set<ExpectedOutput> getExpectedOutput() {
     	// find all contexts for terms "FOOBAR" and "term"
     	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least 
@@ -115,14 +114,15 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
     			"please try to find the FOOBAR in this short text snippet.",
     			"please try to find .the term . in this short text"));
     	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
+    			"\\Qto\\E\\s\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
     			"please try to find the FOOBAR in this short text snippet.",
@@ -130,19 +130,17 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E", 
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
     			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text",
     			"please try to find .the term . in this short text"));
     	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text"));
+    			"please try to find the FOOBAR in this short text snippet."));
 
     	
     	Set<String> expectedStudies_reliability = new HashSet<String>(Arrays.asList("dummy"));
@@ -151,10 +149,10 @@ public class LearnerTest extends InfolisBaseTest {
     	
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.separate, 0.2, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate)//,
-    			//new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeCurrent, 0.2, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent)//,
-    			//new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeNew, 0.2, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew)//,
-    			//new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeAll, 0.2, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)//,
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeCurrent, 0.45, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeNew, 0.45, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeAll, 0.45, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)//,
     			//new ExpectedOutput(ReliabilityBasedBootstrapping.class, Execution.Strategy.reliability, 0.4, expectedStudies_reliability, expectedPatterns_reliability, expectedContexts_reliability)
     	));
     	return expectedOutput;

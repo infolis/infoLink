@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.queryParser.ParseException;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,15 +39,25 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InfolisPattern extends BaseModel {
 
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
-    private Map<String, Double> associations;
+    private Map<String, Double> associations = new HashMap<>();
+    private List<String> words = new ArrayList<>();
+    private double threshold;
     
     public InfolisPattern(String patternRegex, String luceneQuery) {
     	this.setLuceneQuery(luceneQuery);
     	this.setPatternRegex(patternRegex);
-    	this.associations = new HashMap<>();
+	}
+    
+    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
+    	this.setLuceneQuery(luceneQuery);
+    	this.setPatternRegex(patternRegex);
+    	this.setMinimal(minimal);
+    	this.setWords(words);
+    	this.setThreshold(threshold);
 	}
 
     public InfolisPattern(String patternRegex) {
@@ -54,7 +65,6 @@ public class InfolisPattern extends BaseModel {
 	}
 
 	public InfolisPattern() {
-		this.associations = new HashMap<>();
 	}
 
 	/**
@@ -70,6 +80,13 @@ public class InfolisPattern extends BaseModel {
     public String getLuceneQuery() {
         return luceneQuery;
     }
+    
+    /**
+     * @return the words
+     */
+    public List<String> getWords() {
+        return words;
+    }
 
     /**
      * Adds an association between this pattern and a specified instance.
@@ -81,7 +98,7 @@ public class InfolisPattern extends BaseModel {
      */
     public boolean addAssociation(String instanceName, double score) {
         if (this.getAssociations().containsKey(instanceName)) {
-            System.err.print("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
+            log.debug("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
         }
         return (this.getAssociations().put(instanceName, score) == null);
     }
@@ -113,8 +130,23 @@ public class InfolisPattern extends BaseModel {
     public void setMinimal(String minimal) {
         this.minimal = minimal;
     }
+    
+    /**
+     * 
+     * @param words the words to set
+     */
+    public void setWords(List<String> words) {
+    	this.words = words;
+    }
+    
+    /**
+     * 
+     * @param threshold threshold for accepting this pattern
+     */
+    public void setThreshold(double threshold) {
+    	this.threshold = threshold;
+    }
 
-    //TODO: the regex are not created as Patterns in the PatternInducer
     /**
      * Determines whether a regular expression is suitable for extracting
      * dataset references using a frequency-based measure
@@ -125,15 +157,14 @@ public class InfolisPattern extends BaseModel {
      * @return				<emph>true</emph>, if regex is found to be relevant,
      * <emph>false</emph> otherwise
      */
-    public static boolean isRelevant(String regex, List<String> contextStrings, double threshold) {
-        System.out.println("Checking if pattern is relevant: " + regex);
+    public boolean isRelevant(List<String> contextStrings) {
         // compute score for similar to tf-idf...
         // count occurrences of regex in positive vs negative contexts...
         int count_pos = 0;
         //int count_neg = 0;
-        List<String> contexts_neg = new ArrayList<>();
+        //List<String> contexts_neg = new ArrayList<>();
         for (String context : contextStrings) {
-            count_pos += patternFound(regex, context);
+            count_pos += patternFound(this.minimal, context);
         }
         /*
         for (String context : contexts_neg) {
@@ -150,7 +181,9 @@ public class InfolisPattern extends BaseModel {
         int idf = 1;
 
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
-        if ((tf_idf >= threshold) & (count_pos > 1)) {
+        log.debug("Relevance score: " + tf_idf);
+        log.debug("Occurrences: " + count_pos);
+        if ((tf_idf >= this.threshold) & (count_pos > 1)) {
             return true;
         } else {
             return false;

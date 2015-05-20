@@ -214,7 +214,7 @@ public class SearchTermPosition extends BaseAlgorithm
 //	    log.debug(text);
 	    List<StudyContext> contextList = new LinkedList<StudyContext>();
 	    ltm.run();
-	    log.debug("Pattern: " + pat + " found " + ltm.matched());
+//	    log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    if (ltm.finished() && !ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
@@ -249,10 +249,10 @@ public class SearchTermPosition extends BaseAlgorithm
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
 	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
-	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
+//	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {
-	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
+//	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    	StudyContext sC = new StudyContext();
 	    	sC.setLeftText(ltm.group(1).trim());
 	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));

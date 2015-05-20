@@ -101,7 +101,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         List<StudyContext> extractedContexts = new ArrayList<>();
         List<StudyContext> extractedContexts_patterns = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
-        List<InfolisPattern> processedPatterns = new ArrayList<>();
+        List<String> processedPatterns = new ArrayList<>();
         Set<String> seeds = new HashSet<>();
         Set<String> newSeedsIteration = new HashSet<>(getExecution().getTerms());
         while (numIter < getExecution().getMaxIterations()) {
@@ -120,7 +120,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 	log.debug("seed " + seed + " already known, continuing.");
                     continue;
                 }
-                log.debug("Processing seed " + seed);
+                log.debug("Processing seed \"" + seed + "\"");
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
@@ -133,7 +133,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 for (String studyContextUri : execution.getStudyContexts()) {
                     StudyContext studyContext = this.getDataStoreClient().get(StudyContext.class, studyContextUri);
 					detectedContexts.add(studyContext);
-                    log.warn("{}", studyContext.getPattern());
+//                    log.warn("{}", studyContext.getPattern());
                 }
 
                 contexts_currentIteration.addAll(detectedContexts);
@@ -159,6 +159,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             // TODO post them kba
             for (InfolisPattern pattern : newPatterns) {
             	this.getDataStoreClient().post(InfolisPattern.class, pattern);
+            	processedPatterns.add(pattern.getMinimal());
             }
             
             // 3. search for patterns in corpus
@@ -166,11 +167,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             // res contains all contexts extracted by searching for patterns
             extractedContexts_patterns.addAll(res);
             processedSeeds.addAll(seeds);
-
+            
             for (StudyContext entry : res) {
             	newSeedsIteration.add(entry.getTerm());
             }
-            // note: the set should never be empty, at least terms resulting in the generation of the used patterns have to be found again
+            
             log.debug("Found " + newSeedsIteration.size() + " seeds in current iteration");
             numIter++;
             if (processedSeeds.containsAll(newSeedsIteration)) {

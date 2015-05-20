@@ -9,18 +9,22 @@ import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.RegexUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.lucene.queryParser.ParseException;
+import org.slf4j.LoggerFactory;
 
 /**
  *
+ * @author kata
  * @author domi
  */
 public class PatternInducer {
     
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(PatternInducer.class);
     /**
      * Analyse contexts and induce relevant patterns given the specified
      * threshold.
@@ -30,13 +34,13 @@ public class PatternInducer {
      * @param processedPattern
      * @return Set of created Infolis Patterns
      */
-    public static Set<InfolisPattern> inducePatterns(List<StudyContext> contexts, double threshold, List<InfolisPattern> processedPattern) {
+    public static Set<InfolisPattern> inducePatterns(List<StudyContext> contexts, double threshold, List<String> processedMinimals) {
         Set<InfolisPattern> patterns = new HashSet<>();
-        Set<InfolisPattern> processedPatterns_iteration = new HashSet<>();
+        Set<String> processedMinimals_iteration = new HashSet<>();
         List<String> allContextStrings_iteration = StudyContext.getContextStrings(contexts);
 
         for (StudyContext context : contexts) {
-
+        	log.debug("Processing next context");
             List<String> leftWords = context.getLeftWords();
             List<String> rightWords = context.getRightWords();
 
@@ -167,121 +171,56 @@ public class PatternInducer {
             // constraint for patterns: at least one component not be a stopword
             // prevent induction of patterns less general than already known patterns:
             // check whether pattern is known before continuing
-            // also improves performance
-            //TODO: check for all patterns whether already found in current iteration
-            if (processedPattern.contains(regex1_normalizedAndQuoted) | processedPatterns_iteration.contains(regex1_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0))) & InfolisPattern.isRelevant(regex1_quoted, allContextStrings_iteration, threshold))//0.2
-            {
-                // substitute normalized numbers etc. with regex
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQuery1);
-                newPat.setPatternRegex(regex1_normalizedAndQuoted);
-                patterns.add(newPat);
-                processedPatterns_iteration.add(newPat);
-                System.out.println("found relevant type 1 pattern (most general): " + regex1_normalizedAndQuoted);
-                continue;
-            }
-            //TODO: do not return here, instead process Type phrase behind study title terms also"
-            if (processedPattern.contains(regex2_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0)) | RegexUtils.isStopword(leftWords.get(windowSize - 2)) & RegexUtils.isStopword(rightWords.get(0)) | RegexUtils.isStopword(leftWords.get(windowSize - 2)) & RegexUtils.isStopword(leftWords.get(windowSize - 1))) & InfolisPattern.isRelevant(regex2_quoted, allContextStrings_iteration, threshold - 0.02))//0.18
-            {
-                System.out.println("found relevant type 2 pattern: " + regex2_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQuery2);
-                newPat.setPatternRegex(regex2_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regex3_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 3)) & RegexUtils.isStopword(leftWords.get(windowSize - 2)) & RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0))) & InfolisPattern.isRelevant(regex3_quoted, allContextStrings_iteration, threshold - 0.04))//0.16
-            {
-                System.out.println("found relevant type 3 pattern: " + regex3_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQuery3);
-                newPat.setPatternRegex(regex3_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regex4_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 4)) & RegexUtils.isStopword(leftWords.get(windowSize - 3)) & RegexUtils.isStopword(leftWords.get(windowSize - 2)) & RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0))) & InfolisPattern.isRelevant(regex4_quoted, allContextStrings_iteration, threshold - 0.06))//0.14
-            {
-                System.out.println("found relevant type 4 pattern: " + regex4_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQuery4);
-                newPat.setPatternRegex(regex4_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regex5_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 5)) & RegexUtils.isStopword(leftWords.get(windowSize - 4)) & RegexUtils.isStopword(leftWords.get(windowSize - 3)) & RegexUtils.isStopword(leftWords.get(windowSize - 2)) & RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0))) & InfolisPattern.isRelevant(regex5_quoted, allContextStrings_iteration, threshold - 0.08))//0.12
-            {
-                System.out.println("found relevant type 5 pattern: " + regex5_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQuery5);
-                newPat.setPatternRegex(regex5_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-
-            if (processedPattern.contains(regexA_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(rightWords.get(0)) & RegexUtils.isStopword(rightWords.get(1)) | RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(1)) | RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0))) & InfolisPattern.isRelevant(regexA_quoted, allContextStrings_iteration, threshold - 0 - 02))//0.18
-            {
-                System.out.println("found relevant type A pattern: " + regexA_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQueryA);
-                newPat.setPatternRegex(regexA_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regexB_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0)) & RegexUtils.isStopword(rightWords.get(1)) & RegexUtils.isStopword(rightWords.get(2))) & InfolisPattern.isRelevant(regexB_quoted, allContextStrings_iteration, threshold - 0.04))//0.16
-            {
-                System.out.println("found relevant type B pattern: " + regexB_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQueryB);
-                newPat.setPatternRegex(regexB_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regexC_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0)) & RegexUtils.isStopword(rightWords.get(1)) & RegexUtils.isStopword(rightWords.get(2)) & RegexUtils.isStopword(rightWords.get(3))) & InfolisPattern.isRelevant(regexC_quoted, allContextStrings_iteration, threshold - 0.06))//0.14
-            {
-                System.out.println("found relevant type C pattern: " + regexC_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQueryC);
-                newPat.setPatternRegex(regexC_normalizedAndQuoted);
-                patterns.add(newPat);
-                continue;
-            }
-            if (processedPattern.contains(regexD_normalizedAndQuoted)) {
-                continue;
-            }
-            if (!(RegexUtils.isStopword(leftWords.get(windowSize - 1)) & RegexUtils.isStopword(rightWords.get(0)) & RegexUtils.isStopword(rightWords.get(1)) & RegexUtils.isStopword(rightWords.get(2)) & RegexUtils.isStopword(rightWords.get(3)) & RegexUtils.isStopword(rightWords.get(4))) & InfolisPattern.isRelevant(regexD_quoted, allContextStrings_iteration, threshold - 0.08))//0.12
-            {
-                System.out.println("found relevant type D pattern: " + regexD_normalizedAndQuoted);
-                InfolisPattern newPat = new InfolisPattern();
-                newPat.setLuceneQuery(luceneQueryD);
-                newPat.setPatternRegex(regexD_normalizedAndQuoted);
-                patterns.add(newPat);
-                processedPatterns_iteration.add(newPat);
-                continue;
-            }
+            
+            List<InfolisPattern> candidates = new ArrayList<>();
+            InfolisPattern type1 = new InfolisPattern(regex1_normalizedAndQuoted, luceneQuery1, regex1_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 1), rightWords.get(0))), threshold);
+            InfolisPattern type2 = new InfolisPattern(regex2_normalizedAndQuoted, luceneQuery2, regex2_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), rightWords.get(0))), threshold - 0.02);
+            InfolisPattern type3 = new InfolisPattern(regex3_normalizedAndQuoted, luceneQuery3, regex3_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), rightWords.get(0))), threshold - 0.04);
+            InfolisPattern type4 = new InfolisPattern(regex4_normalizedAndQuoted, luceneQuery4, regex4_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 4), leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), 
+            		rightWords.get(0))), threshold - 0.06);
+            InfolisPattern type5 = new InfolisPattern(regex5_normalizedAndQuoted, luceneQuery5, regex5_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 5), leftWords.get(windowSize - 4), leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), 
+            		leftWords.get(windowSize - 1), rightWords.get(0))), threshold - 0.08);
+            InfolisPattern typeA = new InfolisPattern(regexA_normalizedAndQuoted, luceneQueryA, regexA_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1))), threshold - 0.02);
+            InfolisPattern typeB = new InfolisPattern(regexB_normalizedAndQuoted, luceneQueryB, regexB_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2))), threshold - 0.04);
+            InfolisPattern typeC = new InfolisPattern(regexC_normalizedAndQuoted, luceneQueryC, regexC_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3))), threshold - 0.06);
+            InfolisPattern typeD = new InfolisPattern(regexD_normalizedAndQuoted, luceneQueryD, regexD_quoted, new ArrayList<String>(Arrays.asList(
+            		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3), rightWords.get(4))), 
+            		threshold - 0.08);
+            candidates.addAll(Arrays.asList(type1, type2, type3, type4, type5, typeA, typeB, typeC, typeD));
+            
+            for (InfolisPattern candidate : candidates) {
+            	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
+            	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {
+            		// no need to induce less general patterns, continue with next context
+            		//TODO: separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
+            		//TODO: also store unsuccessful patterns to avoid multiple computations of their score?
+            		log.debug("Pattern already known, returning.");
+                    break;
+            	}
+            	boolean nonStopwordPresent = false;
+            	for (String word : candidate.getWords()) {
+            		if (!RegexUtils.isStopword(word)) { 
+            			nonStopwordPresent = true;
+            			continue;
+            		}
+            	}
+            	if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
+            	if (nonStopwordPresent & candidate.isRelevant(allContextStrings_iteration)) {
+            		patterns.add(candidate);
+            		processedMinimals_iteration.add(candidate.getMinimal());
+            		log.debug("Pattern accepted");
+            		//TODO: separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
+            		break;
+            	}
+            } 
         }
         return patterns;
     }

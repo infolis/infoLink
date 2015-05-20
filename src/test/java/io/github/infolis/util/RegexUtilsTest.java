@@ -5,6 +5,8 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.regex.Pattern;
 
@@ -17,7 +19,6 @@ public class RegexUtilsTest {
 	public void testGetContextMinerYearPatterns() throws Exception {
 		Pattern pat = RegexUtils.getContextMinerYearPatterns()[0];
 		assertThat(pat, is(not(nullValue())));
-//		System.out.println(pat.toString());
 		assertThat(pat.matcher("1995").matches(), is(true));
 		assertThat(pat.matcher("1995-1998").matches(), is(true));
 		assertThat(pat.matcher("1995 bis 1998").matches(), is(true));
@@ -39,6 +40,21 @@ public class RegexUtilsTest {
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term,", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery(".the term.", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the. term.", true));
+	}
+	
+	@Test
+	public void testIsStopword() {
+		assertTrue(RegexUtils.isStopword("the"));
+		assertTrue(RegexUtils.isStopword("thethe"));
+		assertTrue(RegexUtils.isStopword("tothe"));
+		assertTrue(RegexUtils.isStopword("e"));
+		assertTrue(RegexUtils.isStopword("."));
+		assertTrue(RegexUtils.isStopword(".the"));
+		assertTrue(RegexUtils.isStopword("142"));
+		assertTrue(RegexUtils.isStopword("142."));
+		assertFalse(RegexUtils.isStopword("term"));
+		assertFalse(RegexUtils.isStopword("theterm"));
+		assertFalse(RegexUtils.isStopword("B142"));
 	}
 	
 

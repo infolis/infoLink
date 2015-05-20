@@ -16,7 +16,6 @@ import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -146,7 +145,7 @@ public class PatternApplier extends BaseAlgorithm {
             log.debug("Start extracting from '{}'.", inputFile);
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
-
+        
         for (StudyContext sC : detectedContexts) {
             getDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());

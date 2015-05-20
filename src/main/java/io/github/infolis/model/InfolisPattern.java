@@ -150,7 +150,7 @@ public class InfolisPattern extends BaseModel {
         int idf = 1;
 
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
-        if ((tf_idf > threshold) & (count_pos > 1)) {
+        if ((tf_idf >= threshold) & (count_pos > 1)) {
             return true;
         } else {
             return false;

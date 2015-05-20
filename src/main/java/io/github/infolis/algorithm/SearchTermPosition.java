@@ -170,11 +170,13 @@ public class SearchTermPosition extends BaseAlgorithm
 			String text = IOUtils.toString(openInputStream);
 			openInputStream.close();
 			
+			// note: this class is meant for searching for terms, not for patterns
+			// used to generate contexts for inducing new patterns, not for creating output
+			// output contexts are those created by pattern-based search
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
 				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
 					getDataStoreClient().post(StudyContext.class, sC);
-					// TODO post pattern!
 					this.execution.getStudyContexts().add(sC.getUri());
 				}
 			}
@@ -193,10 +195,6 @@ public class SearchTermPosition extends BaseAlgorithm
 		execution.setIndexDirectory(tempPath.toString());
 		
 		Algorithm algo = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
-//		Algorithm algo = new Indexer();
-//		algo.setExecution(execution);
-//		algo.setDataStoreClient(getDataStoreClient());
-//		algo.setFileResolver(getFileResolver());
 		algo.execute();
 	}
 
@@ -247,6 +245,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 	    	ltm.run();
 	    }
+	    // these patterns are used for extracting contexts of known study titles, do not confuse with patterns to detect study references
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
 	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
@@ -263,7 +262,6 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	//sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
 	    	sC.setRightWords(Arrays.asList(ltm.group(8).trim(), ltm.group(9).trim(), ltm.group(10).trim(), ltm.group(11).trim(), ltm.group(12).trim()));
 	    	sC.setFile(fileName);
-	    	
 	    	sC.setPattern(infolisPat.getUri());
 
 	    	contextList.add(sC);

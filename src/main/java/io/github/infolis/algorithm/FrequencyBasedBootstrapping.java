@@ -1,7 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -39,14 +37,18 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
 
+        Set<String> detectedStudies = new HashSet<>();
+        Set<String> detectedPatterns = new HashSet<>();
         for (StudyContext sC : detectedContexts) {
             getDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
+            detectedStudies.add(sC.getTerm());
+            detectedPatterns.add(sC.getPattern());
         }
-//        for (StudyContext sC : detectedContexts) {
-//            getDataStoreClient().post(StudyContext.class, sC);
-//            this.getExecution().getPattern().add(sC.getPattern().getUri());
-//        }
+        //TODO: use URI instead of the term string?
+        this.getExecution().getStudies().addAll(detectedStudies);
+        this.getExecution().getPattern().addAll(detectedPatterns);
+
         getExecution().setStatus(ExecutionStatus.FINISHED);
 
     }
@@ -97,6 +99,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
     private List<StudyContext> bootstrapFrequencyBased() throws ParseException, IOException, InstantiationException, IllegalAccessException {
         int numIter = 0;
         List<StudyContext> extractedContexts = new ArrayList<>();
+        List<StudyContext> extractedContexts_patterns = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
         List<InfolisPattern> processedPatterns = new ArrayList<>();
         Set<String> seeds = new HashSet<>();
@@ -160,15 +163,26 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             
             // 3. search for patterns in corpus
             List<StudyContext> res = applyPattern(newPatterns);
+            // res contains all contexts extracted by searching for patterns
+            extractedContexts_patterns.addAll(res);
             processedSeeds.addAll(seeds);
 
             for (StudyContext entry : res) {
             	newSeedsIteration.add(entry.getTerm());
             }
+            // note: the set should never be empty, at least terms resulting in the generation of the used patterns have to be found again
             log.debug("Found " + newSeedsIteration.size() + " seeds in current iteration");
             numIter++;
+            if (processedSeeds.containsAll(newSeedsIteration)) {
+            	log.debug("No new seeds found in iteration, returning.");
+            	// extractedContexts contains all contexts resulting from searching a seed term
+            	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
+            	// thus, return the latter here
+            	return extractedContexts_patterns;
+            }
         }
-        return extractedContexts;
+        log.debug("Maximum number of iterations reached, returning.");
+        return extractedContexts_patterns;
     }
 
     private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
@@ -181,7 +195,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             exec.setSearchTerm("");
     		exec.setSearchQuery(curPat.getLuceneQuery());
     		exec.setInputFiles(getExecution().getInputFiles());
-    		//Algorithm algo = exec.instantiateAlgorithm(DataStoreClientFactory.local(), getFileResolver());
     		Algorithm algo = exec.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
     		algo.setExecution(exec);
     		log.debug("Lucene pattern: " + curPat.getLuceneQuery());
@@ -200,11 +213,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 algo2.setExecution(execution);
                 algo2.run();
 
-                DataStoreClient client = DataStoreClientFactory.local();
-
                 for (String uri : execution.getStudyContexts()) {
-                    StudyContext sc = client.get(StudyContext.class, uri);
-                    contexts.add(sc);
+                    StudyContext sC = getDataStoreClient().get(StudyContext.class, uri);
+                    sC.setPattern(curPat.getUri());
+                    contexts.add(sC);
                 }
             }
         }

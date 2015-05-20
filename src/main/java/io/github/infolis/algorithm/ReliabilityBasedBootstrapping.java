@@ -6,6 +6,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
+ * @author kata
  * @author domi
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
@@ -27,16 +29,15 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
     private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
         Set<String> reliableInstances = new HashSet<>();
-        Set<InfolisPattern> reliablePatterns_iteration;
         Set<StudyContext> extractedContexts = new HashSet<>();
-        Set<String> processedPattern = new HashSet<>();
+        Set<String> processedPatterns = new HashSet<>();
         List<StudyContext> reliableContexts = new ArrayList<>();
-        int numIter = 0;
+        List<StudyContext> reliableContexts_iteration;
+        int numIter = 1;
         Reliability r = new Reliability();
         Set<String> seeds = new HashSet<>();
         seeds.addAll(getExecution().getTerms());
         while (numIter < getExecution().getMaxIterations()) {
-            numIter++;
             log.debug("Bootstrapping... Iteration: " + numIter);
             // 0. filter seeds, select only reliable ones
             // alternatively: use all seeds extracted by reliable patterns
@@ -49,7 +50,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setSearchTerm(seed);
-                execution.setSearchQuery("\""+seed+"\"");
+                execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
 
@@ -58,22 +59,22 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 List<StudyContext> detectedContexts = new ArrayList<>();
                 for (String sC : execution.getStudyContexts()) {
                     StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
-                    InfolisPattern pat = this.getDataStoreClient().get(InfolisPattern.class, context.getPattern());
+                    //InfolisPattern pat = this.getDataStoreClient().get(InfolisPattern.class, context.getPattern());
                     detectedContexts.add(context);
-                    processedPattern.add(pat.getPatternRegex());
+                    // wrong
+                    //processedPattern.add(pat.getPatternRegex());
                 }
+                //TODO: wrong: PatternInducer.saveReliablePatternData must be called for the context of each seed separately
                 extractedContexts.addAll(detectedContexts);
             }
             // 2. get reliable patterns, save their data to this.reliablePatternsAndContexts and 
             // new seeds to this.foundSeeds_iteration
-            reliablePatterns_iteration = PatternInducer.saveReliablePatternData(extractedContexts, getExecution().getThreshold(), processedPattern, getExecution().getInputFiles().size(), reliableInstances, r);
+            //TODO: move inside of loop (see todo above)
+            reliableContexts_iteration = PatternInducer.saveReliablePatternData(extractedContexts, getExecution().getThreshold(), processedPatterns, getExecution().getInputFiles().size(), reliableInstances, r);
+            reliableContexts.addAll(reliableContexts_iteration);
             seeds = new HashSet<>();
-            for (StudyContext sc : extractedContexts) {
-                if (reliablePatterns_iteration.contains(sc.getPattern())) {
-                    seeds.add(sc.getTerm());
-                    reliableContexts.add(sc);
-                }
-            }
+            for (StudyContext sC : reliableContexts_iteration) seeds.add(sC.getTerm());
+            numIter++;
         }
         return reliableContexts;
     }

@@ -67,8 +67,7 @@ public class UploadWebservice {
 		try {
 			resolver.validateFileId(fileId);
 			InputStream inputStream = resolver.openInputStream(fileId);
-			String str = IOUtils.toString(inputStream);
-            ret = Response.ok(str).build();
+            ret = Response.ok(inputStream).build();
 		} catch (FileNotFoundException fnfe) {
 			ret = Response.status(404).entity(String.format("No such file '%s'.", fileId)).build();
 		} catch (IllegalArgumentException | IOException e) {

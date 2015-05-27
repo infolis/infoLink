@@ -10,8 +10,16 @@ import io.github.infolis.model.Execution;
 
 import java.net.URI;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
+
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +30,26 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 	Logger log = LoggerFactory.getLogger(ExecutorWebserviceTest.class);
 
 	@Test
+	public void testStartFronendExecution() throws Exception {
+		FormDataMultiPart fdm = new FormDataMultiPart();
+		fdm.field("algorithm", TextExtractorAlgorithm.class.getName());
+		WebTarget target = jerseyClient
+				.target(InfolisConfig.getFrontendURI())
+				.path("/execute");
+		log.debug("{}", target);
+		Entity<FormDataMultiPart> entity = Entity.entity(fdm, fdm.getMediaType());
+		log.debug("{}", entity);
+		log.debug("{}", fdm.getField("algorithm").getValue());
+		
+		// Why TF does this hang???
+		Response post = target
+				.request(MediaType.APPLICATION_JSON)
+				.post(entity);
+		log.debug("{}", post.getHeaders());
+		log.debug("{}", post.readEntity(String.class));
+	}
+
+	@Ignore
 	public void testStartExecution() throws Exception {
 		DataStoreClient centralClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 		Execution e = new Execution();

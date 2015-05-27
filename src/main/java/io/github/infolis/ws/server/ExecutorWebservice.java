@@ -13,9 +13,12 @@ import java.net.URI;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Web service for executing algorithms.
@@ -25,11 +28,13 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 @Path("/executor")
 public class ExecutorWebservice {
 
+	Logger log = LoggerFactory.getLogger(ExecutorWebservice.class);
+
 	private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 	private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);
-
+	
 	@POST
-	public Response startExecution(@PathParam("id") String executionUri) {
+	public Response startExecution(@QueryParam("id") String executionUri) {
 		Execution execution = dataStoreClient.get(Execution.class, URI.create(executionUri));
 		ResponseBuilder resp = Response.ok();
 		if (null == execution) {

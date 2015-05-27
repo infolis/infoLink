@@ -13,12 +13,28 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 public class InfolisBaseTest {
 	protected DataStoreClient dataStoreClient = DataStoreClientFactory.local();
 	protected FileResolver fileResolver = new TempFileResolver();
+
+	protected static Client jerseyClient = ClientBuilder.newBuilder()
+//			.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+			.register(MultiPartFeature.class)
+//			.register(JacksonFeature.class)
+//			.register(JacksonJsonProvider.class)
+			.build();
+
 	
 	protected String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",

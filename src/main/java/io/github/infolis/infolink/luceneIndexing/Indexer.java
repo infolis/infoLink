@@ -100,7 +100,7 @@ public class Indexer extends BaseAlgorithm
 	}
 
 	@Override
-	public void validate() {
+	public void validate() throws IllegalAlgorithmArgumentException {
 		Execution exec = this.getExecution();
 		if (null == exec.getInputFiles() || exec.getInputFiles().isEmpty())
 			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");

@@ -17,8 +17,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 public class InfolisBaseTest {
-	protected DataStoreClient localClient = DataStoreClientFactory.local();
-	protected FileResolver tempFileResolver = new TempFileResolver();
+	protected DataStoreClient dataStoreClient = DataStoreClientFactory.local();
+	protected FileResolver fileResolver = new TempFileResolver();
 	
 	protected String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -43,8 +43,8 @@ public class InfolisBaseTest {
 			file.setMd5(SerializationUtils.getHexMd5(data));
 			file.setFileName(tempFile.toString());
 
-			localClient.post(InfolisFile.class, file);
-			OutputStream os = tempFileResolver.openOutputStream(file);
+			dataStoreClient.post(InfolisFile.class, file);
+			OutputStream os = fileResolver.openOutputStream(file);
 			IOUtils.write(data, os);
 			os.close();
 			ret.add(file);

@@ -44,5 +44,11 @@ public class ExecutionTest {
 //		log.debug(SerializationUtils.toJSON(execution));
 //		log.debug(SerializationUtils.toJSON(executionRetrieved));
 	}
+
+
+	@Test
+	public void testInstantiateAlgorithm() throws Exception {
+		throw new RuntimeException("not yet implemented");
+	}
 	
 }

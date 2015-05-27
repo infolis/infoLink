@@ -4,6 +4,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.util.SerializationUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -34,8 +35,16 @@ public abstract class BaseAlgorithm implements Algorithm {
 	
 	@Override
 	public final void run() {
-		baseValidate();
-		validate();
+		log.debug("{}", SerializationUtils.toJSON(getExecution()));
+		try {
+			baseValidate();
+			validate();
+		} catch (IllegalAlgorithmArgumentException e) {
+			getExecution().setStatus(ExecutionStatus.FAILED);
+			getExecution().getLog().add(e.getMessage());
+			getDataStoreClient().put(Execution.class, getExecution());
+			return;
+		}
 		getExecution().setStatus(ExecutionStatus.STARTED);
 		getExecution().setStartTime(new Date());
 		try {
@@ -43,9 +52,10 @@ public abstract class BaseAlgorithm implements Algorithm {
 		} catch (Exception e) {
 			log.error("Execution threw an Exception: {}" , e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
+		} finally {
+			getExecution().setEndTime(new Date());
+			getDataStoreClient().put(Execution.class, getExecution());
 		}
-		getExecution().setEndTime(new Date());
-		getDataStoreClient().put(Execution.class, getExecution());
 	}
 
 	@Override
@@ -78,15 +88,15 @@ public abstract class BaseAlgorithm implements Algorithm {
 		this.dataStoreClient = dataStoreClient;
 	}
 	
-	public void baseValidate() {
+	public void baseValidate() throws IllegalAlgorithmArgumentException {
 		if (null == getExecution()) {
-			throw new RuntimeException("Algorithm must have a 'Excecution' set to run().");
+			throw new IllegalAlgorithmArgumentException(getClass(), "execution", "Algorithm must have a 'Excecution' set to run().");
 		}
 		if (null == getFileResolver()) {
-			throw new RuntimeException("Algorithm must have a 'FileResolver' set to run().");
+			throw new IllegalAlgorithmArgumentException(getClass(), "fileResolver", "Algorithm must have a 'FileResolver' set to run().");
 		}
 		if (null == getDataStoreClient()) {
-			throw new RuntimeException("Algorithm must have a 'dataStoreClient' set to run().");
+			throw new IllegalAlgorithmArgumentException(getClass(), "dataStoreClient", "Algorithm must have a 'dataStoreClient' set to run().");
 		}
 	}
 }

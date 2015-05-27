@@ -57,15 +57,15 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 		execution.setBootstrapStrategy(Execution.Strategy.reliability);
 
 		Algorithm algo = new ReliabilityBasedBootstrapping();
-		algo.setDataStoreClient(localClient);
-		algo.setFileResolver(tempFileResolver);
+		algo.setDataStoreClient(dataStoreClient);
+		algo.setFileResolver(fileResolver);
 		algo.setExecution(execution);
 		algo.run();
 
 		assertTrue("StudyContexts must not be empty!", execution.getStudyContexts().size() > 0);
 		for (String s : execution.getStudyContexts()) {
-			StudyContext studyContext = localClient.get(StudyContext.class, s);
-			InfolisPattern pat = localClient.get(InfolisPattern.class, studyContext.getPattern());
+			StudyContext studyContext = dataStoreClient.get(StudyContext.class, s);
+			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
 			assertNotNull("StudyContext must have pattern set!", studyContext.getPattern());
 			assertNotNull("StudyContext must have term set!", studyContext.getTerm());

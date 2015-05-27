@@ -271,7 +271,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	}
 
 	@Override
-	public void validate() {
+	public void validate() throws IllegalAlgorithmArgumentException {
 //		if (null != this.getExecution().getOutputFiles()
 //				 && !this.getExecution().getOutputFiles().isEmpty())
 //			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");

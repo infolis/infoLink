@@ -34,7 +34,7 @@ public class PatternApplierTest extends InfolisBaseTest {
 	    for (InfolisFile file : createTestFiles(7)) {
 			uris.add(file.getUri());
 	    }
-	    localClient.post(InfolisPattern.class, testPattern);
+	    dataStoreClient.post(InfolisPattern.class, testPattern);
     }
 
     @Test
@@ -46,8 +46,8 @@ public class PatternApplierTest extends InfolisBaseTest {
     	execution.getInputFiles().addAll(uris);
     	
     	Algorithm algo = new PatternApplier();
-    	algo.setDataStoreClient(localClient);
-    	algo.setFileResolver(tempFileResolver);
+    	algo.setDataStoreClient(dataStoreClient);
+    	algo.setFileResolver(fileResolver);
     	algo.setExecution(execution);
     	algo.run();
     	

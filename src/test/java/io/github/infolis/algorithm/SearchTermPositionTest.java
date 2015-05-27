@@ -39,8 +39,8 @@ public class SearchTermPositionTest extends InfolisBaseTest {
             uris.add(file.getUri());
 		}
 		stp = new SearchTermPosition();
-		stp.setDataStoreClient(localClient);
-		stp.setFileResolver(tempFileResolver);
+		stp.setDataStoreClient(dataStoreClient);
+		stp.setFileResolver(fileResolver);
 	}
 
 	@Test
@@ -96,12 +96,12 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setSearchTerm(searchTerm);
 		exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);
-        Algorithm algo = exec.instantiateAlgorithm(localClient, tempFileResolver);
+        Algorithm algo = exec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
 
 		ArrayList<StudyContext> contextList = new ArrayList<StudyContext>();
 		for (String uri : exec.getStudyContexts()) {
-			contextList.add(localClient.get(StudyContext.class, uri));
+			contextList.add(dataStoreClient.get(StudyContext.class, uri));
 		}
 		return contextList;
 		

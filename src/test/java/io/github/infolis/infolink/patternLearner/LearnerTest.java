@@ -52,7 +52,7 @@ public class LearnerTest extends InfolisBaseTest {
         execution.setSearchTerm(terms.get(0));
         execution.setThreshold(threshold);
         execution.setBootstrapStrategy(strategy);
-        execution.instantiateAlgorithm(localClient, tempFileResolver).run();
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         //TODO: use this when URIs are posted in FrequencyBasedBootstrapping instead of the term string
         //assertEquals(expectedStudies, getTerms(execution.getStudies()));
         assertEquals(expectedStudies, new HashSet<>(execution.getStudies()));
@@ -63,7 +63,7 @@ public class LearnerTest extends InfolisBaseTest {
     Set<String> getRegex(List<String> patternURIs) {
     	Set<String> regexSet = new HashSet<String>();
     	for (String uri : patternURIs) {
-    		InfolisPattern pattern = localClient.get(InfolisPattern.class, uri);
+    		InfolisPattern pattern = dataStoreClient.get(InfolisPattern.class, uri);
     		regexSet.add(pattern.getMinimal());
     	}
     	return regexSet;
@@ -72,7 +72,7 @@ public class LearnerTest extends InfolisBaseTest {
     Set<String> getContextStrings(List<String> contextURIs) {
     	Set<String> contextSet = new HashSet<String>();
     	for (String uri : contextURIs) {
-    		StudyContext infolisContext = localClient.get(StudyContext.class, uri);
+    		StudyContext infolisContext = dataStoreClient.get(StudyContext.class, uri);
     		contextSet.add(infolisContext.getLeftText() + " " + infolisContext.getTerm() + " " + infolisContext.getRightText());
     	}
     	return contextSet;

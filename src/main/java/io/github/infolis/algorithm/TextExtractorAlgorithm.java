@@ -14,6 +14,7 @@ import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -204,7 +205,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	public void execute() {
 		for (String inputFileURI : getExecution().getInputFiles()) {
 			log.debug(inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, URI.create(inputFileURI));
 			if (null == inputFile) {
 				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
 			}

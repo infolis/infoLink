@@ -5,6 +5,7 @@ import io.github.infolis.model.BaseModel;
 import java.net.URI;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 public interface DataStoreClient {
 
@@ -18,8 +19,10 @@ public interface DataStoreClient {
 	 * @param id
 	 *            the ID part of the URI of the thing to retrieve
 	 * @return the server representation of the thing
+	 * @throws BadRequestException
+	 * @throws ProcessingException
 	 */
-	<T extends BaseModel> T get(Class<T> clazz, String id) throws BadRequestException;
+	<T extends BaseModel> T get(Class<T> clazz, String id) throws BadRequestException, ProcessingException;
 
 	/**
 	 * PUT an resource
@@ -37,8 +40,10 @@ public interface DataStoreClient {
 	 * @param uri
 	 *            the {@link URI} of the thing to retrieve
 	 * @return the server representation of the thing
+	 * @throws BadRequestException
+	 * @throws ProcessingException
 	 */
-	<T extends BaseModel> T get(Class<T> clazz, URI uri) throws BadRequestException;
+	<T extends BaseModel> T get(Class<T> clazz, URI uri) throws BadRequestException, ProcessingException;
 
 	/**
 	 * POST a resource to the frontend web service.

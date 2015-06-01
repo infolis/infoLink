@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -91,7 +92,7 @@ class CentralClient implements DataStoreClient {
 		if (!uri.isAbsolute()) {
 			String msg = "URI must be absolute, " + uri + " is NOT.";
 			log.error(msg);
-			throw new RuntimeException(msg);
+			throw new ProcessingException(msg);
 		}
 		WebTarget target = jerseyClient.target(uri);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
@@ -101,7 +102,12 @@ class CentralClient implements DataStoreClient {
 		} else if (resp.getStatus() >= 400) {
 			throw new BadRequestException(resp);
 		}
-		T thing = resp.readEntity(clazz);
+		T thing;
+		try {
+			thing = resp.readEntity(clazz);
+		} catch (Exception e) {
+			throw new ProcessingException(e);
+		}
 
 		thing.setUri(target.getUri().toString());
 		return thing;
@@ -119,7 +125,13 @@ class CentralClient implements DataStoreClient {
 		} else if (resp.getStatus() >= 400) {
 			throw new BadRequestException(resp);
 		}
-		T thing = resp.readEntity(clazz);
+		T thing;
+		try {
+			thing = resp.readEntity(clazz);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ProcessingException(e);
+		}
 		thing.setUri(target.getUri().toString());
 		return thing;
 	}
@@ -161,7 +173,7 @@ class CentralClient implements DataStoreClient {
 			Entity<String> entity = Entity.entity(SerializationUtils.toJSON(patch), MediaType.APPLICATION_JSON_TYPE);
 			target.request(MediaType.APPLICATION_JSON_TYPE).method("PATCH", entity);
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new ProcessingException(e);
 		}
 		
 	}

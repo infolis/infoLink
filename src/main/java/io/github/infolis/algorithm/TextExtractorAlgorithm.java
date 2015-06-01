@@ -59,6 +59,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
 		try {
 			try {
+				if (log.isTraceEnabled()) {
+					log.trace(IOUtils.toString(getFileResolver().openInputStream(inFile)));
+				}
 				inStream = getFileResolver().openInputStream(inFile);
 			} catch (IOException e) {
 				getExecution().getLog().add("Error opening input stream: " + e);

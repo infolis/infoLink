@@ -229,8 +229,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
 			} else {
 				getExecution().setStatus(ExecutionStatus.FINISHED);
-				getExecution().getOutputFiles().add(outputFile.getUri());
 				getDataStoreClient().post(InfolisFile.class, outputFile);
+				getExecution().getOutputFiles().add(outputFile.getUri());
 				log.debug("No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
 			}
 		}

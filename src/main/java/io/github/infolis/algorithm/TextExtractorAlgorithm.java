@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.kohsuke.args4j.CmdLineException;
@@ -207,6 +208,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			log.debug(inputFileURI);
 			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, URI.create(inputFileURI));
 			if (null == inputFile) {
+				getDataStoreClient().post(Execution.class, getExecution());
 				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
 			}
 			log.debug("Start extracting from " + inputFile);
@@ -214,7 +216,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			try {
 				outputFile = extract(inputFile);
 			} catch (IOException e) {
-				getExecution().logFatal("Extraction caused exception: " + e);
+				getExecution().logFatal("Extraction caused exception: " + e + "\n" + ExceptionUtils.getStackTrace(e));
+				getDataStoreClient().post(Execution.class, getExecution());
 			}
 //			log.debug("LOG {}", getExecution().getLog());
 			// FrontendClient.post(InfolisFile.class, outputFile);
@@ -222,11 +225,12 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				getExecution().logFatal("Conversion failed for input file " + inputFileURI);
 				log.error("Log of this execution: " + getExecution().getLog());
 				getExecution().setStatus(ExecutionStatus.FAILED);
+				getDataStoreClient().post(Execution.class, getExecution());
 				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
 			} else {
 				getExecution().setStatus(ExecutionStatus.FINISHED);
-				getDataStoreClient().post(InfolisFile.class, outputFile);
 				getExecution().getOutputFiles().add(outputFile.getUri());
+				getDataStoreClient().post(InfolisFile.class, outputFile);
 				log.debug("No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
 			}
 		}

@@ -11,8 +11,10 @@ import io.github.infolis.model.ExecutionStatus;
 
 import java.net.URI;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -35,9 +37,16 @@ public class ExecutorWebservice {
 	
 	@POST
 	public Response startExecution(@QueryParam("id") String executionUri) {
-		Execution execution = dataStoreClient.get(Execution.class, URI.create(executionUri));
 		ResponseBuilder resp = Response.ok();
-		if (null == execution) {
+
+		Execution execution;
+		try {
+			execution = dataStoreClient.get(Execution.class, URI.create(executionUri));
+			if (null == execution) {
+				throw new ProcessingException("Could not find execution " + executionUri);
+			}
+		} catch (BadRequestException | ProcessingException e1) {
+			e1.printStackTrace();
 			String msg = "Could not retrieve execution " + executionUri;
 			resp.status(404);
 			resp.entity(msg);

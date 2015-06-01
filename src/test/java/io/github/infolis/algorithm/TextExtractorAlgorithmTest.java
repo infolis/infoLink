@@ -58,8 +58,8 @@ public class TextExtractorAlgorithmTest {
         client.post(InfolisFile.class, inFile);
         client.post(Execution.class, execution);
                 
-        System.out.println(inFile.getFileName());
-        System.out.println(inFile.getUri());
+        log.debug(inFile.getFileName());
+        log.debug(inFile.getUri());
         
         assertNotNull(inFile.getUri());
 

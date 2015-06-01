@@ -87,7 +87,6 @@ public class TextExtractorAlgorithmTest {
         InputStream in = resolver.openInputStream(outFile);
         String x = IOUtils.toString(in);
         in.close();
-        System.out.println("x:"+x.trim());
 //		for (char c : x.toCharArray()) {
 //            log.debug("{}", (int)c);
 //		}

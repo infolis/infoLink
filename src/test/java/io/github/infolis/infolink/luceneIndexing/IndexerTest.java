@@ -42,16 +42,16 @@ public class IndexerTest extends InfolisBaseTest {
 		
 		Algorithm algo = new Indexer();
 		algo.setExecution(execution);
-		algo.setFileResolver(tempFileResolver);
-		algo.setDataStoreClient(localClient);
+		algo.setFileResolver(fileResolver);
+		algo.setDataStoreClient(dataStoreClient);
 		algo.run();
 
 		log.debug("File 0: {} " , inputFiles.get(0));
-		InputStream in0 = tempFileResolver.openInputStream(inputFiles.get(0));
+		InputStream in0 = fileResolver.openInputStream(inputFiles.get(0));
 		assertEquals("Hallo, please try to find the FOOBAR in this short text snippet. Thank you.", IOUtils.toString(in0));
 		in0.close();
 		log.debug("File 10: {} " , inputFiles.get(10));
-		InputStream in10 = tempFileResolver.openInputStream(inputFiles.get(10));
+		InputStream in10 = fileResolver.openInputStream(inputFiles.get(10));
 		assertEquals("Hallo, please try to find the term in this short text snippet. Thank you.", IOUtils.toString(in10));
 		in10.close();
 	}

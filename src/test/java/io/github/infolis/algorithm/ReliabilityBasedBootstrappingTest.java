@@ -6,6 +6,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
@@ -23,17 +24,15 @@ import org.slf4j.LoggerFactory;
 /**
  *
  * @author kata
- * @author domi
- * @author kba
  */
-public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
+public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 
 	Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrappingTest.class);
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "FOOBAR";
 	private final static List<String> terms = Arrays.asList(term);
 
-	public FrequencyBasedBootstrappingTest() throws Exception {
+	public ReliabilityBasedBootstrappingTest() throws Exception {
 		for (InfolisFile file : createTestFiles(7)) {
 			uris.add(file.getUri());
 		}
@@ -47,22 +46,23 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	 * @param strategy
 	 * @throws Exception
 	 */
-	void testFrequencyBasedBootstrapping(Execution.Strategy strategy) throws Exception {
+	void testReliabilityBasedBootstrapping() throws Exception {
 
 		Execution execution = new Execution();
-		execution.setAlgorithm(FrequencyBasedBootstrapping.class);
+		execution.setAlgorithm(ReliabilityBasedBootstrapping.class);
 		execution.getTerms().addAll(terms);
 		execution.setInputFiles(uris);
 		execution.setSearchTerm(terms.get(0));
-		execution.setThreshold(0.0);
-		execution.setBootstrapStrategy(strategy);
+		execution.setThreshold(-1000.0);
+		execution.setBootstrapStrategy(Execution.Strategy.reliability);
 
-		Algorithm algo = new FrequencyBasedBootstrapping();
+		Algorithm algo = new ReliabilityBasedBootstrapping();
 		algo.setDataStoreClient(dataStoreClient);
 		algo.setFileResolver(fileResolver);
 		algo.setExecution(execution);
 		algo.run();
 
+		assertTrue("StudyContexts must not be empty!", execution.getStudyContexts().size() > 0);
 		for (String s : execution.getStudyContexts()) {
 			StudyContext studyContext = dataStoreClient.get(StudyContext.class, s);
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
@@ -75,11 +75,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 
 	@Test
 	public void testBootstrapping_basic() throws Exception {
-
-		testFrequencyBasedBootstrapping(Execution.Strategy.separate);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeCurrent);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeNew);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeAll);
+		testReliabilityBasedBootstrapping();
 	}
 
 }

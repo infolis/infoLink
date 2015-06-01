@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.queryParser.ParseException;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  *
+ * @author kata
  * @author domi
  * @author kba
  */
@@ -36,14 +39,25 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InfolisPattern extends BaseModel {
 
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
-    private Map<String, Double> associations;
+    private Map<String, Double> associations = new HashMap<>();
+    private List<String> words = new ArrayList<>();
+    private double threshold;
     
     public InfolisPattern(String patternRegex, String luceneQuery) {
     	this.setLuceneQuery(luceneQuery);
     	this.setPatternRegex(patternRegex);
+	}
+    
+    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
+    	this.setLuceneQuery(luceneQuery);
+    	this.setPatternRegex(patternRegex);
+    	this.setMinimal(minimal);
+    	this.setWords(words);
+    	this.setThreshold(threshold);
 	}
 
     public InfolisPattern(String patternRegex) {
@@ -66,6 +80,13 @@ public class InfolisPattern extends BaseModel {
     public String getLuceneQuery() {
         return luceneQuery;
     }
+    
+    /**
+     * @return the words
+     */
+    public List<String> getWords() {
+        return words;
+    }
 
     /**
      * Adds an association between this pattern and a specified instance.
@@ -77,7 +98,7 @@ public class InfolisPattern extends BaseModel {
      */
     public boolean addAssociation(String instanceName, double score) {
         if (this.getAssociations().containsKey(instanceName)) {
-            System.err.print("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
+ //           log.debug("Warning: association between pattern " + this.getPatternRegex() + " and instance " + instanceName + " already known! ");
         }
         return (this.getAssociations().put(instanceName, score) == null);
     }
@@ -109,8 +130,31 @@ public class InfolisPattern extends BaseModel {
     public void setMinimal(String minimal) {
         this.minimal = minimal;
     }
+    
+    /**
+     * 
+     * @param words the words to set
+     */
+    public void setWords(List<String> words) {
+    	this.words = words;
+    }
+    
+    /**
+     * 
+     * @param threshold threshold for accepting this pattern
+     */
+    public void setThreshold(double threshold) {
+    	this.threshold = threshold;
+    }
+    
+    /**
+     * 
+     * @param threshold threshold for accepting this pattern
+     */
+    public double getThreshold() {
+    	return this.threshold;
+    }
 
-    //TODO: the regex are not created as Patterns in the PatternInducer
     /**
      * Determines whether a regular expression is suitable for extracting
      * dataset references using a frequency-based measure
@@ -121,30 +165,33 @@ public class InfolisPattern extends BaseModel {
      * @return				<emph>true</emph>, if regex is found to be relevant,
      * <emph>false</emph> otherwise
      */
-    public static boolean isRelevant(String regex, List<String> contextStrings, double threshold) {
-        System.out.println("Checking if pattern is relevant: " + regex);
+    public boolean isRelevant(List<String> contextStrings) {
         // compute score for similar to tf-idf...
         // count occurrences of regex in positive vs negative contexts...
         int count_pos = 0;
-        int count_neg = 0;
-        List<String> contexts_neg = new ArrayList<>();
+        //int count_neg = 0;
+        //List<String> contexts_neg = new ArrayList<>();
         for (String context : contextStrings) {
-            count_pos += patternFound(regex, context);
+            count_pos += patternFound(this.minimal, context);
         }
-        // contexts neg always empty right now
+        /*
         for (String context : contexts_neg) {
             count_neg += patternFound(regex, context);
-        }
+        }*/
 
         //TODO: rename - this is not really tf-idf ;)
-        double idf = 0;
         // compute relevance...
+        /*
+        double idf = 0;
         if (count_neg + count_pos > 0) {
             idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
-        }
+        }*/
+        int idf = 1;
 
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
-        if ((tf_idf > threshold) & (count_pos > 1)) {
+        log.debug("Relevance score: " + tf_idf);
+        log.debug("Occurrences: " + count_pos);
+        if ((tf_idf >= this.threshold) & (count_pos > 1)) {
             return true;
         } else {
             return false;
@@ -214,47 +261,72 @@ public class InfolisPattern extends BaseModel {
         return patternSet;
     }
 
-    public List<StudyContext> isReliable(double threshold, int dataSize, Set<String> reliableInstances, Set<StudyContext> extractedContexts, Reliability r) throws IOException, ParseException {
-        int patternCounter = 0;
-        List<StudyContext> contextOfPattern = new ArrayList<>();
+    //TODO: fix method, restore old functionality
+    //TODO: this method should probably not belong to the infolisPattern class. Computation of reliability includes searching for pattern in the complete corpus. 
+    public List<StudyContext> getReliable(int dataSize, Set<String> reliableInstances, Set<StudyContext> extractedContexts, Reliability r) throws IOException, ParseException {
+        
+        // wrong. Pattern needs to be searched in complete corpus, not in extracted contexts.
+    	// see definition of p_y
+        /*
+        List<StudyContext> contextsOfPattern = new ArrayList<>();
         for (StudyContext sc : extractedContexts) {
-            if (sc.getPattern().equals(this)) {
-                contextOfPattern.add(sc);
+            if (sc.getPattern().equals(this.getUri())) {
+                contextsOfPattern.add(sc);
                 patternCounter++;
             }
-        }
+        }*/
+        //TODO: apply pattern on whole corpus and count occurrences
+    	// save extracted contexts in case pattern is deemed reliable - no need to repeat the search
+    	List<StudyContext> contexts_patternCandidates = new ArrayList<>();
+    	int patternCounter = 0;
+    	//List<StudyContext> contexts_patternCandidates = applyPattern....
+    	//int patternCounter = contexts_patternCandidates.size(); ...
 
         // for every known instance, check whether pattern is associated with it            
         for (String instance : reliableInstances) {
             int occurrencesPattern = 0;
             int totalSentences = 0;
+            
             for (StudyContext sc : extractedContexts) {
                 if (sc.getTerm().equals(instance)) {
                     totalSentences++;
-                    if (sc.getPattern().equals(this)) {
+                    // wrong. The question is whether the pattern can be found in the context, not whether the context was generated by it
+                    /*if (sc.getPattern().equals(this)) {
                         occurrencesPattern++;
-                    }
+                    }*/
+                    Pattern p = Pattern.compile(this.getMinimal());
+                    Matcher m = p.matcher(sc.toString());
+                    if (m.find()) occurrencesPattern++;
                 }
+                
+                // p_x: probability of instance occurring in the data
                 double p_x = (double) totalSentences / (double) dataSize;
+                // p_y: probability of pattern occurring in the data
                 double p_y = (double) patternCounter / (double) dataSize;
+                // p_xy: joint probability of pattern and instance occurring in the data
+                // note original comment: "all entries in the context file belong to one instance (seed)"
+                // -> searching context file of seed to compute joint occurrence is sufficient
+                //TODO: make sure this method is still called for each seed and each pattern and not for a merged set of contexts
                 double p_xy = (double) occurrencesPattern / (double) dataSize;
                 Reliability.Instance newInstance = r.new Instance(instance);
                 double pmi_pattern = MathUtils.pmi(p_xy, p_x, p_y);
                 this.addAssociation(instance, pmi_pattern);
+                //TODO: why use regex for storing association? Shouldn't the URI be used?
                 newInstance.addAssociation(this.getPatternRegex(), pmi_pattern);
+                //TODO: use URIs
                 r.addPattern(this);
                 r.addInstance(newInstance);
                 r.setMaxPmi(pmi_pattern);
             }
         }
 
-        System.out.println("Computing relevance of " + this.getPatternRegex());
+        System.out.println("Computing relevance of " + this.getMinimal());
         double patternReliability = r.reliability(this);
 
         if (patternReliability >= threshold) {
-            return contextOfPattern;
+            return contexts_patternCandidates;
         } else {
-            System.out.println("Pattern " + this.getPatternRegex() + " deemed unreliable");
+            log.debug("Pattern " + this.getMinimal() + " deemed unreliable");
             return new ArrayList<>();
         }
     }

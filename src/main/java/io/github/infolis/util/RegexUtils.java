@@ -290,7 +290,7 @@ public class RegexUtils {
             return true;
         }
         // trim word, lower case and remove all punctuation
-        word = word.replace("\\p{Punct}+", "").trim().toLowerCase();
+        word = word.replaceAll("\\p{Punct}+", "").trim().toLowerCase();
 		// due to text extraction errors, whitespace is frequently added to words resulting in many single characters
         // TODO: use this as small work-around but work on better methods for automatic text correction
         if (word.length() < 2) {
@@ -299,9 +299,12 @@ public class RegexUtils {
         if (RegexUtils.stopwordList().contains(word)) {
             return true;
         }
-        // treat concatenations of stopwords as stopword
+        // treat concatenations of two stopwords as stopword
         for (String stopword : RegexUtils.stopwordList()) {
-            if (RegexUtils.stopwordList().contains(word.replace(stopword, ""))) {
+            if (stopwordList().contains(word.replace(stopword, ""))) {
+                return true;
+            }
+            if (word.replace(stopword, "").isEmpty()) {
                 return true;
             }
         }

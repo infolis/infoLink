@@ -1,5 +1,7 @@
 package io.github.infolis.model;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -17,10 +19,11 @@ public class InfolisFile extends BaseModel {
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
+	private Set<String> tags;
 
 	@Override
 	public String toString() {
-		return String.format("[FILE: %s / %s]", getFileName(), getMediaType());
+		return String.format("[FILE: %s (type: %s)]", getFileName(), getMediaType());
 	}
 
 	public String getMd5() {
@@ -52,5 +55,11 @@ public class InfolisFile extends BaseModel {
 	}
 	public void setFileStatus(String fileStatus) {
 		this.fileStatus = fileStatus;
+	}
+	public Set<String> getTags() {
+		return tags;
+	}
+	public void setTags(Set<String> tags) {
+		this.tags = tags;
 	}
 }

@@ -170,11 +170,13 @@ public class SearchTermPosition extends BaseAlgorithm
 			String text = IOUtils.toString(openInputStream);
 			openInputStream.close();
 			
+			// note: this class is meant for searching for terms, not for patterns
+			// used to generate contexts for inducing new patterns, not for creating output
+			// output contexts are those created by pattern-based search
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
 				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
 					getDataStoreClient().post(StudyContext.class, sC);
-					// TODO post pattern!
 					this.execution.getStudyContexts().add(sC.getUri());
 				}
 			}
@@ -193,10 +195,6 @@ public class SearchTermPosition extends BaseAlgorithm
 		execution.setIndexDirectory(tempPath.toString());
 		
 		Algorithm algo = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
-//		Algorithm algo = new Indexer();
-//		algo.setExecution(execution);
-//		algo.setDataStoreClient(getDataStoreClient());
-//		algo.setFileResolver(getFileResolver());
 		algo.execute();
 	}
 
@@ -216,7 +214,7 @@ public class SearchTermPosition extends BaseAlgorithm
 //	    log.debug(text);
 	    List<StudyContext> contextList = new LinkedList<StudyContext>();
 	    ltm.run();
-	    log.debug("Pattern: " + pat + " found " + ltm.matched());
+//	    log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    if (ltm.finished() && !ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	    	// refer to normalizeQuery for a better way to do this
 	    	String[] termParts = term.split("\\s+");
@@ -247,13 +245,14 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 	    	ltm.run();
 	    }
+	    // these patterns are used for extracting contexts of known study titles, do not confuse with patterns to detect study references
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
 	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
-	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
+//	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {
-	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
+//	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    	StudyContext sC = new StudyContext();
 	    	sC.setLeftText(ltm.group(1).trim());
 	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
@@ -263,7 +262,6 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	//sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
 	    	sC.setRightWords(Arrays.asList(ltm.group(8).trim(), ltm.group(9).trim(), ltm.group(10).trim(), ltm.group(11).trim(), ltm.group(12).trim()));
 	    	sC.setFile(fileName);
-	    	
 	    	sC.setPattern(infolisPat.getUri());
 
 	    	contextList.add(sC);
@@ -273,7 +271,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	}
 
 	@Override
-	public void validate() {
+	public void validate() throws IllegalAlgorithmArgumentException {
 //		if (null != this.getExecution().getOutputFiles()
 //				 && !this.getExecution().getOutputFiles().isEmpty())
 //			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");

@@ -19,7 +19,7 @@ public interface Algorithm extends Runnable {
 	 * Validate the execution object linking this algorithm with its
 	 * input/output parameters
 	 */
-	void validate();
+	void validate() throws IllegalAlgorithmArgumentException;
 
 	/**
 	 * Get the execution context of this algorithm instance.

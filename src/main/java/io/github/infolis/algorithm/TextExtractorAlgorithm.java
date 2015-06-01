@@ -232,11 +232,11 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	}
 
 	@Override
-	public void validate() {
+	public void validate() throws IllegalAlgorithmArgumentException {
 		if (null == getExecution().getInputFiles()) {
-			throw new IllegalArgumentException("Required parameter 'inputFiles' is missing!");
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "Required parameter 'inputFiles' is missing!");
 		} else if (0 == getExecution().getInputFiles().size()) {
-			throw new IllegalArgumentException("No values for parameter 'inputFiles'!");
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "No values for parameter 'inputFiles'!");
 		}
 //		if (null == getExecution().getOutputFiles()) {
 //			getExecution().setOutputFiles(new ArrayList<String>());

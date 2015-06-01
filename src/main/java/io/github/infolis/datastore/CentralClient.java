@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -39,7 +40,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
  */
 class CentralClient implements DataStoreClient {
 
-	private Logger logger = LoggerFactory.getLogger(CentralClient.class);
+	private Logger log = LoggerFactory.getLogger(CentralClient.class);
 
 	@SuppressWarnings("rawtypes")
 	private static Map<Class, String> uriForClass = new HashMap<>();
@@ -71,29 +72,42 @@ class CentralClient implements DataStoreClient {
 		Response resp = target
 				.request(MediaType.APPLICATION_JSON_TYPE)
 				.post(entity);
+		log.debug("-> {}", target);
+		log.debug("<- HTTP {}", resp.getStatus());
 		if (resp.getStatus() != 201) {
 			// TODO check whether resp actually succeeded
 			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-			logger.error(err.getMessage());
-			logger.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			log.error(err.getMessage());
+			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
 			throw new BadRequestException(resp);
 		} else {
 			thing.setUri(resp.getHeaderString("Location"));
-			logger.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());
+			log.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());
 		}
 	}
 
 	@Override
 	public <T extends BaseModel> T get(Class<T> clazz, URI uri) {
-		logger.debug("{}", uri);
+		log.debug("GET from {}", uri);
 		if (!uri.isAbsolute()) {
 			String msg = "URI must be absolute, " + uri + " is NOT.";
-			logger.error(msg);
-			throw new RuntimeException(msg);
+			log.error(msg);
+			throw new ProcessingException(msg);
 		}
 		WebTarget target = jerseyClient.target(uri);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-		T thing = resp.readEntity(clazz);
+		log.debug("-> HTTP {}", resp.getStatus());
+		if (resp.getStatus() == 404) {
+			throw new BadRequestException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
+		} else if (resp.getStatus() >= 400) {
+			throw new BadRequestException(resp);
+		}
+		T thing;
+		try {
+			thing = resp.readEntity(clazz);
+		} catch (Exception e) {
+			throw new ProcessingException(e);
+		}
 
 		thing.setUri(target.getUri().toString());
 		return thing;
@@ -106,8 +120,18 @@ class CentralClient implements DataStoreClient {
 				.path(CentralClient.getUriForClass(clazz))
 				.path(id);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-		T thing = resp.readEntity(clazz);
-
+		if (resp.getStatus() == 404) {
+			throw new BadRequestException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
+		} else if (resp.getStatus() >= 400) {
+			throw new BadRequestException(resp);
+		}
+		T thing;
+		try {
+			thing = resp.readEntity(clazz);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ProcessingException(e);
+		}
 		thing.setUri(target.getUri().toString());
 		return thing;
 	}
@@ -125,8 +149,8 @@ class CentralClient implements DataStoreClient {
 		if (resp.getStatus() != 201) {
 			// TODO check whether resp actually succeeded
 			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-			logger.error(err.getMessage());
-			logger.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			log.error(err.getMessage());
+			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
 			throw new BadRequestException(resp);
 		}
 
@@ -149,7 +173,7 @@ class CentralClient implements DataStoreClient {
 			Entity<String> entity = Entity.entity(SerializationUtils.toJSON(patch), MediaType.APPLICATION_JSON_TYPE);
 			target.request(MediaType.APPLICATION_JSON_TYPE).method("PATCH", entity);
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new ProcessingException(e);
 		}
 		
 	}

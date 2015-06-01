@@ -39,8 +39,8 @@ public class SearchTermPositionTest extends InfolisBaseTest {
             uris.add(file.getUri());
 		}
 		stp = new SearchTermPosition();
-		stp.setDataStoreClient(localClient);
-		stp.setFileResolver(tempFileResolver);
+		stp.setDataStoreClient(dataStoreClient);
+		stp.setFileResolver(fileResolver);
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		assertEquals(28, testContexts("term", "term").size());
 		assertEquals(28, testContexts(".term.", "term").size());
 		assertEquals(0, testContexts("terma", "terma").size());
-//
+		// same behaviour is expected for phrases
 		assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"").size());
 		assertEquals(28, testContexts("the term,", "\"the term\"").size());
 		assertEquals(28, testContexts(".the term.", "\"the term\"").size());
@@ -83,6 +83,10 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		List<StudyContext> contextListA = testContexts("the term", "\"the term\"");
 		assertEquals("Hallo, please try to find the term in this short text snippet.", contextListA.get(0).toString());
 		assertEquals("please try to find . the term . in this short text", contextListA.get(1).toString());
+		// ...and for wildcard phrase queries
+		// this query should find all test sentences except those having "_" as term
+		// ("_" should not be indexed by analyzer, thus there should be no word to match the wildcard)
+		assertEquals(100-14, testContexts("", "\"to find the * in\"").size());
 	}
 
 	private List<StudyContext> testContexts(String searchTerm, String searchQuery) throws Exception {
@@ -92,15 +96,12 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setSearchTerm(searchTerm);
 		exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);
-        exec.setAllowLeadingWildcards(true);
-		exec.setPhraseSlop(5);
-		exec.setMaxClauseCount(250);
-        Algorithm algo = exec.instantiateAlgorithm(localClient, tempFileResolver);
+        Algorithm algo = exec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
 
 		ArrayList<StudyContext> contextList = new ArrayList<StudyContext>();
 		for (String uri : exec.getStudyContexts()) {
-			contextList.add(localClient.get(StudyContext.class, uri));
+			contextList.add(dataStoreClient.get(StudyContext.class, uri));
 		}
 		return contextList;
 		

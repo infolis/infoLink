@@ -14,6 +14,7 @@ import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +22,7 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.kohsuke.args4j.CmdLineException;
@@ -57,6 +59,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
 		try {
 			try {
+				if (log.isTraceEnabled()) {
+					log.trace(IOUtils.toString(getFileResolver().openInputStream(inFile)));
+				}
 				inStream = getFileResolver().openInputStream(inFile);
 			} catch (IOException e) {
 				getExecution().getLog().add("Error opening input stream: " + e);
@@ -204,8 +209,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	public void execute() {
 		for (String inputFileURI : getExecution().getInputFiles()) {
 			log.debug(inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, URI.create(inputFileURI));
 			if (null == inputFile) {
+				getDataStoreClient().post(Execution.class, getExecution());
 				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
 			}
 			log.debug("Start extracting from " + inputFile);
@@ -213,7 +219,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			try {
 				outputFile = extract(inputFile);
 			} catch (IOException e) {
-				getExecution().logFatal("Extraction caused exception: " + e);
+				getExecution().logFatal("Extraction caused exception: " + e + "\n" + ExceptionUtils.getStackTrace(e));
+				getDataStoreClient().post(Execution.class, getExecution());
 			}
 //			log.debug("LOG {}", getExecution().getLog());
 			// FrontendClient.post(InfolisFile.class, outputFile);
@@ -221,6 +228,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				getExecution().logFatal("Conversion failed for input file " + inputFileURI);
 				log.error("Log of this execution: " + getExecution().getLog());
 				getExecution().setStatus(ExecutionStatus.FAILED);
+				getDataStoreClient().post(Execution.class, getExecution());
 				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
 			} else {
 				getExecution().setStatus(ExecutionStatus.FINISHED);

@@ -12,14 +12,11 @@ import java.net.URI;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
-
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

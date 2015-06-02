@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.BadRequestException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +41,13 @@ public abstract class BaseAlgorithm implements Algorithm {
 		try {
 			baseValidate();
 			validate();
-		} catch (IllegalAlgorithmArgumentException e) {
+		} catch (IllegalAlgorithmArgumentException | RuntimeException e) {
 			getExecution().setStatus(ExecutionStatus.FAILED);
 			getExecution().getLog().add(e.getMessage());
-			getDataStoreClient().put(Execution.class, getExecution());
+			getExecution().setEndTime(new Date());
 			return;
+		} finally {
+			persistExecution();
 		}
 		getExecution().setStatus(ExecutionStatus.STARTED);
 		getExecution().setStartTime(new Date());
@@ -52,10 +56,14 @@ public abstract class BaseAlgorithm implements Algorithm {
 		} catch (Exception e) {
 			log.error("Execution threw an Exception: {}" , e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
-		} finally {
 			getExecution().setEndTime(new Date());
-			getDataStoreClient().put(Execution.class, getExecution());
+		} finally {
+			persistExecution();
 		}
+	}
+
+	protected void persistExecution() throws BadRequestException {
+		getDataStoreClient().put(Execution.class, getExecution());
 	}
 
 	@Override

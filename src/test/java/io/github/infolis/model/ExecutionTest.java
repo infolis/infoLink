@@ -5,29 +5,25 @@ import static org.junit.Assert.assertThat;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.util.SerializationUtils;
 
-import java.net.URI;
 import java.util.Date;
 
-import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-public class ExecutionTest {
+public class ExecutionTest extends InfolisBaseTest {
 
 	Logger log = LoggerFactory.getLogger(ExecutionTest.class);
 
-	
 	@Test
 	public void testRoundTrip() {
-		
-		Assume.assumeNotNull(System.getProperty("infolisRemoteTest", "false"));
-		
-		DataStoreClient client = DataStoreClientFactory.global();
-		
+
+		// Assume.assumeNotNull(System.getProperty("infolisRemoteTest",
+		// "false"));
+
 		Execution execution = new Execution();
 		execution.setAlgorithm(TextExtractorAlgorithm.class);
 		execution.getInputFiles().add("urn:foo");
@@ -35,20 +31,14 @@ public class ExecutionTest {
 		execution.setRemoveBib(true);
 		execution.setStatus(ExecutionStatus.FINISHED);
 		execution.setEndTime(new Date());
-		
-		client.post(Execution.class, execution);
-		
-		Execution executionRetrieved = client.get(Execution.class, URI.create(execution.getUri()));
-		
+
+		dataStoreClient.post(Execution.class, execution);
+
+		Execution executionRetrieved = dataStoreClient.get(Execution.class, execution.getUri());
+
 		assertThat(SerializationUtils.toJSON(executionRetrieved), equalTo(SerializationUtils.toJSON(execution)));
-//		log.debug(SerializationUtils.toJSON(execution));
-//		log.debug(SerializationUtils.toJSON(executionRetrieved));
+		// log.debug(SerializationUtils.toJSON(execution));
+		// log.debug(SerializationUtils.toJSON(executionRetrieved));
 	}
 
-
-	@Test
-	public void testInstantiateAlgorithm() throws Exception {
-		throw new RuntimeException("not yet implemented");
-	}
-	
 }

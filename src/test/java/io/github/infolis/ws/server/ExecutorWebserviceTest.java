@@ -54,7 +54,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		centralClient.post(Execution.class, e);
 		assertNotNull(e.getUri());
 		
-		Execution e2 = centralClient.get(Execution.class, URI.create(e.getUri()));
+		Execution e2 = centralClient.get(Execution.class, e.getUri());
 //		log.debug("E2: {}", e2.getInputFiles());
 		
 		ExecutorWebservice ws = new ExecutorWebservice();
@@ -62,7 +62,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		log.error("{}", resp);
 		while (true) {
 			Thread.sleep(1000);
-			e = centralClient.get(Execution.class, URI.create(e.getUri()));
+			e = centralClient.get(Execution.class, e.getUri());
 			log.debug("Status: {}", e.getStatus());
 			log.debug("log: {}", e.getLog());
 		}

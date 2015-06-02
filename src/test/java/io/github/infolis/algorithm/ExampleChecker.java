@@ -5,14 +5,13 @@
  */
 package io.github.infolis.algorithm;
 
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.TempFileResolver;
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.SerializationUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -30,10 +30,10 @@ import org.junit.Test;
  *
  * @author domi
  */
-public class ExampleChecker {
+public class ExampleChecker extends InfolisBaseTest {
 
-    TempFileResolver resolver = new TempFileResolver();
-    DataStoreClient client = DataStoreClientFactory.local();
+//    FileResolver fileResolver = FileResolverFactory.global();
+//    DataStoreClient dataStoreClient = DataStoreClientFactory.global();
 
     @Test
     public void checkExamples() throws IOException {
@@ -51,7 +51,7 @@ public class ExampleChecker {
         List<String> contexts = searchPattern(pattern, txt);
         ArrayList<StudyContext> contextList = new ArrayList<>();
         for (String uri : contexts) {
-            contextList.add(client.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(StudyContext.class, (uri)));
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
@@ -67,7 +67,7 @@ public class ExampleChecker {
         List<String> postedPattern = new ArrayList<>();
         while(line !=null) {
             InfolisPattern p = new InfolisPattern(line);
-            client.post(InfolisPattern.class, p);
+            dataStoreClient.post(InfolisPattern.class, p);
             postedPattern.add(p.getUri());
             line = read.readLine();
         }
@@ -91,17 +91,17 @@ public class ExampleChecker {
 
             inFile.setFileName(tempFile.toString());
             inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));
-            inFile.setMediaType("application/txt");
+            inFile.setMediaType("text/plain");
             inFile.setFileStatus("AVAILABLE");
 
             try {
-                OutputStream os = resolver.openOutputStream(inFile);
+                OutputStream os = fileResolver.openOutputStream(inFile);
                 IOUtils.write(pdfBytes, os);
                 os.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            client.post(InfolisFile.class, inFile);
+            dataStoreClient.post(InfolisFile.class, inFile);
             txtFiles.add(inFile.getUri());
         }
         return txtFiles;
@@ -112,13 +112,18 @@ public class ExampleChecker {
         search.setAlgorithm(PatternApplier.class);
         search.setPattern(pattern);
         search.setInputFiles(input);
-        client.post(Execution.class, search);
-        Algorithm algo = search.instantiateAlgorithm(client, resolver);
-        algo.run();
+        dataStoreClient.post(Execution.class, search);
+        Algorithm algo = search.instantiateAlgorithm(dataStoreClient, fileResolver);
+        try {
+			algo.run();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw(e);
+		}
         
         ArrayList<StudyContext> contextList = new ArrayList<>();
         for (String uri : search.getStudyContexts()) {
-            contextList.add(client.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(StudyContext.class, uri));
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
@@ -133,13 +138,13 @@ public class ExampleChecker {
         search.setSearchTerm(seed);
         search.setSearchQuery(seed);
         search.setInputFiles(input);
-        client.post(Execution.class, search);
-        Algorithm algo = search.instantiateAlgorithm(client, resolver);
+        dataStoreClient.post(Execution.class, search);
+        Algorithm algo = search.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         
         ArrayList<StudyContext> contextList = new ArrayList<>();
         for (String uri : search.getStudyContexts()) {
-            contextList.add(client.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(StudyContext.class, uri));
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
@@ -151,7 +156,7 @@ public class ExampleChecker {
     public List<String> pdf2txt(File dir) throws IOException {
         Execution execution = new Execution();
 
-        client.post(Execution.class, execution);
+        dataStoreClient.post(Execution.class, execution);
     
         for (File f : dir.listFiles()) {
 
@@ -172,20 +177,20 @@ public class ExampleChecker {
             inFile.setFileStatus("AVAILABLE");
 
             try {
-                OutputStream os = resolver.openOutputStream(inFile);
+                OutputStream os = fileResolver.openOutputStream(inFile);
                 IOUtils.write(pdfBytes, os);
                 os.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            client.post(InfolisFile.class, inFile);
+            dataStoreClient.post(InfolisFile.class, inFile);
             execution.getInputFiles().add(inFile.getUri());
 
         }
         execution.setAlgorithm(TextExtractorAlgorithm.class);
 
-        Algorithm algo = execution.instantiateAlgorithm(client, resolver);
+        Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return execution.getOutputFiles();
     }
@@ -200,19 +205,19 @@ public class ExampleChecker {
         bootstrapping.setMaxIterations(4);
         bootstrapping.setThreshold(0.1);
         bootstrapping.setBootstrapStrategy(Execution.Strategy.mergeAll);
-        client.post(Execution.class, bootstrapping);
+        dataStoreClient.post(Execution.class, bootstrapping);
 
-        Algorithm algo3 = bootstrapping.instantiateAlgorithm(client, resolver);
+        Algorithm algo3 = bootstrapping.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo3.run();
 
         ArrayList<InfolisPattern> patternList = new ArrayList<>();
         for (String uri : bootstrapping.getPattern()) {
-            patternList.add(client.get(InfolisPattern.class, uri));
+            patternList.add(dataStoreClient.get(InfolisPattern.class, uri));
         }
 
         ArrayList<StudyContext> contextList = new ArrayList<>();
         for (String uri : bootstrapping.getStudyContexts()) {
-            contextList.add(client.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(StudyContext.class, uri));
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());

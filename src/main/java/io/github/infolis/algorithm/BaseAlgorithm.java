@@ -63,7 +63,11 @@ public abstract class BaseAlgorithm implements Algorithm {
 	}
 
 	protected void persistExecution() throws BadRequestException {
-		getDataStoreClient().put(Execution.class, getExecution());
+		if (null != getExecution().getUri()) {
+			getDataStoreClient().put(Execution.class, getExecution());
+		} else {
+			getDataStoreClient().post(Execution.class, getExecution());
+		}
 	}
 
 	@Override

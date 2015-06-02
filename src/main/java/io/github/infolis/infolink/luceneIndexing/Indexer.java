@@ -74,7 +74,7 @@ public class Indexer extends BaseAlgorithm
 		List<InfolisFile> files = new ArrayList<>();
 
 		for (String fileUri : getExecution().getInputFiles()) {
-			files.add(this.getDataStoreClient().get(InfolisFile.class, URI.create(fileUri)));
+			files.add(this.getDataStoreClient().get(InfolisFile.class, fileUri));
 		}
 
 		Date start = new Date();

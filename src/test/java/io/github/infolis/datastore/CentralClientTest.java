@@ -5,8 +5,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import io.github.infolis.model.InfolisFile;
 
-import java.net.URI;
-
 import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -30,7 +28,7 @@ public class CentralClientTest {
 		InfolisFile serverFile;
 		client.post(InfolisFile.class, inFile);
 		assertTrue("No error posting", true);
-		serverFile = client.get(InfolisFile.class, URI.create(inFile.getUri()));
+		serverFile = client.get(InfolisFile.class, inFile.getUri());
 		assertThat(serverFile.getFileName(), equalTo(inFile.getFileName()));
 	}
 	

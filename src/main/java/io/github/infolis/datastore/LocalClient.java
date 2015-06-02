@@ -1,12 +1,14 @@
 package io.github.infolis.datastore;
 
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,11 +40,6 @@ public class LocalClient implements DataStoreClient {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Override
-	public <T extends BaseModel> T get(Class<T> clazz, URI uri) throws BadRequestException {
-		return get(clazz, uri.toString());
 	}
 
 	@Override
@@ -77,5 +75,16 @@ public class LocalClient implements DataStoreClient {
 		} catch (IOException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public InfolisFile upload(InfolisFile file, InputStream input) throws IOException {
+		FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
+		OutputStream output = fileResolver.openOutputStream(file);
+		IOUtils.copy(input, output);
+		input.close();
+		output.close();
+		post(InfolisFile.class, file);
+		return file;
 	}
 }

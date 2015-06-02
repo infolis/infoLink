@@ -98,8 +98,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
      */
     private List<StudyContext> bootstrapFrequencyBased() throws ParseException, IOException, InstantiationException, IllegalAccessException {
         int numIter = 0;
-        List<StudyContext> extractedContexts = new ArrayList<>();
-        List<StudyContext> extractedContexts_patterns = new ArrayList<>();
+        List<StudyContext> extractedContextsFromSeed = new ArrayList<>();
+        List<StudyContext> extractedContextsFromPatterns = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
         List<String> processedPatterns = new ArrayList<>();
         Set<String> seeds = new HashSet<>();
@@ -121,7 +121,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	
                 if (processedSeeds.contains(seed)) {
                 	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
-                		contexts_currentIteration.add(getContextForTerm(extractedContexts, seed));
+                		contexts_currentIteration.add(getContextForTerm(extractedContextsFromSeed, seed));
                 	}
                 	log.debug("seed " + seed + " already known, continuing.");
                     continue;
@@ -143,7 +143,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 }
 
                 contexts_currentIteration.addAll(detectedContexts);
-                extractedContexts.addAll(detectedContexts);
+                extractedContextsFromSeed.addAll(detectedContexts);
                 // 2. generate patterns
                 if (getExecution().getBootstrapStrategy() == Execution.Strategy.separate) {
                     Set<InfolisPattern> patterns = PatternInducer.inducePatterns(detectedContexts, getExecution().getThreshold(), processedPatterns);
@@ -158,7 +158,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
             
             if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeAll) {
-                Set<InfolisPattern> patterns = PatternInducer.inducePatterns(extractedContexts, getExecution().getThreshold(), processedPatterns);
+                Set<InfolisPattern> patterns = PatternInducer.inducePatterns(extractedContextsFromSeed, getExecution().getThreshold(), processedPatterns);
                 newPatterns.addAll(patterns);
             }
             
@@ -170,7 +170,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             // 3. search for patterns in corpus
             List<StudyContext> res = applyPattern(newPatterns);
             // res contains all contexts extracted by searching for patterns
-            extractedContexts_patterns.addAll(res);
+            extractedContextsFromPatterns.addAll(res);
             processedSeeds.addAll(seeds);
             
             for (StudyContext entry : res) {
@@ -190,18 +190,19 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here
-            	return extractedContexts_patterns;
+            	return extractedContextsFromPatterns;
             }
         }
         log.debug("Maximum number of iterations reached, returning.");
-        return extractedContexts_patterns;
+        return extractedContextsFromPatterns;
     }
 
     private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
         List<StudyContext> contexts = new ArrayList<>();
 
         for (InfolisPattern curPat : patterns) {
-        	if (curPat.getUri() == null) throw new RuntimeException("Pattern does not have a URI!");
+        	if (curPat.getUri() == null)
+        		throw new RuntimeException("Pattern does not have a URI!");
         	Execution exec = new Execution();
             exec.setAlgorithm(SearchTermPosition.class);
             exec.setSearchTerm("");

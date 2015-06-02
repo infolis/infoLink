@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
@@ -26,6 +27,7 @@ import com.google.common.collect.Lists;
  */
 @XmlRootElement(name = "context")
 @XmlAccessorType(XmlAccessType.FIELD)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StudyContext extends BaseModel {
 
 	@XmlTransient
@@ -41,7 +43,7 @@ public class StudyContext extends BaseModel {
 	@XmlAttribute
 	private String file;
 	@XmlTransient
-	private String patternUri;
+	private String pattern;
 	@XmlAttribute
 	private String version;
 
@@ -150,11 +152,11 @@ public class StudyContext extends BaseModel {
 	}
 
 	public String getPattern() {
-		return patternUri;
+		return pattern;
 	}
 
 	public void setPattern(String patternUri) {
-		this.patternUri = patternUri;
+		this.pattern = patternUri;
 	}
 
 	/**

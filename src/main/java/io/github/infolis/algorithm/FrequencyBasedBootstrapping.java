@@ -108,7 +108,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
         	newSeedsIteration = new HashSet<>();
-        	log.debug("Start iteration #{} Looking for seeds: {}", numIter, seeds);
+        	{
+        		String msg = String.format("Start iteration #%s Looking for seeds: %s", numIter, seeds);
+        		getExecution().logDebug(msg);
+        		log.debug(msg);
+        	}
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
             for (String seed : seeds) {
@@ -158,7 +162,6 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 newPatterns.addAll(patterns);
             }
             
-            // TODO post them kba
             for (InfolisPattern pattern : newPatterns) {
             	this.getDataStoreClient().post(InfolisPattern.class, pattern);
             	processedPatterns.add(pattern.getMinimal());
@@ -174,8 +177,14 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	newSeedsIteration.add(entry.getTerm());
             }
             
-            log.debug("Found " + newSeedsIteration.size() + " seeds in current iteration");
+            {
+            	String msg = "Found " + newSeedsIteration.size() + " seeds in current iteration";
+            	getExecution().logDebug(msg);
+            	log.debug(msg);
+            }
             numIter++;
+            
+            persistExecution();
             if (processedSeeds.containsAll(newSeedsIteration)) {
             	log.debug("No new seeds found in iteration, returning.");
             	// extractedContexts contains all contexts resulting from searching a seed term

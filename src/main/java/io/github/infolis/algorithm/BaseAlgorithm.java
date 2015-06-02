@@ -63,6 +63,7 @@ public abstract class BaseAlgorithm implements Algorithm {
 	}
 
 	protected void persistExecution() throws BadRequestException {
+		log.debug("Persisting execution");
 		if (null != getExecution().getUri()) {
 			getDataStoreClient().put(Execution.class, getExecution());
 		} else {

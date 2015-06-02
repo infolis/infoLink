@@ -103,12 +103,16 @@ public class Execution extends BaseModel {
 		this.log = log;
 	}
 
-	public void logFatal(String msg) {
-		this.getLog().add(String.format("[%s] %s", "FATAL", msg));
+	public void fatal(String msg) {
+		this.getLog().add(String.format("%s [%s] %s", "FATAL", new Date(), msg));
 	}
 
-	public void logDebug(String msg) {
-		this.getLog().add(String.format("[%s] %s", "DEBUG", msg));
+	public void debug(String msg) {
+		this.getLog().add(String.format("%s [%s] %s", "DEBUG", new Date(), msg));
+	}
+
+	public void info(String msg) {
+		this.getLog().add(String.format("%s [%s] %s", "INFO", new Date(), msg));
 	}
 
 	public List<String> getInputFiles() {

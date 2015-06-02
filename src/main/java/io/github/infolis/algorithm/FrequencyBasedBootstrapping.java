@@ -110,7 +110,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         	newSeedsIteration = new HashSet<>();
         	{
         		String msg = String.format("Start iteration #%s Looking for seeds: %s", numIter, seeds);
-        		getExecution().logDebug(msg);
+        		getExecution().debug(msg);
         		log.debug(msg);
         	}
             Set<InfolisPattern> newPatterns = new HashSet<>();
@@ -178,8 +178,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
             
             {
-            	String msg = "Found " + newSeedsIteration.size() + " seeds in current iteration";
-            	getExecution().logDebug(msg);
+            	String msg = String.format("Found %s seeds in current iteration: %s", newSeedsIteration.size(), newSeedsIteration);
+            	getExecution().debug(msg);
             	log.debug(msg);
             }
             numIter++;

@@ -153,7 +153,6 @@ public class PatternApplier extends BaseAlgorithm {
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
         log.debug("No context found: {}", getExecution().getStudyContexts().size());
-
     }
 
     @Override

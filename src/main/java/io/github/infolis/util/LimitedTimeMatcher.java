@@ -127,6 +127,7 @@ public class LimitedTimeMatcher implements Runnable {
 				log.warn("Thread '{}' took {} ms, longer than the maximum of {} ms, shutting down to avoid pathological backtacking.",
 						threadName, getTimePassedMillis(), maxTime);
 				matcherThread.interrupt();
+				matched(false);
 				break;
 			}
 			log.trace("Thread '{}' running for {}ms", threadName, getTimePassedMillis());

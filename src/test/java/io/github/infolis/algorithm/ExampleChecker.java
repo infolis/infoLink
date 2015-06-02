@@ -55,7 +55,9 @@ public class ExampleChecker extends InfolisBaseTest {
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
-            System.out.println("file: " + sc.getFile());
+            String fileUri = sc.getFile();
+            InfolisFile file = dataStoreClient.get(InfolisFile.class, fileUri);
+			System.out.println("file: " + file.getFileName());
             System.out.println("study: " + sc.getTerm());
         }
         

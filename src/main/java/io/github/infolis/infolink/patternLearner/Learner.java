@@ -133,8 +133,8 @@ public class Learner implements Algorithm {
         algo.run();
 
         List<StudyContext> ret = new ArrayList<>();
-        for (String sC : execution.getStudyContexts()) {
-            ret.add(this.getDataStoreClient().get(StudyContext.class, sC));
+        for (String scUri : execution.getStudyContexts()) {
+            ret.add(this.getDataStoreClient().get(StudyContext.class, scUri));
         }
         return ret;
     }

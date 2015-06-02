@@ -209,7 +209,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	public void execute() {
 		for (String inputFileURI : getExecution().getInputFiles()) {
 			log.debug(inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, URI.create(inputFileURI));
+			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, (inputFileURI));
 			if (null == inputFile) {
 				getDataStoreClient().post(Execution.class, getExecution());
 				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);

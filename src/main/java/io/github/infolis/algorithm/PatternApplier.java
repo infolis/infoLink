@@ -37,7 +37,7 @@ public class PatternApplier extends BaseAlgorithm {
         InputStream in = getFileResolver().openInputStream(file);
         String input = IOUtils.toString(in);
         in.close();
-        log.debug("input: " + input);
+        log.trace("Input: " + input);
         // makes regex matching a bit easier
         return input.replaceAll("\\s+", " ");
     }

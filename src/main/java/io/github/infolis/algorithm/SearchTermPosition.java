@@ -11,7 +11,6 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -163,7 +162,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		{
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
-			InfolisFile file = getDataStoreClient().get(InfolisFile.class, URI.create(doc.get("path")));
+			InfolisFile file = getDataStoreClient().get(InfolisFile.class, (doc.get("path")));
 //			log.debug("{}", file);
 			
 			InputStream openInputStream = this.getFileResolver().openInputStream(file);

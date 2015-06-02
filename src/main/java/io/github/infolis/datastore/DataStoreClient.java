@@ -1,7 +1,10 @@
 package io.github.infolis.datastore;
 
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.InfolisFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 import javax.ws.rs.BadRequestException;
@@ -9,20 +12,20 @@ import javax.ws.rs.ProcessingException;
 
 public interface DataStoreClient {
 
-	/**
-	 * GET a thing with a textual ID.
-	 * 
-	 * Uses the {@link CentralClient#uriForClass} mapping.
-	 * 
-	 * @param clazz
-	 *            the class of the thing to retrieve
-	 * @param id
-	 *            the ID part of the URI of the thing to retrieve
-	 * @return the server representation of the thing
-	 * @throws BadRequestException
-	 * @throws ProcessingException
-	 */
-	<T extends BaseModel> T get(Class<T> clazz, String id) throws BadRequestException, ProcessingException;
+//	/**
+//	 * GET a thing with a textual ID.
+//	 * 
+//	 * Uses the {@link CentralClient#uriForClass} mapping.
+//	 * 
+//	 * @param clazz
+//	 *            the class of the thing to retrieve
+//	 * @param id
+//	 *            the ID part of the URI of the thing to retrieve
+//	 * @return the server representation of the thing
+//	 * @throws BadRequestException
+//	 * @throws ProcessingException
+//	 */
+//	<T extends BaseModel> T getById(Class<T> clazz, String id) throws BadRequestException, ProcessingException;
 
 	/**
 	 * PUT an resource
@@ -37,13 +40,13 @@ public interface DataStoreClient {
 	 * 
 	 * @param clazz
 	 *            the class of the thing to retrieve
-	 * @param uri
-	 *            the {@link URI} of the thing to retrieve
+	 * @param uriStr
+	 *            string representing a {@link URI} of the thing to retrieve
 	 * @return the server representation of the thing
 	 * @throws BadRequestException
 	 * @throws ProcessingException
 	 */
-	<T extends BaseModel> T get(Class<T> clazz, URI uri) throws BadRequestException, ProcessingException;
+	<T extends BaseModel> T get(Class<T> clazz, String uriStr) throws BadRequestException, ProcessingException;
 
 	/**
 	 * POST a resource to the frontend web service.
@@ -60,5 +63,7 @@ public interface DataStoreClient {
 	<T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException;
 	
 	<T extends BaseModel> void patchAdd(Class<T> clazz, T thing, String fieldName, String newValue);
+	
+	InfolisFile upload(InfolisFile file, InputStream input) throws IOException;
 
 }

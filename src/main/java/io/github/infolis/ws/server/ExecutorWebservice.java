@@ -41,7 +41,7 @@ public class ExecutorWebservice {
 
 		Execution execution;
 		try {
-			execution = dataStoreClient.get(Execution.class, URI.create(executionUri));
+			execution = dataStoreClient.get(Execution.class, executionUri);
 			if (null == execution) {
 				throw new ProcessingException("Could not find execution " + executionUri);
 			}

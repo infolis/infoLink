@@ -1,6 +1,7 @@
 package io.github.infolis.model;
 
 import static org.junit.Assert.assertEquals;
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.util.SerializationUtils;
 
 import org.junit.Test;
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-public class StudyContextTest {
+public class StudyContextTest extends InfolisBaseTest {
 
 	Logger log = LoggerFactory.getLogger(StudyContextTest.class);
 

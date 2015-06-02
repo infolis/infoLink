@@ -40,9 +40,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class InfolisPattern extends BaseModel {
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
+	// TODO can this be final?
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
+    // TODO this must be a join class
     private Map<String, Double> associations = new HashMap<>();
     private List<String> words = new ArrayList<>();
     private double threshold;

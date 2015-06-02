@@ -2,7 +2,9 @@ package io.github.infolis.infolink.luceneIndexing;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
@@ -18,24 +20,29 @@ import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.HttpUrlConnectorProvider;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
 public class InfolisBaseTest {
-	protected DataStoreClient dataStoreClient = DataStoreClientFactory.local();
-	protected FileResolver fileResolver = new TempFileResolver();
+	protected final DataStoreClient dataStoreClient;
+	protected final FileResolver fileResolver;
+	{
+		DataStoreStrategy strategy;
+		if (Boolean.valueOf(System.getProperty("infolisRemoteTests", "false"))) {
+			strategy = DataStoreStrategy.CENTRAL;
+		} else {
+			strategy = DataStoreStrategy.TEMPORARY;
+		}
+		dataStoreClient = DataStoreClientFactory.create(strategy);
+		fileResolver =  FileResolverFactory.create(strategy);
+	}
 
 	protected static Client jerseyClient = ClientBuilder.newBuilder()
-//			.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
+			// .property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true)
 			.register(MultiPartFeature.class)
-//			.register(JacksonFeature.class)
-//			.register(JacksonJsonProvider.class)
+			// .register(JacksonFeature.class)
+			// .register(JacksonJsonProvider.class)
 			.build();
 
-	
 	protected String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
 			"Hallo, please try to find the R2 in this short text snippet. Thank you.",
@@ -45,7 +52,7 @@ public class InfolisBaseTest {
 			"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 	};
-	
+
 	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
 		ArrayList<InfolisFile> ret = new ArrayList<>();
 		int j = 0;
@@ -58,6 +65,7 @@ public class InfolisBaseTest {
 			InfolisFile file = new InfolisFile();
 			file.setMd5(SerializationUtils.getHexMd5(data));
 			file.setFileName(tempFile.toString());
+			file.setFileStatus("AVAILABLE");
 
 			dataStoreClient.post(InfolisFile.class, file);
 			OutputStream os = fileResolver.openOutputStream(file);

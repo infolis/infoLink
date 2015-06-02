@@ -108,6 +108,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
         	newSeedsIteration = new HashSet<>();
+        	log.debug("Start iteration #{} Looking for seeds: {}", numIter, seeds);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
             for (String seed : seeds) {

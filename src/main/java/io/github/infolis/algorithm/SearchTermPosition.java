@@ -146,7 +146,7 @@ public class SearchTermPosition extends BaseAlgorithm
 			q = qp.parse(this.execution.getSearchQuery().trim());
 		}
 		catch (ParseException e) {
-			this.execution.logFatal("Could not parse searchquery '" + this.execution.getSearchQuery() + "'.");
+			this.execution.fatal("Could not parse searchquery '" + this.execution.getSearchQuery() + "'.");
 			this.execution.setStatus(ExecutionStatus.FAILED);
 				
 			searcher.close();

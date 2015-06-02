@@ -219,13 +219,13 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			try {
 				outputFile = extract(inputFile);
 			} catch (IOException e) {
-				getExecution().logFatal("Extraction caused exception: " + e + "\n" + ExceptionUtils.getStackTrace(e));
+				getExecution().fatal("Extraction caused exception: " + e + "\n" + ExceptionUtils.getStackTrace(e));
 				getDataStoreClient().post(Execution.class, getExecution());
 			}
 //			log.debug("LOG {}", getExecution().getLog());
 			// FrontendClient.post(InfolisFile.class, outputFile);
 			if (null == outputFile) {
-				getExecution().logFatal("Conversion failed for input file " + inputFileURI);
+				getExecution().fatal("Conversion failed for input file " + inputFileURI);
 				log.error("Log of this execution: " + getExecution().getLog());
 				getExecution().setStatus(ExecutionStatus.FAILED);
 				getDataStoreClient().post(Execution.class, getExecution());

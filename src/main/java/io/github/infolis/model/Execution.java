@@ -27,10 +27,9 @@ public class Execution extends BaseModel {
 
 	private static final Logger logger = LoggerFactory.getLogger(Execution.class);
 
-        
-        public enum Strategy {
-            mergeCurrent, mergeNew, mergeAll, separate, reliability;
-        }
+	public enum Strategy {
+		mergeCurrent, mergeNew, mergeAll, separate, reliability;
+	}
 
 	private Class<? extends Algorithm> algorithm;
 	private ExecutionStatus status = ExecutionStatus.PENDING;
@@ -55,18 +54,17 @@ public class Execution extends BaseModel {
 	private String searchQuery;
 	private List<String> studyContexts = new ArrayList<>();
 	private List<String> matchingFilenames = new ArrayList<>();
-        private List<String> studies = new ArrayList<>();
+	private List<String> studies = new ArrayList<>();
 	private boolean overwrite = false;
 	private String indexDirectory;
-	private List<String> patterns = new ArrayList<>();
+	private List<String> pattern = new ArrayList<>();
 	private boolean upperCaseConstraint = false;
 	private boolean requiresContainedInNP = false;
-        private List<String> terms = new ArrayList<>();
-        private int maxIterations= 10;
-        private double threshold = 0.8;
-        private Strategy bootstrapStrategy = Strategy.separate;
-        
-        
+	private List<String> terms = new ArrayList<>();
+	private int maxIterations = 10;
+	private double threshold = 0.8;
+	private Strategy bootstrapStrategy = Strategy.separate;
+
 	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver) {
 		if (null == this.getAlgorithm()) {
 			throw new IllegalArgumentException(
@@ -267,118 +265,125 @@ public class Execution extends BaseModel {
 		this.matchingFilenames = matchingFilenames;
 	}
 
-    /**
-     * @return the pattern
-     */
-    public List<String> getPattern() {
-        return patterns;
-    }
+	/**
+	 * @return the pattern
+	 */
+	public List<String> getPattern() {
+		return pattern;
+	}
 
-    /**
-     * @param pattern the pattern to set
-     */
-    public void setPattern(List<String> pattern) {
-        this.patterns = pattern;
-    }
+	/**
+	 * @param pattern
+	 *            the pattern to set
+	 */
+	public void setPattern(List<String> pattern) {
+		this.pattern = pattern;
+	}
 
-    /**
-     * @return the upperCaseConstraint
-     */
-    public boolean isUpperCaseConstraint() {
-        return upperCaseConstraint;
-    }
+	/**
+	 * @return the upperCaseConstraint
+	 */
+	public boolean isUpperCaseConstraint() {
+		return upperCaseConstraint;
+	}
 
-    /**
-     * @param upperCaseConstraint the upperCaseConstraint to set
-     */
-    public void setUpperCaseConstraint(boolean upperCaseConstraint) {
-        this.upperCaseConstraint = upperCaseConstraint;
-    }
+	/**
+	 * @param upperCaseConstraint
+	 *            the upperCaseConstraint to set
+	 */
+	public void setUpperCaseConstraint(boolean upperCaseConstraint) {
+		this.upperCaseConstraint = upperCaseConstraint;
+	}
 
-    /**
-     * @return the requiresContainedInNP
-     */
-    public boolean isRequiresContainedInNP() {
-        return requiresContainedInNP;
-    }
+	/**
+	 * @return the requiresContainedInNP
+	 */
+	public boolean isRequiresContainedInNP() {
+		return requiresContainedInNP;
+	}
 
-    /**
-     * @param requiresContainedInNP the requiresContainedInNP to set
-     */
-    public void setRequiresContainedInNP(boolean requiresContainedInNP) {
-        this.requiresContainedInNP = requiresContainedInNP;
-    }
+	/**
+	 * @param requiresContainedInNP
+	 *            the requiresContainedInNP to set
+	 */
+	public void setRequiresContainedInNP(boolean requiresContainedInNP) {
+		this.requiresContainedInNP = requiresContainedInNP;
+	}
 
-    /**
-     * @return the studies
-     */
-    public List<String> getStudies() {
-        return studies;
-    }
+	/**
+	 * @return the studies
+	 */
+	public List<String> getStudies() {
+		return studies;
+	}
 
-    /**
-     * @param studies the studies to set
-     */
-    public void setStudies(List<String> studies) {
-        this.studies = studies;
-    }
+	/**
+	 * @param studies
+	 *            the studies to set
+	 */
+	public void setStudies(List<String> studies) {
+		this.studies = studies;
+	}
 
-    
-    /**
-     * @return the terms
-     */
-    public List<String> getTerms() {
-        return terms;
-    }
+	/**
+	 * @return the terms
+	 */
+	public List<String> getTerms() {
+		return terms;
+	}
 
-    /**
-     * @param terms the terms to set
-     */
-    public void setTerms(List<String> terms) {
-        this.terms = terms;
-    }
+	/**
+	 * @param terms
+	 *            the terms to set
+	 */
+	public void setTerms(List<String> terms) {
+		this.terms = terms;
+	}
 
-    /**
-     * @return the maxIterations
-     */
-    public int getMaxIterations() {
-        return maxIterations;
-    }
+	/**
+	 * @return the maxIterations
+	 */
+	public int getMaxIterations() {
+		return maxIterations;
+	}
 
-    /**
-     * @param maxIterations the maxIterations to set
-     */
-    public void setMaxIterations(int maxIterations) {
-        this.maxIterations = maxIterations;
-    }
+	/**
+	 * @param maxIterations
+	 *            the maxIterations to set
+	 */
+	public void setMaxIterations(int maxIterations) {
+		this.maxIterations = maxIterations;
+	}
 
-    /**
-     * @return the threshold
-     */
-    public double getThreshold() {
-        return threshold;
-    }
+	/**
+	 * @return the threshold
+	 */
+	public double getThreshold() {
+		return threshold;
+	}
 
-    /**
-     * @param threshold the threshold to set
-     */
-    public void setThreshold(double threshold) {
-        this.threshold = threshold;
-    }
+	/**
+	 * @param threshold
+	 *            the threshold to set
+	 */
+	public void setThreshold(double threshold) {
+		this.threshold = threshold;
+	}
 
-    /**
-     * @return the bootstrapStrategy
-     */
-    public Strategy getBootstrapStrategy() {
-        return bootstrapStrategy;
-    }
+	/**
+	 * @return the bootstrapStrategy
+	 */
+	public Strategy getBootstrapStrategy() {
+		return bootstrapStrategy;
+	}
 
-    /**
-     * @param bootstrapStrategy the bootstrapStrategy to set
-     */
-    public void setBootstrapStrategy(Strategy bootstrapStrategy) {
-        this.bootstrapStrategy = bootstrapStrategy;
-    }
+	/**
+	 * @param bootstrapStrategy
+	 *            the bootstrapStrategy to set
+	 */
+	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
+		this.bootstrapStrategy = bootstrapStrategy;
+	}
 
 	public String getIndexDirectory() {
 		return indexDirectory;
@@ -387,5 +392,5 @@ public class Execution extends BaseModel {
 	public void setIndexDirectory(String indexDirectory) {
 		this.indexDirectory = indexDirectory;
 	}
-    
+
 }

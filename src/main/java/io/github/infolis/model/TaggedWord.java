@@ -1,5 +1,7 @@
 package io.github.infolis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Class for storing words along with their POS tags
  * 
@@ -7,6 +9,7 @@ package io.github.infolis.model;
  * @version 2014-01-27
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaggedWord
 {
 	private String string;

@@ -10,10 +10,13 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  *
  * @author domi
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 @XmlRootElement(name = "study")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Study extends BaseModel{

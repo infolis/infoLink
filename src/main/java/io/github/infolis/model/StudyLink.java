@@ -2,6 +2,8 @@ package io.github.infolis.model;
 
 import io.github.infolis.util.RegexUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Class representing the link between a publication and a dataset.
  * 
@@ -21,6 +23,7 @@ import io.github.infolis.util.RegexUtils;
  * @version 2014-01-27
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StudyLink
 {
 	StudyType type;

@@ -23,6 +23,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -42,7 +45,7 @@ public class ExampleChecker extends InfolisBaseTest {
         File txtDir = new File(getClass().getResource("/examples/txts").getFile());
         File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
         
-        //learn(pdf2txt(pdfDir));
+        learn(pdf2txt(pdfDir));
         //searchSeed("ALLBUS",pdf2txt(pdfDir));
         //searchPattern(learn(pdf2txt(pdfDir)), pdf2txt(pdfDir));
         
@@ -55,13 +58,17 @@ public class ExampleChecker extends InfolisBaseTest {
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
-            String fileUri = sc.getFile();
-            InfolisFile file = dataStoreClient.get(InfolisFile.class, fileUri);
-			System.out.println("file: " + file.getFileName());
+            printFileNameOfContext(sc);
             System.out.println("study: " + sc.getTerm());
         }
         
     }
+
+protected void printFileNameOfContext(StudyContext sc) throws BadRequestException, ProcessingException {
+	String fileUri = sc.getFile();
+	InfolisFile file = dataStoreClient.get(InfolisFile.class, fileUri);
+	System.out.println("file: " + file.getFileName());
+}
     
     public List<String> postPattern(File pattern) throws IOException {
         BufferedReader read = new BufferedReader(new FileReader(pattern));
@@ -223,7 +230,7 @@ public class ExampleChecker extends InfolisBaseTest {
         }
         for (StudyContext sc : contextList) {
             System.out.println("context: " + sc.toString());
-            System.out.println("file: " + sc.getFile());
+            printFileNameOfContext(sc);
         }
 
         for (InfolisPattern p : patternList) {

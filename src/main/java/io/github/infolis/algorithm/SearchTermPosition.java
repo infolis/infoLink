@@ -245,6 +245,9 @@ public class SearchTermPosition extends BaseAlgorithm
 	    	ltm.run();
 	    }
 	    // these patterns are used for extracting contexts of known study titles, do not confuse with patterns to detect study references
+	    if (! ltm.finished()) {
+	    	throw new IOException("Matcher timed out!");
+	    }
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
 	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);

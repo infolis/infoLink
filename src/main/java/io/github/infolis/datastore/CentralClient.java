@@ -1,6 +1,5 @@
 package io.github.infolis.datastore;
 
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
 import io.github.infolis.model.Execution;
@@ -32,7 +31,6 @@ import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

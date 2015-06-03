@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author kba
  */
 public class InfolisConfig {
-	
+
 	private static final String CONFIG_PROPERTIES_NAME = "infolis-config.properties";
 	private static final Logger log = LoggerFactory.getLogger(InfolisConfig.class);
 	private static final ArrayList<String> pathsToSearch = new ArrayList<>();
@@ -32,10 +32,10 @@ public class InfolisConfig {
 		pathsToSearch.add("/etc");
 		pathsToSearch.add(System.getProperty("user.home"));
 		pathsToSearch.add(System.getProperty("user.dir"));
-		
+
 		// Instantiate
 		INSTANCE = new InfolisConfig();
-        // Make sure the configuration is loaded and valid
+		// Make sure the configuration is loaded and valid
 		try {
 			validate();
 		} catch (IOException e) {
@@ -48,12 +48,13 @@ public class InfolisConfig {
 	String loadedFrom = null;
 
 	/**
-	 * Looks for a properties file first in /etc/infolis-ws.properties. If not found, loads defaults from classpath.
+	 * Looks for a properties file first in /etc/infolis-ws.properties. If not
+	 * found, loads defaults from classpath.
 	 * 
 	 */
 	private InfolisConfig() {
 		prop = new Properties();
-		
+
 		// Load default config
 		try {
 			InputStream inStream = InfolisConfig.class.getClassLoader().getResourceAsStream(CONFIG_PROPERTIES_NAME);
@@ -63,7 +64,7 @@ public class InfolisConfig {
 			e.printStackTrace();
 			System.exit(100);
 		}
-		
+
 		// Merge configs found in search paths
 		for (String dir : pathsToSearch) {
 			Path path = Paths.get(dir, CONFIG_PROPERTIES_NAME);
@@ -73,7 +74,7 @@ public class InfolisConfig {
 				prop.putAll(configFound);
 				log.debug("Loaded properties from '{}'", path);
 			} catch (IOException e) {
-                log.debug("Couldn't load properties from '{}'.", path);
+				log.debug("Couldn't load properties from '{}'.", path);
 			}
 		}
 		// TODO debug output
@@ -82,34 +83,37 @@ public class InfolisConfig {
 
 	/**
 	 * Ensures that the config options are valid, directories exist and such.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	public static void validate() throws IOException {
-		if (! Files.exists(getFileSavePath())) {
+		if (!Files.exists(getFileSavePath())) {
 			Files.createDirectories(getFileSavePath());
 		}
 	}
 
 	/**
 	 * Property "fileSavePath"
+	 * 
 	 * @return {@link Path} to the directory where files are to be saved
 	 */
 	public static Path getFileSavePath() {
 		Path path = Paths.get(INSTANCE.prop.getProperty("fileSavePath"));
 		return path;
 	}
-	
+
 	/**
 	 * Property "frontendURI"
+	 * 
 	 * @return {@link URI} of the frontend Linked Data web service
 	 */
 	public static URI getFrontendURI() {
 		return URI.create(INSTANCE.prop.getProperty("frontendURI"));
 	}
 
-
 	/**
 	 * Property "ignoreStudy"
+	 * 
 	 * @return
 	 */
 	public static List<String> getIgnoreStudy() {
@@ -118,25 +122,28 @@ public class InfolisConfig {
 
 	/**
 	 * Property "bibliographyCues"
+	 * 
 	 * @return
 	 */
 	public static List<String> getBibliographyCues() {
 		return Arrays.asList(INSTANCE.prop.getProperty("bibliographyCues").trim().split("\\s*,\\s*"));
 	}
-        
-        /**
+
+	/**
 	 * Property "tagCommand"
-         * @return 
+	 * 
+	 * @return
 	 */
-	public static String getTagCommand(){
+	public static String getTagCommand() {
 		return INSTANCE.prop.getProperty("tagCommand");
 	}
-        
-        /**
+
+	/**
 	 * Property "chunkCommand"
-         * @return 
+	 * 
+	 * @return
 	 */
-	public static String getChunkCommand(){
+	public static String getChunkCommand() {
 		return INSTANCE.prop.getProperty("chunkCommand");
 	}
 }

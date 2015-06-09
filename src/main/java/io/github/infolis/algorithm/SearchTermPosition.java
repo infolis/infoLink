@@ -146,7 +146,7 @@ public class SearchTermPosition extends BaseAlgorithm
 			q = qp.parse(this.execution.getSearchQuery().trim());
 		}
 		catch (ParseException e) {
-			this.execution.fatal("Could not parse searchquery '" + this.execution.getSearchQuery() + "'.");
+			fatal(log, "Could not parse searchquery '%s'", this.execution.getSearchQuery());
 			this.execution.setStatus(ExecutionStatus.FAILED);
 				
 			searcher.close();
@@ -162,7 +162,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		{
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
-			InfolisFile file = getDataStoreClient().get(InfolisFile.class, (doc.get("path")));
+			InfolisFile file = getDataStoreClient().get(InfolisFile.class, doc.get("path"));
 //			log.debug("{}", file);
 			
 			InputStream openInputStream = this.getFileResolver().openInputStream(file);
@@ -185,6 +185,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		analyzer.close();
 		r.close();
 		d.close();
+		log.debug("Finished SearchTermPosition#execute");
 	}
 	
 	private void createIndex(Path tempPath) throws IOException {

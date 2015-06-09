@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
  * @version 2014-01-27
  *
  */
+// TODO kba: Improper Algorithm implementation
 //TODO: SUBCLASSES OF LEARNER - RELIABILITY AND FREQUENCY LEARNERS - NEED DIFFERENT CLASS VARS
 public class Learner implements Algorithm {
 
@@ -1405,6 +1406,24 @@ public class Learner implements Algorithm {
         // TODO Auto-generated method stub
 
     }
+
+	@Override
+	public void debug(Logger log, String fmt, Object... args) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void info(Logger log, String fmt, Object... args) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void fatal(Logger log, String fmt, Object... args) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 
 /**

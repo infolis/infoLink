@@ -31,21 +31,21 @@ import com.google.common.collect.Lists;
 public class StudyContext extends BaseModel {
 
 	@XmlTransient
-	private List<String> leftWords;
+	private List<String>	leftWords;
 	@XmlTransient
-	private List<String> rightWords;
+	private List<String>	rightWords;
 	@XmlElement(name = "leftContext")
-	private String leftText;
+	private String			leftText;
 	@XmlElement(name = "rightContext")
-	private String rightText;
+	private String			rightText;
 	@XmlAttribute
-	private String term;
+	private String			term;
 	@XmlAttribute
-	private String file;
+	private String			file;
 	@XmlTransient
-	private String pattern;
+	private String			pattern;
 	@XmlAttribute
-	private String version;
+	private String			version;
 
 	public StudyContext() {
 	}
@@ -61,7 +61,8 @@ public class StudyContext extends BaseModel {
 	 * @param document
 	 * @param pattern
 	 */
-	public StudyContext(String left, String term, String right, String document, InfolisPattern pattern) {
+	public StudyContext(String left, String term, String right, String document,
+			InfolisPattern pattern) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
 		this.setTerm(term);
@@ -71,7 +72,8 @@ public class StudyContext extends BaseModel {
 		this.setPattern(pattern.getUri());
 	}
 
-	public StudyContext(String left, String term, String right, String document, InfolisPattern pattern, String version) {
+	public StudyContext(String left, String term, String right, String document,
+			InfolisPattern pattern, String version) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
 		this.setTerm(term);
@@ -83,14 +85,12 @@ public class StudyContext extends BaseModel {
 	}
 
 	public String toXML() {
-		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) +
-				"\" file=\"" + this.getFile() + "\">"
-				+ System.getProperty("line.separator") + "\t\t" +
-				"<leftContext>" + this.getLeftText() + "</leftContext>"
-				+ System.getProperty("line.separator") + "\t\t" +
-				"<rightContext>" + this.getRightText() + "</rightContext>"
-				+ System.getProperty("line.separator") +
-				"\t</context>" + System.getProperty("line.separator");
+		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) + "\" file=\""
+				+ this.getFile() + "\">" + System.getProperty("line.separator") + "\t\t"
+				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
+				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
+				+ this.getRightText() + "</rightContext>" + System.getProperty("line.separator")
+				+ "\t</context>" + System.getProperty("line.separator");
 	}
 
 	@Override
@@ -182,6 +182,16 @@ public class StudyContext extends BaseModel {
 			}
 		};
 		return new ArrayList<String>(Lists.transform(contexts, context_toString));
+	}
+
+	public String toPrettyString() {
+		StringBuilder sb = new StringBuilder();
+		return sb.append(leftText)
+			.append("**[  ")
+			.append(term)
+			.append("  ]**")
+			.append(rightText)
+			.toString();
 	}
 
 }

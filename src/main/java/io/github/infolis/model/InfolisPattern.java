@@ -200,6 +200,7 @@ public class InfolisPattern extends BaseModel {
         }
     }
 
+    // TODO return boolean
     //TODO: use safeMatching instead of m.find()!
     /**
      * Returns whether regular expression <emph>pattern</emph> can be found in

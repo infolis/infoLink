@@ -1,5 +1,6 @@
 package io.github.infolis.util;
 
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.StudyContext;
 
 import java.io.File;
@@ -153,6 +154,18 @@ public class SerializationUtils {
 			InfolisFileUtils.completeOutputFile(filename);
 		}
 		catch (IOException ioe) { ioe.printStackTrace(); throw new IOException();}
+	}
+
+	public static String dumpExecutionLog(Execution execution) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Log of ");
+		sb.append(execution.getUri());
+		sb.append("\n");
+		for (String msg : execution.getLog()) {
+			sb.append(msg);
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 	
 	

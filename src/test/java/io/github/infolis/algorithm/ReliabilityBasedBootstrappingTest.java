@@ -5,19 +5,20 @@
  */
 package io.github.infolis.algorithm;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,9 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 			assertNotNull("StudyContext must have term set!", studyContext.getTerm());
 			assertNotNull("StudyContext must have file set!", studyContext.getFile());
 		}
+		log.debug("foo");
+		
+		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}
 
 	@Ignore

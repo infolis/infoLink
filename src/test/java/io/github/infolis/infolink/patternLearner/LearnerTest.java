@@ -1,5 +1,15 @@
 package io.github.infolis.infolink.patternLearner;
 
+import static org.junit.Assert.*;
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
+import io.github.infolis.algorithm.SearchTermPositionTest;
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.StudyContext;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,23 +17,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
-import io.github.infolis.algorithm.ReliabilityBasedBootstrapping;
-import io.github.infolis.algorithm.SearchTermPositionTest;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Study;
-import io.github.infolis.model.StudyContext;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.junit.Assert.assertEquals;
 
 /**
 *

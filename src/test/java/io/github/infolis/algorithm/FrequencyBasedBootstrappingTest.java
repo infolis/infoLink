@@ -11,6 +11,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
+import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,6 +72,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 			assertNotNull("StudyContext must have term set!", studyContext.getTerm());
 			assertNotNull("StudyContext must have file set!", studyContext.getFile());
 		}
+		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}
 
 	@Test

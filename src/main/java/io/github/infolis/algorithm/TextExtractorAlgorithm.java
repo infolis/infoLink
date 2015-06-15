@@ -14,7 +14,6 @@ import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,20 +96,20 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			try {
 				outStream = getFileResolver().openOutputStream(outFile);
 			} catch (IOException e) {
-				getExecution().getLog().add("Error opening output stream to text file: " + e);
+				fatal(log, "Error opening output stream to text file: " + e);
 				throw e;
 			}
 			try {
 				IOUtils.write(asText, outStream);
 			} catch (IOException e) {
-				getExecution().getLog().add("Error copying text to output stream: " + e);
+				fatal(log, "Error copying text to output stream: " + e);
 				throw e;
 			}
 			pdfIn.close();
 			inStream.close();
 			return outFile;
 		} catch (Exception e) {
-			getExecution().getLog().add("Error converting PDF to text: " + e);
+			fatal(log, "Error converting PDF to text: " + e);
 			throw e;
 		}
 	}
@@ -211,32 +210,37 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			log.debug(inputFileURI);
 			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, (inputFileURI));
 			if (null == inputFile) {
-				getDataStoreClient().post(Execution.class, getExecution());
-				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
+//				getDataStoreClient().post(Execution.class, getExecution());
+				fatal(log, "File was not registered with the data store: " + inputFileURI);
+				persistExecution();
+				return;
 			}
-			log.debug("Start extracting from " + inputFile);
+			debug(log, "Start extracting from %s", inputFile);
 			InfolisFile outputFile = null;
 			try {
 				outputFile = extract(inputFile);
 			} catch (IOException e) {
-				getExecution().fatal("Extraction caused exception: " + e + "\n" + ExceptionUtils.getStackTrace(e));
-				getDataStoreClient().post(Execution.class, getExecution());
+				fatal(log, "Extraction caused exception: %s\n%s", e,  ExceptionUtils.getStackTrace(e));
+				persistExecution();
 			}
+			debug(log, "Converted to file %s", outputFile);
 //			log.debug("LOG {}", getExecution().getLog());
-			// FrontendClient.post(InfolisFile.class, outputFile);
+//			 FrontendClient.post(InfolisFile.class, outputFile);
+			getDataStoreClient().post(InfolisFile.class, outputFile);
 			if (null == outputFile) {
-				getExecution().fatal("Conversion failed for input file " + inputFileURI);
-				log.error("Log of this execution: " + getExecution().getLog());
+				fatal(log, "Conversion failed for input file %s", inputFileURI);
+				fatal(log, "Log of this execution: " + getExecution().getLog());
 				getExecution().setStatus(ExecutionStatus.FAILED);
-				getDataStoreClient().post(Execution.class, getExecution());
-				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
+				persistExecution();
+				return;
+//				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
 			} else {
-				getExecution().setStatus(ExecutionStatus.FINISHED);
-				getDataStoreClient().post(InfolisFile.class, outputFile);
 				getExecution().getOutputFiles().add(outputFile.getUri());
-				log.debug("No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
 			}
 		}
+		debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
+		getExecution().setStatus(ExecutionStatus.FINISHED);
+		persistExecution();
 	}
 
 	@Override

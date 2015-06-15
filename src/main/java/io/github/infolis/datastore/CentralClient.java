@@ -86,7 +86,7 @@ class CentralClient implements DataStoreClient {
 				.post(entity);
 		log.debug("-> {}", target);
 		log.debug("<- HTTP {}", resp.getStatus());
-		if (resp.getStatus() != 201) {
+		if (resp.getStatus() >= 400) {
 			// TODO check whether resp actually succeeded
 			ErrorResponse err = resp.readEntity(ErrorResponse.class);
 			log.error(err.getMessage());
@@ -97,6 +97,29 @@ class CentralClient implements DataStoreClient {
 			log.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());
 		}
 	}
+
+	@Override
+	public <T extends BaseModel> void put(Class<T> clazz, T thing) {
+		String thingURI = thing.getUri();
+		if (null == thingURI) {
+			throw new IllegalArgumentException("PUT requires a URI: " + thing);
+		}
+		WebTarget target = jerseyClient.target(URI.create(thingURI));
+		Entity<T> entity = Entity
+				.entity(thing, MediaType.APPLICATION_JSON_TYPE);
+		Response resp = target
+				.request(MediaType.APPLICATION_JSON_TYPE)
+				.put(entity);
+		if (resp.getStatus() >= 400) {
+			// TODO check whether resp actually succeeded
+//			ErrorResponse err = resp.readEntity(ErrorResponse.class);
+//			log.error(err.getMessage());
+//			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			throw new BadRequestException(resp);
+		}
+
+	}
+
 
 	@Override
 	public <T extends BaseModel> T get(Class<T> clazz, String uriStr) {
@@ -126,49 +149,6 @@ class CentralClient implements DataStoreClient {
 		return thing;
 	}
 
-//	@Override
-//	public <T extends BaseModel> T getById(Class<T> clazz, String id) {
-//		WebTarget target = jerseyClient
-//				.target(InfolisConfig.getFrontendURI())
-//				.path(CentralClient.getUriForClass(clazz))
-//				.path(id);
-//		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-//		if (resp.getStatus() == 404) {
-//			throw new BadRequestException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
-//		} else if (resp.getStatus() >= 400) {
-//			throw new BadRequestException(resp);
-//		}
-//		T thing;
-//		try {
-//			thing = resp.readEntity(clazz);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new ProcessingException(e);
-//		}
-//		thing.setUri(target.getUri().toString());
-//		return thing;
-//	}
-
-	@Override
-	public <T extends BaseModel> void put(Class<T> clazz, T thing) {
-		String thingURI = thing.getUri();
-		if (null == thingURI) {
-			throw new IllegalArgumentException("PUT requires a URI: " + thing);
-		}
-		WebTarget target = jerseyClient.target(URI.create(thingURI));
-		Entity<T> entity = Entity
-				.entity(thing, MediaType.APPLICATION_JSON_TYPE);
-		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).put(entity);
-		if (resp.getStatus() != 201) {
-			// TODO check whether resp actually succeeded
-			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-			log.error(err.getMessage());
-			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
-			throw new BadRequestException(resp);
-		}
-
-	}
-
 	@Override
 	public <T extends BaseModel> void patchAdd(Class<T> clazz, T thing, String fieldName, String newValue) {
 		try {
@@ -191,7 +171,9 @@ class CentralClient implements DataStoreClient {
 		
 	}
 
+	// TODO kba incomplete
 	@Override
+	@SuppressWarnings("unused")
 	public InfolisFile upload(InfolisFile file, InputStream input) throws IOException {
 		WebTarget target = jerseyClient
 				.target(InfolisConfig.getFrontendURI())

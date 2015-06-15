@@ -1,7 +1,6 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.*;
-
 import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
@@ -53,6 +52,7 @@ public class PatternApplierTest extends InfolisBaseTest {
     	
     	// find the contexts of "FOOBAR" and "term" (see also FrequencyBasedBootstrappingTest)
     	assertEquals(3, execution.getStudyContexts().size());
+    	log.debug("LOG: {}", execution.getLog());
     }
 
 }

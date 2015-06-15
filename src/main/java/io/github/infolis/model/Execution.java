@@ -63,7 +63,18 @@ public class Execution extends BaseModel {
 	private List<String> terms = new ArrayList<>();
 	private int maxIterations = 10;
 	private double threshold = 0.8;
-	private Strategy bootstrapStrategy = Strategy.separate;
+//	private Strategy bootstrapStrategy = Strategy.separate;
+	private Strategy bootstrapStrategy = Strategy.mergeAll;
+	
+	//
+	// CONSTRUCTORS
+	///
+	
+	public Execution() { }
+	
+	public Execution(Class<? extends Algorithm> algo) {
+		this.algorithm = algo;
+	}
 
 	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver) {
 		if (null == this.getAlgorithm()) {
@@ -101,18 +112,6 @@ public class Execution extends BaseModel {
 
 	public void setLog(List<String> log) {
 		this.log = log;
-	}
-
-	public void fatal(String msg) {
-		this.getLog().add(String.format("%s [%s] %s", "FATAL", new Date(), msg));
-	}
-
-	public void debug(String msg) {
-		this.getLog().add(String.format("%s [%s] %s", "DEBUG", new Date(), msg));
-	}
-
-	public void info(String msg) {
-		this.getLog().add(String.format("%s [%s] %s", "INFO", new Date(), msg));
 	}
 
 	public List<String> getInputFiles() {

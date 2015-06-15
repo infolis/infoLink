@@ -101,6 +101,33 @@ public abstract class BaseAlgorithm implements Algorithm {
 		this.dataStoreClient = dataStoreClient;
 	}
 	
+	private String log(Logger log, String fmt, String level, Object...args)
+	{
+		final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
+		log.debug(str);
+		getExecution().getLog().add(String.format("%s [%s -- %s] %s", level, new Date(), getClass().getSimpleName(), str));
+		return str;
+	}
+	
+	@Override
+	public void debug(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "DEBUG", args);
+	}
+
+	@Override
+	public void info(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "INFO", args);
+	}
+
+	@Override
+	public void fatal(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "FATAL", args);
+	}
+	
+	
 	public void baseValidate() throws IllegalAlgorithmArgumentException {
 		if (null == getExecution()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "execution", "Algorithm must have a 'Excecution' set to run().");

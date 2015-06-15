@@ -14,7 +14,7 @@ repositories {
 }
 
 gretty {
-    httpPort = 8081
+    httpPort = 8082
     servletContainer = "tomcat7" // Servlet container to be used in appXXX tasks. Possible values are jetty7, jetty8, jetty9, tomcat7, tomcat8.
     interactiveMode = "rebuildAndRestartOnKeyPress"
 }

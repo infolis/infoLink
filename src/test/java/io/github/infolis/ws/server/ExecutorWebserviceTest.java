@@ -1,14 +1,12 @@
 package io.github.infolis.ws.server;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-
-import java.net.URI;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -54,7 +52,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		centralClient.post(Execution.class, e);
 		assertNotNull(e.getUri());
 		
-		Execution e2 = centralClient.get(Execution.class, e.getUri());
+//		Execution e2 = centralClient.get(Execution.class, e.getUri());
 //		log.debug("E2: {}", e2.getInputFiles());
 		
 		ExecutorWebservice ws = new ExecutorWebservice();

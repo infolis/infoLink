@@ -64,6 +64,9 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 || this.getExecution().getInputFiles().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one input file!");
         }
+        if (null == this.getExecution().getBootstrapStrategy()) {
+            throw new IllegalArgumentException("Must set the bootstrap strategy");
+        }
     }
    
     private StudyContext getContextForTerm(List<StudyContext> contextList, String term) {
@@ -90,8 +93,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
      *
      * @param seed	the term to be searched as starting point in the current
      * iteration
-     * @param threshold	threshold for accepting patterns
-     * @param maxIterations	maximum number of iterations for algorithm
+     * @param threshold		threshold for accepting patterns
+     * @param maxIterations		maximum number of iterations for algorithm
      * @throws IllegalAccessException 
      * @throws InstantiationException 
      *
@@ -108,11 +111,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
         	newSeedsIteration = new HashSet<>();
-        	{
-        		String msg = String.format("Start iteration #%s Looking for seeds: %s", numIter, seeds);
-        		getExecution().debug(msg);
-        		log.debug(msg);
-        	}
+        	debug(log, "Start iteration #%s Looking for seeds: %s", numIter, seeds);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<StudyContext> contexts_currentIteration = new ArrayList<>();
             for (String seed : seeds) {
@@ -123,10 +122,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
                 		contexts_currentIteration.add(getContextForTerm(extractedContextsFromSeed, seed));
                 	}
-                	log.debug("seed " + seed + " already known, continuing.");
+                	debug(log, "seed " + seed + " already known, continuing.");
                     continue;
                 }
-                log.debug("Processing seed \"" + seed + "\"");
+                debug(log, "Processing seed \"" + seed + "\"");
+                debug(log, "Strategy: %s", getExecution().getBootstrapStrategy());
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
@@ -135,6 +135,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
                 execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+                getExecution().getLog().addAll(execution.getLog());
 
                 for (String studyContextUri : execution.getStudyContexts()) {
                     StudyContext studyContext = this.getDataStoreClient().get(StudyContext.class, studyContextUri);
@@ -177,16 +178,12 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	newSeedsIteration.add(entry.getTerm());
             }
             
-            {
-            	String msg = String.format("Found %s seeds in current iteration: %s", newSeedsIteration.size(), newSeedsIteration);
-            	getExecution().debug(msg);
-            	log.debug(msg);
-            }
+            debug(log, "Found %s seeds in current iteration: %s", newSeedsIteration.size(), newSeedsIteration);
             numIter++;
             
             persistExecution();
             if (processedSeeds.containsAll(newSeedsIteration)) {
-            	log.debug("No new seeds found in iteration, returning.");
+            	debug(log, "No new seeds found in iteration, returning.");
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here

@@ -1,11 +1,6 @@
 package io.github.infolis.algorithm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.TempFileResolver;
+import static org.junit.Assert.*;
 import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -82,6 +77,7 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 		// log.debug("{}", (int)c);
 		// }
 		assertEquals("Foo. Bar!", x.trim());
+		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}
 
 }

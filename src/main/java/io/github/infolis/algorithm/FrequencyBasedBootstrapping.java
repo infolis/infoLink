@@ -194,6 +194,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
         }
         log.debug("Maximum number of iterations reached, returning.");
+        // TODO now delete all the contexts that were only temporary
         return extractedContextsFromPatterns;
     }
 

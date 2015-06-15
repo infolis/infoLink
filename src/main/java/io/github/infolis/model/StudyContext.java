@@ -147,8 +147,8 @@ public class StudyContext extends BaseModel {
 		return file;
 	}
 
-	public void setFile(String document) {
-		this.file = document;
+	public void setFile(String file) {
+		this.file = file;
 	}
 
 	public String getPattern() {

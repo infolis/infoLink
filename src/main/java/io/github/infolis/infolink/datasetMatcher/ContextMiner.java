@@ -1,7 +1,8 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.infolink.datasetMatcher;
 
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.infolink.patternLearner.ExampleReader;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
@@ -449,7 +450,7 @@ public class ContextMiner {
      * (pattern-based search vs. term-based search)
      * @return
      */
-    public List<Map<String, Collection<StudyLink>>> mineStudyRefs(Map<String, Set<String[]>> docMap, Map<String, String> idMap, StudyMatcher matcher, List<Map<String, Collection<StudyLink>>> links_doiUrlString, ExtractionMethod method) {
+    public List<Map<String, Collection<StudyLink>>> mineStudyRefs(Map<String, Set<String[]>> docMap, Map<String, String> idMap, DaraWebMatcher matcher, List<Map<String, Collection<StudyLink>>> links_doiUrlString, ExtractionMethod method) {
         Map<String, Collection<StudyLink>> links_doi = links_doiUrlString.get(0);
         Map<String, Collection<StudyLink>> links_url = links_doiUrlString.get(1);
         Map<String, Collection<StudyLink>> links_str = links_doiUrlString.get(2);
@@ -975,7 +976,7 @@ public class ContextMiner {
      * @param externalURLs	path of the URL list for external datasets
      */
     public static void mineContexts(String basePath, String prefix, String patterns, String terms, String outPath, String indexPath, String urnDictPath, String searchInterface, String queryCache, String externalURLs) {
-        StudyMatcher matcher = new StudyMatcher(searchInterface, queryCache, externalURLs);
+        DaraWebMatcher matcher = new DaraWebMatcher(searchInterface, queryCache, externalURLs);
         if (indexPath != null) {
             if (!patterns.equals(" ")) {
                 for (File subcorpus : getSubcorpora(basePath, prefix)) {
@@ -1024,7 +1025,7 @@ public class ContextMiner {
      * names
      */
     public static void mineContexts(File path, String patterns, String terms, String outPath, String indexPath, String idMapPath, String searchInterface, String queryCache, String externalURLs) {
-        StudyMatcher matcher = new StudyMatcher(searchInterface, queryCache, externalURLs);
+        DaraWebMatcher matcher = new DaraWebMatcher(searchInterface, queryCache, externalURLs);
         if (indexPath != null) {
             if (!patterns.equals(" ")) {
                 getLinks(path, outPath, indexPath, matcher, patterns, idMapPath);
@@ -1043,7 +1044,7 @@ public class ContextMiner {
     }
 
     //here only one version needed - terms are included anyways due to term search, right??
-    public static void getLinks_termSearch(String corpusName, String outPath, StudyMatcher matcher, String foundMentionsFilename, String urnDictFilename) {
+    public static void getLinks_termSearch(String corpusName, String outPath, DaraWebMatcher matcher, String foundMentionsFilename, String urnDictFilename) {
         ContextMiner minerKnown = new ContextMiner(corpusName);
         Map<String, String> ssoarURNmap = minerKnown.readIDmap(urnDictFilename);
         Map<String, Set<String[]>> resKnownStudies = minerKnown.getKnownStudyRefs(foundMentionsFilename, minerKnown.corpusName, ssoarURNmap);
@@ -1072,7 +1073,7 @@ public class ContextMiner {
      * Mines the contexts of Learner, matches them with records in da|ra and
      * outputs the link files. refsnuppets...
      */
-    public static void getLinks(File corpus, String outputPath, String indexDir, StudyMatcher matcher, String foundContextsFilename, String idMapPath) {
+    public static void getLinks(File corpus, String outputPath, String indexDir, DaraWebMatcher matcher, String foundContextsFilename, String idMapPath) {
         String corpusName = corpus.getName();
         ContextMiner miner = new ContextMiner(foundContextsFilename, corpusName);
         Map<String, String> ssoarURNmap = miner.readIDmap(idMapPath);
@@ -1109,7 +1110,7 @@ public class ContextMiner {
         miner.outputLinkMap(links_string, outputPath + File.separator + "links_string_patterns_unfiltered.csv", indexDir, snippetFilename, ssoarURNmap, logFilename, false);
     }
 
-    public static void getLinks(File corpus, String outputPath, StudyMatcher matcher, String foundContextsFilename, String idMapPath) {
+    public static void getLinks(File corpus, String outputPath, DaraWebMatcher matcher, String foundContextsFilename, String idMapPath) {
         String corpusName = corpus.getName();
         ContextMiner miner = new ContextMiner(foundContextsFilename, corpusName);
         Map<String, String> ssoarURNmap = miner.readIDmap(idMapPath);

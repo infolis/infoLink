@@ -25,7 +25,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * @version 2014-01-27
  *
  */
-class ExampleReader
+public class ExampleReader
 {
 
 	private File examples;
@@ -36,7 +36,7 @@ class ExampleReader
 	 * 
 	 * @param examples	XML file containing training examples (= output of InfoLink reference extraction)
 	 */
-	ExampleReader (File examples)
+	public ExampleReader (File examples)
 	{
 		this.examples = examples;
 		handler = readExamples();
@@ -179,7 +179,7 @@ class ExampleReader
 	 * @version 2014-01-27
 	 *
 	 */
-	class Term 
+	public class Term 
 	{
 		public String string;
 		public HashSet<String[]> contexts;

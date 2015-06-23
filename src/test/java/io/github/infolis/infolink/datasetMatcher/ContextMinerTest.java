@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.infolink.datasetMatcher;
 
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.infolink.datasetMatcher;
 
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.URLParamEncoder;
@@ -28,11 +28,11 @@ import org.jsoup.select.Elements;
 /**
  * Class for matching dataset reference strings to entries in the dara dataset repository.
  * 
- * @author katarina.boland@gesis.org
+ * @author kata
  * @version 2014-01-27
  *
  */
-public class StudyMatcher 
+public class DaraWebMatcher 
 {
 	String searchInterface; 
 	String queryCache;
@@ -50,7 +50,7 @@ public class StudyMatcher
 	 * @param queryCache		path to the query cache (or null if no cache shall be used)
 	 * @param externalDatasetURLs	path to the list of URLs for external datasets (or null if no URL list shall be used)
 	 */
-	StudyMatcher(String searchInterface, String queryCache, String externalDatasetURLs)
+	DaraWebMatcher(String searchInterface, String queryCache, String externalDatasetURLs)
 	{
 		this.searchInterface = searchInterface;
 		this.queryCache = queryCache;
@@ -337,17 +337,18 @@ public class StudyMatcher
 	 * 
 	 * @param args	args[0]: dataset name(s); args[1]: path of cache file or null; args[2]: path of URL list or null
 	 */
+	/*
 	public static void main(String[] args)
 	{
 		if (args.length == 0) {
 			System.out.println("Usage: StudyMatcher <datasetName> [<cacheFile>] [<urlListFile>]");
 			System.out.println("	<datasetName>	dataset name");
 			System.out.println("	<cacheFile>	path of cache file");
-			System.out.println("	<urlListFile>	name of file contianing URL list");
+			System.out.println("	<urlListFile>	name of file containing URL list");
 			System.exit(1);
 		}
 		if (args.length == 3) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], args[2]); System.out.println(matcher.match(args[0]));}
 		if (args.length == 2) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", args[1], null); System.out.println(matcher.match(args[0]));}
 		if (args.length == 1) { StudyMatcher matcher = new StudyMatcher("http://www.da-ra.de/dara/study/web_search_show", null, null); System.out.println(matcher.match(args[0]));}
-	}
+	}*/
 }

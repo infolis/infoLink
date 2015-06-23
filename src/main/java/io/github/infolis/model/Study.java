@@ -24,7 +24,7 @@ public class Study extends BaseModel{
     @XmlAttribute
     private String name;
     @XmlAttribute
-    private String version;
+    private String number;
 
     /**
      * @return the name
@@ -41,17 +41,17 @@ public class Study extends BaseModel{
     }
 
     /**
-     * @return the version
+     * @return the number
      */
-    public String getVersion() {
-        return version;
+    public String getNumber() {
+        return number;
     }
 
     /**
      * @param version the version to set
      */
-    public void setVersion(String version) {
-        this.version = version;
+    public void setNumber(String number) {
+        this.number = number;
     }
     
 }

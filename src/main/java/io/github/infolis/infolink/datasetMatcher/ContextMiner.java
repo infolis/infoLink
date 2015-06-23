@@ -490,7 +490,7 @@ public class ContextMiner {
                         if (links_url.containsKey(pubId)) {
                             foundStudies_url = links_url.get(pubId);
                         }
-                        foundStudies_url.add(new StudyLink("", citation[1], citation[0], citation[2], StudyType.URL, confidence, citation[3], method));
+                        foundStudies_url.add(new StudyLink(" ", "", citation[1], citation[0], citation[2], StudyType.URL, confidence, citation[3], method));
                         links_url.put(pubId, foundStudies_url);
                     } else {
                         // look up study in external link index
@@ -506,7 +506,7 @@ public class ContextMiner {
                             if (links_url.containsKey(pubId)) {
                                 foundStudies_url = links_url.get(pubId);
                             }
-                            foundStudies_url.add(new StudyLink("", citation[1], citation[0], link, StudyType.URL, confidence, citation[3], method));
+                            foundStudies_url.add(new StudyLink(" ", "", citation[1], citation[0], link, StudyType.URL, confidence, citation[3], method));
                             links_url.put(pubId, foundStudies_url);
                         } // no match was found, neither in repository nor in external index
                         // type string
@@ -520,7 +520,7 @@ public class ContextMiner {
                             if (links_str.containsKey(pubId)) {
                                 foundStudies_str = links_str.get(pubId);
                             }
-                            foundStudies_str.add(new StudyLink("", citation[1], citation[0], "", StudyType.STRING, confidence, citation[3], method));
+                            foundStudies_str.add(new StudyLink(" ", "", citation[1], citation[0], "", StudyType.STRING, confidence, citation[3], method));
                             links_str.put(pubId, foundStudies_str);
                         }
                     }
@@ -536,7 +536,7 @@ public class ContextMiner {
                         if (links_doi.containsKey(pubId)) {
                             foundStudies_doi = links_doi.get(pubId);
                         }
-                        foundStudies_doi.add(new StudyLink(matchingStudiesMap.get(key), citation[1], citation[0], key, StudyType.DOI, confidence, citation[3], method));
+                        foundStudies_doi.add(new StudyLink(" ", matchingStudiesMap.get(key), citation[1], citation[0], key, StudyType.DOI, confidence, citation[3], method));
                     }
                     links_doi.put(pubId, foundStudies_doi);
                 }
@@ -797,7 +797,7 @@ public class ContextMiner {
             if (allSnippets.length() > 0) {
                 allSnippets = allSnippets.substring(RegexUtils.delimiter_internal.length());
             }
-            StudyLink newLink = new StudyLink(ref.getName(), ref.getVersion(), ref.getAltName(), ref.getLink(), ref.getType(), ref.getConfidence(), allSnippets, ref.getMethod());
+            StudyLink newLink = new StudyLink(" ", ref.getName(), ref.getVersion(), ref.getAltName(), ref.getLink(), ref.getType(), ref.getConfidence(), allSnippets, ref.getMethod());
             newLinkSet.add(newLink);
         }
         return newLinkSet;

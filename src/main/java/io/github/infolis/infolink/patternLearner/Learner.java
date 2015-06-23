@@ -2,38 +2,26 @@ package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
-import io.github.infolis.algorithm.PatternApplier;
-import io.github.infolis.algorithm.SearchTermPosition;
-import io.github.infolis.algorithm.VersionPatternApplier;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.Execution.Strategy;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Study;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.queryParser.ParseException;

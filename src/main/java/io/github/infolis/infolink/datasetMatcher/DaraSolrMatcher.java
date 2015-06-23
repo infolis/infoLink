@@ -1,7 +1,10 @@
 package io.github.infolis.infolink.datasetMatcher;
 
+import io.github.infolis.util.URLParamEncoder;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -19,21 +22,22 @@ public class DaraSolrMatcher {
 	String solrBase = "http://www.da-ra.de/solr/dara/";
 	String title;
 	
-	DaraSolrMatcher(String title) {
-		this.title = title;
+	DaraSolrMatcher(String title) throws UnsupportedEncodingException {
+		this.title =  URLParamEncoder.encode(title);
 	}
 	
 	public JsonArray query() throws MalformedURLException, IOException {
 		return executeQuery(constructQuery());
 	}
 	
-	public URL constructQuery() throws MalformedURLException {
+	private URL constructQuery() throws MalformedURLException {
 		String beginning = "select/?q=title:";
 		String remainder = "&start=0&rows=10000&fl=doi,title&wt=json";
+		log.debug(this.solrBase + beginning + this.title + remainder);
 		return new URL(this.solrBase + beginning + this.title + remainder);
 	}
 	
-	public JsonArray executeQuery(URL query) throws IOException {
+	private JsonArray executeQuery(URL query) throws IOException {
 		InputStream is = null;
 		JsonReader reader = null;
 		try {
@@ -45,6 +49,6 @@ public class DaraSolrMatcher {
 			return result;		
 		}
 		catch (IOException ioe) { throw new IOException(); }
-		finally { reader.close(); is.close(); }
+		finally { is.close(); reader.close();  }
 	}
 }

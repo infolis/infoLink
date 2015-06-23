@@ -37,7 +37,7 @@ public class Linker extends BaseAlgorithm {
 	private static final String yearRegex = "(\\d{4})";
 	private static final String yearAbbrRegex = "('\\d\\d)";
 	private static final String numberRegex = "(\\d+[.,]?\\d*)"; //this includes yearRegex
-	private static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
+	private static final String rangeRegex = "(([-â€“])|(bis)|(to)|(till)|(until))";
 	
 	private static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
 	private static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";

@@ -2,6 +2,8 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
+import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
@@ -9,6 +11,7 @@ import io.github.infolis.util.SerializationUtils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 
@@ -138,5 +141,15 @@ public abstract class BaseAlgorithm implements Algorithm {
 		if (null == getDataStoreClient()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "dataStoreClient", "Algorithm must have a 'dataStoreClient' set to run().");
 		}
+	}
+	
+	@Override
+	public LocalClient getTempDataStoreClient() {
+		return new LocalClient(UUID.randomUUID());
+	}
+	
+	@Override
+	public TempFileResolver getTempFileResolver() {
+		return new TempFileResolver();
 	}
 }

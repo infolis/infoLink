@@ -17,7 +17,7 @@ public class CentralClientTest {
 
 	@Test
 	public void test() throws Exception {
-		Assume.assumeNotNull(System.getProperty("infolisRemoteTest", "false"));
+		Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
 
 		DataStoreClient client = DataStoreClientFactory.global();
 		InfolisFile inFile = new InfolisFile();

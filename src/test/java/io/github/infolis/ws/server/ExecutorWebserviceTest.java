@@ -25,7 +25,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 	Logger log = LoggerFactory.getLogger(ExecutorWebserviceTest.class);
 
 	@Test
-	public void testStartFronendExecution() throws Exception {
+	public void testStartFrontendExecution() throws Exception {
 		FormDataMultiPart fdm = new FormDataMultiPart();
 		fdm.field("algorithm", TextExtractorAlgorithm.class.getName());
 		WebTarget target = jerseyClient

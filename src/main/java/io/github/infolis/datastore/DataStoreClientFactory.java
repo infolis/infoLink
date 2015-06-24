@@ -1,5 +1,7 @@
 package io.github.infolis.datastore;
 
+import java.util.UUID;
+
 public class DataStoreClientFactory {
 	
 	/**
@@ -28,12 +30,13 @@ public class DataStoreClientFactory {
 	 */
 	public static DataStoreClient create(DataStoreStrategy strategy) {
 		Class<? extends DataStoreClient> clazz = strategy.dataStoreClientClass;
-        DataStoreClient instance = null;
-		try {
-			instance = clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+        final DataStoreClient instance;
+		if (clazz.equals(CentralClient.class)) {
+			instance = new CentralClient();
+		} else if (clazz.equals(LocalClient.class)) {
+			instance = new LocalClient(UUID.randomUUID());
+		} else {
+			throw new RuntimeException("Unhandled DataStoreClient class " + clazz.getName());
 		}
 		return instance;
 	}

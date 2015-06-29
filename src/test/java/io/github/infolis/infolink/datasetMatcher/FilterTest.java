@@ -19,6 +19,7 @@ public class FilterTest {
 			"German Social Survey (ALLBUS) Cumulative File, 1980 - 1996",
 			"German Social Survey (ALLBUS) Cumulative File, 1980 1996",
 			"German Social Survey (ALLBUS) Cumulative File, 1980-1990",
+			// hard cases: 2. wave != no 2. Filter needs more info to decide which numbers to ignore
 			"Ausländerumfrage 1982 (1. Welle: Haushaltsvorstände)",
 			"SFB580-B2 Betriebspanel",
 			"USICA-Jugend-Studie (Panel: 2. Welle 1979)",
@@ -181,7 +182,7 @@ public class FilterTest {
 		assertFalse(Filter.numericInfoMatches(refNumbers[5], candidates[11]));
 		assertTrue(Filter.numericInfoMatches(refNumbers[5], candidates[12]));
 		assertFalse(Filter.numericInfoMatches(refNumbers[5], candidates[13]));
-		assertFalse(Filter.numericInfoMatches(refNumbers[5], candidates[14]));
+		assertTrue(Filter.numericInfoMatches(refNumbers[5], candidates[14]));
 		
 		//"2-4"
 		assertFalse(Filter.numericInfoMatches(refNumbers[6], candidates[0]));

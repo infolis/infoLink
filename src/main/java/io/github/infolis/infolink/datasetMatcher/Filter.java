@@ -115,19 +115,7 @@ class Filter {
 	}
 	
 	public static boolean yearsMatch(List<String> numericInfo1, List<String> numericInfo2, boolean containsYear_numericInfo2, boolean containsAbbrYear_numericInfo2) {
-		// candidate numeric info contains a year as well
-		if (containsYear_numericInfo2) { 
-			for (String year : numericInfo1) {
-				for (String year2 : numericInfo2) { 
-					if (year.equals(year2)) { 
-						log.debug("Years match: " + year + " <-> " + year2);
-						return true; 
-					} 
-				}
-			}
-		return false;
-		} 
-		
+
 		if (containsAbbrYear_numericInfo2) {
 			for (String year : numericInfo1) {
 				for (String abbrYear2 : numericInfo2) {
@@ -140,9 +128,22 @@ class Filter {
 					}
 				}
 			}
+			return false;
 		}
-		return false;
 		
+		// candidate numeric info contains a year as well or is some number
+		else { 
+			for (String year : numericInfo1) {
+				for (String year2 : numericInfo2) { 
+					if (year.equals(year2)) { 
+						log.debug("Years match: " + year + " <-> " + year2);
+						return true; 
+					} 
+					else { log.debug("No year match: " + year + " <-> " + year2); }
+				}
+			}
+			return false;
+		} 
 	}
 	
 	public static boolean abbreviatedYearsMatch(List<String> numericInfo1, List<String> numericInfo2, boolean containsAbbrYear_numericInfo2) {
@@ -204,12 +205,18 @@ class Filter {
 		// extracted numeric information is a range specification
 		if (containsRange_numericInfo1) { 
 			log.debug("Range match for: " + numericInfo + " <-> " + string + "?");
-			return rangeMatches(numericInfo1, numericInfo2, containsRange_numericInfo2, containsYear_numericInfo2, containsAbbrYear_numericInfo2);
+			// continue if range does not match - maybe parts do
+			if (rangeMatches(numericInfo1, numericInfo2, containsRange_numericInfo2, containsYear_numericInfo2, containsAbbrYear_numericInfo2)) {
+				return true ;
+			}
 		}
 		
 		if (containsRange_numericInfo2) {
 			log.debug("Range match for: " + string + " <-> " + numericInfo + "?");
-			return rangeMatches(numericInfo2, numericInfo1, containsRange_numericInfo1, containsYear_numericInfo1, containsAbbrYear_numericInfo1);
+			// continue if range does not match - maybe parts do
+			if (rangeMatches(numericInfo2, numericInfo1, containsRange_numericInfo1, containsYear_numericInfo1, containsAbbrYear_numericInfo1)) {
+				return true;
+			}
 		}
 		
 		// extracted numeric info contains a year
@@ -312,7 +319,8 @@ class Filter {
 		Matcher matcher = p.matcher(string);
 		List<String> numericInfo = new ArrayList<String>();
 		while (matcher.find()) {
-	           numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
+			// remove "." and "," if not followed by any number (1. -> 1; 1.0 -> 1.0)
+	        numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
 	    }
 		return numericInfo;
 	}

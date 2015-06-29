@@ -33,14 +33,14 @@ public class Linker extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(Linker.class);
 	
-	private static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
-	private static final String yearRegex = "(\\d{4})";
-	private static final String yearAbbrRegex = "('\\d\\d)";
-	private static final String numberRegex = "(\\d+[.,]?\\d*)"; //this includes yearRegex
-	private static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
+	static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
+	static final String yearRegex = "(\\d{4})";
+	static final String yearAbbrRegex = "('\\d\\d)";
+	static final String numberRegex = "(\\d+[.,]?\\d*)"; //this includes yearRegex
+	static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
 	
-	private static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
-	private static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
+	static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
+	static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
 	static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
 	
 	private static final long maxTimeMillis = 75000;
@@ -152,8 +152,7 @@ public class Linker extends BaseAlgorithm {
 		return numericInfo;
 	}
 	
-	private boolean ignoreStudy(String studyname) {
-	// TODO should work but need to test it
+	boolean ignoreStudy(String studyname) {
 		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
 			if (studyname.matches(ignorePattern)) {
 		    	return true;
@@ -162,7 +161,7 @@ public class Linker extends BaseAlgorithm {
 		return false;
 	}
         
-    private Study extractStudy(StudyContext context) {
+    Study extractStudy(StudyContext context) {
     	List<String> numericInfo = extractNumericInfo(context);
         Study study = new Study();
         if (ignoreStudy(context.getTerm())) { return study; }

@@ -49,7 +49,7 @@ class Filter {
 	}
 	
 	private static boolean containsAbbreviatedYear(String number) {
-		return Pattern.matches(".*?" + Linker.yearAbbrRegex+ ".*?", number);
+		return Pattern.matches("[\\D]*?" + "('?\\d\\d)" + "[^\\d\\.]*?", number);
 	}
 	
 	private static boolean containsEnum(String number) {
@@ -118,16 +118,25 @@ class Filter {
 		// candidate numeric info contains a year as well
 		if (containsYear_numericInfo2) { 
 			for (String year : numericInfo1) {
-				for (String year2 : numericInfo2) { if (year.equals(year2)) { return true; } }
+				for (String year2 : numericInfo2) { 
+					if (year.equals(year2)) { 
+						log.debug("Years match: " + year + " <-> " + year2);
+						return true; 
+					} 
+				}
 			}
 		return false;
 		} 
 		
 		if (containsAbbrYear_numericInfo2) {
 			for (String year : numericInfo1) {
-				for (String abbrYear2 :  numericInfo2) {
+				for (String abbrYear2 : numericInfo2) {
 					for (String year2 : getFullYearVariants(abbrYear2)) {
-						if (year.equals(year2)) { return true; }
+						if (year.equals(year2)) { 
+							log.debug("Years match: " + year + " <-> " + year2); 
+							return true; 
+						}
+						else { log.debug("No year match: " + year + " <-> " + year2); }
 					}
 				}
 			}
@@ -152,7 +161,8 @@ class Filter {
 				float number2 = Float.parseFloat(info2);
 				for (String abbreviatedYear : numericInfo1) {
 					float number1 = Float.parseFloat(abbreviatedYear);
-					if (number1 == number2) { return true; }
+					if (Math.abs(number1 - number2) < 0.00001) { 
+						log.debug("Equal: " + number1 + " <-> " +  number2); return true; }
 				}
 			}
 			return false;
@@ -184,7 +194,7 @@ class Filter {
 		boolean containsAbbrYear_numericInfo2 = containsAbbreviatedYear(string);
 
 		if (containsEnum_numericInfo1) {
-			log.debug("Enum match for : " + numericInfo + " <-> " + string + "?");
+			log.debug("Enum match for: " + numericInfo + " <-> " + string + "?");
 			return enumMatches(numericInfo1, string);
 		}
 		if (containsEnum_numericInfo2) {
@@ -250,7 +260,7 @@ class Filter {
 			float year2 = Float.parseFloat(value);
 			return (inRange(info1, year2));
 		}
-		catch (NumberFormatException nfe) { return false; }
+		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
 	
 	/**
@@ -262,7 +272,7 @@ class Filter {
 	 */
 	static boolean inRange(float[] range1, float value) {
 		float year1a = range1[0]; float year1b = range1[1];
-		// probably not a range after all (e.g. Ausländer in Deutschland 2000 - 2. Welle)
+		// probably not a range after all (e.g. AuslÃ¤nder in Deutschland 2000 - 2. Welle)
 		if (year1a > year1b)  { return false; }
 		return (value >= year1a && value <= year1b);
 	}
@@ -286,7 +296,7 @@ class Filter {
 			float[] info2 = toFloatArray(range2);
 			float year1a = info1[0]; float year1b = info1[1];
 			float year2a = info2[0]; float year2b = info2[1];
-			// probably not a range after all (e.g. Ausländer in Deutschland 2000 - 2. Welle)
+			// probably not a range after all (e.g. AuslÃ¤nder in Deutschland 2000 - 2. Welle)
 			if (year1a > year1b || year2a > year2b)  { return false; }
 			boolean case1 = ((year2a >= year1a) && (year2b <= year1b));
 			boolean case2 = ((year2a < year1a) && (year2b <= year1b) && (year2b >= year1a));
@@ -294,15 +304,15 @@ class Filter {
 			boolean case4 = ((year2a <= year1a) && (year2b >= year1b));
 			return (case1 || case2 || case3 || case4);
 		}
-		catch (NumberFormatException mfe) { return false; }
+		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
 	
 	private static List<String> extractNumbers (String string) {
-		Pattern p = Pattern.compile(Linker.numericInfoRegex);
+		Pattern p = Pattern.compile(Linker.numberRegex);
 		Matcher matcher = p.matcher(string);
 		List<String> numericInfo = new ArrayList<String>();
 		while (matcher.find()) {
-	           numericInfo.add(matcher.group());
+	           numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
 	    }
 		return numericInfo;
 	}

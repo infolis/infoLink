@@ -33,22 +33,20 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 	String testString6 = "Hallo, please try to find .the term. in this short text snippet. Thank you.";
 	List<String> uris = new ArrayList<>();
 
-	private SearchTermPosition stp;
+//	private SearchTermPosition stp;
 	public SearchTermPositionTest() throws Exception {
 		for (InfolisFile file : createTestFiles(100)) {
             uris.add(file.getUri());
 		}
-		stp = new SearchTermPosition();
-		stp.setDataStoreClient(dataStoreClient);
-		stp.setFileResolver(fileResolver);
+//		stp = new SearchTermPosition(dataStoreClient, dataStoreClient,fileResolver, fileResolver);
 	}
 
 	@Test
 	public void getContextTest() throws IOException {
 
-			List<StudyContext> contextList1 = stp.getContexts("document", "term", testString1); 
-			List<StudyContext> contextList2 = stp.getContexts("document", "term", testString2); 
-			List<StudyContext> contextList3 = stp.getContexts("document", "term", testString3);
+			List<StudyContext> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1); 
+			List<StudyContext> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2); 
+			List<StudyContext> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
 			assertEquals(1,contextList1.size());
 			assertEquals(0,contextList2.size());
 			assertEquals(1,contextList3.size());

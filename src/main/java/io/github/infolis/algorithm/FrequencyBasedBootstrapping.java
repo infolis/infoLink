@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -24,7 +26,11 @@ import org.slf4j.LoggerFactory;
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
+    public FrequencyBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
 
     @Override
     public void execute() throws IOException {
@@ -40,7 +46,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         Set<String> detectedStudies = new HashSet<>();
         Set<String> detectedPatterns = new HashSet<>();
         for (StudyContext sC : detectedContexts) {
-            getDataStoreClient().post(StudyContext.class, sC);
+            getOutputDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
             detectedStudies.add(sC.getTerm());
             detectedPatterns.add(sC.getPattern());
@@ -134,11 +140,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
-                execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+                execution.instantiateAlgorithm(this).run();
                 getExecution().getLog().addAll(execution.getLog());
 
                 for (String studyContextUri : execution.getStudyContexts()) {
-                    StudyContext studyContext = this.getDataStoreClient().get(StudyContext.class, studyContextUri);
+                    StudyContext studyContext = this.getOutputDataStoreClient().get(StudyContext.class, studyContextUri);
 					detectedContexts.add(studyContext);
 //                    log.warn("{}", studyContext.getPattern());
                 }
@@ -164,7 +170,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
             
             for (InfolisPattern pattern : newPatterns) {
-            	this.getDataStoreClient().post(InfolisPattern.class, pattern);
+            	this.getOutputDataStoreClient().post(InfolisPattern.class, pattern);
             	processedPatterns.add(pattern.getMinimal());
             }
             
@@ -206,7 +212,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             exec.setSearchTerm("");
     		exec.setSearchQuery(curPat.getLuceneQuery());
     		exec.setInputFiles(getExecution().getInputFiles());
-    		Algorithm algo = exec.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+    		Algorithm algo = exec.instantiateAlgorithm(this);
     		algo.setExecution(exec);
     		log.debug("Lucene pattern: " + curPat.getLuceneQuery());
 			log.debug("Regex: " + curPat.getPatternRegex());
@@ -220,12 +226,12 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setPattern(Arrays.asList(curPat.getUri()));
                 execution.setAlgorithm(PatternApplier.class);                
                 execution.getInputFiles().add(filenameIn);
-                Algorithm algo2 = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+                Algorithm algo2 = execution.instantiateAlgorithm(this);
                 algo2.setExecution(execution);
                 algo2.run();
 
                 for (String uri : execution.getStudyContexts()) {
-                    StudyContext sC = getDataStoreClient().get(StudyContext.class, uri);
+                    StudyContext sC = getOutputDataStoreClient().get(StudyContext.class, uri);
                     sC.setPattern(curPat.getUri());
                     contexts.add(sC);
                 }

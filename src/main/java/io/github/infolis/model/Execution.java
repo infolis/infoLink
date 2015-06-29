@@ -4,6 +4,8 @@ import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,33 +65,52 @@ public class Execution extends BaseModel {
 	private List<String> terms = new ArrayList<>();
 	private int maxIterations = 10;
 	private double threshold = 0.8;
-//	private Strategy bootstrapStrategy = Strategy.separate;
+	// private Strategy bootstrapStrategy = Strategy.separate;
 	private Strategy bootstrapStrategy = Strategy.mergeAll;
-	
+
 	//
 	// CONSTRUCTORS
-	///
-	
-	public Execution() { }
-	
+	// /
+
+	public Execution() {
+	}
+
 	public Execution(Class<? extends Algorithm> algo) {
 		this.algorithm = algo;
 	}
 
-	public Algorithm instantiateAlgorithm(DataStoreClient client, FileResolver fileResolver) {
+	public Algorithm instantiateAlgorithm(DataStoreClient dataStoreClient, FileResolver fileResolver) {
+		return instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+	}
+
+	public Algorithm instantiateAlgorithm(Algorithm copyFrom)
+	{
+		return instantiateAlgorithm(
+				copyFrom.getInputDataStoreClient(),
+				copyFrom.getOutputDataStoreClient(),
+				copyFrom.getInputFileResolver(),
+				copyFrom.getOutputFileResolver());
+	}
+
+	public Algorithm instantiateAlgorithm(
+			DataStoreClient inputDataStoreClient,
+			DataStoreClient outputDataStoreClient,
+			FileResolver inputFileResolver,
+			FileResolver outputFileResolver
+			) {
 		if (null == this.getAlgorithm()) {
 			throw new IllegalArgumentException(
 					"Must set 'algorithm' of execution before calling instantiateAlgorithm.");
 		}
 		Algorithm algo;
 		try {
-			algo = this.algorithm.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
+			Constructor<? extends Algorithm> constructor = this.algorithm.getDeclaredConstructor(DataStoreClient.class, DataStoreClient.class,
+					FileResolver.class, FileResolver.class);
+			algo = constructor.newInstance(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
 		algo.setExecution(this);
-		algo.setFileResolver(fileResolver);
-		algo.setDataStoreClient(client);
 		logger.debug("Created instance for algorithm '{}'", this.getAlgorithm());
 		return algo;
 	}

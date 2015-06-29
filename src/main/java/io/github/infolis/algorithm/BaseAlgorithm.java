@@ -33,11 +33,108 @@ public abstract class BaseAlgorithm implements Algorithm {
 	static {
 		algorithms.put(TextExtractorAlgorithm.class.getSimpleName(), TextExtractorAlgorithm.class);
 	}
-	
+
+	public BaseAlgorithm(
+			DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+			FileResolver inputFileResolver, FileResolver outputFileResolver)
+	{
+		this.outputDataStoreClient = outputDataStoreClient;
+		this.inputDataStoreClient = inputDataStoreClient;
+		this.outputFileResolver = outputFileResolver;
+		this.inputFileResolver = inputFileResolver;
+	}
+
 	private Execution execution;
-	private FileResolver fileResolver;
-	private DataStoreClient dataStoreClient;
-	
+	private FileResolver outputFileResolver;
+	private FileResolver inputFileResolver;
+	private DataStoreClient inputDataStoreClient;
+	private DataStoreClient outputDataStoreClient;
+
+	public void baseValidate() throws IllegalAlgorithmArgumentException {
+		if (null == getExecution()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "execution", "Algorithm must have a 'Excecution' set to run().");
+		}
+		if (null == getInputFileResolver()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFileResolver", "Algorithm must have an input 'FileResolver' set to run().");
+		}
+		if (null == getOutputFileResolver()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "outputFileResolver", "Algorithm must have an output  'FileResolver' set to run().");
+		}
+		if (null == getOutputDataStoreClient()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "dataStoreClient", "Algorithm must have a 'dataStoreClient' set to run().");
+		}
+	}
+
+	@Override
+	public void debug(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "DEBUG", args);
+	}
+
+	@Override
+	public void fatal(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "FATAL", args);
+	}
+
+	@Override
+	public DataStoreClient getOutputDataStoreClient() {
+		return outputDataStoreClient;
+	}
+
+	@Override
+	public DataStoreClient getInputDataStoreClient() {
+		return inputDataStoreClient;
+	}
+
+	@Override
+	public Execution getExecution() {
+		return execution;
+	}
+
+	@Override
+	public FileResolver getInputFileResolver() {
+		return inputFileResolver;
+	}
+
+	@Override
+	public FileResolver getOutputFileResolver() {
+		return outputFileResolver;
+	}
+
+	@Override
+	public LocalClient getTempDataStoreClient() {
+		return new LocalClient(UUID.randomUUID());
+	}
+
+	@Override
+	public TempFileResolver getTempFileResolver() {
+		return new TempFileResolver();
+	}
+
+	@Override
+	public void info(Logger log, String fmt, Object... args)
+	{
+		log(log, fmt, "INFO", args);
+	}
+
+	private String log(Logger log, String fmt, String level, Object... args)
+	{
+		final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
+		log.debug(str);
+		getExecution().getLog().add(String.format("%s [%s -- %s] %s", level, new Date(), getClass().getSimpleName(), str));
+		return str;
+	}
+
+	protected void persistExecution() throws BadRequestException {
+		log.debug("Persisting execution");
+		if (null != getExecution().getUri()) {
+			getOutputDataStoreClient().put(Execution.class, getExecution());
+		} else {
+			getOutputDataStoreClient().post(Execution.class, getExecution());
+		}
+	}
+
 	@Override
 	public final void run() {
 		log.debug("{}", SerializationUtils.toJSON(getExecution()));
@@ -57,7 +154,7 @@ public abstract class BaseAlgorithm implements Algorithm {
 		try {
 			execute();
 		} catch (Exception e) {
-			log.error("Execution threw an Exception: {}" , e);
+			log.error("Execution threw an Exception: {}", e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
 			getExecution().setEndTime(new Date());
 		} finally {
@@ -65,91 +162,13 @@ public abstract class BaseAlgorithm implements Algorithm {
 		}
 	}
 
-	protected void persistExecution() throws BadRequestException {
-		log.debug("Persisting execution");
-		if (null != getExecution().getUri()) {
-			getDataStoreClient().put(Execution.class, getExecution());
-		} else {
-			getDataStoreClient().post(Execution.class, getExecution());
-		}
-	}
-
 	@Override
-	public Execution getExecution() {
-		return execution;
+	public void setDataStoreClient(DataStoreClient dataStoreClient) {
+		this.inputDataStoreClient = dataStoreClient;
 	}
 
 	@Override
 	public void setExecution(Execution execution) {
 		this.execution = execution;
-	}
-
-	@Override
-	public FileResolver getFileResolver() {
-		return fileResolver;
-	}
-
-	@Override
-	public void setFileResolver(FileResolver fileResolver) {
-		this.fileResolver = fileResolver;
-	}
-
-	@Override
-	public DataStoreClient getDataStoreClient() {
-		return dataStoreClient;
-	}
-
-	@Override
-	public void setDataStoreClient(DataStoreClient dataStoreClient) {
-		this.dataStoreClient = dataStoreClient;
-	}
-	
-	private String log(Logger log, String fmt, String level, Object...args)
-	{
-		final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
-		log.debug(str);
-		getExecution().getLog().add(String.format("%s [%s -- %s] %s", level, new Date(), getClass().getSimpleName(), str));
-		return str;
-	}
-	
-	@Override
-	public void debug(Logger log, String fmt, Object... args)
-	{
-		log(log, fmt, "DEBUG", args);
-	}
-
-	@Override
-	public void info(Logger log, String fmt, Object... args)
-	{
-		log(log, fmt, "INFO", args);
-	}
-
-	@Override
-	public void fatal(Logger log, String fmt, Object... args)
-	{
-		log(log, fmt, "FATAL", args);
-	}
-	
-	
-	public void baseValidate() throws IllegalAlgorithmArgumentException {
-		if (null == getExecution()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "execution", "Algorithm must have a 'Excecution' set to run().");
-		}
-		if (null == getFileResolver()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "fileResolver", "Algorithm must have a 'FileResolver' set to run().");
-		}
-		if (null == getDataStoreClient()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "dataStoreClient", "Algorithm must have a 'dataStoreClient' set to run().");
-		}
-	}
-	
-	@Override
-	public LocalClient getTempDataStoreClient() {
-		return new LocalClient(UUID.randomUUID());
-	}
-	
-	@Override
-	public TempFileResolver getTempFileResolver() {
-		return new TempFileResolver();
 	}
 }

@@ -1,6 +1,7 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.infolink.luceneIndexing.Indexer;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
@@ -62,6 +63,10 @@ import org.slf4j.LoggerFactory;
 public class SearchTermPosition extends BaseAlgorithm
 { 
 	
+	public SearchTermPosition(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
 	private Execution execution;
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 	private static final String DEFAULT_FIELD_NAME = "contents";
@@ -162,10 +167,10 @@ public class SearchTermPosition extends BaseAlgorithm
 		{
 			Document doc = searcher.doc(sd[i].doc);
 //			log.debug(doc.get("path"));
-			InfolisFile file = getDataStoreClient().get(InfolisFile.class, doc.get("path"));
+			InfolisFile file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
 //			log.debug("{}", file);
 			
-			InputStream openInputStream = this.getFileResolver().openInputStream(file);
+			InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
 			String text = IOUtils.toString(openInputStream);
 			openInputStream.close();
 			
@@ -174,8 +179,8 @@ public class SearchTermPosition extends BaseAlgorithm
 			// output contexts are those created by pattern-based search
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
-				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
-					getDataStoreClient().post(StudyContext.class, sC);
+				for (StudyContext sC : getContexts(getOutputDataStoreClient(), file.getUri(), this.getExecution().getSearchTerm(), text)) {
+					getOutputDataStoreClient().post(StudyContext.class, sC);
 					this.execution.getStudyContexts().add(sC.getUri());
 				}
 			}
@@ -189,16 +194,16 @@ public class SearchTermPosition extends BaseAlgorithm
 	}
 	
 	private void createIndex(Path tempPath) throws IOException {
-		Execution execution = new Execution();
+//		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
 		execution.setInputFiles(this.getExecution().getInputFiles());
 		execution.setIndexDirectory(tempPath.toString());
 		
-		Algorithm algo = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+		Algorithm algo = execution.instantiateAlgorithm(this);
 		algo.execute();
 	}
 
-	List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
+	public static List<StudyContext> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -251,7 +256,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    }
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
-	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
+	    	outputDataStoreClient.post(InfolisPattern.class, infolisPat);
 //	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {

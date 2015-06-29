@@ -1,6 +1,6 @@
 package io.github.infolis.util;
 
-import io.github.infolis.infolink.luceneIndexing.Indexer;
+import io.github.infolis.algorithm.Indexer;
 
 import java.io.IOException;
 import java.io.StringReader;

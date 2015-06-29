@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
@@ -29,7 +31,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
-    private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
+    ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
+	private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
 
     private List<StudyContext> bootstrapReliabilityBased() throws IOException, ParseException {
         Set<String> reliableInstances = new HashSet<>();
@@ -60,10 +66,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setThreshold(getExecution().getThreshold());
-                execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+                execution.instantiateAlgorithm(this).run();
                   
                 for (String sC : execution.getStudyContexts()) {
-                    StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+                    StudyContext context = this.getOutputDataStoreClient().get(StudyContext.class, sC);
                     contexts_seed.add(context);
                     contexts_seeds_all.add(context);
                 }
@@ -75,7 +81,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 for (String minimal : reliableMinimals_iteration) {
                 	List<String> reliableContexts = inducer.minimal_context_map.get(minimal);
                 	for (String contextURI : reliableContexts) {
-                		contextsOfReliablePatterns_iteration.add(getDataStoreClient().get(StudyContext.class, contextURI));
+                		contextsOfReliablePatterns_iteration.add(getInputDataStoreClient().get(StudyContext.class, contextURI));
                 	}
                 }
                 // TODO: contexts previously deemed as reliable should be removable by getReliablePatternData if pattern is not 
@@ -114,10 +120,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         	execution_pa.getPattern().add(pattern.getUri());
         	execution_pa.setAlgorithm(PatternApplier.class);
         	execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
-        	Algorithm algo = new PatternApplier();
-        	algo.setDataStoreClient(getDataStoreClient());
-        	algo.setFileResolver(getFileResolver());
-        	algo.setExecution(execution_pa);
+        	Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         	algo.run();
         	return execution_pa.getStudyContexts();
         }
@@ -154,7 +157,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 	            	}
 	            	// candidates need a URI for extraction of contexts even if not deemed reliable in the end
 	            	else { 
-	            		getDataStoreClient().post(InfolisPattern.class, candidate);
+	            		getOutputDataStoreClient().post(InfolisPattern.class, candidate);
 	            		contexts_pattern = extractContexts(candidate); 
 	            		this.minimal_context_map.put(candidate.getMinimal(), contexts_pattern);
 	            		processedMinimals_iteration.add(candidate.getMinimal());
@@ -188,7 +191,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
 
         for (StudyContext sC : detectedContexts) {
-            getDataStoreClient().post(StudyContext.class, sC);
+            getOutputDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
             this.getExecution().getPattern().add(sC.getPattern());
         }

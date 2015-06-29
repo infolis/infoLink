@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.luceneIndexing;
+package io.github.infolis.algorithm;
 
 
 /**
@@ -18,8 +18,10 @@ package io.github.infolis.infolink.luceneIndexing;
  * limitations under the License.
  */
 
-import io.github.infolis.algorithm.BaseAlgorithm;
-import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
+import io.github.infolis.infolink.luceneIndexing.FileDocument;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
@@ -53,6 +55,10 @@ import org.slf4j.LoggerFactory;
 public class Indexer extends BaseAlgorithm
 {
 	
+	public Indexer(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
 	private Logger log = LoggerFactory.getLogger(Indexer.class);
 
 	/*
@@ -73,7 +79,7 @@ public class Indexer extends BaseAlgorithm
 		List<InfolisFile> files = new ArrayList<>();
 
 		for (String fileUri : getExecution().getInputFiles()) {
-			files.add(this.getDataStoreClient().get(InfolisFile.class, fileUri));
+			files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
 		}
 
 		Date start = new Date();
@@ -82,7 +88,7 @@ public class Indexer extends BaseAlgorithm
 			
 //			log.debug("Indexing file " + file);
 			try {
-				writer.addDocument(FileDocument.toLuceneDocument(getFileResolver(), file));
+				writer.addDocument(FileDocument.toLuceneDocument(getInputFileResolver(), file));
 			} catch (FileNotFoundException fnfe) {
 				// NOTE: at least on windows, some temporary files raise this
 				// exception with an "access denied" message checking if the

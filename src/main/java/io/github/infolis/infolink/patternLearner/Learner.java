@@ -119,7 +119,8 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
         e.setUpperCaseConstraint(this.constraint_upperCase);
-        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+        Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+        algorithm.run();
         return e.getStudyContexts();
     }
 
@@ -138,7 +139,8 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
         e.setUpperCaseConstraint(this.constraint_upperCase);
-        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+        Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+        algorithm.run();
         return e.getStudyContexts();
     }
 
@@ -223,24 +225,6 @@ public class Learner implements Algorithm {
     }
 
     @Override
-    public FileResolver getFileResolver() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileResolver(FileResolver fileResolver) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public DataStoreClient getDataStoreClient() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void setDataStoreClient(DataStoreClient dataStoreClient) {
         // TODO Auto-generated method stub
 
@@ -272,6 +256,30 @@ public class Learner implements Algorithm {
 
 	@Override
 	public LocalClient getTempDataStoreClient() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileResolver getOutputFileResolver() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileResolver getInputFileResolver() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataStoreClient getInputDataStoreClient() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataStoreClient getOutputDataStoreClient() {
 		// TODO Auto-generated method stub
 		return null;
 	}

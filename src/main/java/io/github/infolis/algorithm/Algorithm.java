@@ -45,18 +45,22 @@ public interface Algorithm extends Runnable {
 	/**
 	 * @return the {@link FileResolver} of this algorithm
 	 */
-	FileResolver getFileResolver();
+	FileResolver getOutputFileResolver();
 
 	/**
-	 * @param fileResolver
-	 *            the {@link FileResolver} for this algorithm.
+	 * @return the {@link FileResolver} of this algorithm
 	 */
-	void setFileResolver(FileResolver fileResolver);
+	FileResolver getInputFileResolver();
 
 	/**
 	 * @return the {@link DataStoreClient} to use for this algorithm instance.
 	 */
-	DataStoreClient getDataStoreClient();
+	DataStoreClient getInputDataStoreClient();
+
+	/**
+	 * @return the {@link DataStoreClient} to use for this algorithm instance.
+	 */
+	DataStoreClient getOutputDataStoreClient();
 	
 	/**
 	 * @return a temporary {@link TempFileResolver}

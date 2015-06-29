@@ -1,6 +1,7 @@
-package io.github.infolis.infolink.luceneIndexing;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
@@ -39,11 +40,8 @@ public class IndexerTest extends InfolisBaseTest {
 		execution.setAlgorithm(Indexer.class);
 		execution.setInputFiles(uris);
 		execution.setIndexDirectory(tempPath.toString());
-		
-		Algorithm algo = new Indexer();
-		algo.setExecution(execution);
-		algo.setFileResolver(fileResolver);
-		algo.setDataStoreClient(dataStoreClient);
+		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
+
 		algo.run();
 
 		log.debug("File 0: {} " , inputFiles.get(0));

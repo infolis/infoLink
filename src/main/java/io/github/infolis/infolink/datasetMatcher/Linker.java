@@ -188,6 +188,7 @@ public class Linker extends BaseAlgorithm {
 		}
 		catch (Exception e) { 
 			log.error("Error executing Linker: " + e);
+			e.printStackTrace();
 			getExecution().setStatus(ExecutionStatus.FAILED); 
 		}
 	}

@@ -83,7 +83,7 @@ public class LinkerTest extends BaseTest {
         return execution.getStudyContexts();
 	}
 	
-	@Ignore
+	@Test
 	public void linkContextTest() throws IOException, Exception {
 		prepareTestFiles();
 		List<String> contextURIs = generateTestContexts();

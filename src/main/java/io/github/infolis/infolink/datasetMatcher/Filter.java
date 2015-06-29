@@ -183,6 +183,9 @@ class Filter {
 	
 	//TODO: also return kind of match (overlap vs exact match...?)
 	protected static boolean numericInfoMatches(String numericInfo, String string) {
+		// for study references without any specified years / numbers, accept all candidates
+		// TODO: match to higher order entity according to dataset ontology (study, not dataset)
+		if (numericInfo == null || string == null) return true;
 		List<String> numericInfo1 = extractNumbers(numericInfo);
 		List<String> numericInfo2 = extractNumbers(string);
 		boolean containsRange_numericInfo1 = containsRange(numericInfo); 

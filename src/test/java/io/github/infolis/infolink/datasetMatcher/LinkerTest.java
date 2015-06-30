@@ -16,13 +16,14 @@ import io.github.infolis.model.StudyLink;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,8 @@ import org.slf4j.LoggerFactory;
 public class LinkerTest extends BaseTest {
 	
 	Logger log = LoggerFactory.getLogger(LinkerTest.class);
+	Map<String, Set<String>> expectedLinks;
 	private List<String> uris = new ArrayList<>();
-	Map<String, String> expectedOutput = new HashMap<>();
 	StudyContext[] testContexts = {
 			new StudyContext("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", new InfolisPattern()),
 			new StudyContext("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
@@ -57,10 +58,35 @@ public class LinkerTest extends BaseTest {
 			new StudyContext("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
 	
 			new StudyContext("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())};
+			new StudyContext("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())
+	};
 	
+	// studies/datasets found in generated contexts:
+	// Studierendensurvey 1990 x 3  <- 10.4232/1.2417
+	// Studierendensurvey '86  x 3  <- 10.4232/1.2416
+	// 2010 Studierendensurvey x 3  <- 10.4232/1.11059
+	// Studierendensurvey      x 6  <- references without year specification match all candidates
+	
+	// Studiensituation und studentische Orientierungen 1982/83 (Studierenden-Survey) 10.4232/1.1884
+	// Studiensituation und studentische Orientierungen 1984/85 (Studierenden-Survey) 10.4232/1.1885
+	// Studiensituation und studentische Orientierungen 1986/87 (Studierenden-Survey) 10.4232/1.2416
+	// Studiensituation und studentische Orientierungen 1989/90 (Studierenden-Survey) 10.4232/1.2417
+	// Studiensituation und studentische Orientierungen 1992/93 (Studierenden-Survey) 10.4232/1.3130
+	// Studiensituation und studentische Orientierungen 1994/95 (Studierenden-Survey) 10.4232/1.3131
+	// Studiensituation und studentische Orientierungen 1997/98 (Studierenden-Survey) 10.4232/1.3511
+	// Studiensituation und studentische Orientierungen 2000/01 (Studierenden-Survey) 10.4232/1.4208
+	// Studiensituation und studentische Orientierungen 2003/04 (Studierenden-Survey) 10.4232/1.4344
+	// Studiensituation und studentische Orientierungen 2006/07 (Studierenden-Survey) 10.4232/1.4263
+	// Studiensituation und studentische Orientierungen 2009/10 (Studierenden-Survey) 10.4232/1.11059
+	// Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey) 10.4232/1.5126
 	public LinkerTest() {
-
+		expectedLinks = new HashMap<>();
+		expectedLinks.put("Studierendensurvey null", new HashSet<>(Arrays.asList("10.4232/1.1884", "10.4232/1.1885",
+				"10.4232/1.2416", "10.4232/1.2417", "10.4232/1.3130", "10.4232/1.3131", "10.4232/1.3511", 
+				"10.4232/1.4208", "10.4232/1.4344", "10.4232/1.4263", "10.4232/1.11059", "10.4232/1.5126")));
+		expectedLinks.put("Studierendensurvey '86", new HashSet<>(Arrays.asList("10.4232/1.2416")));
+		expectedLinks.put("Studierendensurvey 1990", new HashSet<>(Arrays.asList("10.4232/1.2417")));
+		expectedLinks.put("Studierendensurvey 2010", new HashSet<>(Arrays.asList("10.4232/1.11059")));
 	}
 	
 	public void prepareTestFiles() throws IOException, Exception {
@@ -92,10 +118,16 @@ public class LinkerTest extends BaseTest {
         execution.setStudyContexts(contextURIs);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         Set<StudyLink> links = execution.getLinks();
+        Map<String, Set<String>> generatedLinks = new HashMap<>();
         for (StudyLink link : links) {
-        	log.debug(link.toString());
+        	//log.debug(link.toString());
+        	String key = link.getAltName() + " " + link.getVersion();
+        	Set<String> dois = new HashSet<>();
+        	if (generatedLinks.containsKey(key)) {dois = generatedLinks.get(key); }
+        	dois.add(link.getLink());
+        	generatedLinks.put(key, dois);
         }
-        //TODO: compare to gold set
+        assertEquals(expectedLinks, generatedLinks);
 	}
 	
 	@Test

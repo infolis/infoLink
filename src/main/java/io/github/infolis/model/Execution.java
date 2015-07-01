@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  * @author domi
  * @author kba
+ * @author kata
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
@@ -67,7 +69,10 @@ public class Execution extends BaseModel {
 	private double threshold = 0.8;
 	// private Strategy bootstrapStrategy = Strategy.separate;
 	private Strategy bootstrapStrategy = Strategy.mergeAll;
-
+	
+	//Linker
+	private Set<StudyLink> links;
+	
 	//
 	// CONSTRUCTORS
 	// /
@@ -415,6 +420,14 @@ public class Execution extends BaseModel {
 
 	public void setIndexDirectory(String indexDirectory) {
 		this.indexDirectory = indexDirectory;
+	}
+	
+	public Set<StudyLink> getLinks() {
+		return this.links;
+	}
+	
+	public void setLinks(Set<StudyLink> links) {
+		this.links = links;
 	}
 
 }

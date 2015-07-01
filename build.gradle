@@ -100,11 +100,8 @@ def createScript(mainClass, scriptName) {
 }
 createScript('io.github.infolis.infolink.tagger.Tagger', 'Tagger')
 createScript('io.github.infolis.algorithm.TextExtractorAlgorithm', 'TextExtractor')
+createScript('io.github.infolis.algorithm.SearchTermPosition', 'SearchTermPosition')
 createScript('io.github.infolis.infolink.luceneIndexing.Indexer', 'Indexer')
-createScript('io.github.infolis.infolink.searching.SearchTermPosition', 'SearchTermPosition')
-createScript('io.github.infolis.infolink.patternLearner.TrainingSet', 'TrainingSet')
 createScript('io.github.infolis.infolink.patternLearner.Learner', 'Learner')
-createScript('io.github.infolis.infolink.patternLearner.ExampleReader', 'ExampleReader')
-createScript('io.github.infolis.infolink.patternLearner.ContextMiner', 'ContextMiner')
-createScript('io.github.infolis.infolink.patternLearner.StudyMatcher', 'StudyMatcher')
+createScript('io.github.infolis.infolink.datasetMatcher.Linker', 'Linker')
 // vim: ft=groovy:

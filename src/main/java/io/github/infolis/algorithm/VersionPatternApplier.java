@@ -7,6 +7,7 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
@@ -34,7 +35,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 
-	private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
+    private static final Logger log = LoggerFactory.getLogger(VersionPatternApplier.class);
 
     private List<Study> searchForStudyPatterns(InfolisFile file) throws IOException {
         List<Study> foundStudies = new ArrayList<>();
@@ -63,7 +64,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
                 String version = ltm.group(2).trim();
                 Study study = new Study();
                 study.setName(studyName);
-                study.setVersion(version);
+                study.setNumber(version);
                 foundStudies.add(study);
             }
         }

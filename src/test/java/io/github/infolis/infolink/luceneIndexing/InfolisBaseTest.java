@@ -5,7 +5,6 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
@@ -52,18 +51,14 @@ public class InfolisBaseTest {
 			"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 	};
-	
-	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
-		return createTestFiles(this.testStrings, nrFiles);
-	}
 
-	protected List<InfolisFile> createTestFiles(String[] strings, int nrFiles) throws Exception {
+	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
 		ArrayList<InfolisFile> ret = new ArrayList<>();
 		int j = 0;
 		for (int i = 0; i < nrFiles; i++) {
-			j = i % strings.length;
+			j = i % testStrings.length;
 			Path tempFile = Files.createTempFile("infolis-", ".txt");
-			String data = strings[j];
+			String data = testStrings[j];
 			FileUtils.write(tempFile.toFile(), data);
 
 			InfolisFile file = new InfolisFile();

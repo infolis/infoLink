@@ -21,7 +21,6 @@ public class DaraSolrMatcherTest {
 	Map<String, String> expectedOutput = new HashMap<>();
 	
 	// note: da|ra's database may change! If test fails, check whether these values are still correct
-	// note: solr is only accessible inside the GESIS network
 	public DaraSolrMatcherTest() {
 		expectedOutput.put("10.4232/1.4263", "Studiensituation und studentische Orientierungen 2006/07 (Studierenden-Survey)");
 		expectedOutput.put("10.4232/1.4344", "Studiensituation und studentische Orientierungen 2003/04 (Studierenden-Survey)");

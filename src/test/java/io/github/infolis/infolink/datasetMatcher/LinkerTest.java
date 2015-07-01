@@ -132,7 +132,7 @@ public class LinkerTest extends BaseTest {
 	
 	@Test
 	public void ignoreStudyTest() {
-		Linker linker = new Linker();
+		Linker linker = new Linker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertTrue(linker.ignoreStudy("eigene Erhebung"));
 		assertTrue(linker.ignoreStudy("eigene Erhebungen"));
 		assertTrue(linker.ignoreStudy("eigene Berechnung"));
@@ -146,7 +146,7 @@ public class LinkerTest extends BaseTest {
 	
 	@Test
 	public void extractStudyTest() {
-		Linker linker = new Linker();
+		Linker linker = new Linker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertEquals("2000", linker.extractStudy(testContexts[0]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[1]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[2]).getNumber());

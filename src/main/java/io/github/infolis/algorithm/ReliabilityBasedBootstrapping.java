@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
-    ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 

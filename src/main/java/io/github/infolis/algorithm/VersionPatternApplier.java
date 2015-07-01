@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class VersionPatternApplier extends BaseAlgorithm {
 
-    VersionPatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public VersionPatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 

@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
-	TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+	public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 

@@ -1,7 +1,10 @@
 # Notes on the code base
 
+## Algorithm contract
 
-## Skipping tests involving the frontend
+*MUST* have public constructors (not package-local, i.e. without explicit modifier)
+
+## Skipping tests involving the frontend or GESIS' network
 
 1) Add code to tests to mark them as remote
 
@@ -24,3 +27,6 @@ Set the system property `infolisRemoteTest`:
 `java .... -DinfolisRemoteTest=true`
 
 In Eclipse: `Run -> Run Configurations -> Arguments -> VM arguments`
+
+Replace `infolisRemoteTest` with `gesisRemoteTest` for tests requiring a connection from within GESIS.
+

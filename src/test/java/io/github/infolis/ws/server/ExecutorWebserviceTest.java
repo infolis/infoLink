@@ -1,6 +1,6 @@
 package io.github.infolis.ws.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -14,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 
 	@Test
 	public void testStartFrontendExecution() throws Exception {
+        Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
+		
 		FormDataMultiPart fdm = new FormDataMultiPart();
 		fdm.field("algorithm", TextExtractorAlgorithm.class.getName());
 		WebTarget target = jerseyClient

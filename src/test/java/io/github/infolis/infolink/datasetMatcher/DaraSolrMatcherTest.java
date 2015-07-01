@@ -7,12 +7,13 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.json.JsonArray;
-import javax.json.JsonObject;
 
 public class DaraSolrMatcherTest {
 	
@@ -38,6 +39,7 @@ public class DaraSolrMatcherTest {
 	
 	@Test
 	public void testQuery() throws MalformedURLException, IOException {
+        Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
 		Map<String, String> output = new HashMap<>();
 		DaraSolrMatcher matcher = new DaraSolrMatcher(this.datasetName);
 		JsonArray json = matcher.query();

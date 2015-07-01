@@ -1,7 +1,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.*;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;

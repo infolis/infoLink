@@ -1,10 +1,10 @@
 package io.github.infolis.infolink.patternLearner;
 
 import static org.junit.Assert.*;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.algorithm.SearchTermPositionTest;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;

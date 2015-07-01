@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 
 import org.junit.Test;
 import org.slf4j.Logger;

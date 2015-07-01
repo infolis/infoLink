@@ -2,7 +2,7 @@ package io.github.infolis.ws.server;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 
 import java.io.IOException;
 import java.nio.file.Files;

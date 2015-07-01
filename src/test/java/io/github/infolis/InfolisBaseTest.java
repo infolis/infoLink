@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.luceneIndexing;
+package io.github.infolis;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;

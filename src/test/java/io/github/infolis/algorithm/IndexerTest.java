@@ -1,6 +1,6 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;

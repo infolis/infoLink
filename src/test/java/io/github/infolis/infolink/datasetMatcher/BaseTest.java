@@ -2,7 +2,7 @@ package io.github.infolis.infolink.datasetMatcher;
 
 import java.util.List;
 
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.InfolisFile;
 
 public class BaseTest extends InfolisBaseTest {

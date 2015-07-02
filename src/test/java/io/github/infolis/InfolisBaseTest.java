@@ -42,27 +42,13 @@ public class InfolisBaseTest {
 			// .register(JacksonJsonProvider.class)
 			.build();
 
-	protected String[] testStrings = {
-			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
-			"Hallo, please try to find the R2 in this short text snippet. Thank you.",
-			"Hallo, please try to find the D2 in this short text snippet. Thank you.",
-			"Hallo, please try to find the term in this short text snippet. Thank you.",
-			"Hallo, please try to find the _ in this short text snippet. Thank you.",
-			"Hallo, please try to find .the term. in this short text snippet. Thank you.",
-			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
-	};
-	
-	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
-		return createTestFiles(this.testStrings, nrFiles);
-	}
-
-	protected List<InfolisFile> createTestFiles(String[] strings, int nrFiles) throws Exception {
+	protected List<InfolisFile> createTestFiles(int nrFiles, String[] testStrings) throws Exception {
 		ArrayList<InfolisFile> ret = new ArrayList<>();
 		int j = 0;
 		for (int i = 0; i < nrFiles; i++) {
-			j = i % strings.length;
+			j = i % testStrings.length;
 			Path tempFile = Files.createTempFile("infolis-", ".txt");
-			String data = strings[j];
+			String data = testStrings[j];
 			FileUtils.write(tempFile.toFile(), data);
 
 			InfolisFile file = new InfolisFile();

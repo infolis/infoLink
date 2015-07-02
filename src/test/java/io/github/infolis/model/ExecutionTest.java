@@ -1,7 +1,7 @@
 package io.github.infolis.model;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.util.SerializationUtils;

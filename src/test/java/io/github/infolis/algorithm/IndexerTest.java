@@ -1,7 +1,7 @@
 package io.github.infolis.algorithm;
 
+import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
@@ -17,8 +17,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertEquals;
-
 
 public class IndexerTest extends InfolisBaseTest {
 
@@ -28,8 +26,16 @@ public class IndexerTest extends InfolisBaseTest {
 	public void testIndexing() throws Exception {
 		Path tempPath = Files.createTempDirectory("infolis-test-");
 		FileUtils.forceDeleteOnExit(tempPath.toFile());
-		
-		List<InfolisFile> inputFiles = createTestFiles(100);
+		String[] testStrings = {
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the term in this short text snippet. Thank you.",
+				"Hallo, please try to find the _ in this short text snippet. Thank you.",
+				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+		};
+		List<InfolisFile> inputFiles = createTestFiles(100, testStrings);
 
 		List<String> uris = new ArrayList<>();
 		for (InfolisFile file : inputFiles) {

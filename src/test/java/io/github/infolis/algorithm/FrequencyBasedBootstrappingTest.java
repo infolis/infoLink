@@ -33,9 +33,18 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "FOOBAR";
 	private final static List<String> terms = Arrays.asList(term);
+	private String[] testStrings = {
+			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+			"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+			"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+			"Hallo, please try to find the term in this short text snippet. Thank you.",
+			"Hallo, please try to find the _ in this short text snippet. Thank you.",
+			"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+	};
 
 	public FrequencyBasedBootstrappingTest() throws Exception {
-		for (InfolisFile file : createTestFiles(7)) {
+		for (InfolisFile file : createTestFiles(7, testStrings)) {
 			uris.add(file.getUri());
 		}
 	}

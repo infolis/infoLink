@@ -3,10 +3,8 @@ package io.github.infolis.infolink.datasetMatcher;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
@@ -31,8 +29,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LinkerTest extends BaseTest {
-
+public class LinkerTest extends InfolisBaseTest {
 	Logger log = LoggerFactory.getLogger(LinkerTest.class);
 	Map<String, Set<String>> expectedLinks;
 	private List<String> uris = new ArrayList<>();
@@ -103,7 +100,28 @@ public class LinkerTest extends BaseTest {
 		expectedLinks.put("Studierendensurvey 2010", new HashSet<>(Arrays.asList("10.4232/1.11059")));
 
 	}
-
+	protected String[] testStrings = {
+			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+			"Hallo, please try to find the Studierendensurvey 1990 in this short text snippet. Thank you.",
+			"Hallo, please try to find the Studierendensurvey in this short text snippet. Thank you.",
+			"Hallo, please try to find the Studierendensurvey '86 in this short text snippet. Thank you.",
+			"Hallo, please try to find the 2010 Studierendensurvey in this short text snippet. Thank you.",
+			"Hallo, please try to find .the Studierendensurvey. in this short text snippet. Thank you.",
+			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+	};
+	
+	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
+		String[] testStrings = {
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the term in this short text snippet. Thank you.",
+				"Hallo, please try to find the _ in this short text snippet. Thank you.",
+				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+		};
+		return createTestFiles(nrFiles, testStrings);
+	}
 	public void prepareTestFiles() throws IOException, Exception {
 		for (InfolisFile file : createTestFiles(20)) {
 			uris.add(file.getUri());

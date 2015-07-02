@@ -4,14 +4,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
-
+import io.github.infolis.InfolisBaseTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DaraWebMatcherTest  extends InfolisBaseTest {
+public class DaraWebMatcherTest extends InfolisBaseTest {
 	
 	Logger log = LoggerFactory.getLogger(DaraWebMatcherTest.class);
 	String datasetName = "Studierendensurvey";

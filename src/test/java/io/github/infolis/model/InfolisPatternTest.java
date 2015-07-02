@@ -1,6 +1,6 @@
 package io.github.infolis.model;
 
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 
 import org.junit.Test;
 import org.slf4j.Logger;

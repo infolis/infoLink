@@ -1,7 +1,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.*;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
@@ -30,7 +30,16 @@ public class PatternApplierTest extends InfolisBaseTest {
     		"\\S++\\s\\S++\\s\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
     
     public PatternApplierTest() throws Exception {
-	    for (InfolisFile file : createTestFiles(7)) {
+    	String[] testStrings = {
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the term in this short text snippet. Thank you.",
+				"Hallo, please try to find the _ in this short text snippet. Thank you.",
+				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+		};
+	    for (InfolisFile file : createTestFiles(7, testStrings)) {
 			uris.add(file.getUri());
 	    }
 	    dataStoreClient.post(InfolisPattern.class, testPattern);

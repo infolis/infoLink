@@ -1,5 +1,6 @@
 package io.github.infolis.infolink.luceneIndexing;
 
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
@@ -27,8 +28,16 @@ public class IndexerTest extends InfolisBaseTest {
 	public void testIndexing() throws Exception {
 		Path tempPath = Files.createTempDirectory("infolis-test-");
 		FileUtils.forceDeleteOnExit(tempPath.toFile());
-		
-		List<InfolisFile> inputFiles = createTestFiles(100);
+		String[] testStrings = {
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the term in this short text snippet. Thank you.",
+				"Hallo, please try to find the _ in this short text snippet. Thank you.",
+				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+		};
+		List<InfolisFile> inputFiles = createTestFiles(100, testStrings);
 
 		List<String> uris = new ArrayList<>();
 		for (InfolisFile file : inputFiles) {

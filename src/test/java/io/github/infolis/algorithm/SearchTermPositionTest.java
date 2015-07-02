@@ -1,7 +1,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.StudyContext;
@@ -35,7 +35,16 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
 	private SearchTermPosition stp;
 	public SearchTermPositionTest() throws Exception {
-		for (InfolisFile file : createTestFiles(100)) {
+		String[] testStrings = {
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
+				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
+				"Hallo, please try to find the term in this short text snippet. Thank you.",
+				"Hallo, please try to find the _ in this short text snippet. Thank you.",
+				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
+				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+		};
+		for (InfolisFile file : createTestFiles(100, testStrings)) {
             uris.add(file.getUri());
 		}
 		stp = new SearchTermPosition();

@@ -3,7 +3,7 @@ package io.github.infolis.model;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
-import io.github.infolis.infolink.luceneIndexing.InfolisBaseTest;
+import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.Date;

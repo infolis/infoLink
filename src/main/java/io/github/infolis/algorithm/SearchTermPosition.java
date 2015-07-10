@@ -197,7 +197,6 @@ public class SearchTermPosition extends BaseAlgorithm
 //		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
 		execution.setInputFiles(this.getExecution().getInputFiles());
-		execution.setIndexDirectory(tempPath.toString());
 		
 		Algorithm algo = execution.instantiateAlgorithm(this);
 		algo.execute();

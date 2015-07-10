@@ -60,7 +60,6 @@ public class Execution extends BaseModel {
 	private List<String> matchingFilenames = new ArrayList<>();
 	private List<String> studies = new ArrayList<>();
 	private boolean overwrite = false;
-	private String indexDirectory;
 	private List<String> pattern = new ArrayList<>();
 	private boolean upperCaseConstraint = false;
 	private boolean requiresContainedInNP = false;
@@ -412,14 +411,6 @@ public class Execution extends BaseModel {
 	 */
 	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
 		this.bootstrapStrategy = bootstrapStrategy;
-	}
-
-	public String getIndexDirectory() {
-		return indexDirectory;
-	}
-
-	public void setIndexDirectory(String indexDirectory) {
-		this.indexDirectory = indexDirectory;
 	}
 	
 	public Set<StudyLink> getLinks() {

@@ -19,21 +19,26 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
-import io.github.infolis.infolink.luceneIndexing.FileDocument;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -71,15 +76,15 @@ public class Indexer extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException {
 
-		String tempDirectory = Files.createTempDirectory(INDEX_DIR_PREFIX).toString();
-		getExecution().setOutputDirectory(tempDirectory);
+		File indexDir = new File(Files.createTempDirectory(INDEX_DIR_PREFIX).toString());
+		FileUtils.forceDeleteOnExit(indexDir);
+		getExecution().setOutputDirectory(indexDir.toString());
 
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
 		indexWriterConfig.setOpenMode(OpenMode.CREATE);
-		File indexDir = new File(tempDirectory);
 		IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
-		List<InfolisFile> files = new ArrayList<>();
 
+		List<InfolisFile> files = new ArrayList<>();
 		for (String fileUri : getExecution().getInputFiles()) {
 			files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
 		}
@@ -89,13 +94,12 @@ public class Indexer extends BaseAlgorithm
 		try {
 			for (InfolisFile file : files) {
 				// log.debug("Indexing file " + file);
-				writer.addDocument(FileDocument.toLuceneDocument(getInputFileResolver(), file));
+				writer.addDocument(toLuceneDocument(getInputFileResolver(), file));
 			}
 		} catch (FileNotFoundException fnfe) {
 			// NOTE: at least on windows, some temporary files raise this
 			// exception with an "access denied" message checking if the
 			// file can be read doesn't help
-			writer.close();
 			throw new RuntimeException("Could not write index entry: " + fnfe);
 		} finally {
 			log.debug("Merging all Lucene segments ...");
@@ -110,53 +114,78 @@ public class Indexer extends BaseAlgorithm
 		Execution exec = this.getExecution();
 		if (null == exec.getInputFiles() || exec.getInputFiles().isEmpty())
 			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");
-		// if (null == exec.getIndexDirectory())
-		// throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
-		// "missing or empty");
-		// if (! Files.exists(Paths.get(getExecution().getIndexDirectory())))
-		// throw new IllegalAlgorithmArgumentException(getClass(),
-		// "indexDirectory", "doesn't exist");
 	}
 
-	// /**
-	// * Selects either all subdirectories in the specified directory (recursive
-	// mode) or only the root
-	// * directory, specifies a path for the indexes to be created and starts
-	// the indexing process.
-	// *
-	// * @param args args[0]: path to the corpus root directory; args[1]: path
-	// to the index directory; args[2]: "r" to set recursive mode
-	// */
-	// public static void main(String[] args) {
-	// if (args.length < 2) {
-	// System.out.println("Usage: Indexer <corpusPath> <indexPath> <recursiveFlag>");
-	// System.out.println("	corpusPath	path to the corpus root directory");
-	// System.out.println("	indexPath	path to the index directory");
-	// System.out.println("	<recursiveFlag>	\"r\" (without quotes) to select directories recursively [OPTIONAL]");
-	// System.exit(1);
-	// }
-	// HashMap<File, File> toIndex = new HashMap<File, File>();
-	// File root_corpus = new File(args[0]);
-	// String root_index = new File
-	// (Paths.get(args[1]).normalize().toString()).getAbsolutePath();
-	// boolean recursive;
-	// try { recursive = args[2].toLowerCase().equals("r"); }
-	// catch (ArrayIndexOutOfBoundsException e) { recursive = false; }
-	// if (recursive)
-	// {
-	// for (File file : root_corpus.listFiles())
-	// {
-	// if (file.isDirectory())
-	// {
-	// toIndex.put(new File(root_index + "_" + file.getName()), new
-	// File(root_corpus + File.separator + file.getName()));
-	// }
-	// }
-	// }
-	// else { toIndex.put(new File(root_index), root_corpus); }
-	//
-	// Indexer indexer = new Indexer();
-	// indexer.indexAllFiles(toIndex);
-	// }
+	/**
+	 * Files a lucene document.
+	 * Documents are created as follows:
+	 * <ol>
+	 * <li>The path of the file is added as a field named "path". The field is indexed (i.e. searchable), 
+	 * but not tokenized into words.</li>
+	 * <li>The last modified date of the file is added as a field named "modified". The field is indexed 
+	 * (i.e. searchable), not tokenized into words.</li>
+	 * <li>The contents of the file are added to a field named "contents". A reader is specified so that 
+	 * the text of the file is tokenized and indexed, but not stored. Note that FileReader expects the file 
+	 * to be in the system's default encoding. If that's not the case searching for special characters will 
+	 * fail.</li>
+	 * <li>Content (text files) is saved in the index along with position and offset information.</li>
+	 * </ol> 
+	 * 
+	 * @param f	a txt-file to be included in the lucene index
+	 * @return a	lucene document	
+	 * @throws IOException	
+	 */
+	public static Document toLuceneDocument(FileResolver fileResolver, InfolisFile f) throws IOException {
+	  
+	  //use code below to process pdfs instead of text (requires pdfBox)
+	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));   
+	  PDFParser parser = new PDFParser(fi);   
+	  parser.parse();   
+	  COSDocument cd = parser.getDocument();   
+	  PDFTextStripper stripper = new PDFTextStripper();   
+	  String text = stripper.getText(new PDDocument(cd));  */
+	  
+	  InputStreamReader isr = new InputStreamReader(fileResolver.openInputStream(f) , "UTF8" );
+	  BufferedReader reader = new BufferedReader( isr );
+      StringBuffer contents = new StringBuffer();
+      String text = null;
+      while ( (text = reader.readLine() ) != null) 
+      { 
+    	  contents.append( text ).append( System.getProperty( "line.separator" ) );
+      }
+      reader.close();
+      isr.close();
+      text = new String( contents );
+	   
+      // make a new, empty document
+      Document doc = new Document();
 
+      // Add the path of the file as a field named "path".  Use a field that is 
+      // indexed (i.e. searchable), but don't tokenize the field into words.
+      doc.add( new Field( "path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED ) );  
+      doc.add( new Field( "fileName",  f.getFileName(), Field.Store.YES, Field.Index.ANALYZED ) );
+    
+      // Add the last modified date of the file a field named "modified".  Use 
+      // a field that is indexed (i.e. searchable), but don't tokenize the field
+      // into words.
+      // TODO kba: Add modified to InfolisFile
+//      doc.add( new Field( "modified", 
+//    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
+//    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+     
+	  // save the content (text files) in the index
+	  // Add the contents of the file to a field named "contents".  Specify a Reader,
+	  // so that the text of the file is tokenized and indexed, but not stored.
+	  // Note that FileReader expects the file to be in the system's default encoding.
+	  // If that's not the case searching for special characters will fail.
+      //Store both position and offset information 
+      
+      // TextFilesContent = readTextFiles(f.getPath()) + " ";
+      doc.add( new Field( "contents", text, Field.Store.YES, Field.Index.ANALYZED, 
+    		Field.TermVector.WITH_POSITIONS_OFFSETS ) ); 
+
+      // return the document
+      //cd.close();
+      return doc;
+  }
 }

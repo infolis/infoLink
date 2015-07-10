@@ -7,8 +7,6 @@ import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.ws.server.InfolisConfig;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -29,9 +27,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,20 +167,4 @@ class CentralClient implements DataStoreClient {
 		
 	}
 
-	// TODO kba incomplete
-	@Override
-	@SuppressWarnings("unused")
-	public InfolisFile upload(InfolisFile file, InputStream input) throws IOException {
-		WebTarget target = jerseyClient
-				.target(InfolisConfig.getFrontendURI())
-				.path("upload");
-		FormDataMultiPart fdm = new FormDataMultiPart();
-		fdm.field("mediaType", file.getMediaType());
-		fdm.field("fileStatus", file.getFileStatus());
-		fdm.field("fileName", file.getFileName());
-		StreamDataBodyPart filePart = new StreamDataBodyPart(
-				"file",
-				input);
-		return null;
-	}
 }

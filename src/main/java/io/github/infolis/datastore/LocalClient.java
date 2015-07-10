@@ -1,12 +1,9 @@
 package io.github.infolis.datastore;
 
 import io.github.infolis.model.BaseModel;
-import io.github.infolis.model.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -16,7 +13,6 @@ import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,12 +21,12 @@ public class LocalClient implements DataStoreClient {
 
 	// private static final Logger log =
 	// LoggerFactory.getLogger(LocalClient.class);
-	public static final Map<UUID, Map<String, String>>	jsonDB	= new HashMap<>();
-	private final UUID										storeId;
+	public static final Map<UUID, Map<String, String>> jsonDB = new HashMap<>();
+	private final UUID storeId;
 
 	public LocalClient(UUID uuid) {
 		this.storeId = uuid;
-		jsonDB.put(this.storeId, new HashMap<String,String>());
+		jsonDB.put(this.storeId, new HashMap<String, String>());
 	}
 
 	@Override
@@ -85,22 +81,11 @@ public class LocalClient implements DataStoreClient {
 			// TODO NPE if list is undefined
 			invoke.add(newValue);
 			jsonDB.get(storeId).put(thing.getUri(), SerializationUtils.jacksonMapper
-				.writeValueAsString(foundThing));
+					.writeValueAsString(foundThing));
 		} catch (IOException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@Override
-	public InfolisFile upload(InfolisFile file, InputStream input)
-			throws IOException {
-		FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
-		OutputStream output = fileResolver.openOutputStream(file);
-		IOUtils.copy(input, output);
-		input.close();
-		output.close();
-		post(InfolisFile.class, file);
-		return file;
-	}
 }

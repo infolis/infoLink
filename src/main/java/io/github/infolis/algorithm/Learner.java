@@ -1,7 +1,5 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;

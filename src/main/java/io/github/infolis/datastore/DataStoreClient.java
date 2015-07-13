@@ -76,4 +76,18 @@ public interface DataStoreClient {
 	 */
 	<T extends BaseModel> void post(Class<T> clazz, T thing) throws BadRequestException;
 
+	/**
+	 * POST a list of things to the frontend web service.
+	 * 
+	 * After successfully creation, {@link CentralClient#get(Class, URI)}
+	 * request is made and the current representation returned. The URI of the passed
+	 * resource will be set to the newly created URI
+	 * 
+	 * @param clazz
+	 *            class of the thing to post
+	 * @param thing
+	 *            the thing
+	 * @return the server representation of the thing
+	 */
+	<T extends BaseModel> void post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException;
 }

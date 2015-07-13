@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
+	public static final StudyContext EMPTY_CONTEXT = new StudyContext();
+
     public FrequencyBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
@@ -37,23 +39,20 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
         List<StudyContext> detectedContexts = new ArrayList<>();
         try {
-            detectedContexts = bootstrapFrequencyBased();
+            detectedContexts.addAll(bootstrapFrequencyBased());
+            // POST all the StudyContexts
+            this.getOutputDataStoreClient().post(StudyContext.class, detectedContexts);
         } catch (ParseException | IOException | InstantiationException | IllegalAccessException ex) {
-            log.error("Could not apply frequency bootstrapping: " + ex);
+            fatal(log, "Could not apply frequency bootstrapping: " + ex);
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
 
-        Set<String> detectedStudies = new HashSet<>();
-        Set<String> detectedPatterns = new HashSet<>();
         for (StudyContext sC : detectedContexts) {
-            getOutputDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
-            detectedStudies.add(sC.getTerm());
-            detectedPatterns.add(sC.getPattern());
+            //TODO: use URI instead of the term string?
+            this.getExecution().getStudies().add(sC.getTerm());
+            this.getExecution().getPattern().add(sC.getPattern());
         }
-        //TODO: use URI instead of the term string?
-        this.getExecution().getStudies().addAll(detectedStudies);
-        this.getExecution().getPattern().addAll(detectedPatterns);
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
 
@@ -80,7 +79,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
     	for (StudyContext context : contextList) {
     		if (context.getTerm().equals(term)) return context;
     	}
-    	return new StudyContext();
+    	// TODO Won't this create empty (non-sensical) contexts? Why can this happen?
+		return EMPTY_CONTEXT;
     }
 
     /**
@@ -143,12 +143,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.instantiateAlgorithm(this).run();
                 getExecution().getLog().addAll(execution.getLog());
 
-                for (String studyContextUri : execution.getStudyContexts()) {
-                    StudyContext studyContext = this.getOutputDataStoreClient().get(StudyContext.class, studyContextUri);
+                for (StudyContext studyContext : getInputDataStoreClient().get(StudyContext.class, execution.getStudyContexts())) {
 					detectedContexts.add(studyContext);
 //                    log.warn("{}", studyContext.getPattern());
                 }
-
                 contexts_currentIteration.addAll(detectedContexts);
                 extractedContextsFromSeed.addAll(detectedContexts);
                 // 2. generate patterns
@@ -159,23 +157,26 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
             
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
-            if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent || getExecution().getBootstrapStrategy() == Execution.Strategy.mergeNew) {
+            if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent 
+            		|| getExecution().getBootstrapStrategy() == Execution.Strategy.mergeNew) {
                 Set<InfolisPattern> patterns = PatternInducer.inducePatterns(contexts_currentIteration, getExecution().getThreshold(), processedPatterns);
                 newPatterns.addAll(patterns);         
             }
             
+            // TODO ensure this is not an 'else if'
             if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeAll) {
                 Set<InfolisPattern> patterns = PatternInducer.inducePatterns(extractedContextsFromSeed, getExecution().getThreshold(), processedPatterns);
                 newPatterns.addAll(patterns);
             }
             
+            // POST the patterns
+            getOutputDataStoreClient().post(InfolisPattern.class, newPatterns);
             for (InfolisPattern pattern : newPatterns) {
-            	this.getOutputDataStoreClient().post(InfolisPattern.class, pattern);
             	processedPatterns.add(pattern.getMinimal());
             }
             
             // 3. search for patterns in corpus
-            List<StudyContext> res = applyPattern(newPatterns);
+            List<StudyContext> res = findNewContextsForPatterns(newPatterns);
             // res contains all contexts extracted by searching for patterns
             extractedContextsFromPatterns.addAll(res);
             processedSeeds.addAll(seeds);
@@ -196,44 +197,40 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	return extractedContextsFromPatterns;
             }
         }
-        log.debug("Maximum number of iterations reached, returning.");
+        debug(log, "Maximum number of iterations reached, returning.");
         // TODO now delete all the contexts that were only temporary
         return extractedContextsFromPatterns;
     }
 
-    private List<StudyContext> applyPattern(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
+    private List<StudyContext> findNewContextsForPatterns(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
         List<StudyContext> contexts = new ArrayList<>();
 
         for (InfolisPattern curPat : patterns) {
         	if (curPat.getUri() == null)
         		throw new RuntimeException("Pattern does not have a URI!");
-        	Execution exec = new Execution();
-            exec.setAlgorithm(SearchTermPosition.class);
-            exec.setSearchTerm("");
-    		exec.setSearchQuery(curPat.getLuceneQuery());
-    		exec.setInputFiles(getExecution().getInputFiles());
-    		Algorithm algo = exec.instantiateAlgorithm(this);
-    		algo.setExecution(exec);
-    		log.debug("Lucene pattern: " + curPat.getLuceneQuery());
-			log.debug("Regex: " + curPat.getPatternRegex());
-			algo.run();
 
-            List<String> candidateCorpus = exec.getMatchingFilenames();
+    		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
+			debug(log, "Regex: " + curPat.getPatternRegex());
 
-            for (String filenameIn : candidateCorpus) {
-                
-                Execution execution = new Execution();
-                execution.setPattern(Arrays.asList(curPat.getUri()));
-                execution.setAlgorithm(PatternApplier.class);                
-                execution.getInputFiles().add(filenameIn);
-                Algorithm algo2 = execution.instantiateAlgorithm(this);
-                algo2.setExecution(execution);
-                algo2.run();
+        	Execution stpExecution = new Execution();
+            stpExecution.setAlgorithm(SearchTermPosition.class);
+            stpExecution.setSearchTerm("");
+    		stpExecution.setSearchQuery(curPat.getLuceneQuery());
+    		stpExecution.setInputFiles(getExecution().getInputFiles());
+    		stpExecution.instantiateAlgorithm(this).run();
 
-                for (String uri : execution.getStudyContexts()) {
-                    StudyContext sC = getOutputDataStoreClient().get(StudyContext.class, uri);
-                    sC.setPattern(curPat.getUri());
-                    contexts.add(sC);
+            for (String filenameIn : stpExecution.getMatchingFilenames()) {
+
+                Execution applierExecution = new Execution();
+                applierExecution.setPattern(Arrays.asList(curPat.getUri()));
+                applierExecution.setAlgorithm(PatternApplier.class);                
+                applierExecution.getInputFiles().add(filenameIn);
+                applierExecution.instantiateAlgorithm(this).run();
+
+                for (StudyContext studyContext : getInputDataStoreClient().get(StudyContext.class, applierExecution.getStudyContexts())) {
+                	// TODO: really? overwrite the pattern for every context?
+                    studyContext.setPattern(curPat.getUri());
+                    contexts.add(studyContext);
                 }
             }
         }

@@ -10,6 +10,7 @@ import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.model.StudyLink;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -168,15 +169,15 @@ public class DaraLinkerTest extends InfolisBaseTest {
 	@Test
 	public void ignoreStudyTest() {
 		DaraLinker linker = new DaraLinker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
-		assertTrue(linker.ignoreStudy("eigene Erhebung"));
-		assertTrue(linker.ignoreStudy("eigene Erhebungen"));
-		assertTrue(linker.ignoreStudy("eigene Berechnung"));
-		assertTrue(linker.ignoreStudy("eigene Berechnungen"));
-		assertTrue(linker.ignoreStudy("eigene Darstellung"));
-		assertTrue(linker.ignoreStudy("eigene Darstellungen"));
-		assertFalse(linker.ignoreStudy("ALLBUS"));
-		assertFalse(linker.ignoreStudy("eigene Berechnung; ALLBUS"));
-		assertFalse(linker.ignoreStudy("ALLBUS; eigene Berechnung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Erhebung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Erhebungen"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Berechnung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Berechnungen"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Darstellung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Darstellungen"));
+		assertFalse(RegexUtils.ignoreStudy("ALLBUS"));
+		assertFalse(RegexUtils.ignoreStudy("eigene Berechnung; ALLBUS"));
+		assertFalse(RegexUtils.ignoreStudy("ALLBUS; eigene Berechnung"));
 	}
 
 	@Test

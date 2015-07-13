@@ -17,18 +17,6 @@ public class LocalClientTest {
 //		public void setLog(List<String> log) { this.log = log; }
 //	}
 //	
-	@Test
-	public void testPatchAdd() {
-		Execution foo = new Execution();
-		assertEquals(0, foo.getLog().size());
-		assertNull(foo.getUri());
-		DataStoreClient client = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
-		client.post(Execution.class, foo);
-		assertNotNull(foo.getUri());
-		client.patchAdd(Execution.class, foo, "log", "bar!");
-		foo = client.get(Execution.class, foo.getUri());
-		assertEquals(1, foo.getLog().size());
-	}
 
 	@Test
 	public void testCRUD() {

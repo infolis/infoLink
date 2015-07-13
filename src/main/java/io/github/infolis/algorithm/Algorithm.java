@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.AbstractClient;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;
@@ -71,7 +72,7 @@ public interface Algorithm extends Runnable {
 	/**
 	 * @return the {@link LocalClient} for temporary storage.
 	 */
-	LocalClient getTempDataStoreClient();
+	AbstractClient getTempDataStoreClient();
 
 	/**
 	 * @param dataStoreClient

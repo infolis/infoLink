@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.AbstractClient;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;
@@ -253,7 +254,7 @@ public class Learner implements Algorithm {
 	}
 
 	@Override
-	public LocalClient getTempDataStoreClient() {
+	public AbstractClient getTempDataStoreClient() {
 		// TODO Auto-generated method stub
 		return null;
 	}

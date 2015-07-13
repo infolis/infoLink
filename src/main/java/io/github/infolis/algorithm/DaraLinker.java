@@ -11,7 +11,7 @@ import io.github.infolis.model.StudyContext;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
 import io.github.infolis.util.LimitedTimeMatcher;
-import io.github.infolis.ws.server.InfolisConfig;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class DaraLinker extends BaseAlgorithm {
 
 	public Set<StudyLink> createLinks(List<String> contextURIs) throws IOException {
 		Set<StudyLink> links = new HashSet<>();
-		for (StudyContext context : resolveContextURIs(contextURIs)) {
+		for (StudyContext context : getInputDataStoreClient().get(StudyContext.class, contextURIs)) {
 			links.addAll(linkContext(context));
 		}
 		return links;
@@ -122,15 +122,7 @@ public class DaraLinker extends BaseAlgorithm {
 		return links;
 	}
 
-	private Set<StudyContext> resolveContextURIs(List<String> contextURIs) {
-		Set<StudyContext> contextSet = new HashSet<>();
-		for (String uri : contextURIs) {
-			contextSet.add(getInputDataStoreClient().get(StudyContext.class, uri));
-		}
-		return contextSet;
-	}
-
-	private String search(String string) {
+	private String searchComplexNumericInfo(String string) {
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(complexNumericInfoRegex), string, maxTimeMillis, string + "\n" + complexNumericInfoRegex);
 		ltm.run();
 		// if thread was aborted due to long processing time, matchFound should
@@ -148,7 +140,7 @@ public class DaraLinker extends BaseAlgorithm {
 	private List<String> extractNumericInfo(StudyContext context) {
 		List<String> numericInfo = new ArrayList<String>();
 		for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
-			String year = search(string);
+			String year = searchComplexNumericInfo(string);
 			if (year != null) {
 				numericInfo.add(year);
 			}
@@ -156,19 +148,10 @@ public class DaraLinker extends BaseAlgorithm {
 		return numericInfo;
 	}
 
-	boolean ignoreStudy(String studyname) {
-		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
-			if (studyname.matches(ignorePattern)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	Study extractStudy(StudyContext context) {
 		List<String> numericInfo = extractNumericInfo(context);
 		Study study = new Study();
-		if (ignoreStudy(context.getTerm())) {
+		if (RegexUtils.ignoreStudy(context.getTerm())) {
 			return study;
 		}
 		// remove numeric info from study name
@@ -192,8 +175,9 @@ public class DaraLinker extends BaseAlgorithm {
 		try {
 			// TODO: post links etc.
 			List<String> contexts = getExecution().getStudyContexts();
-			log.debug("Linking " + String.valueOf(contexts.size()) + " contexts.");
-			getExecution().setLinks(createLinks(contexts));
+			debug(log, "Linking " + String.valueOf(contexts.size()) + " contexts.");
+			Set<StudyLink> studyLinks = createLinks(contexts);
+			getExecution().setLinks(studyLinks);
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		} catch (Exception e) {
 			log.error("Error executing Linker: " + e);

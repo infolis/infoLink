@@ -1,11 +1,10 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.algorithm;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
@@ -29,8 +28,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LinkerTest extends InfolisBaseTest {
-	Logger log = LoggerFactory.getLogger(LinkerTest.class);
+public class DaraLinkerTest extends InfolisBaseTest {
+	Logger log = LoggerFactory.getLogger(DaraLinkerTest.class);
 	Map<String, Set<String>> expectedLinks;
 	private List<String> uris = new ArrayList<>();
 	StudyContext[] testContexts = {
@@ -90,7 +89,7 @@ public class LinkerTest extends InfolisBaseTest {
 	// (Studierenden-Survey) 10.4232/1.11059
 	// Studiensituation und studentische Orientierungen 2012/13
 	// (Studierenden-Survey) 10.4232/1.5126
-	public LinkerTest() {
+	public DaraLinkerTest() {
 		expectedLinks = new HashMap<>();
 		expectedLinks.put("Studierendensurvey null", new HashSet<>(Arrays.asList("10.4232/1.1884", "10.4232/1.1885",
 				"10.4232/1.2416", "10.4232/1.2417", "10.4232/1.3130", "10.4232/1.3131", "10.4232/1.3511",
@@ -148,7 +147,7 @@ public class LinkerTest extends InfolisBaseTest {
 		prepareTestFiles();
 		List<String> contextURIs = generateTestContexts();
 		Execution execution = new Execution();
-		execution.setAlgorithm(Linker.class);
+		execution.setAlgorithm(DaraLinker.class);
 		execution.setStudyContexts(contextURIs);
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		Set<StudyLink> links = execution.getLinks();
@@ -168,7 +167,7 @@ public class LinkerTest extends InfolisBaseTest {
 
 	@Test
 	public void ignoreStudyTest() {
-		Linker linker = new Linker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+		DaraLinker linker = new DaraLinker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertTrue(linker.ignoreStudy("eigene Erhebung"));
 		assertTrue(linker.ignoreStudy("eigene Erhebungen"));
 		assertTrue(linker.ignoreStudy("eigene Berechnung"));
@@ -182,7 +181,7 @@ public class LinkerTest extends InfolisBaseTest {
 
 	@Test
 	public void extractStudyTest() {
-		Linker linker = new Linker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+		DaraLinker linker = new DaraLinker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertEquals("2000", linker.extractStudy(testContexts[0]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[1]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[2]).getNumber());
@@ -205,7 +204,7 @@ public class LinkerTest extends InfolisBaseTest {
 
 	@Test
 	public void testStudyYearPattern() throws Exception {
-		Pattern pat = Pattern.compile(Linker.complexNumericInfoRegex);
+		Pattern pat = Pattern.compile(DaraLinker.complexNumericInfoRegex);
 		assertThat(pat, is(not(nullValue())));
 		assertThat(pat.matcher("1995").matches(), is(true));
 		assertThat(pat.matcher("1995-1998").matches(), is(true));

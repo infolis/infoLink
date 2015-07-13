@@ -22,7 +22,7 @@ public class DaraSolrMatcher {
 	String solrBase = "http://www.da-ra.de/solr/dara/";
 	String title;
 
-	DaraSolrMatcher(String title) throws UnsupportedEncodingException {
+	public DaraSolrMatcher(String title) throws UnsupportedEncodingException {
 		this.title = URLParamEncoder.encode(title);
 	}
 

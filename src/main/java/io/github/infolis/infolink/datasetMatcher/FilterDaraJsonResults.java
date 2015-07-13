@@ -5,17 +5,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import io.github.infolis.algorithm.DaraLinker;
 import io.github.infolis.model.Study;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Filter {
+public class FilterDaraJsonResults {
 	
-	private final static Logger log = LoggerFactory.getLogger(Filter.class);
+	private final static Logger log = LoggerFactory.getLogger(FilterDaraJsonResults.class);
 
 	//TODO: test
 	public static JsonArray filter(JsonArray candidates, Study study) {
@@ -45,7 +49,7 @@ class Filter {
 	}
 
 	private static boolean containsYear(String number) {
-		return Pattern.matches(".*?" + Linker.yearRegex + ".*?", number);
+		return Pattern.matches(".*?" + DaraLinker.yearRegex + ".*?", number);
 	}
 	
 	private static boolean containsAbbreviatedYear(String number) {
@@ -53,11 +57,11 @@ class Filter {
 	}
 	
 	private static boolean containsEnum(String number) {
-		return Pattern.matches(".*?\\d\\s*" + Linker.enumRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + DaraLinker.enumRegex+ "\\s*\\d.*?", number);
 	}
 	
 	private static boolean containsRange(String number) {
-		return Pattern.matches(".*?\\d\\s*" + Linker.rangeRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + DaraLinker.rangeRegex+ "\\s*\\d.*?", number);
 	}
 	
 	private static String[] getFullYearVariants(String extractedNumber) {
@@ -318,7 +322,7 @@ class Filter {
 	}
 	
 	private static List<String> extractNumbers (String string) {
-		Pattern p = Pattern.compile(Linker.numberRegex);
+		Pattern p = Pattern.compile(DaraLinker.numberRegex);
 		Matcher matcher = p.matcher(string);
 		List<String> numericInfo = new ArrayList<String>();
 		while (matcher.find()) {

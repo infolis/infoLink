@@ -1,9 +1,9 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.BaseAlgorithm;
-import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
+import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.Study;
@@ -27,24 +27,24 @@ import javax.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Linker extends BaseAlgorithm {
+public class DaraLinker extends BaseAlgorithm {
 
-	public Linker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+	public DaraLinker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 
-	private static final Logger log = LoggerFactory.getLogger(Linker.class);
+	private static final Logger log = LoggerFactory.getLogger(DaraLinker.class);
 
-	static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
-	static final String yearRegex = "(\\d{4})";
-	static final String yearAbbrRegex = "('\\d\\d)";
-	static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes
-															// yearRegex
-	static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
+	public static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
+	public static final String yearRegex = "(\\d{4})";
+	public static final String yearAbbrRegex = "('\\d\\d)";
+	public static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes
+	// yearRegex
+	public static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
 
-	static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
-	static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
-	static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
+	public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
+	public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
+	public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
 
 	private static final long maxTimeMillis = 75000;
 
@@ -65,7 +65,7 @@ public class Linker extends BaseAlgorithm {
 		DaraSolrMatcher matcher = new DaraSolrMatcher(studyName);
 		JsonArray candidates = matcher.query();
 		log.debug("number of candidates in dara: " + String.valueOf(candidates.size()));
-		JsonArray matchingDatasets = Filter.filter(candidates, study);
+		JsonArray matchingDatasets = FilterDaraJsonResults.filter(candidates, study);
 		Set<StudyLink> links = createStudyLinks(matchingDatasets, study, context);
 		return links;
 	}
@@ -111,13 +111,8 @@ public class Linker extends BaseAlgorithm {
 		for (DaraStudy daraStudy : daraStudies) {
 			float confidence = 0; // score, how to add?
 			String snippet = context.toPrettyString();
-			ExtractionMethod extractionMethod = ExtractionMethod.PATTERN; // where
-																			// to
-																			// get
-																			// that
-																			// info
-																			// from?
-																			// context?
+			// where  to  get  that  info  from? // context?
+			ExtractionMethod extractionMethod = ExtractionMethod.PATTERN;
 			// TODO: implement methods for string and url links, not only doi...
 			// TODO: use other titles as well, not only the first one
 			StudyLink link = new StudyLink(publication, daraStudy.title[0], study.getNumber(), study.getName(), daraStudy.doi, StudyType.DOI,

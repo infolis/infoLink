@@ -1,3 +1,4 @@
+package io.github.infolis;
 
 
 import static org.hamcrest.CoreMatchers.is;

@@ -61,7 +61,7 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 		assertEquals(1, execution.getInputFiles().size());
 		dataStoreClient.post(Execution.class, execution);
 		assertEquals(inFile.getUri(), execution.getInputFiles().get(0));
-		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
+		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
 
 		log.debug("{}", execution.getOutputFiles());

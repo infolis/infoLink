@@ -5,6 +5,8 @@
  */
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
@@ -13,6 +15,7 @@ import io.github.infolis.model.Study;
 import io.github.infolis.util.LimitedTimeMatcher;
 
 import java.io.IOException;
+//import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +31,15 @@ import org.slf4j.LoggerFactory;
  */
 public class VersionPatternApplier extends BaseAlgorithm {
 
+    public VersionPatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
     private static final Logger log = LoggerFactory.getLogger(VersionPatternApplier.class);
 
     private List<Study> searchForStudyPatterns(InfolisFile file) throws IOException {
         List<Study> foundStudies = new ArrayList<>();
-        InputStream in = getFileResolver().openInputStream(file);
+        InputStream in = getInputFileResolver().openInputStream(file);
         String input = IOUtils.toString(in);
         in.close();
         System.out.println("input: " + input);
@@ -40,11 +47,11 @@ public class VersionPatternApplier extends BaseAlgorithm {
         String inputClean = input.replaceAll("\\s+", " ");
         for (String patternURI : this.getExecution().getPattern()) {
 
-            InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
+            InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
-            long maxTimeMillis = Math.min(75_000, getFileResolver().openInputStream(file).available());
+            long maxTimeMillis = Math.min(75_000, getInputFileResolver().openInputStream(file).available());
             LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file.getFileName() + "\n" + pattern.getPatternRegex());
             ltm.run();
             // if thread was aborted due to long processing time, matchFound should be false
@@ -69,7 +76,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
         List<Study> detectedStudies = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
             log.debug("Input file URI: '{}'", inputFileURI);
-            InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+            InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
             }
@@ -78,7 +85,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
         }
 
         for (Study s : detectedStudies) {
-            getDataStoreClient().post(Study.class, s);
+            getOutputDataStoreClient().post(Study.class, s);
             this.getExecution().getStudyContexts().add(s.getUri());
         }
 

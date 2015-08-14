@@ -1,7 +1,9 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -36,16 +38,18 @@ import org.slf4j.LoggerFactory;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
+	public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
 	private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
 
-	private PDFTextStripper stripper;
-
-	public TextExtractorAlgorithm() {
-		super();
+	private static final PDFTextStripper stripper;
+	static {
 		try {
-			this.stripper = new PDFTextStripper();
+			stripper = new PDFTextStripper();
 		} catch (IOException e) {
-			getExecution().getLog().add("Error instantiating PDFTextStripper.");
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}
@@ -59,9 +63,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 		try {
 			try {
 				if (log.isTraceEnabled()) {
-					log.trace(IOUtils.toString(getFileResolver().openInputStream(inFile)));
+					log.trace(IOUtils.toString(getInputFileResolver().openInputStream(inFile)));
 				}
-				inStream = getFileResolver().openInputStream(inFile);
+				inStream = getInputFileResolver().openInputStream(inFile);
 			} catch (IOException e) {
 				getExecution().getLog().add("Error opening input stream: " + e);
 				throw e;
@@ -94,7 +98,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			outFile.setFileStatus("AVAILABLE");
 
 			try {
-				outStream = getFileResolver().openOutputStream(outFile);
+				outStream = getOutputFileResolver().openOutputStream(outFile);
 			} catch (IOException e) {
 				fatal(log, "Error opening output stream to text file: " + e);
 				throw e;
@@ -208,7 +212,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 	public void execute() {
 		for (String inputFileURI : getExecution().getInputFiles()) {
 			log.debug(inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, (inputFileURI));
+			InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, (inputFileURI));
 			if (null == inputFile) {
 //				getDataStoreClient().post(Execution.class, getExecution());
 				fatal(log, "File was not registered with the data store: " + inputFileURI);
@@ -226,7 +230,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			debug(log, "Converted to file %s", outputFile);
 //			log.debug("LOG {}", getExecution().getLog());
 //			 FrontendClient.post(InfolisFile.class, outputFile);
-			getDataStoreClient().post(InfolisFile.class, outputFile);
+			getOutputDataStoreClient().post(InfolisFile.class, outputFile);
 			if (null == outputFile) {
 				fatal(log, "Conversion failed for input file %s", inputFileURI);
 				fatal(log, "Log of this execution: " + getExecution().getLog());
@@ -285,11 +289,12 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			}
 
 			Execution execution = new Execution();
-			Algorithm algo = new TextExtractorAlgorithm();
-			execution.setAlgorithm(algo.getClass());
-			algo.setExecution(execution);
-			algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
-			algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));
+//			Algorithm algo = new TextExtractorAlgorithm();
+			execution.setAlgorithm(TextExtractorAlgorithm.class);
+//			algo.setExecution(execution);
+			FileResolver ifr = FileResolverFactory.create(DataStoreStrategy.LOCAL);
+			DataStoreClient idsc = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
+			Algorithm algo = execution.instantiateAlgorithm(idsc, idsc, ifr, ifr);
 
 			Path inputPath = Paths.get(inputPathOption);
 			if (Files.isDirectory(inputPath)) {
@@ -299,7 +304,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 						InfolisFile fileToPost = new InfolisFile();
 						fileToPost.setFileName(directoryStream.next().toString());
 						fileToPost.setMediaType("application/pdf");
-						algo.getDataStoreClient().post(InfolisFile.class, fileToPost);
+						algo.getInputDataStoreClient().post(InfolisFile.class, fileToPost);
 						execution.getInputFiles().add(fileToPost.getUri());
 					}
 				} catch (IOException e) {

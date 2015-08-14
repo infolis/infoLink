@@ -1,15 +1,13 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
+import io.github.infolis.datastore.AbstractClient;
 import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;
+import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.Execution.Strategy;
 import io.github.infolis.model.StudyContext;
-import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.File;
@@ -23,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.kohsuke.args4j.Argument;
@@ -119,7 +118,8 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIterations);
         e.setUpperCaseConstraint(this.constraint_upperCase);
-        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+        Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+        algorithm.run();
         return e.getStudyContexts();
     }
 
@@ -138,7 +138,8 @@ public class Learner implements Algorithm {
         e.setThreshold(threshold);
         e.setMaxIterations(maxIter);
         e.setUpperCaseConstraint(this.constraint_upperCase);
-        e.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+        Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+        algorithm.run();
         return e.getStudyContexts();
     }
 
@@ -223,24 +224,6 @@ public class Learner implements Algorithm {
     }
 
     @Override
-    public FileResolver getFileResolver() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setFileResolver(FileResolver fileResolver) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public DataStoreClient getDataStoreClient() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void setDataStoreClient(DataStoreClient dataStoreClient) {
         // TODO Auto-generated method stub
 
@@ -262,6 +245,42 @@ public class Learner implements Algorithm {
 	public void fatal(Logger log, String fmt, Object... args) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public TempFileResolver getTempFileResolver() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AbstractClient getTempDataStoreClient() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileResolver getOutputFileResolver() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FileResolver getInputFileResolver() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataStoreClient getInputDataStoreClient() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataStoreClient getOutputDataStoreClient() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 
@@ -325,7 +344,7 @@ class OptionHandler {
      */
     public void doMain(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
-        DataStoreClient client = new LocalClient();
+        DataStoreClient client = new LocalClient(UUID.randomUUID());
 
         // parse the arguments.
         try {

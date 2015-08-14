@@ -1,6 +1,7 @@
 package io.github.infolis.util;
 
-import io.github.infolis.infolink.luceneIndexing.Indexer;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -310,6 +311,15 @@ public class RegexUtils {
         }
         return false;
     }
+
+	public static boolean ignoreStudy(String studyname) {
+		for (String ignorePattern : InfolisConfig.getIgnoreStudy()) {
+			if (studyname.matches(ignorePattern)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 
 }

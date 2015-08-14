@@ -52,11 +52,7 @@ public class PatternApplierTest extends InfolisBaseTest {
     	execution.getPattern().add(testPattern.getUri());
     	execution.setAlgorithm(PatternApplier.class);
     	execution.getInputFiles().addAll(uris);
-    	
-    	Algorithm algo = new PatternApplier();
-    	algo.setDataStoreClient(dataStoreClient);
-    	algo.setFileResolver(fileResolver);
-    	algo.setExecution(execution);
+    	Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
     	algo.run();
     	
     	// find the contexts of "FOOBAR" and "term" (see also FrequencyBasedBootstrappingTest)

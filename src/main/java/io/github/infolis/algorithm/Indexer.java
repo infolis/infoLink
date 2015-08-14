@@ -1,5 +1,4 @@
-package io.github.infolis.infolink.luceneIndexing;
- 
+package io.github.infolis.algorithm;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,44 +17,105 @@ package io.github.infolis.infolink.luceneIndexing;
  * limitations under the License.
  */
 
- 
+import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
+import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 
-/*import org.apache.pdfbox.cos.COSDocument;
-import org.apache.pdfbox.pdfparser.PDFParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.PDFTextStripper;*/
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-//import java.util.StringTokenizer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** 
- * Creates a Lucene Document from a File.
- * <p>
- * The document has three fields:
- * <ul>
- * <li><code>path</code>--containing the pathname of the file, as a stored, untokenized field;</li>
- * <li><code>fileName</code>--containing the file name of the file, as a stored, tokenized field;</li>
- * <li><code>modified</code>--containing the last modified date of the file as a field as created by <a
- * href="lucene.document.DateTools.html">DateTools</a>; and</li>
- * <li><code>contents</code>--containing the full contents of the file, as a Reader field;</li>
- * </ul>
+/**
+ * Class for adding text files to a Lucene index.
  * 
  * @author katarina.boland@gesis.org
+ * @author kba
  * @version 2014-01-27
  */
-public class FileDocument {
+public class Indexer extends BaseAlgorithm
+{
+	private final static String INDEX_DIR_PREFIX = "infolis-index-";
 
-	/**
-	 * Class constructor.
+	public Indexer(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
+	private Logger log = LoggerFactory.getLogger(Indexer.class);
+
+	/*
+	 * kba: That was the old value of {@link IndexWriter.MaxFieldLength.LIMITED}
 	 */
-	private FileDocument() {}
-	
+	private static final int MAX_TOKEN_COUNT = 10000;
+
+	public static Analyzer createAnalyzer() {
+		return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
+	}
+
+	@Override
+	public void execute() throws IOException {
+
+		File indexDir = new File(Files.createTempDirectory(INDEX_DIR_PREFIX).toString());
+		FileUtils.forceDeleteOnExit(indexDir);
+		getExecution().setOutputDirectory(indexDir.toString());
+
+		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
+		indexWriterConfig.setOpenMode(OpenMode.CREATE);
+		IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
+
+		List<InfolisFile> files = new ArrayList<>();
+		for (String fileUri : getExecution().getInputFiles()) {
+			files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
+		}
+
+		Date start = new Date();
+		log.debug("Starting to index");
+		try {
+			for (InfolisFile file : files) {
+				// log.debug("Indexing file " + file);
+				writer.addDocument(toLuceneDocument(getInputFileResolver(), file));
+			}
+		} catch (FileNotFoundException fnfe) {
+			// NOTE: at least on windows, some temporary files raise this
+			// exception with an "access denied" message checking if the
+			// file can be read doesn't help
+			throw new RuntimeException("Could not write index entry: " + fnfe);
+		} finally {
+			log.debug("Merging all Lucene segments ...");
+			writer.forceMerge(1);
+			writer.close();
+		}
+		log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
+	}
+
+	@Override
+	public void validate() throws IllegalAlgorithmArgumentException {
+		Execution exec = this.getExecution();
+		if (null == exec.getInputFiles() || exec.getInputFiles().isEmpty())
+			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");
+	}
+
 	/**
 	 * Files a lucene document.
 	 * Documents are created as follows:
@@ -128,5 +188,4 @@ public class FileDocument {
       //cd.close();
       return doc;
   }
-
 }

@@ -52,7 +52,7 @@ public class ExecutorWebservice {
 		}
 		Class<? extends Algorithm> algoClass = execution.getAlgorithm();
 		Algorithm algo = null;
-		if (null == algoClass) {
+		if (algoClass == null) {
 			String msg = "ERROR: No such algorithm: " + algoClass;
 			execution.getLog().add(msg);
 			execution.setStatus(ExecutionStatus.FAILED);
@@ -60,8 +60,8 @@ public class ExecutorWebservice {
 			resp.status(404);
 		} else {
 			try {
-				algo = algoClass.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
+				algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
+			} catch (RuntimeException e) {
 				String msg = "ERROR: Could not instantiate algorithm " + algoClass.getName();
 				execution.getLog().add(msg);
 				execution.setStatus(ExecutionStatus.FAILED);
@@ -69,18 +69,15 @@ public class ExecutorWebservice {
 				resp.status(400);
 			}
 		}
-		if (algo != null) {
-			algo.setExecution(execution);
-			algo.setDataStoreClient(dataStoreClient);
-			algo.setFileResolver(fileResolver);
-			dataStoreClient.put(Execution.class, execution);
-			new Thread(algo).start();
-		} else {
+		if (algo == null) {
 			String msg = "ERROR: Algo is still null for " + algoClass.getName();
 			execution.getLog().add(msg);
 			execution.setStatus(ExecutionStatus.FAILED);
 			resp.entity(msg);
 			resp.status(400);
+		} else {
+			dataStoreClient.put(Execution.class, execution);
+			new Thread(algo).start();
 		}
 		return resp.build();
 	}

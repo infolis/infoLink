@@ -17,26 +17,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DaraSolrMatcher {
-	
+
 	Logger log = LoggerFactory.getLogger(DaraSolrMatcher.class);
 	String solrBase = "http://www.da-ra.de/solr/dara/";
 	String title;
-	
-	DaraSolrMatcher(String title) throws UnsupportedEncodingException {
-		this.title =  URLParamEncoder.encode(title);
+
+	public DaraSolrMatcher(String title) throws UnsupportedEncodingException {
+		this.title = URLParamEncoder.encode(title);
 	}
-	
+
 	public JsonArray query() throws MalformedURLException, IOException {
 		return executeQuery(constructQuery());
 	}
-	
+
 	private URL constructQuery() throws MalformedURLException {
 		String beginning = "select/?q=title:";
 		String remainder = "&start=0&rows=10000&fl=doi,title&wt=json";
 		log.debug(this.solrBase + beginning + this.title + remainder);
 		return new URL(this.solrBase + beginning + this.title + remainder);
 	}
-	
+
 	private JsonArray executeQuery(URL query) throws IOException {
 		InputStream is = null;
 		JsonReader reader = null;
@@ -46,9 +46,10 @@ public class DaraSolrMatcher {
 			JsonObject obj = reader.readObject();
 			JsonObject response = obj.getJsonObject("response");
 			JsonArray result = response.getJsonArray("docs");
-			return result;		
+			return result;
+		} finally {
+			reader.close();
+			is.close();
 		}
-		catch (IOException ioe) { throw new IOException(); }
-		finally { is.close(); reader.close();  }
 	}
 }

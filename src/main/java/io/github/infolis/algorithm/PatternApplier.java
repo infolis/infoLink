@@ -5,6 +5,8 @@
  */
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.ExecutionStatus;
@@ -31,11 +33,15 @@ import org.slf4j.LoggerFactory;
  */
 public class PatternApplier extends BaseAlgorithm {
 
+	public PatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
 	private static final Logger	log	= LoggerFactory.getLogger(PatternApplier.class);
 
 	private String getFileAsString(InfolisFile file)
 			throws IOException {
-		InputStream in = getFileResolver().openInputStream(file);
+		InputStream in = getInputFileResolver().openInputStream(file);
 		String input = IOUtils.toString(in);
 		in.close();
 		log.trace("Input: " + input);
@@ -50,7 +56,7 @@ public class PatternApplier extends BaseAlgorithm {
 		List<StudyContext> res = new ArrayList<>();
 		for (String patternURI : this.getExecution().getPattern()) {
 			debug(log, patternURI);
-			InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
+			InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
 			debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
 			Pattern p = Pattern.compile(pattern.getPatternRegex());
 
@@ -60,7 +66,7 @@ public class PatternApplier extends BaseAlgorithm {
 			// 750000 suitable for -Xmx2g -Xms2g
 			// processing time for documents depends on size of the document.
 			// Allow 1024 milliseconds per KB
-			InputStream openInputStream = getFileResolver().openInputStream(file);
+			InputStream openInputStream = getInputFileResolver().openInputStream(file);
 			long maxTimeMillis = Math.min(75_000, openInputStream.available());
 			openInputStream.close();
 
@@ -128,10 +134,10 @@ public class PatternApplier extends BaseAlgorithm {
 					containedInNP = true;
 				}
 				if (containedInNP) {
-					SearchTermPosition stp = new SearchTermPosition();
-					stp.setDataStoreClient(getDataStoreClient());
-					stp.setFileResolver(getFileResolver());
-					List<StudyContext> con = stp.getContexts(file.getUri(), studyName, context);
+//					SearchTermPosition stp = new SearchTermPosition();
+//					stp.setDataStoreClient(getDataStoreClient());
+//					stp.setInputFileResolver(getInputFileResolver());
+					List<StudyContext> con = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
 					for (StudyContext oneContext : con) {
 						oneContext.setPattern(pattern.getUri());
 					}
@@ -153,7 +159,7 @@ public class PatternApplier extends BaseAlgorithm {
 		List<StudyContext> detectedContexts = new ArrayList<>();
 		for (String inputFileURI : getExecution().getInputFiles()) {
 			log.debug("Input file URI: '{}'", inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+			InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
 			if (null == inputFile) {
 				throw new RuntimeException("File was not registered with the data store: "
 						+ inputFileURI);
@@ -163,7 +169,7 @@ public class PatternApplier extends BaseAlgorithm {
 		}
 
 		for (StudyContext sC : detectedContexts) {
-			getDataStoreClient().post(StudyContext.class, sC);
+			getOutputDataStoreClient().post(StudyContext.class, sC);
 			this.getExecution().getStudyContexts().add(sC.getUri());
 		}
 

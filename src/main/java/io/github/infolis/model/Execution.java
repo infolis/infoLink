@@ -422,21 +422,4 @@ public class Execution extends BaseModel {
 	public void setLinks(Set<StudyLink> links) {
 		this.links = links;
 	}
-
-	public String getOutputMediaType() {
-		return outputMediaType;
-	}
-
-	public void setOutputMediaType(String outputMediaType) {
-		this.outputMediaType = outputMediaType;
-	}
-
-	public String getInputMediaType() {
-		return inputMediaType;
-	}
-
-	public void setInputMediaType(String inputMediaType) {
-		this.inputMediaType = inputMediaType;
-	}
-
 }

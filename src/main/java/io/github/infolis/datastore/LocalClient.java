@@ -64,7 +64,7 @@ public class LocalClient extends AbstractClient {
 	
 	@Override
 	public void clear() {
-		jsonDB.clear();
+		jsonDB.get(storeId).clear();
 	}
 
 }

@@ -232,6 +232,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			} catch (IOException e) {
 				fatal(log, "Extraction caused exception: %s\n%s", e,  ExceptionUtils.getStackTrace(e));
 				persistExecution();
+				return;
 			}
 			debug(log, "Converted to file %s", outputFile);
 //			log.debug("LOG {}", getExecution().getLog());

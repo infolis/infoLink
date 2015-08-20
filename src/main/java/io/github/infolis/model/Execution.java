@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sun.research.ws.wadl.Link;
 
 /**
  *
@@ -133,6 +134,9 @@ public class Execution extends BaseModel {
 		this.status = status;
 	}
 
+	/**
+	 * @return a {@link List} of {@link String} log entries
+	 */
 	public List<String> getLog() {
 		return log;
 	}

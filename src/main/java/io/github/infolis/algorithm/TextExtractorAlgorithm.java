@@ -220,7 +220,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 				persistExecution();
 				return;
 			}
-			if (null != inputFile.getMediaType() && ! inputFile.getMediaType().equals(MediaType.PDF.toString())) {
+			if (null == inputFile.getMediaType() || ! inputFile.getMediaType().equals(MediaType.PDF.toString())) {
 				fatal(log, "File is not a PDF: " + inputFileURI);
 				persistExecution();
 				return;

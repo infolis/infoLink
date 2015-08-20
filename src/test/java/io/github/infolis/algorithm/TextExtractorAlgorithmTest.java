@@ -38,7 +38,6 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnknownMediaType() throws Exception {
-		// Missing mediatype -- should be ok
 		InfolisFile inFile = new InfolisFile();
 		inFile.setFileName(tempFile.toString());
 		inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));

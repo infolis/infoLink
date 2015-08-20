@@ -152,12 +152,8 @@ public class PatternInducer {
         String luceneQuery5_flex = "\"" + leftWords_lucene.get(windowSize - 5) + " " + leftWords_lucene.get(windowSize - 4) + " " + leftWords_lucene.get(windowSize - 3) + " " + leftWords_lucene.get(windowSize - 2) + " " + leftWords_lucene.get(windowSize - 1) + "\"";
         String regex5_flex_quoted = leftWords_quoted.get(windowSize - 5) + "\\s" + leftWords_quoted.get(windowSize - 4) + "\\s" + leftWords_quoted.get(windowSize - 3) + "\\s" + leftWords_quoted.get(windowSize - 2) + "\\s" + leftWords_quoted.get(windowSize - 1);
 		//String regex_ngram5_flex_normalizedAndQuoted = leftWords_regex.get(windowSize-5) + "\\s" + leftWords_regex.get(windowSize-4) + "\\s" + leftWords_regex.get(windowSize-3) + "\\s" + leftWords_regex.get(windowSize-2) + "\\s" + attVal4_regex + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-
-        // constraint for patterns: at least one component not be a stopword
-        // prevent induction of patterns less general than already known patterns:
-        // check whether pattern is known before continuing
         
-        InfolisPattern type1 = new InfolisPattern(regex1_normalizedAndQuoted, luceneQuery1, regex1_quoted, new ArrayList<String>(Arrays.asList(
+        InfolisPattern type_general = new InfolisPattern(regex1_normalizedAndQuoted, luceneQuery1, regex1_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[0]);
         InfolisPattern type2 = new InfolisPattern(regex2_normalizedAndQuoted, luceneQuery2, regex2_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[1]);
@@ -169,16 +165,16 @@ public class PatternInducer {
         InfolisPattern type5 = new InfolisPattern(regex5_normalizedAndQuoted, luceneQuery5, regex5_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 5), leftWords.get(windowSize - 4), leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), 
         		leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[4]);
-        InfolisPattern typeA = new InfolisPattern(regexA_normalizedAndQuoted, luceneQueryA, regexA_quoted, new ArrayList<String>(Arrays.asList(
+        InfolisPattern typeB = new InfolisPattern(regexA_normalizedAndQuoted, luceneQueryA, regexA_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1))), thresholds[5]);
-        InfolisPattern typeB = new InfolisPattern(regexB_normalizedAndQuoted, luceneQueryB, regexB_quoted, new ArrayList<String>(Arrays.asList(
+        InfolisPattern typeC = new InfolisPattern(regexB_normalizedAndQuoted, luceneQueryB, regexB_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2))), thresholds[6]);
-        InfolisPattern typeC = new InfolisPattern(regexC_normalizedAndQuoted, luceneQueryC, regexC_quoted, new ArrayList<String>(Arrays.asList(
+        InfolisPattern typeD = new InfolisPattern(regexC_normalizedAndQuoted, luceneQueryC, regexC_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3))), thresholds[7]);
-        InfolisPattern typeD = new InfolisPattern(regexD_normalizedAndQuoted, luceneQueryD, regexD_quoted, new ArrayList<String>(Arrays.asList(
+        InfolisPattern typeE = new InfolisPattern(regexD_normalizedAndQuoted, luceneQueryD, regexD_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3), rightWords.get(4))), 
         		thresholds[8]);
-        this.candidates.addAll(Arrays.asList(type1, type2, type3, type4, type5, typeA, typeB, typeC, typeD));
+        this.candidates.addAll(Arrays.asList(type_general, type2, typeB, type3, typeC, type4, typeD, type5, typeE));
 	}
 	
 	
@@ -203,6 +199,10 @@ public class PatternInducer {
         	Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};
         	PatternInducer inducer = new PatternInducer(context, thresholds);
             
+        	// constraint for patterns: at least one component not be a stopword
+            // prevent induction of patterns less general than already known patterns:
+            // check whether pattern is known before continuing
+        	
             for (InfolisPattern candidate : inducer.candidates) {
             	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
             	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {

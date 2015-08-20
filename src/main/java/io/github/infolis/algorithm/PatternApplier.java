@@ -49,7 +49,7 @@ public class PatternApplier extends BaseAlgorithm {
 
 		List<StudyContext> res = new ArrayList<>();
 		for (String patternURI : this.getExecution().getPattern()) {
-			debug(log, patternURI);
+			//debug(log, patternURI);
 			InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
 			debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
 			Pattern p = Pattern.compile(pattern.getPatternRegex());
@@ -87,7 +87,7 @@ public class PatternApplier extends BaseAlgorithm {
 				// if studyname contains no characters: ignore
 				// TODO: not accurate - include accents etc in match... \p{M}?
 				if (studyName.matches("\\P{L}+")) {
-					log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+					//log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
 					ltm.run();
 					continue;
 				}
@@ -136,10 +136,10 @@ public class PatternApplier extends BaseAlgorithm {
 						oneContext.setPattern(pattern.getUri());
 					}
 					res.addAll(con);
-					log.debug("Added context.");
+					//log.debug("Added context.");
 				}
 
-				log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+				//log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
 				ltm.run();
 			}
 		}
@@ -152,13 +152,13 @@ public class PatternApplier extends BaseAlgorithm {
 			throws IOException {
 		List<StudyContext> detectedContexts = new ArrayList<>();
 		for (String inputFileURI : getExecution().getInputFiles()) {
-			log.debug("Input file URI: '{}'", inputFileURI);
+			//log.debug("Input file URI: '{}'", inputFileURI);
 			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
 			if (null == inputFile) {
 				throw new RuntimeException("File was not registered with the data store: "
 						+ inputFileURI);
 			}
-			log.debug("Start extracting from '{}'.", inputFile);
+			//log.debug("Start extracting from '{}'.", inputFile);
 			detectedContexts.addAll(searchForPatterns(inputFile));
 		}
 
@@ -168,7 +168,7 @@ public class PatternApplier extends BaseAlgorithm {
 		}
 
 		getExecution().setStatus(ExecutionStatus.FINISHED);
-		log.debug("No context found: {}", getExecution().getStudyContexts().size());
+		log.debug("Number of contexts found: {}", getExecution().getStudyContexts().size());
 	}
 
 	@Override

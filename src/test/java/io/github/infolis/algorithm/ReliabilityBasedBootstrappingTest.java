@@ -15,7 +15,12 @@ import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 
-	Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrappingTest.class);
+	Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrappingTest.class);
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "FOOBAR";
 	private final static List<String> terms = Arrays.asList(term);
@@ -46,6 +51,29 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 			uris.add(file.getUri());
 		}
 	}
+	
+	@Test
+	public void testGetTopK() {
+		int k = 5;
+		Map<Double, Collection<String>> patternScoreMap = new HashMap<>();
+		patternScoreMap.put(0.0, Arrays.asList("0"));
+		patternScoreMap.put(1.0, Arrays.asList("1"));
+		patternScoreMap.put(2.0, Arrays.asList("2"));
+		patternScoreMap.put(3.0, Arrays.asList("3"));
+		patternScoreMap.put(4.0, Arrays.asList("4"));
+		patternScoreMap.put(5.0, Arrays.asList("5", "5b"));
+		Set<String> expectedTopK = new HashSet<>(Arrays.asList("5", "5b", "4", "3", "2"));
+		Set<String> topK = ReliabilityBasedBootstrapping.getTopK(patternScoreMap, k).keySet();
+		assertEquals(expectedTopK, topK);
+		
+		Map<Double, Collection<String>> reducedMap = ReliabilityBasedBootstrapping.removeBelowThreshold(patternScoreMap, 4.0);
+		Map<Double, Collection<String>> expectedReducedMap = new HashMap<>();
+		expectedReducedMap.put(4.0, Arrays.asList("4"));
+		expectedReducedMap.put(5.0, Arrays.asList("5", "5b"));
+		assertEquals(expectedReducedMap, reducedMap);
+		
+		assertEquals(new HashSet<>(Arrays.asList("5", "5b", "4")), ReliabilityBasedBootstrapping.getTopK(reducedMap, 5).keySet());
+	}
 
 	/**
 	 * Tests basic functionality using no threshold for pattern induction (=
@@ -55,14 +83,13 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 	 * @param strategy
 	 * @throws Exception
 	 */
-	void testReliabilityBasedBootstrapping() throws Exception {
-
+	@Test
+	public void testReliabilityBasedBootstrapping() throws Exception {
 		Execution execution = new Execution();
 		execution.setAlgorithm(ReliabilityBasedBootstrapping.class);
 		execution.getTerms().addAll(terms);
 		execution.setInputFiles(uris);
-		execution.setSearchTerm(terms.get(0));
-		execution.setThreshold(-1000.0);
+		execution.setThreshold(-0.0);
 		execution.setBootstrapStrategy(Execution.Strategy.reliability);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
 		algo.run();
@@ -77,11 +104,6 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 			assertNotNull("StudyContext must have file set!", studyContext.getFile());
 		}
 		log.debug(SerializationUtils.dumpExecutionLog(execution));
-	}
-
-	@Test
-	public void testBootstrapping_basic() throws Exception {
-		testReliabilityBasedBootstrapping();
 	}
 
 }

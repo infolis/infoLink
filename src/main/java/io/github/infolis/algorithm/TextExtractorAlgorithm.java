@@ -32,6 +32,8 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.net.MediaType;
+
 /**
  *
  * @author kba
@@ -214,8 +216,12 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			log.debug(inputFileURI);
 			InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, (inputFileURI));
 			if (null == inputFile) {
-//				getDataStoreClient().post(Execution.class, getExecution());
 				fatal(log, "File was not registered with the data store: " + inputFileURI);
+				persistExecution();
+				return;
+			}
+			if (null != inputFile.getMediaType() && ! inputFile.getMediaType().equals(MediaType.PDF.toString())) {
+				fatal(log, "File is not a PDF: " + inputFileURI);
 				persistExecution();
 				return;
 			}

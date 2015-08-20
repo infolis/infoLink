@@ -74,7 +74,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 			}
 			try {
 				pdfIn = PDDocument.load(inStream);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				getExecution().getLog().add("Error reading PDF from stream: " + e);
 				throw e;
 			}

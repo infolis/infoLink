@@ -44,7 +44,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		for (InfolisFile file : createTestFiles(100, testStrings)) {
+		for (InfolisFile file : createTestTextFiles(100, testStrings)) {
             uris.add(file.getUri());
 		}
 //		stp = new SearchTermPosition(dataStoreClient, dataStoreClient,fileResolver, fileResolver);

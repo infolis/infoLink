@@ -120,7 +120,7 @@ public class DaraLinkerTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		return createTestFiles(nrFiles, testStrings);
+		return createTestTextFiles(nrFiles, testStrings);
 	}
 	public void prepareTestFiles() throws IOException, Exception {
 		for (InfolisFile file : createTestFiles(20)) {

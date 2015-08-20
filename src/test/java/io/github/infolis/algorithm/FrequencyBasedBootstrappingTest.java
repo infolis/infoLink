@@ -44,7 +44,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	};
 
 	public FrequencyBasedBootstrappingTest() throws Exception {
-		for (InfolisFile file : createTestFiles(7, testStrings)) {
+		for (InfolisFile file : createTestTextFiles(7, testStrings)) {
 			uris.add(file.getUri());
 		}
 	}

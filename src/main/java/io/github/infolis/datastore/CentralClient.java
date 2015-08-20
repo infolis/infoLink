@@ -147,4 +147,10 @@ class CentralClient extends AbstractClient {
 		return null;
 	}
 
+	@Override
+	public void clear() {
+		log.error("clear not supported");
+		return;
+	}
+
 }

@@ -7,6 +7,7 @@ import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.InfolisMediaType;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.Date;

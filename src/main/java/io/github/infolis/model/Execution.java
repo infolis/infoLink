@@ -68,10 +68,12 @@ public class Execution extends BaseModel {
 	private double threshold = 0.8;
 	// private Strategy bootstrapStrategy = Strategy.separate;
 	private Strategy bootstrapStrategy = Strategy.mergeAll;
-	
-	//Linker
+	private String inputMediaType = null;
+	private String outputMediaType = null;
+
+	// Linker
 	private Set<StudyLink> links;
-	
+
 	//
 	// CONSTRUCTORS
 	// /
@@ -412,13 +414,29 @@ public class Execution extends BaseModel {
 	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
 		this.bootstrapStrategy = bootstrapStrategy;
 	}
-	
+
 	public Set<StudyLink> getLinks() {
 		return this.links;
 	}
-	
+
 	public void setLinks(Set<StudyLink> links) {
 		this.links = links;
+	}
+
+	public String getOutputMediaType() {
+		return outputMediaType;
+	}
+
+	public void setOutputMediaType(String outputMediaType) {
+		this.outputMediaType = outputMediaType;
+	}
+
+	public String getInputMediaType() {
+		return inputMediaType;
+	}
+
+	public void setInputMediaType(String inputMediaType) {
+		this.inputMediaType = inputMediaType;
 	}
 
 }

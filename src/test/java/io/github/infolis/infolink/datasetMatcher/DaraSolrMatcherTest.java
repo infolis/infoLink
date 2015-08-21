@@ -41,8 +41,8 @@ public class DaraSolrMatcherTest {
 	public void testQuery() throws MalformedURLException, IOException {
         Assume.assumeNotNull(System.getProperty("gesisRemoteTest"));
 		Map<String, String> output = new HashMap<>();
-                SolrMatcher matcher = new SolrMatcher("http://www.da-ra.de/solr/dara/");
-		JsonArray json = matcher.query(this.datasetName);
+		DaraSolrMatcher matcher = new DaraSolrMatcher(this.datasetName);
+		JsonArray json = matcher.query();
 		for (JsonObject result : json.getValuesAs(JsonObject.class)) {
 			String title1 = result.getJsonArray("title").getString(0);
 			String doi = result.getJsonArray("doi").getString(0);

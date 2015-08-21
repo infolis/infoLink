@@ -265,7 +265,7 @@ public class InfolisPattern extends BaseModel {
         return patternSet;
     }
     
-    public boolean isReliable(List<String> contexts_pattern, int dataSize, Set<String> reliableInstances, Set<StudyContext> contexts_seeds, Reliability r) throws IOException, ParseException {
+    public boolean isReliable(List<String> contexts_pattern, int dataSize, Set<String> reliableInstances, Map<String, Set<StudyContext>> contexts_seeds, Reliability r) throws IOException, ParseException {
     	this.setReliability(r.computeReliability(contexts_pattern, dataSize, reliableInstances, contexts_seeds, this));
         if (this.getReliability() >= this.getThreshold()) {
             return true;

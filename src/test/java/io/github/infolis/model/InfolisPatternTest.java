@@ -5,8 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.infolis.InfolisBaseTest;
@@ -57,9 +59,11 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		List<String> contexts_pattern = Arrays.asList(
 				"foO bar foO", "foO bar foO", "foO bar foO");
 		Set<String> reliableInstances = new HashSet<>();
-		Set<StudyContext> contexts_seeds = new HashSet<>();;
+		Set<StudyContext> contexts_seed = new HashSet<>();
+		Map<String, Set<StudyContext>> contexts = new HashMap<>();;
 		Reliability r = new Reliability();
-		reliableInstances.add("bar");
+		String seed = "bar";
+		reliableInstances.add(seed);
 		r.setSeedInstances(reliableInstances);
 
 		StudyContext context_bar_0 = new StudyContext("bar", "bar", "bar", "document4", new InfolisPattern(), "version");
@@ -67,14 +71,16 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		StudyContext context_bar_2 = new StudyContext("foO", "bar", "foO", "document6", new InfolisPattern(), "version");
 		StudyContext context_bar_3 = new StudyContext("foO", "bar", "foO", "document7", new InfolisPattern(), "version");
 		StudyContext context_bar_4 = new StudyContext("foO", "bar", "foO", "document8", new InfolisPattern(), "version");
+		
+		contexts_seed.add(context_bar_0);
+		contexts_seed.add(context_bar_1);
+		contexts_seed.add(context_bar_2);
+		contexts_seed.add(context_bar_3);
+		contexts_seed.add(context_bar_4);
+		
+		contexts.put(seed, contexts_seed);
 
-		contexts_seeds.add(context_bar_0);
-		contexts_seeds.add(context_bar_1);
-		contexts_seeds.add(context_bar_2);
-		contexts_seeds.add(context_bar_3);
-		contexts_seeds.add(context_bar_4);
-
-		Instance bar = r.new Instance("bar");
+		Instance bar = r.new Instance(seed);
 		
 		double p_x = 5 / 10.0; // "bar" occurs 5 times as instance in all data
 		double p_y = 3 / 10.0; // bar_patt occurs 3 times
@@ -87,7 +93,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		r.addPattern(pat);
 		r.setMaxPmi(pmi_score);
 		double expectedReliability = r.reliability(pat, "");
-		pat.isReliable(contexts_pattern, dataSize, reliableInstances, contexts_seeds, r);
+		pat.isReliable(contexts_pattern, dataSize, reliableInstances, contexts, r);
 		assertEquals(expectedReliability, pat.getReliability(), 0.0);
 		log.debug("Expected reliability: " + expectedReliability);
 		log.debug("Computed reliability: " + pat.getReliability());

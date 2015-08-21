@@ -54,44 +54,36 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         	
         	log.debug("Bootstrapping... Iteration: " + numIter);
             log.debug("Current reliable instances:  " + reliableInstances);
-            log.debug("Current top patterns: " + lastTopK.keySet());
+            log.debug("Current top patterns: " + lastTopK);
             
             // reset list of reliable patterns and contexts found in this iteration
             Map<String, Double> reliableMinimals_iteration = new HashMap<>();
             List<StudyContext> contextsOfReliablePatterns_iteration = new ArrayList<>();
             Set<StudyContext> contexts_seeds_iteration = new HashSet<>();
+
+            // add seeds selected in last iteration to list of reliable instances
+            reliableInstances.addAll(seeds);
             
             // start iteration:
             // 1. search for all seeds and save contexts
             for (String seed : seeds) {
-            	if (reliableInstances.contains(seed)) { continue; }
             	
                 log.debug("Bootstrapping with seed \"" + seed + "\"");
-                // search only once and use stored contexts afterwards
-                /*
+                // after searching for initial seeds, contexts are already stored because 
+                // they have to be extracted for computing seed reliability
                 if (contexts_seeds_all.containsKey(seed)) {
                 	contexts_seeds_iteration.addAll(contexts_seeds_all.get(seed));
-                }*/
-                Set<StudyContext> contexts_seed = new HashSet<>();
-                // use lucene index to search for term in corpus
-	            Execution execution = new Execution();
-	            execution.setAlgorithm(SearchTermPosition.class);
-	            execution.setSearchTerm(seed);
-	            execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
-	            execution.setInputFiles(getExecution().getInputFiles());
-	            execution.setThreshold(getExecution().getThreshold());
-	            execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
-	                  
-	            for (String sC : execution.getStudyContexts()) {
-	                StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
-	                contexts_seed.add(context);
-	                contexts_seeds_iteration.add(context);
-	            }
-	            contexts_seeds_all.put(seed, contexts_seed);
+                }
+                else {
+	                Set<StudyContext> contexts_seed = new HashSet<>();
+		            for (String sC : getContextsForSeed(seed)) {
+		                StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+		                contexts_seed.add(context);
+		                contexts_seeds_iteration.add(context);
+		            }
+		            contexts_seeds_all.put(seed, contexts_seed);
+                }
             }
-            
-            // add seeds selected in last iteration to list of reliable instances
-            reliableInstances.addAll(seeds);
             
             log.debug("Extracted contexts of all seeds.");
             log.debug("--- Entering Pattern Induction phase ---");
@@ -109,13 +101,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             // Pattern Ranking/Selection
             // 2. get reliable patterns, save their data to inducer.minimal_context_map and 
             // new seeds to seeds
-            Set<StudyContext> contexts_seeds_ = new HashSet<>();
-            for (Set<StudyContext> seedContexts : contexts_seeds_all.values()) {
-            	contexts_seeds_.addAll(seedContexts);
-            }
-            //TODO: use map directly - more efficient counting...
-            //reliableMinimals_iteration = patternRanker.getReliablePatternData(candidatePatterns, reliableInstances, contexts_seeds_all);
-            reliableMinimals_iteration = patternRanker.getReliablePatternData(candidatePatterns, reliableInstances, contexts_seeds_);
+           
+            reliableMinimals_iteration = patternRanker.getReliablePatternData(candidatePatterns, reliableInstances, contexts_seeds_all);
             reliablePatterns.addAll(reliableMinimals_iteration.keySet());
             
             for (String minimal : reliableMinimals_iteration.keySet()) {
@@ -137,14 +124,23 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             // compute reliability of all instances 
             Set<String> newInstanceNames = new HashSet<>();
             for (StudyContext sC : contextsOfReliablePatterns_iteration) {
-            	String newInstanceName = sC.getTerm(); //TODO both should either be uri or object itself...
-            	newInstanceNames.add(newInstanceName);
+            	String newInstanceName = sC.getTerm();
+            	if (!reliableInstances.contains(newInstanceName)) { 
+            		newInstanceNames.add(newInstanceName);
+            		log.debug("Found new instance: " + newInstanceName);
+            	}
             }
             for (String newInstanceName : newInstanceNames) {
             	Reliability.Instance newInstance = r.new Instance(newInstanceName);
-            	//TODO SEE ABOVE EFFICIENT COUNTING
-            	//if (newInstance.isReliable(contextsOfReliablePatterns, getExecution().getInputFiles().size(), reliablePatterns, contexts_seeds_all, r, getExecution().getThreshold())) {
-            	if (newInstance.isReliable(contextsOfReliablePatterns, getExecution().getInputFiles().size(), reliablePatterns, contexts_seeds_, r, getExecution().getThreshold())) {
+            	// counts of instances are required for computation of pmi
+            	Set<StudyContext> contexts_seed = new HashSet<>();
+	            for (String sC : getContextsForSeed(newInstanceName)) {
+	                StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+	                contexts_seed.add(context);
+	            }
+	            contexts_seeds_all.put(newInstanceName, contexts_seed);
+	            
+            	if (newInstance.isReliable(contextsOfReliablePatterns, getExecution().getInputFiles().size(), reliablePatterns, contexts_seeds_all, r, getExecution().getThreshold())) {
             		seeds.add(newInstanceName);
             	}
             }
@@ -158,14 +154,16 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             	log.debug("stored associations: " + p.getAssociations().size());
             }
 
-            numIter++;
-            
-            // return if pattern set is stable
+            // return if pattern set is stable or seed set is empty
             if (patternRanker.topK.equals(lastTopK)) { 
             	log.debug("pattern set is stable, nothing more to do. Returning.");
             	break; 
             }
-            else { lastTopK = patternRanker.topK; }
+            else if (seeds.isEmpty()) { 
+            	log.debug("no new seeds, nothing more to do. Returning."); 
+            	break; 
+            }
+            else { lastTopK = patternRanker.topK; numIter++; }
         }
 
         List<String> topKContextURIs = new ArrayList<>();
@@ -178,6 +176,17 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         return getStudyContexts(topKContextURIs);
     }
     
+    private List<String> getContextsForSeed(String seed) {
+        // use lucene index to search for term in corpus
+        Execution execution = new Execution();
+        execution.setAlgorithm(SearchTermPosition.class);
+        execution.setSearchTerm(seed);
+        execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
+        execution.setInputFiles(getExecution().getInputFiles());
+        execution.setThreshold(getExecution().getThreshold());
+        execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+    	return execution.getStudyContexts();
+    }
     /**
      * Resolves list of study context URIs and returns list of corresponding studyContexts.
      * 
@@ -251,7 +260,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
          * @throws IOException
          * @throws ParseException
          */
-        private Map<String, Double> getReliablePatternData(List<List<InfolisPattern>> candidatesPerContext, Set<String> relInstances, Set<StudyContext> contexts_seeds_all) throws IOException, ParseException {
+        private Map<String, Double> getReliablePatternData(List<List<InfolisPattern>> candidatesPerContext, Set<String> relInstances, Map<String, Set<StudyContext>> contexts_seeds_all) throws IOException, ParseException {
 	    	int size = getExecution().getInputFiles().size();
 	    	List<String> processedMinimals_iteration = new ArrayList<>();
 	        for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {

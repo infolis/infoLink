@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
@@ -32,7 +34,11 @@ import org.slf4j.LoggerFactory;
  * @author kata
  */
 public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
-
+	
+	public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+	
     private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
     private Reliability r = new Reliability();
 
@@ -77,7 +83,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 else {
 	                Set<StudyContext> contexts_seed = new HashSet<>();
 		            for (String sC : getContextsForSeed(seed)) {
-		                StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+		                StudyContext context = this.getOutputDataStoreClient().get(StudyContext.class, sC);
 		                contexts_seed.add(context);
 		                contexts_seeds_iteration.add(context);
 		            }
@@ -109,7 +115,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             	List<String> reliableContexts = patternRanker.minimal_context_map.get(minimal);
             	// resolve URIs and save all contexts of current iteration, needed to get new seeds
             	for (String contextURI : reliableContexts) {
-            		contextsOfReliablePatterns_iteration.add(getDataStoreClient().get(StudyContext.class, contextURI));
+            		contextsOfReliablePatterns_iteration.add(getOutputDataStoreClient().get(StudyContext.class, contextURI));
             	}
             }
             contextsOfReliablePatterns.addAll(contextsOfReliablePatterns_iteration);
@@ -135,7 +141,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             	// counts of instances are required for computation of pmi
             	Set<StudyContext> contexts_seed = new HashSet<>();
 	            for (String sC : getContextsForSeed(newInstanceName)) {
-	                StudyContext context = this.getDataStoreClient().get(StudyContext.class, sC);
+	                StudyContext context = this.getOutputDataStoreClient().get(StudyContext.class, sC);
 	                contexts_seed.add(context);
 	            }
 	            contexts_seeds_all.put(newInstanceName, contexts_seed);
@@ -184,7 +190,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
         execution.setInputFiles(getExecution().getInputFiles());
         execution.setThreshold(getExecution().getThreshold());
-        execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver()).run();
+        execution.instantiateAlgorithm(getOutputDataStoreClient(), getOutputFileResolver()).run();
     	return execution.getStudyContexts();
     }
     /**
@@ -196,7 +202,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     private List<StudyContext> getStudyContexts(List<String> URIs) {
     	List<StudyContext> contexts = new ArrayList<>();
     	for (String uri : URIs) {
-    		contexts.add(getDataStoreClient().get(StudyContext.class, uri));
+    		contexts.add(getOutputDataStoreClient().get(StudyContext.class, uri));
     	}
     	return contexts;
     }
@@ -241,10 +247,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         	execution_pa.getPattern().add(pattern.getUri());
         	execution_pa.setAlgorithm(PatternApplier.class);
         	execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
-        	Algorithm algo = new PatternApplier();
-        	algo.setDataStoreClient(getDataStoreClient());
-        	algo.setFileResolver(getFileResolver());
-        	algo.setExecution(execution_pa);
+        	Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         	algo.run();
         	return execution_pa.getStudyContexts();
         }
@@ -283,7 +286,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 	            	}
 	            	// even potentially unreliable candidates need a URI for extraction of contexts
 	            	else { 
-	            		getDataStoreClient().post(InfolisPattern.class, candidate);
+	            		getOutputDataStoreClient().post(InfolisPattern.class, candidate);
 	            		contexts_pattern = extractContexts(candidate); 
 	            		this.minimal_context_map.put(candidate.getMinimal(), contexts_pattern);
 	            	}
@@ -382,7 +385,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
 
         for (StudyContext sC : detectedContexts) {
-            getDataStoreClient().post(StudyContext.class, sC);
+        	getOutputDataStoreClient().post(StudyContext.class, sC);
             this.getExecution().getStudyContexts().add(sC.getUri());
             this.getExecution().getPattern().add(sC.getPattern());
         }
@@ -406,3 +409,4 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     }
 
 }
+

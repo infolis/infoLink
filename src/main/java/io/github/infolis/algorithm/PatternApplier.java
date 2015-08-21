@@ -5,8 +5,11 @@
  */
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
@@ -17,6 +20,7 @@ import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -28,14 +32,19 @@ import org.slf4j.LoggerFactory;
  *
  * @author domi
  * @author kata
+ * @author kba
  */
 public class PatternApplier extends BaseAlgorithm {
+
+	public PatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
 
 	private static final Logger	log	= LoggerFactory.getLogger(PatternApplier.class);
 
 	private String getFileAsString(InfolisFile file)
 			throws IOException {
-		InputStream in = getFileResolver().openInputStream(file);
+		InputStream in = getInputFileResolver().openInputStream(file);
 		String input = IOUtils.toString(in);
 		in.close();
 		log.trace("Input: " + input);
@@ -49,8 +58,8 @@ public class PatternApplier extends BaseAlgorithm {
 
 		List<StudyContext> res = new ArrayList<>();
 		for (String patternURI : this.getExecution().getPattern()) {
-			//debug(log, patternURI);
-			InfolisPattern pattern = getDataStoreClient().get(InfolisPattern.class, patternURI);
+			debug(log, patternURI);
+			InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
 			debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
 			Pattern p = Pattern.compile(pattern.getPatternRegex());
 
@@ -60,7 +69,7 @@ public class PatternApplier extends BaseAlgorithm {
 			// 750000 suitable for -Xmx2g -Xms2g
 			// processing time for documents depends on size of the document.
 			// Allow 1024 milliseconds per KB
-			InputStream openInputStream = getFileResolver().openInputStream(file);
+			InputStream openInputStream = getInputFileResolver().openInputStream(file);
 			long maxTimeMillis = Math.min(75_000, openInputStream.available());
 			openInputStream.close();
 
@@ -68,9 +77,8 @@ public class PatternApplier extends BaseAlgorithm {
 			// which causes application to hang
 			// thus monitor runtime of threat and terminate if processing takes
 			// too long
-			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file
-				.getFileName()
-					+ "\n" + pattern.getPatternRegex());
+			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, 
+					file.getFileName() + "\n" + pattern.getPatternRegex());
 			ltm.run();
 			// thread was aborted due to long processing time
 			if (!ltm.finished()) {
@@ -87,7 +95,7 @@ public class PatternApplier extends BaseAlgorithm {
 				// if studyname contains no characters: ignore
 				// TODO: not accurate - include accents etc in match... \p{M}?
 				if (studyName.matches("\\P{L}+")) {
-					//log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+					log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
 					ltm.run();
 					continue;
 				}
@@ -128,18 +136,18 @@ public class PatternApplier extends BaseAlgorithm {
 					containedInNP = true;
 				}
 				if (containedInNP) {
-					SearchTermPosition stp = new SearchTermPosition();
-					stp.setDataStoreClient(getDataStoreClient());
-					stp.setFileResolver(getFileResolver());
-					List<StudyContext> con = stp.getContexts(file.getUri(), studyName, context);
+//					SearchTermPosition stp = new SearchTermPosition();
+//					stp.setDataStoreClient(getDataStoreClient());
+//					stp.setInputFileResolver(getInputFileResolver());
+					List<StudyContext> con = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
 					for (StudyContext oneContext : con) {
 						oneContext.setPattern(pattern.getUri());
 					}
 					res.addAll(con);
-					//log.debug("Added context.");
+					log.debug("Added context.");
 				}
 
-				//log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+				log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
 				ltm.run();
 			}
 		}
@@ -152,23 +160,45 @@ public class PatternApplier extends BaseAlgorithm {
 			throws IOException {
 		List<StudyContext> detectedContexts = new ArrayList<>();
 		for (String inputFileURI : getExecution().getInputFiles()) {
-			//log.debug("Input file URI: '{}'", inputFileURI);
-			InfolisFile inputFile = getDataStoreClient().get(InfolisFile.class, inputFileURI);
+			log.debug("Input file URI: '{}'", inputFileURI);
+			InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
 			if (null == inputFile) {
-				throw new RuntimeException("File was not registered with the data store: "
-						+ inputFileURI);
+				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
 			}
-			//log.debug("Start extracting from '{}'.", inputFile);
+			if (null == inputFile.getMediaType()) {
+				throw new RuntimeException("File has no mediaType: " + inputFileURI);
+			}
+			// if the input file is not a text file
+			if (! inputFile.getMediaType().startsWith("text/plain")) {
+				// if the input file is a PDF file, convert it
+				if (inputFile.getMediaType().startsWith("application/pdf")) {
+					Execution convertExec = new Execution();
+					convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+					convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
+					// TODO wire this more efficiently so files are stored temporarily
+					Algorithm algo = convertExec.instantiateAlgorithm(this);
+					// do the actual conversion
+					algo.run();
+					// Set the inputFile to the file we just created
+					InfolisFile convertedInputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
+					log.trace("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());
+					log.trace("Content: " + IOUtils.toString(algo.getInputFileResolver().openInputStream(convertedInputFile)));
+					inputFile = convertedInputFile;
+				} else {
+					throw new RuntimeException(getClass() + " execution / inputFiles " + "Can only search through text files or PDF files");
+				}
+			}
+			log.debug("Start extracting from '{}'.", inputFile);
 			detectedContexts.addAll(searchForPatterns(inputFile));
 		}
 
 		for (StudyContext sC : detectedContexts) {
-			getDataStoreClient().post(StudyContext.class, sC);
+			getOutputDataStoreClient().post(StudyContext.class, sC);
 			this.getExecution().getStudyContexts().add(sC.getUri());
 		}
 
 		getExecution().setStatus(ExecutionStatus.FINISHED);
-		log.debug("Number of contexts found: {}", getExecution().getStudyContexts().size());
+		log.debug("No context found: {}", getExecution().getStudyContexts().size());
 	}
 
 	@Override

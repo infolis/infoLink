@@ -1,7 +1,10 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.datastore.AbstractClient;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
+import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 
 import java.io.IOException;
@@ -43,18 +46,33 @@ public interface Algorithm extends Runnable {
 	/**
 	 * @return the {@link FileResolver} of this algorithm
 	 */
-	FileResolver getFileResolver();
+	FileResolver getOutputFileResolver();
 
 	/**
-	 * @param fileResolver
-	 *            the {@link FileResolver} for this algorithm.
+	 * @return the {@link FileResolver} of this algorithm
 	 */
-	void setFileResolver(FileResolver fileResolver);
+	FileResolver getInputFileResolver();
 
 	/**
 	 * @return the {@link DataStoreClient} to use for this algorithm instance.
 	 */
-	DataStoreClient getDataStoreClient();
+	DataStoreClient getInputDataStoreClient();
+
+	/**
+	 * @return the {@link DataStoreClient} to use for this algorithm instance.
+	 */
+	DataStoreClient getOutputDataStoreClient();
+	
+	/**
+	 * @return a temporary {@link TempFileResolver}
+	 */
+	TempFileResolver getTempFileResolver();
+
+
+	/**
+	 * @return the {@link LocalClient} for temporary storage.
+	 */
+	AbstractClient getTempDataStoreClient();
 
 	/**
 	 * @param dataStoreClient

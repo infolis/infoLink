@@ -27,12 +27,14 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  *
  * @author domi
  */
+@Ignore
 public class ExampleChecker extends InfolisBaseTest {
 
 //    FileResolver fileResolver = FileResolverFactory.global();

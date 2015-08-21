@@ -47,7 +47,7 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		for (InfolisFile file : createTestFiles(7, testStrings)) {
+		for (InfolisFile file : createTestTextFiles(7, testStrings)) {
 			uris.add(file.getUri());
 		}
 	}

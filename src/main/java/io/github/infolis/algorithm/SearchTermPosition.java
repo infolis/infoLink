@@ -1,6 +1,7 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.infolink.luceneIndexing.Indexer;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
@@ -9,18 +10,15 @@ import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
@@ -31,7 +29,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
@@ -62,21 +59,14 @@ import org.slf4j.LoggerFactory;
 public class SearchTermPosition extends BaseAlgorithm
 { 
 	
-	private Execution execution;
+	public SearchTermPosition(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+	}
+
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 	private static final String DEFAULT_FIELD_NAME = "contents";
 	private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
 
-        @Override
-	public Execution getExecution() {
-		return execution;
-	}
-
-        @Override
-	public void setExecution(Execution execution) {
-		this.execution = execution;
-	}
-	
 //	/**
 //	 * Main method calling complexSearch method for given arguments
 //	 * 
@@ -123,49 +113,41 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException
 	{
-		Path tempPath = Files.createTempDirectory("infolis-index-");
-		FileUtils.forceDeleteOnExit(tempPath.toFile());
+		Execution indexExecution = createIndex();
 		
-		createIndex(tempPath);
-		
-		Directory d = FSDirectory.open(tempPath.toFile());
-		
-		IndexReader r = IndexReader.open(d);
-		IndexSearcher searcher = new IndexSearcher(r);
-		Analyzer analyzer = Indexer.createAnalyzer();
-		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, analyzer);
+		IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(indexExecution.getOutputDirectory()))));
+		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
 		// set phrase slop because dataset titles may consist of more than one word
-		qp.setPhraseSlop(this.execution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-		qp.setAllowLeadingWildcard(this.execution.isAllowLeadingWildcards());
-		BooleanQuery.setMaxClauseCount(this.execution.getMaxClauseCount());
+		qp.setPhraseSlop(indexExecution.getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		qp.setAllowLeadingWildcard(indexExecution.isAllowLeadingWildcards());
+		BooleanQuery.setMaxClauseCount(indexExecution.getMaxClauseCount());
 		// throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
 		// if quotes are present in absence of any whitespace inside of query
 		// however, queries should be passed in correct form instead of being changed here
 		Query q;
 		try {
-			q = qp.parse(this.execution.getSearchQuery().trim());
+			q = qp.parse(getExecution().getSearchQuery().trim());
 		}
 		catch (ParseException e) {
-			fatal(log, "Could not parse searchquery '%s'", this.execution.getSearchQuery());
-			this.execution.setStatus(ExecutionStatus.FAILED);
-				
+			fatal(log, "Could not parse searchquery '%s'", indexExecution.getSearchQuery());
+			getExecution().setStatus(ExecutionStatus.FAILED);
 			searcher.close();
 			throw new RuntimeException();
 		}
 
-		log.debug("Query: " + q.toString());
-		TopDocs td = searcher.search(q,10000);
-		log.debug("Number of hits: " + td.totalHits);
-		ScoreDoc[] sd = td.scoreDocs;
+		debug(log, "Query: " + q.toString());
+		TopDocs td = searcher.search(q, 10000);
+		debug(log, "Number of hits: " + td.totalHits);
+		ScoreDoc[] scoreDocs = td.scoreDocs;
 		
-		for (int i = 0; i < sd.length; i++)
+		for (int i = 0; i < scoreDocs.length; i++)
 		{
-			Document doc = searcher.doc(sd[i].doc);
+			Document doc = searcher.doc(scoreDocs[i].doc);
 //			log.debug(doc.get("path"));
-			InfolisFile file = getDataStoreClient().get(InfolisFile.class, doc.get("path"));
+			InfolisFile file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
 //			log.debug("{}", file);
 			
-			InputStream openInputStream = this.getFileResolver().openInputStream(file);
+			InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
 			String text = IOUtils.toString(openInputStream);
 			openInputStream.close();
 			
@@ -174,31 +156,38 @@ public class SearchTermPosition extends BaseAlgorithm
 			// output contexts are those created by pattern-based search
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
-				for (StudyContext sC : getContexts(file.getUri(), this.getExecution().getSearchTerm(), text)) {
-					getDataStoreClient().post(StudyContext.class, sC);
-					this.execution.getStudyContexts().add(sC.getUri());
+				for (StudyContext sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
+					
+					// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
+					getOutputDataStoreClient().post(StudyContext.class, sC);
+					getExecution().getStudyContexts().add(sC.getUri());
 				}
 			}
 			getExecution().getMatchingFilenames().add(file.getUri());
 		}
 		searcher.close();
-		analyzer.close();
-		r.close();
-		d.close();
+		Indexer.createAnalyzer().close();
+		IndexReader.open(FSDirectory.open(new File(indexExecution.getOutputDirectory()))).close();
+		FSDirectory.open(new File(indexExecution.getOutputDirectory())).close();
 		log.debug("Finished SearchTermPosition#execute");
 	}
 	
-	private void createIndex(Path tempPath) throws IOException {
+	private Execution createIndex() throws IOException {
 		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
 		execution.setInputFiles(this.getExecution().getInputFiles());
-		execution.setIndexDirectory(tempPath.toString());
-		
-		Algorithm algo = execution.instantiateAlgorithm(getDataStoreClient(), getFileResolver());
+		execution.setAllowLeadingWildcards(this.getExecution().isAllowLeadingWildcards());
+//		0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		execution.setPhraseSlop(this.getExecution().getPhraseSlop());
+		BooleanQuery.setMaxClauseCount(this.getExecution().getMaxClauseCount());
+
+		Algorithm algo = execution.instantiateAlgorithm(this);
 		algo.execute();
+
+		return execution;
 	}
 
-	List<StudyContext> getContexts(String fileName, String term, String text) throws IOException
+	public static List<StudyContext> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -212,46 +201,22 @@ public class SearchTermPosition extends BaseAlgorithm
 	    String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 //	    log.debug(text);
-	    List<StudyContext> contextList = new LinkedList<StudyContext>();
+	    List<StudyContext> contextList = new ArrayList<>();
 	    ltm.run();
 //	    log.debug("Pattern: " + pat + " found " + ltm.matched());
-	    if (ltm.finished() && !ltm.matched()) {	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
-	    	// refer to normalizeQuery for a better way to do this
-	    	String[] termParts = term.split("\\s+");
-	    	String term_normalized = "";
-	    	for (String part : termParts) {
-	    		term_normalized += Pattern.quote(
-	    				part.replace("-", " ")
-	    					.replace("–", " ")
-	    					.replace(".", " ")
-	    					.replace("<", " ")
-	    					.replace(">", " ")
-	    					.replace("(", " ")
-	    					.replace(")", " ")
-	    					.replace(":", " ")
-	    					.replace(",", " ")
-	    					.replace(";", " ")
-	    					.replace("/", " ")
-	    					.replace("\\", " ")
-	    					.replace("&", " ")
-                            .replace("_", "")
-                            .replace("?", "")
-                            .replace("!", "")
-                            .trim()
-                        ) + ALLOWED_CHARS;
-	    	}
-	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + term_normalized + RegexUtils.rightContextPat_);
-	    	threadName = String.format("2222221212 Term '%s%s' in '%s[...]'", ALLOWED_CHARS, term_normalized, text.substring(0, Math.min(100, text.length())));
+	    if (ltm.finished() && !ltm.matched()) {
+	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + removeSpecialCharsFromTerm(term) + RegexUtils.rightContextPat_);
 	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 	    	ltm.run();
 	    }
+
 	    // these patterns are used for extracting contexts of known study titles, do not confuse with patterns to detect study references
 	    if (! ltm.finished()) {
 	    	throw new IOException("Matcher timed out!");
-	    }
+	    } 
 	    if (ltm.finished() && ltm.matched()) {
 	    	infolisPat = new InfolisPattern(pat.toString());
-	    	this.getDataStoreClient().post(InfolisPattern.class, infolisPat);
+	    	outputDataStoreClient.post(InfolisPattern.class, infolisPat);
 //	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {
@@ -273,6 +238,35 @@ public class SearchTermPosition extends BaseAlgorithm
 	    return contextList;
 	}
 
+	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+	// refer to normalizeQuery for a better way to do this
+	private static String removeSpecialCharsFromTerm(String term) {
+		String[] termParts = term.split("\\s+");
+		String term_normalized = "";
+		for (String part : termParts) {
+			term_normalized += Pattern.quote(
+					part.replace("-", " ")
+						.replace("–", " ")
+						.replace(".", " ")
+						.replace("<", " ")
+						.replace(">", " ")
+						.replace("(", " ")
+						.replace(")", " ")
+						.replace(":", " ")
+						.replace(",", " ")
+						.replace(";", " ")
+						.replace("/", " ")
+						.replace("\\", " ")
+						.replace("&", " ")
+		                .replace("_", "")
+		                .replace("?", "")
+		                .replace("!", "")
+		                .trim()
+		            ) + ALLOWED_CHARS;
+		}
+		return term_normalized;
+	}
+
 	@Override
 	public void validate() throws IllegalAlgorithmArgumentException {
 //		if (null != this.getExecution().getOutputFiles()
@@ -280,7 +274,8 @@ public class SearchTermPosition extends BaseAlgorithm
 //			throw new IllegalAlgorithmArgumentException(getClass(), "outputFiles", "must NOT be set");
 //		if (null == this.getExecution().getInputFiles()
 //				 || this.getExecution().getInputFiles().isEmpty())
-//			throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "must be set and non-empty");
+		// throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
+		// "must be set and non-empty");
 		if (null == this.getExecution().getSearchQuery())
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "must be set and non-empty");
 	}

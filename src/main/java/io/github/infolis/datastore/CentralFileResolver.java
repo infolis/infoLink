@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 class CentralFileResolver implements FileResolver {
+	
+	private static final Logger log = LoggerFactory.getLogger(CentralFileResolver.class);
 
 	private static Logger logger = LoggerFactory.getLogger(CentralFileResolver.class);
 	/*
@@ -58,7 +60,7 @@ class CentralFileResolver implements FileResolver {
 		logger.trace("Reading data from file {}", fileName);
 		InputStream ret;
 		if (!Files.exists(fileName)) {
-			throw new FileNotFoundException();
+			throw new FileNotFoundException(fileName.toString());
 		} else {
 			ret = Files.newInputStream(fileName);
 		}
@@ -77,8 +79,9 @@ class CentralFileResolver implements FileResolver {
 	}
 
 	@Override
-	public InputStream openInputStream(InfolisFile file) throws IOException{
-		return openInputStream(file.getMd5());
+	public InputStream openInputStream(InfolisFile inputFile) throws IOException{
+		log.debug("FNAPP: {}", inputFile.getMd5());
+		return openInputStream(inputFile.getMd5());
 	}
 
 	@Override

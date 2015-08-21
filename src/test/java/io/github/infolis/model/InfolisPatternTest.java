@@ -34,7 +34,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 	public InfolisPatternTest() throws Exception {
 		pat.setMinimal("foO\\s(.*?)\\sfoO");
 		String[] testStrings = new String[contextStrings.size()];
-		createTestFiles(10, contextStrings.toArray(testStrings));
+		createTestTextFiles(10, contextStrings.toArray(testStrings));
 	}
 
 	@Test

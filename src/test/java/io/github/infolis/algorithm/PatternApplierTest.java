@@ -1,10 +1,12 @@
 package io.github.infolis.algorithm;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.StudyContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +24,22 @@ import org.slf4j.LoggerFactory;
 public class PatternApplierTest extends InfolisBaseTest {
 
 	private static final int NUMBER_OF_FILES = 7;
-	Logger log = LoggerFactory.getLogger(SearchTermPositionTest.class);
+	private static final Logger log = LoggerFactory.getLogger(PatternApplierTest.class);
 	private List<String> textUris;
+	private List<String> pdfUris;
 	// left context: <word> <word> to find the
 	// study title: <word>* <word> <word> <word> <word>*
 	// right context: in <word> <word> <word> <word>
 	// where word is an arbitrary string consisting of at least one character
-	private final static InfolisPattern testPattern = new InfolisPattern(
-			"\\S++\\s\\S++\\s\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
+	private final static InfolisPattern testPattern = new InfolisPattern(""
+			+ "\\S++\\s\\S++"
+			+ "\\s\\Qto\\E"
+			+ "\\s\\Qfind\\E"
+			+ "\\s\\Qthe\\E"
+			+ "\\s\\s?"
+			+ "(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?"
+			+ "\\s\\Qin\\E"
+			+ "\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
 
 	String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -48,16 +58,16 @@ public class PatternApplierTest extends InfolisBaseTest {
 		for (InfolisFile file : createTestTextFiles(NUMBER_OF_FILES, testStrings)) {
 			textUris.add(file.getUri());
 		}
+		pdfUris = new ArrayList<>();
+		for (InfolisFile file : createTestPdfFiles(NUMBER_OF_FILES, testStrings)) {
+			pdfUris.add(file.getUri());
+		}
 		dataStoreClient.post(InfolisPattern.class, testPattern);
 	}
 
 	@Test
 	public void testPatternApplierWithPdf() throws Exception {
 
-		List<String> pdfUris = new ArrayList<>();
-		for (InfolisFile file : createTestPdfFiles(NUMBER_OF_FILES, testStrings)) {
-			pdfUris.add(file.getUri());
-		}
 		Execution execution = new Execution();
 		execution.getPattern().add(testPattern.getUri());
 		execution.setAlgorithm(PatternApplier.class);
@@ -68,6 +78,9 @@ public class PatternApplierTest extends InfolisBaseTest {
 		// find the contexts of "FOOBAR" and "term" (see also
 		// FrequencyBasedBootstrappingTest)
 		log.debug("LOG: {}", execution.getLog());
+		for (StudyContext sc: dataStoreClient.get(StudyContext.class, execution.getStudyContexts())) {
+			log.debug("Study Context: {}", sc);
+		}
 		assertEquals(3, execution.getStudyContexts().size());
 	}
 

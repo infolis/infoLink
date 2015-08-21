@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author domi
  * @author kata
+ * @author kba
  */
 public class PatternApplier extends BaseAlgorithm {
 
@@ -76,9 +77,8 @@ public class PatternApplier extends BaseAlgorithm {
 			// which causes application to hang
 			// thus monitor runtime of threat and terminate if processing takes
 			// too long
-			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file
-				.getFileName()
-					+ "\n" + pattern.getPatternRegex());
+			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, 
+					file.getFileName() + "\n" + pattern.getPatternRegex());
 			ltm.run();
 			// thread was aborted due to long processing time
 			if (!ltm.finished()) {
@@ -177,10 +177,13 @@ public class PatternApplier extends BaseAlgorithm {
 					convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
 					// TODO wire this more efficiently so files are stored temporarily
 					Algorithm algo = convertExec.instantiateAlgorithm(this);
-					// do the acutal conversion
+					// do the actual conversion
 					algo.run();
 					// Set the inputFile to the file we just created
-					inputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
+					InfolisFile convertedInputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
+					log.trace("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());
+					log.trace("Content: " + IOUtils.toString(algo.getInputFileResolver().openInputStream(convertedInputFile)));
+					inputFile = convertedInputFile;
 				} else {
 					throw new RuntimeException(getClass() + " execution / inputFiles " + "Can only search through text files or PDF files");
 				}

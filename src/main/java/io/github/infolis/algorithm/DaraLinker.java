@@ -2,8 +2,8 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
 import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
+import io.github.infolis.infolink.datasetMatcher.SolrMatcher;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.Study;
@@ -62,8 +62,8 @@ public class DaraLinker extends BaseAlgorithm {
 		// whitespace create problems for json parsing
 		String studyName = study.getName().replaceAll("\\s", "-").trim();
 		log.debug("search term: " + studyName);
-		DaraSolrMatcher matcher = new DaraSolrMatcher(studyName);
-		JsonArray candidates = matcher.query();
+		SolrMatcher matcher = new SolrMatcher("http://www.da-ra.de/solr/dara/");
+		JsonArray candidates = matcher.query(studyName);
 		log.debug("number of candidates in dara: " + String.valueOf(candidates.size()));
 		JsonArray matchingDatasets = FilterDaraJsonResults.filter(candidates, study);
 		Set<StudyLink> links = createStudyLinks(matchingDatasets, study, context);

@@ -61,5 +61,10 @@ public class LocalClient extends AbstractClient {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Override
+	public void clear() {
+		jsonDB.get(storeId).clear();
+	}
 
 }

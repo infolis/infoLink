@@ -44,7 +44,7 @@ public class LearnerTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		for (InfolisFile file : createTestFiles(20, testStrings)) {
+		for (InfolisFile file : createTestTextFiles(20, testStrings)) {
             uris.add(file.getUri());
             String str = FileUtils.readFileToString(new File(file.getFileName()));
             log.debug(str);

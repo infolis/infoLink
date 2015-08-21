@@ -32,7 +32,7 @@ public class IndexerTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		List<InfolisFile> inputFiles = createTestFiles(100, testStrings);
+		List<InfolisFile> inputFiles = createTestTextFiles(100, testStrings);
 
 		List<String> uris = new ArrayList<>();
 		for (InfolisFile file : inputFiles) {

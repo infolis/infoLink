@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.sun.research.ws.wadl.Link;
 
 /**
  *
@@ -68,10 +69,12 @@ public class Execution extends BaseModel {
 	private double threshold = 0.8;
 	// private Strategy bootstrapStrategy = Strategy.separate;
 	private Strategy bootstrapStrategy = Strategy.mergeAll;
-	
-	//Linker
+	private String inputMediaType = null;
+	private String outputMediaType = null;
+
+	// Linker
 	private Set<StudyLink> links;
-	
+
 	//
 	// CONSTRUCTORS
 	// /
@@ -131,6 +134,9 @@ public class Execution extends BaseModel {
 		this.status = status;
 	}
 
+	/**
+	 * @return a {@link List} of {@link String} log entries
+	 */
 	public List<String> getLog() {
 		return log;
 	}
@@ -412,13 +418,12 @@ public class Execution extends BaseModel {
 	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
 		this.bootstrapStrategy = bootstrapStrategy;
 	}
-	
+
 	public Set<StudyLink> getLinks() {
 		return this.links;
 	}
-	
+
 	public void setLinks(Set<StudyLink> links) {
 		this.links = links;
 	}
-
 }

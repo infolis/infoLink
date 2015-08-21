@@ -19,11 +19,16 @@ import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
 public class InfolisBaseTest {
-	protected final DataStoreClient dataStoreClient;
-	protected final FileResolver fileResolver;
+	protected DataStoreClient dataStoreClient;
+	protected FileResolver fileResolver;
 	{
 		DataStoreStrategy strategy;
 		if (Boolean.valueOf(System.getProperty("infolisRemoteTests", "false"))) {
@@ -31,6 +36,10 @@ public class InfolisBaseTest {
 		} else {
 			strategy = DataStoreStrategy.TEMPORARY;
 		}
+		setupClients(strategy);
+	}
+
+	protected void setupClients(DataStoreStrategy strategy) {
 		dataStoreClient = DataStoreClientFactory.create(strategy);
 		fileResolver =  FileResolverFactory.create(strategy);
 	}
@@ -42,19 +51,20 @@ public class InfolisBaseTest {
 			// .register(JacksonJsonProvider.class)
 			.build();
 
-	protected List<InfolisFile> createTestFiles(int nrFiles, String[] testStrings) throws Exception {
-		ArrayList<InfolisFile> ret = new ArrayList<>();
+	protected List<InfolisFile> createTestTextFiles(int nrFiles, String[] testStrings) throws Exception {
+		List<InfolisFile> ret = new ArrayList<>();
 		int j = 0;
 		for (int i = 0; i < nrFiles; i++) {
 			j = i % testStrings.length;
-			Path tempFile = Files.createTempFile("infolis-", ".txt");
 			String data = testStrings[j];
+			Path tempFile = Files.createTempFile("infolis-", ".txt");
 			FileUtils.write(tempFile.toFile(), data);
 
 			InfolisFile file = new InfolisFile();
 			file.setMd5(SerializationUtils.getHexMd5(data));
 			file.setFileName(tempFile.toString());
 			file.setFileStatus("AVAILABLE");
+			file.setMediaType("text/plain");
 
 			dataStoreClient.post(InfolisFile.class, file);
 			OutputStream os = fileResolver.openOutputStream(file);
@@ -65,4 +75,50 @@ public class InfolisBaseTest {
 		return ret;
 	}
 
+	protected List<InfolisFile> createTestPdfFiles(int nrFiles, String[] testStrings) throws Exception {
+		List<InfolisFile> ret = new ArrayList<>();
+
+		int j = 0;
+		for (int i = 0; i < nrFiles; i++) {
+			j = i % testStrings.length;
+			String data = testStrings[j];
+			Path tempFile = Files.createTempFile("infolis-", ".pdf");
+			
+			// create the pdf
+			PDDocument document = new PDDocument();
+			PDPage page = new PDPage();
+			document.addPage(page);
+			PDPageContentStream contentStream = new PDPageContentStream(document, page);
+			contentStream.beginText();
+			contentStream.setFont(PDType1Font.COURIER, 12);
+			contentStream.moveTextPositionByAmount(100, 100);
+			contentStream.drawString(data);
+			contentStream.endText();
+			contentStream.close();
+			// Important, otherwise hashing won't work because different random ID
+			document.setDocumentId(0L);
+
+			// Save to temp file
+			OutputStream tempOut = Files.newOutputStream(tempFile);
+			document.save(tempOut);
+			document.close();
+			tempOut.close();
+
+			// create infolis file
+			InfolisFile file = new InfolisFile();
+			file.setMd5(SerializationUtils.getHexMd5(IOUtils.toByteArray(Files.newInputStream(tempFile))));
+			file.setFileName(tempFile.toString());
+			file.setFileStatus("AVAILABLE");
+			file.setMediaType("application/pdf");
+			dataStoreClient.post(InfolisFile.class, file);
+
+			// Write the data to the file
+			OutputStream os = fileResolver.openOutputStream(file);
+			IOUtils.copy(Files.newInputStream(tempFile), os);
+			os.close();
+
+			ret.add(file);
+		}
+		return ret;
+	}
 }

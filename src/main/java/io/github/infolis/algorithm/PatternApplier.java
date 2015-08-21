@@ -9,6 +9,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
+import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
@@ -19,6 +20,7 @@ import io.github.infolis.ws.server.InfolisConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -30,6 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author domi
  * @author kata
+ * @author kba
  */
 public class PatternApplier extends BaseAlgorithm {
 
@@ -74,9 +77,8 @@ public class PatternApplier extends BaseAlgorithm {
 			// which causes application to hang
 			// thus monitor runtime of threat and terminate if processing takes
 			// too long
-			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file
-				.getFileName()
-					+ "\n" + pattern.getPatternRegex());
+			LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, 
+					file.getFileName() + "\n" + pattern.getPatternRegex());
 			ltm.run();
 			// thread was aborted due to long processing time
 			if (!ltm.finished()) {
@@ -161,8 +163,30 @@ public class PatternApplier extends BaseAlgorithm {
 			log.debug("Input file URI: '{}'", inputFileURI);
 			InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
 			if (null == inputFile) {
-				throw new RuntimeException("File was not registered with the data store: "
-						+ inputFileURI);
+				throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
+			}
+			if (null == inputFile.getMediaType()) {
+				throw new RuntimeException("File has no mediaType: " + inputFileURI);
+			}
+			// if the input file is not a text file
+			if (! inputFile.getMediaType().startsWith("text/plain")) {
+				// if the input file is a PDF file, convert it
+				if (inputFile.getMediaType().startsWith("application/pdf")) {
+					Execution convertExec = new Execution();
+					convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+					convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
+					// TODO wire this more efficiently so files are stored temporarily
+					Algorithm algo = convertExec.instantiateAlgorithm(this);
+					// do the actual conversion
+					algo.run();
+					// Set the inputFile to the file we just created
+					InfolisFile convertedInputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
+					log.trace("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());
+					log.trace("Content: " + IOUtils.toString(algo.getInputFileResolver().openInputStream(convertedInputFile)));
+					inputFile = convertedInputFile;
+				} else {
+					throw new RuntimeException(getClass() + " execution / inputFiles " + "Can only search through text files or PDF files");
+				}
 			}
 			log.debug("Start extracting from '{}'.", inputFile);
 			detectedContexts.addAll(searchForPatterns(inputFile));

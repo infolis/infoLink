@@ -1,6 +1,8 @@
 package io.github.infolis.algorithm;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -14,6 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +25,36 @@ import org.slf4j.LoggerFactory;
 public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 
 	Logger log = LoggerFactory.getLogger(TextExtractorAlgorithmTest.class);
+	private byte[] pdfBytes;
+	Path tempFile;
+
+	@Before
+	public void setUp() throws IOException {
+		dataStoreClient.clear();
+		pdfBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/trivial.pdf"));
+		tempFile = Files.createTempFile("infolis-", ".pdf");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testUnknownMediaType() throws Exception {
+		InfolisFile inFile = new InfolisFile();
+		inFile.setFileName(tempFile.toString());
+		inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));
+		inFile.setMediaType("invalid/mediaType");
+		inFile.setFileStatus("AVAILABLE");
+		writeFile(inFile);
+
+		Execution execution = new Execution();
+		execution.getInputFiles().add(inFile.getUri());
+		execution.setAlgorithm(TextExtractorAlgorithm.class);
+		dataStoreClient.post(Execution.class, execution);
+		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+		algo.run();
+		assertTrue(StringUtils.join(execution.getLog()).contains("not a PDF"));
+	}
+
+	
 
 	@Test
 	public void testLocalFile() throws IOException {
@@ -28,27 +62,12 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 		InfolisFile inFile = new InfolisFile();
 		Execution execution = new Execution();
 
-		// Path tmpDir = Files.
-		Path tempFile = Files.createTempFile("infolis-", ".pdf");
-		String resPath = "/trivial.pdf";
-
-		byte[] pdfBytes = IOUtils.toByteArray(getClass().getResourceAsStream(resPath));
-		IOUtils.write(pdfBytes, Files.newOutputStream(tempFile));
-
 		inFile.setFileName(tempFile.toString());
 		inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));
 		inFile.setMediaType("application/pdf");
 		inFile.setFileStatus("AVAILABLE");
 
-		try {
-			OutputStream os = fileResolver.openOutputStream(inFile);
-			IOUtils.write(pdfBytes, os);
-			os.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		dataStoreClient.post(InfolisFile.class, inFile);
+		writeFile(inFile);
 
 		log.debug(inFile.getFileName());
 		log.debug(inFile.getUri());
@@ -78,6 +97,17 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 		// }
 		assertEquals("Foo. Bar!", x.trim());
 		log.debug(SerializationUtils.dumpExecutionLog(execution));
+	}
+
+	private void writeFile(InfolisFile inFile) {
+		dataStoreClient.post(InfolisFile.class, inFile);
+		try {
+			OutputStream os = fileResolver.openOutputStream(inFile);
+			IOUtils.write(pdfBytes, os);
+			os.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

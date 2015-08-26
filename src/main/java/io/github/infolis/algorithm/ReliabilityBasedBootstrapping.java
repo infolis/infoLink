@@ -302,10 +302,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 	            		}
 	            		minimalsWithSameScore.add(candidate.getMinimal());
 	            		this.reliableMinimals.put(candidateReliability, minimalsWithSameScore);
-	            		// this returns the top k patterns regardless if their score is above the threshold currently
+	            		// this returns the top k patterns regardless if their score is above the threshold
 	            		//topK = getTopK(this.reliableMinimals, 5);
 	            		// this returns all top k patterns above the threshold 
-	            		this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getThreshold()), 5);
+	            		this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getThreshold()), 100);
 	            		processedMinimals_iteration.add(candidate.getMinimal());
 	            		break; // this prohibits induction of less general patterns 
 	            				// and equally general pattern of the other type (e.g. candidate2 vs. candidateB)

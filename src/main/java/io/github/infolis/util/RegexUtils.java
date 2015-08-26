@@ -302,7 +302,9 @@ public class RegexUtils {
         }
         // treat concatenations of two stopwords as stopword
         for (String stopword : RegexUtils.stopwordList()) {
-            if (stopwordList().contains(word.replace(stopword, ""))) {
+        	// replace with whitespace and use trim to avoid replacing occurrences inside of word, e.g.
+        	// "Daten" -> replace "at" with "" would yield "den" -> stopword
+            if (stopwordList().contains(word.replace(stopword, " ").trim())) {
                 return true;
             }
             if (word.replace(stopword, "").isEmpty()) {

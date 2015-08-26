@@ -194,7 +194,7 @@ public class InfolisPattern extends BaseModel {
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
         log.debug("Relevance score: " + tf_idf);
         log.debug("Occurrences: " + count_pos);
-        if ((tf_idf >= this.threshold) & (count_pos > 1)) {
+        if ((tf_idf >= this.threshold) & (count_pos > 0)) {
             return true;
         } else {
             return false;

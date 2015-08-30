@@ -7,6 +7,7 @@ import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.Instance;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.RegexUtils;
 
@@ -137,7 +138,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             	}
             }
             for (String newInstanceName : newInstanceNames) {
-            	Reliability.Instance newInstance = r.new Instance(newInstanceName);
+            	Instance newInstance = new Instance(newInstanceName);
             	// counts of instances are required for computation of pmi
             	Set<StudyContext> contexts_seed = new HashSet<>();
 	            for (String sC : getContextsForSeed(newInstanceName)) {
@@ -151,7 +152,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             	}
             }
             
-            for (Reliability.Instance i : r.getInstances()) {
+            for (Instance i : r.getInstances()) {
             	log.debug("stored instance: " + i.getName());
             	log.debug("stored associations: " + i.getAssociations().size());
             }

@@ -13,7 +13,6 @@ import java.util.Set;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.infolink.patternLearner.Reliability;
-import io.github.infolis.infolink.patternLearner.Reliability.Instance;
 import io.github.infolis.util.MathUtils;
 
 import org.junit.Test;
@@ -80,7 +79,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		
 		contexts.put(seed, contexts_seed);
 
-		Instance bar = r.new Instance(seed);
+		Instance bar = new Instance(seed);
 		
 		double p_x = 5 / 10.0; // "bar" occurs 5 times as instance in all data
 		double p_y = 3 / 10.0; // bar_patt occurs 3 times

@@ -9,8 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.infolis.infolink.patternLearner.Reliability.Instance;
 import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.Instance;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,8 +22,8 @@ public class ReliabilityTest {
 	private Reliability r = new Reliability();
 	InfolisPattern pattern = new InfolisPattern();
 	InfolisPattern newPattern = new InfolisPattern();
-	Instance instance = r.new Instance("instance");
-	Instance newInstance = r.new Instance("new instance");
+	Instance instance = new Instance("instance");
+	Instance newInstance = new Instance("new instance");
 	
 	public ReliabilityTest() {
 		Set<String> reliableInstances = new HashSet<>();
@@ -32,7 +32,7 @@ public class ReliabilityTest {
 		pattern.setMinimal("regex");
 		newPattern.setMinimal("new regex");
 		double pmi = 1.0;
-		pattern.addAssociation(instance.name, pmi);
+		pattern.addAssociation(instance.getName(), pmi);
 		r.addInstance(instance);
 		r.addPattern(pattern);
 		r.setMaxPmi(pmi);
@@ -53,8 +53,8 @@ public class ReliabilityTest {
 		Map<String, Double> expectedAssociations = new HashMap<>();
 		expectedAssociations.put("instance", 1.0);
 		assertEquals(expectedAssociations, pattern.getAssociations());
-		assertTrue(pattern.addAssociation(newInstance.name, 0.5));
-		expectedAssociations.put(newInstance.name, 0.5);
+		assertTrue(pattern.addAssociation(newInstance.getName(), 0.5));
+		expectedAssociations.put(newInstance.getName(), 0.5);
 		assertEquals(expectedAssociations, pattern.getAssociations());
 		
 		expectedAssociations = new HashMap<>();
@@ -76,13 +76,13 @@ public class ReliabilityTest {
 		
 		// suppose pattern generates newInstance with pmi of 0.5
 		newInstance.addAssociation(pattern.getMinimal(), 0.5);
-		pattern.addAssociation(newInstance.name, 0.5);//
+		pattern.addAssociation(newInstance.getName(), 0.5);//
 		r.addInstance(newInstance);
 		r.addPattern(pattern);//
 		assertEquals(0.25, r.reliability(newInstance, ""), 0.0);
 		
 		// suppose this newInstance leads to induction of newPattern with pmi of 1.0
-		newPattern.addAssociation(newInstance.name, 1.0);
+		newPattern.addAssociation(newInstance.getName(), 1.0);
 		newInstance.addAssociation(newPattern.getMinimal(), 1.0);//
 		r.addPattern(newPattern);
 		r.addInstance(newInstance);

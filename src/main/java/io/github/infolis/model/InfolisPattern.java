@@ -36,25 +36,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class InfolisPattern extends BaseModel {
+public class InfolisPattern extends Entity {
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
 	// TODO can this be final?
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
-    // TODO this must be a join class
-    private Map<String, Double> associations = new HashMap<>();
     private List<String> words = new ArrayList<>();
-    private double reliability;
-    private double threshold;
-    
-    public InfolisPattern(String patternRegex, String luceneQuery) {
-    	this.setLuceneQuery(luceneQuery);
-    	this.setPatternRegex(patternRegex);
-	}
     
     public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
+    	super(minimal);
     	this.setLuceneQuery(luceneQuery);
     	this.setPatternRegex(patternRegex);
     	this.setMinimal(minimal);
@@ -63,10 +55,12 @@ public class InfolisPattern extends BaseModel {
 	}
 
     public InfolisPattern(String patternRegex) {
+    	super();
     	this.setPatternRegex(patternRegex);
 	}
 
 	public InfolisPattern() {
+		super();
 	}
 
 	/**
@@ -89,37 +83,14 @@ public class InfolisPattern extends BaseModel {
     public List<String> getWords() {
         return words;
     }
+    
+	public void setPatternRegex(String patternRegex) {
+		this.patternRegex = patternRegex;
+	}
 
-    /**
-     * Adds an association between this pattern and a specified instance.
-     *
-     * @param instance	the instance whose association to store
-     * @param score	pmi score for this pattern and instance
-     * @return	true, if association is new; false if association was already
-     * known
-     */
-    public boolean addAssociation(String instanceName, double score) {
-        if (this.getAssociations().containsKey(instanceName)) {
-            log.debug("association between pattern " + this.getMinimal() + 
-            		" and instance " + instanceName + 
-            		" already known, overwriting previously saved score.");
-        }
-        return (this.getAssociations().put(instanceName, score) == null);
-    }
-
-    /**
-     * @return the associations
-     */
-    public Map<String, Double> getAssociations() {
-        return associations;
-    }
-
-    /**
-     * @param associations the associations to set
-     */
-    public void setAssociations(Map<String, Double> associations) {
-        this.associations = associations;
-    }
+	public void setLuceneQuery(String luceneQuery) {
+		this.luceneQuery = luceneQuery;
+	}
 
     /**
      * @return the minimal
@@ -141,22 +112,6 @@ public class InfolisPattern extends BaseModel {
      */
     public void setWords(List<String> words) {
     	this.words = words;
-    }
-    
-    /**
-     * 
-     * @param threshold threshold for accepting this pattern
-     */
-    public void setThreshold(double threshold) {
-    	this.threshold = threshold;
-    }
-    
-    /**
-     * 
-     * @param threshold threshold for accepting this pattern
-     */
-    public double getThreshold() {
-    	return this.threshold;
     }
 
     /**
@@ -273,21 +228,5 @@ public class InfolisPattern extends BaseModel {
             return false;
         }
     }
-    
-    public double getReliability() {
-    	return this.reliability;
-    }
-    
-    public void setReliability(double reliability) {
-    	this.reliability = reliability;
-    }
-
-	public void setPatternRegex(String patternRegex) {
-		this.patternRegex = patternRegex;
-	}
-
-	public void setLuceneQuery(String luceneQuery) {
-		this.luceneQuery = luceneQuery;
-	}
 
 }

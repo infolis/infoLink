@@ -1,10 +1,10 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.model.InfolisPattern;
+import io.github.infolis.model.Instance;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.util.MathUtils;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +14,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,15 +79,15 @@ public class Reliability {
      * false if already in this instances
      */
     public boolean addInstance(Instance instance) {
-        if (this.instances.containsKey(instance.name)) {
-            Instance curInstance = this.instances.get(instance.name);
-            Map<String, Double> curAssociations = curInstance.associations;
-            curAssociations.putAll(instance.associations);
-            instance.associations = curAssociations;
-            this.instances.put(instance.name, instance);
+        if (this.instances.containsKey(instance.getName())) {
+            Instance curInstance = this.instances.get(instance.getName());
+            Map<String, Double> curAssociations = curInstance.getAssociations();
+            curAssociations.putAll(instance.getAssociations());
+            instance.setAssociations(curAssociations);
+            this.instances.put(instance.getName(), instance);
             return false;
         }
-        this.instances.put(instance.name, instance);
+        this.instances.put(instance.getName(), instance);
         return true;
     }
 
@@ -133,57 +132,6 @@ public class Reliability {
     
     public double getMaxPmi() {
     	return this.maximumPmi;
-    }
-
-    /**
-     * Class for Instances (= terms recognized as candidates for dataset titles). 
-     *
-     * @author kata
-     */
-    public class Instance {
-
-        String name;
-        Map<String, Double> associations;
-
-        public Instance(String name) {
-            this.name = name;
-            this.associations = new HashMap<>();
-        }
-        
-        public String getName() {
-        	return this.name;
-        }
-
-        /**
-         * Adds an association between this instance and a specified pattern.
-         *
-         * @param pattern	the pattern whose association to store
-         * @param score	pmi score for this instance and pattern
-         * @return	true, if association is new; false if association was already
-         * known
-         */
-        public boolean addAssociation(String pattern, double score) {
-            if (this.associations.containsKey(pattern)) {
-                log.debug("association between instance " + this.name + 
-                		" and pattern " + pattern + 
-                		" already known, overwriting previously saved score.");
-            }
-            return (this.associations.put(pattern, score) == null);
-        }
-        
-        public Map<String, Double> getAssociations() {
-            return this.associations;
-        }
-
-        public boolean isReliable(Set<StudyContext> contexts_patterns, int dataSize, Set<String> reliablePatterns, Map<String, Set<StudyContext>> contexts_seeds, Reliability r, double threshold) throws IOException, ParseException {
-        	double instanceReliability = r.computeReliability(contexts_patterns, dataSize, reliablePatterns, contexts_seeds, this);
-            if (instanceReliability >= threshold) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-   
     }
     
     /**
@@ -318,11 +266,11 @@ public class Reliability {
         	// instance and pattern do not occur together in the data and are thus not associated
         	if (Double.isNaN(pmi) || Double.isInfinite(pmi)) continue; 
 	        pattern.addAssociation(instanceName, pmi);
-	        Instance instance = new Instance(instanceName);//
-	        instance.addAssociation(pattern.getMinimal(), pmi);//
+	        Instance instance = new Instance(instanceName);
+	        instance.addAssociation(pattern.getMinimal(), pmi);
 	        //TODO: why use regex for storing association? Shouldn't the URI be used?
 	        this.addPattern(pattern);
-	        this.addInstance(instance);//
+	        this.addInstance(instance);
 	        this.setMaxPmi(pmi);
         }
         return this.reliability(pattern, "");
@@ -338,18 +286,18 @@ public class Reliability {
      * @param instance				instance to compute the reliability score for
      * @return						instance reliability score
      */
-    public double computeReliability(Set<StudyContext> contexts_patterns, int dataSize, Set<String> reliablePatterns, Map<String, Set<StudyContext>> contexts_seeds, Reliability.Instance instance) {
-    	int instanceCount = contexts_seeds.get(instance.name).size();
+    public double computeReliability(Set<StudyContext> contexts_patterns, int dataSize, Set<String> reliablePatterns, Map<String, Set<StudyContext>> contexts_seeds, Instance instance) {
+    	int instanceCount = contexts_seeds.get(instance.getName()).size();
     	
         // for every known pattern, check whether instance is associated with it   
         for (String regex : reliablePatterns) {
-        	double pmi = this.computePmi_instance(instanceCount, dataSize, contexts_patterns, regex, instance.name);
+        	double pmi = this.computePmi_instance(instanceCount, dataSize, contexts_patterns, regex, instance.getName());
         	// instance and pattern never occur together and thus are not associated
         	if (Double.isNaN(pmi) || Double.isInfinite(pmi)) { continue; }
         	instance.addAssociation(regex, pmi);
         	this.addInstance(instance);
-        	InfolisPattern pattern = this.getPattern(regex);//
-        	pattern.addAssociation(instance.name, pmi);//
+        	InfolisPattern pattern = this.getPattern(regex);
+        	pattern.addAssociation(instance.getName(), pmi);
 	        this.addPattern(pattern);
 	        this.setMaxPmi(pmi);
         }
@@ -361,9 +309,9 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(Reliability.Instance instance, String callingEntity) {
-    	log.debug("Computing reliability of instance: " + instance.name);
-    	if (this.seedInstances.contains(instance.name)) {
+    public double reliability(Instance instance, String callingEntity) {
+    	log.debug("Computing reliability of instance: " + instance.getName());
+    	if (this.seedInstances.contains(instance.getName())) {
     		return 1.0;
     	}
         double rp = 0.0;
@@ -375,7 +323,7 @@ public class Reliability {
             double pmi = patternsAndPmis.get(patternString);
             InfolisPattern pattern = this.patterns.get(patternString);
             if (maximumPmi != 0) {
-            	rp += ((pmi / maximumPmi) * reliability(pattern, instance.name));
+            	rp += ((pmi / maximumPmi) * reliability(pattern, instance.getName()));
             }
         }
         log.debug("instance max pmi: " + maximumPmi);
@@ -398,7 +346,7 @@ public class Reliability {
         for (String instanceName : instancesAndPmis.keySet()) {
         	if (instanceName.equals(callingEntity)) { continue; }
             double pmi = instancesAndPmis.get(instanceName);
-            Reliability.Instance instance = instances.get(instanceName);
+            Instance instance = instances.get(instanceName);
             double reliability_instance = reliability(instance, pattern.getMinimal());
             log.debug("stored pmi for pattern and instance \"" + instanceName +"\": " + pmi);
             if (maximumPmi != 0) {
@@ -411,4 +359,5 @@ public class Reliability {
 		log.debug("returned pattern reliability: " + rp / P);
         return rp / P;
     }
+    
 }

@@ -361,7 +361,7 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(Reliability.Instance instance, String callingPattern) {
+    public double reliability(Reliability.Instance instance, String callingEntity) {
     	log.debug("Computing reliability of instance: " + instance.name);
     	if (this.seedInstances.contains(instance.name)) {
     		return 1.0;
@@ -371,7 +371,7 @@ public class Reliability {
         float P = Float.valueOf(patternsAndPmis.size());
         for (String patternString : patternsAndPmis.keySet()) {
         	// avoid circles
-        	if (patternString.equals(callingPattern)) { continue; }
+        	if (patternString.equals(callingEntity)) { continue; }
             double pmi = patternsAndPmis.get(patternString);
             InfolisPattern pattern = this.patterns.get(patternString);
             if (maximumPmi != 0) {
@@ -390,16 +390,16 @@ public class Reliability {
      * 
      * @return the reliability score
      */
-    public double reliability(InfolisPattern pattern, String callingInstance) {
+    public double reliability(InfolisPattern pattern, String callingEntity) {
     	log.debug("Computing reliability of pattern: " + pattern.getMinimal());
         double rp = 0.0;
         Map<String, Double> instancesAndPmis = pattern.getAssociations();
         float P = Float.valueOf(instancesAndPmis.size());
         for (String instanceName : instancesAndPmis.keySet()) {
-        	if (instanceName.equals(callingInstance)) { continue; }
+        	if (instanceName.equals(callingEntity)) { continue; }
             double pmi = instancesAndPmis.get(instanceName);
             Reliability.Instance instance = instances.get(instanceName);
-            double reliability_instance = reliability(instance, pattern.getPatternRegex());
+            double reliability_instance = reliability(instance, pattern.getMinimal());
             log.debug("stored pmi for pattern and instance \"" + instanceName +"\": " + pmi);
             if (maximumPmi != 0) {
             	rp += ((pmi / maximumPmi) * reliability_instance);

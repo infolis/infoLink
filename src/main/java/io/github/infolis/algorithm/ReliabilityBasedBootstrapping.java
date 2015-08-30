@@ -58,7 +58,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         // start bootstrapping
         while (numIter < getExecution().getMaxIterations()) {
         	
-        	log.debug("Bootstrapping... Iteration: " + numIter);
+        	log.info("Bootstrapping... Iteration: " + numIter);
             log.debug("Current reliable instances:  " + reliableInstances);
             log.debug("Current top patterns: " + lastTopK);
             
@@ -74,7 +74,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             // 1. search for all seeds and save contexts
             for (String seed : seeds) {
             	
-                log.debug("Bootstrapping with seed \"" + seed + "\"");
+                log.info("Bootstrapping with seed \"" + seed + "\"");
                 // after searching for initial seeds, contexts are already stored because 
                 // they have to be extracted for computing seed reliability
                 if (contexts_seeds_all.containsKey(seed)) {
@@ -91,8 +91,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 }
             }
             
-            log.debug("Extracted contexts of all seeds.");
-            log.debug("--- Entering Pattern Induction phase ---");
+            log.info("Extracted contexts of all seeds.");
+            log.info("--- Entering Pattern Induction phase ---");
             
             // Pattern Induction 
             double threshold = getExecution().getThreshold();
@@ -101,8 +101,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 	    	Arrays.fill(thresholds, threshold);
             List<List<InfolisPattern>> candidatePatterns = constructCandidates(contexts_seeds_iteration, thresholds);
             
-            log.debug("Pattern Induction completed.");
-            log.debug("--- Entering Pattern Selection phase ---");
+            log.info("Pattern Induction completed.");
+            log.info("--- Entering Pattern Selection phase ---");
             
             // Pattern Ranking/Selection
             // 2. get reliable patterns, save their data to inducer.minimal_context_map and 
@@ -120,8 +120,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             }
             contextsOfReliablePatterns.addAll(contextsOfReliablePatterns_iteration);
             
-            log.debug("Pattern Selection completed.");
-            log.debug("--- Entering Instance Extraction phase ---");
+            log.info("Pattern Selection completed.");
+            log.info("--- Entering Instance Extraction phase ---");
             
             // Instance Extraction: filter seeds, select only reliable ones
             seeds = new HashSet<>();
@@ -176,10 +176,18 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         for (String minimal : patternRanker.topK.keySet()) {
         	topKContextURIs.addAll(patternRanker.minimal_context_map.get(minimal));
         }
-        log.debug("Final iteration: " + numIter);
+        log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  " + reliableInstances);
         log.debug("Final top patterns: " + patternRanker.topK);
-        return getStudyContexts(topKContextURIs);
+        return removeUnreliableInstances(getStudyContexts(topKContextURIs), reliableInstances);
+    }
+    
+    private List<StudyContext> removeUnreliableInstances(List<StudyContext> contexts, Set<String> reliableInstances) {
+    	List<StudyContext> res = new ArrayList<>();
+    	for (StudyContext context : contexts) {
+    		if (reliableInstances.contains(context.getTerm())) res.add(context);
+    	}
+    	return res;
     }
     
     private List<String> getContextsForSeed(String seed) {

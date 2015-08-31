@@ -34,6 +34,10 @@ public class Instance extends Entity {
     @XmlAttribute
     private String number;
 
+    public Instance() {
+    	super();
+    }
+    
     public Instance(String name) {
     	super(name);
     }

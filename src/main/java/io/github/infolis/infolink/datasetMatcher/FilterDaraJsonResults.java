@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.infolis.algorithm.DaraLinker;
-import io.github.infolis.model.Study;
+import io.github.infolis.model.Instance;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -22,7 +22,7 @@ public class FilterDaraJsonResults {
 	private final static Logger log = LoggerFactory.getLogger(FilterDaraJsonResults.class);
 
 	//TODO: test
-	public static JsonArray filter(JsonArray candidates, Study study) {
+	public static JsonArray filter(JsonArray candidates, Instance study) {
 		List<JsonObject> matchingItems = new ArrayList<JsonObject>();
 		for (JsonObject item : candidates.getValuesAs(JsonObject.class)) {
 			JsonArray titles = item.getJsonArray("title");

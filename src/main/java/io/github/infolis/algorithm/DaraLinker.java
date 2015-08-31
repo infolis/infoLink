@@ -6,7 +6,7 @@ import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
 import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
-import io.github.infolis.model.Study;
+import io.github.infolis.model.Instance;
 import io.github.infolis.model.StudyContext;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
@@ -57,7 +57,7 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	private Set<StudyLink> linkContext(StudyContext context) throws IOException {
-		Study study = extractStudy(context);
+		Instance study = extractStudy(context);
 		log.debug("study: " + study.getName());
 		// whitespace create problems for json parsing
 		String studyName = study.getName().replaceAll("\\s", "-").trim();
@@ -104,7 +104,7 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	// TODO: use URIs in StudyLinks for all entities?
-	private Set<StudyLink> createStudyLinks(JsonArray datasets, Study study, StudyContext context) {
+	private Set<StudyLink> createStudyLinks(JsonArray datasets, Instance study, StudyContext context) {
 		Set<StudyLink> links = new HashSet<>();
 		Set<DaraStudy> daraStudies = getDaraStudies(datasets);
 		String publication = context.getFile();
@@ -148,9 +148,9 @@ public class DaraLinker extends BaseAlgorithm {
 		return numericInfo;
 	}
 
-	Study extractStudy(StudyContext context) {
+	Instance extractStudy(StudyContext context) {
 		List<String> numericInfo = extractNumericInfo(context);
-		Study study = new Study();
+		Instance study = new Instance();
 		if (RegexUtils.ignoreStudy(context.getTerm())) {
 			return study;
 		}

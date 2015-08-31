@@ -11,7 +11,7 @@ import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.InfolisFile;
 import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Study;
+import io.github.infolis.model.Instance;
 import io.github.infolis.util.LimitedTimeMatcher;
 
 import java.io.IOException;
@@ -37,8 +37,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(VersionPatternApplier.class);
 
-    private List<Study> searchForStudyPatterns(InfolisFile file) throws IOException {
-        List<Study> foundStudies = new ArrayList<>();
+    private List<Instance> searchForStudyPatterns(InfolisFile file) throws IOException {
+        List<Instance> foundStudies = new ArrayList<>();
         InputStream in = getInputFileResolver().openInputStream(file);
         String input = IOUtils.toString(in);
         in.close();
@@ -62,7 +62,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
             while (ltm.finished() && ltm.matched()) {
                 String studyName = ltm.group(1).trim();
                 String version = ltm.group(2).trim();
-                Study study = new Study();
+                Instance study = new Instance();
                 study.setName(studyName);
                 study.setNumber(version);
                 foundStudies.add(study);
@@ -73,7 +73,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        List<Study> detectedStudies = new ArrayList<>();
+        List<Instance> detectedStudies = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
             log.debug("Input file URI: '{}'", inputFileURI);
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
@@ -84,8 +84,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
             detectedStudies.addAll(searchForStudyPatterns(inputFile));
         }
 
-        for (Study s : detectedStudies) {
-            getOutputDataStoreClient().post(Study.class, s);
+        for (Instance s : detectedStudies) {
+            getOutputDataStoreClient().post(Instance.class, s);
             this.getExecution().getStudyContexts().add(s.getUri());
         }
 

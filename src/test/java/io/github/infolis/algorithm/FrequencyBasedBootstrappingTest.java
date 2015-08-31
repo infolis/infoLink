@@ -8,9 +8,9 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 		algo.run();
 
 		for (String s : execution.getStudyContexts()) {
-			StudyContext studyContext = dataStoreClient.get(StudyContext.class, s);
+			TextualReference studyContext = dataStoreClient.get(TextualReference.class, s);
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
 			assertNotNull("StudyContext must have pattern set!", studyContext.getPattern());

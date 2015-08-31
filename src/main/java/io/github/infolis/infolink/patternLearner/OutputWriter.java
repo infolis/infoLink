@@ -6,8 +6,8 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.InfolisFileUtils;
 import io.github.infolis.util.RegexUtils;
 
@@ -42,7 +42,7 @@ public class OutputWriter {
      * @param filenamePatterns	...
      * @param filenameStudies	...
      */
-    public static void outputContextsAndPatterns_distinct(DataStoreClient client, List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
+    public static void outputContextsAndPatterns_distinct(DataStoreClient client, List<TextualReference> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies, boolean train) throws IOException {
         File contextFile = new File(filenameContexts);
         File patternFile = new File(filenamePatterns);
         File studyFile = new File(filenameStudies);
@@ -62,9 +62,9 @@ public class OutputWriter {
 
         Set<InfolisPattern> patSet = new HashSet<>();
         Set<String> studySet = new HashSet<>();
-        Set<StudyContext> distinctContexts = new HashSet<>();
+        Set<TextualReference> distinctContexts = new HashSet<>();
 
-        for (StudyContext studyNcontext : studyNcontextList) {
+        for (TextualReference studyNcontext : studyNcontextList) {
         	InfolisPattern pat = client.get(InfolisPattern.class, studyNcontext.getPattern());
             patSet.add(pat);
             studySet.add(studyNcontext.getTerm());
@@ -103,7 +103,7 @@ public class OutputWriter {
      * @param filenamePatterns	...
      * @param filenameStudies	...
      */
-    public static void outputContextsAndPatterns(List<StudyContext> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException {
+    public static void outputContextsAndPatterns(List<TextualReference> studyNcontextList, String filenameContexts, String filenamePatterns, String filenameStudies) throws IOException {
         File contextFile = new File(filenameContexts);
         File patternFile = new File(filenamePatterns);
         File studyFile = new File(filenameStudies);
@@ -122,7 +122,7 @@ public class OutputWriter {
         Set<String> patSet = new HashSet<>();
         Set<String> studySet = new HashSet<>();
 
-        for (StudyContext studyNcontext : studyNcontextList) {
+        for (TextualReference studyNcontext : studyNcontextList) {
             out.write(studyNcontext.toString());
         }
 
@@ -171,7 +171,7 @@ public class OutputWriter {
      * @param filenames	array specifying the names for the distinct output files
      * ([0]: dataset names, [1]: contexts, [2]: patterns)
      */
-    public static void output(List<StudyContext> studyNcontextList, String[] filenames) throws IOException {
+    public static void output(List<TextualReference> studyNcontextList, String[] filenames) throws IOException {
         String filenameStudies = filenames[0];
         String filenameContexts = filenames[1];
         String filenamePatterns = filenames[2];
@@ -201,7 +201,7 @@ public class OutputWriter {
      * @param train	flag specifying whether InfoLink is in training mode (i.e.
      * learning new patterns instead of applying known ones)
      */
-    public static void output_distinct(DataStoreClient client, List<StudyContext> studyNcontextList, String[] filenames, boolean train) throws IOException {
+    public static void output_distinct(DataStoreClient client, List<TextualReference> studyNcontextList, String[] filenames, boolean train) throws IOException {
         String filenameStudies = filenames[0];
         String filenameContexts = filenames[1];
         String filenamePatterns = filenames[2];
@@ -225,10 +225,10 @@ public class OutputWriter {
      * Writes all extracted references of reliable patterns to xml context file
      * at this output path
      */
-    public static void outputReliableReferences(Map<InfolisPattern, List<StudyContext>> reliablePatternsAndContexts, String output) throws IOException {
-        List<StudyContext> reliableContexts = new ArrayList<>();
+    public static void outputReliableReferences(Map<InfolisPattern, List<TextualReference>> reliablePatternsAndContexts, String output) throws IOException {
+        List<TextualReference> reliableContexts = new ArrayList<>();
         for (InfolisPattern pattern : reliablePatternsAndContexts.keySet()) {
-            List<StudyContext> contexts = reliablePatternsAndContexts.get(pattern);
+            List<TextualReference> contexts = reliablePatternsAndContexts.get(pattern);
             reliableContexts.addAll(contexts);
             //see getString_reliablePatternOutput( Map<String, List<String[]>> patternsAndContexts, int iteration )
         }

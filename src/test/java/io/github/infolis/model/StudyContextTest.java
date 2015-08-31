@@ -1,5 +1,6 @@
 package io.github.infolis.model;
 
+import io.github.infolis.model.entity.InfolisPattern;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.util.SerializationUtils;
@@ -18,7 +19,7 @@ public class StudyContextTest extends InfolisBaseTest {
 	public void testXML() throws JsonProcessingException {
 
 		InfolisPattern p = new InfolisPattern("par1");
-		StudyContext ctx = new StudyContext("a b c d e f", "FOOBAR!", "v w x y z", "doc1", p);
+		TextualReference ctx = new TextualReference("a b c d e f", "FOOBAR!", "v w x y z", "doc1", p);
 		assertEquals(SerializationUtils.toXML(ctx).replaceAll("\\s", ""), ctx.toXML().replaceAll("\\s", ""));
 		String x = SerializationUtils.jacksonMapper.writeValueAsString(ctx);
 		log.debug(x);

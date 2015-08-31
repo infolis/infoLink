@@ -22,7 +22,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.BufferedReader;
 import java.io.File;

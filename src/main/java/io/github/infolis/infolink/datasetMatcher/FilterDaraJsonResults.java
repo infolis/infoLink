@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.infolis.algorithm.DaraLinker;
-import io.github.infolis.model.Instance;
+import io.github.infolis.model.entity.Instance;
 
 import javax.json.Json;
 import javax.json.JsonArray;

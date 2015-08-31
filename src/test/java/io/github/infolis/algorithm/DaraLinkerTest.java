@@ -6,9 +6,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.util.RegexUtils;
 
@@ -33,30 +33,30 @@ public class DaraLinkerTest extends InfolisBaseTest {
 	Logger log = LoggerFactory.getLogger(DaraLinkerTest.class);
 	Map<String, Set<String>> expectedLinks;
 	private List<String> uris = new ArrayList<>();
-	StudyContext[] testContexts = {
-			new StudyContext("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", new InfolisPattern()),
+	TextualReference[] testContexts = {
+			new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", new InfolisPattern()),
 
-			new StudyContext("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", new InfolisPattern()),
 
-			new StudyContext("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", new InfolisPattern()),
 
-			new StudyContext("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", new InfolisPattern()),
 
-			new StudyContext("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
 
-			new StudyContext("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", new InfolisPattern()),
-			new StudyContext("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())
+			new TextualReference("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())
 	};
 
 	// studies/datasets found in generated contexts:

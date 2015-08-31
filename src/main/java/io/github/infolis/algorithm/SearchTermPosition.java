@@ -4,9 +4,9 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -156,10 +156,10 @@ public class SearchTermPosition extends BaseAlgorithm
 			// output contexts are those created by pattern-based search
 			// Add contexts
 			if (this.getExecution().getSearchTerm() != null) {
-				for (StudyContext sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
+				for (TextualReference sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
 					
 					// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
-					getOutputDataStoreClient().post(StudyContext.class, sC);
+					getOutputDataStoreClient().post(TextualReference.class, sC);
 					getExecution().getStudyContexts().add(sC.getUri());
 				}
 			}
@@ -187,7 +187,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		return execution;
 	}
 
-	public static List<StudyContext> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException
+	public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
 	    // first group: left context (consisting of 5 words)
@@ -201,7 +201,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 //	    log.debug(text);
-	    List<StudyContext> contextList = new ArrayList<>();
+	    List<TextualReference> contextList = new ArrayList<>();
 	    ltm.run();
 //	    log.debug("Pattern: " + pat + " found " + ltm.matched());
 	    if (ltm.finished() && !ltm.matched()) {
@@ -221,7 +221,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    }
 	    while (ltm.matched()) {
 //	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
-	    	StudyContext sC = new StudyContext();
+	    	TextualReference sC = new TextualReference();
 	    	sC.setLeftText(ltm.group(1).trim());
 	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
 	    	sC.setLeftWords(Arrays.asList(ltm.group(2).trim(), ltm.group(3).trim(), ltm.group(4).trim(), ltm.group(5).trim(), ltm.group(6).trim()));

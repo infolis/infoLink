@@ -1,10 +1,11 @@
-package io.github.infolis.model;
+package io.github.infolis.model.entity;
 
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.github.infolis.model.BaseModel;
 
 /**
  * An infolis:File

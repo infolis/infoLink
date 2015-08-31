@@ -1,5 +1,7 @@
 package io.github.infolis.model;
 
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.entity.Instance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -58,18 +60,18 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		List<String> contexts_pattern = Arrays.asList(
 				"foO bar foO", "foO bar foO", "foO bar foO");
 		Set<String> reliableInstances = new HashSet<>();
-		Set<StudyContext> contexts_seed = new HashSet<>();
-		Map<String, Set<StudyContext>> contexts = new HashMap<>();;
+		Set<TextualReference> contexts_seed = new HashSet<>();
+		Map<String, Set<TextualReference>> contexts = new HashMap<>();;
 		Reliability r = new Reliability();
 		String seed = "bar";
 		reliableInstances.add(seed);
 		r.setSeedInstances(reliableInstances);
 
-		StudyContext context_bar_0 = new StudyContext("bar", "bar", "bar", "document4", new InfolisPattern(), "version");
-		StudyContext context_bar_1 = new StudyContext("bar", "bar", "bar", "document5", new InfolisPattern(), "version");
-		StudyContext context_bar_2 = new StudyContext("foO", "bar", "foO", "document6", new InfolisPattern(), "version");
-		StudyContext context_bar_3 = new StudyContext("foO", "bar", "foO", "document7", new InfolisPattern(), "version");
-		StudyContext context_bar_4 = new StudyContext("foO", "bar", "foO", "document8", new InfolisPattern(), "version");
+		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", new InfolisPattern(), "version");
+		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", new InfolisPattern(), "version");
+		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", new InfolisPattern(), "version");
+		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", new InfolisPattern(), "version");
+		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", new InfolisPattern(), "version");
 		
 		contexts_seed.add(context_bar_0);
 		contexts_seed.add(context_bar_1);

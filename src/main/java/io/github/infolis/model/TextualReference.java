@@ -1,5 +1,6 @@
 package io.github.infolis.model;
 
+import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import com.google.common.collect.Lists;
 @XmlRootElement(name = "context")
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StudyContext extends BaseModel {
+public class TextualReference extends BaseModel {
 
 	@XmlTransient
 	private List<String>	leftWords;
@@ -39,15 +40,13 @@ public class StudyContext extends BaseModel {
 	@XmlElement(name = "rightContext")
 	private String			rightText;
 	@XmlAttribute
-	private String			term;
+	private String			reference;
 	@XmlAttribute
-	private String			file;
+	private String			textFile;
 	@XmlTransient
 	private String			pattern;
-	@XmlAttribute
-	private String			version;
 
-	public StudyContext() {
+	public TextualReference() {
 	}
 
 	/**
@@ -61,7 +60,7 @@ public class StudyContext extends BaseModel {
 	 * @param document
 	 * @param pattern
 	 */
-	public StudyContext(String left, String term, String right, String document,
+	public TextualReference(String left, String term, String right, String document,
 			InfolisPattern pattern) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
@@ -72,7 +71,7 @@ public class StudyContext extends BaseModel {
 		this.setPattern(pattern.getUri());
 	}
 
-	public StudyContext(String left, String term, String right, String document,
+	public TextualReference(String left, String term, String right, String document,
 			InfolisPattern pattern, String version) {
 		this.setLeftText(left);
 		this.setLeftWords(Arrays.asList(left.split("\\s+")));
@@ -81,7 +80,6 @@ public class StudyContext extends BaseModel {
 		this.setRightWords(Arrays.asList(right.split("\\s+")));
 		this.setFile(document);
 		this.setPattern(pattern.getUri());
-		this.version = version;
 	}
 
 	public String toXML() {
@@ -136,19 +134,19 @@ public class StudyContext extends BaseModel {
 	}
 
 	public String getTerm() {
-		return term;
+		return reference;
 	}
 
 	public void setTerm(String term) {
-		this.term = term;
+		this.reference = term;
 	}
 
 	public String getFile() {
-		return file;
+		return textFile;
 	}
 
 	public void setFile(String file) {
-		this.file = file;
+		this.textFile = file;
 	}
 
 	public String getPattern() {
@@ -159,25 +157,11 @@ public class StudyContext extends BaseModel {
 		this.pattern = patternUri;
 	}
 
-	/**
-	 * @return the version
-	 */
-	public String getVersion() {
-		return version;
-	}
-
-	/**
-	 * @param version
-	 *            the version to set
-	 */
-	public void setVersion(String version) {
-		this.version = version;
-	}
 
 	// TODO: not the best place
-	public static List<String> getContextStrings(List<StudyContext> contexts) {
-		Function<StudyContext, String> context_toString = new Function<StudyContext, String>() {
-			public String apply(StudyContext c) {
+	public static List<String> getContextStrings(List<TextualReference> contexts) {
+		Function<TextualReference, String> context_toString = new Function<TextualReference, String>() {
+			public String apply(TextualReference c) {
 				return c.toString();
 			}
 		};
@@ -188,7 +172,7 @@ public class StudyContext extends BaseModel {
 		StringBuilder sb = new StringBuilder();
 		return sb.append(leftText)
 			.append("**[  ")
-			.append(term)
+			.append(reference)
 			.append("  ]**")
 			.append(rightText)
 			.toString();

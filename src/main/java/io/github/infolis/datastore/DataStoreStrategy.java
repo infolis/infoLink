@@ -1,6 +1,6 @@
 package io.github.infolis.datastore;
 
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 /**
  * Predefined strategies for resolving {@link InfolisFile} and instantiating {@link DataStoreClient}.

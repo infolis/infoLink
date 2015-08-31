@@ -1,6 +1,6 @@
 package io.github.infolis.datastore;
 
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.IOException;
 import java.io.InputStream;

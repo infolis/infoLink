@@ -3,7 +3,7 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.InputStream;
 import java.util.ArrayList;

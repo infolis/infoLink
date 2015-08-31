@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 import org.junit.Test;
 

@@ -6,8 +6,8 @@ import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
 import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
-import io.github.infolis.model.Instance;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.Instance;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
 import io.github.infolis.util.LimitedTimeMatcher;
@@ -50,13 +50,13 @@ public class DaraLinker extends BaseAlgorithm {
 
 	public Set<StudyLink> createLinks(List<String> contextURIs) throws IOException {
 		Set<StudyLink> links = new HashSet<>();
-		for (StudyContext context : getInputDataStoreClient().get(StudyContext.class, contextURIs)) {
+		for (TextualReference context : getInputDataStoreClient().get(TextualReference.class, contextURIs)) {
 			links.addAll(linkContext(context));
 		}
 		return links;
 	}
 
-	private Set<StudyLink> linkContext(StudyContext context) throws IOException {
+	private Set<StudyLink> linkContext(TextualReference context) throws IOException {
 		Instance study = extractStudy(context);
 		log.debug("study: " + study.getName());
 		// whitespace create problems for json parsing
@@ -104,7 +104,7 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	// TODO: use URIs in StudyLinks for all entities?
-	private Set<StudyLink> createStudyLinks(JsonArray datasets, Instance study, StudyContext context) {
+	private Set<StudyLink> createStudyLinks(JsonArray datasets, Instance study, TextualReference context) {
 		Set<StudyLink> links = new HashSet<>();
 		Set<DaraStudy> daraStudies = getDaraStudies(datasets);
 		String publication = context.getFile();
@@ -137,7 +137,7 @@ public class DaraLinker extends BaseAlgorithm {
 		return null;
 	}
 
-	private List<String> extractNumericInfo(StudyContext context) {
+	private List<String> extractNumericInfo(TextualReference context) {
 		List<String> numericInfo = new ArrayList<String>();
 		for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
 			String year = searchComplexNumericInfo(string);
@@ -148,7 +148,7 @@ public class DaraLinker extends BaseAlgorithm {
 		return numericInfo;
 	}
 
-	Instance extractStudy(StudyContext context) {
+	Instance extractStudy(TextualReference context) {
 		List<String> numericInfo = extractNumericInfo(context);
 		Instance study = new Instance();
 		if (RegexUtils.ignoreStudy(context.getTerm())) {

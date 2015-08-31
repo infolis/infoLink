@@ -3,8 +3,8 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.TextualReference;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,9 +53,9 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 	@Test
 	public void getContextTest() throws IOException {
 
-			List<StudyContext> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1); 
-			List<StudyContext> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2); 
-			List<StudyContext> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
+			List<TextualReference> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1); 
+			List<TextualReference> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2); 
+			List<TextualReference> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
 			assertEquals(1,contextList1.size());
 			assertEquals(0,contextList2.size());
 			assertEquals(1,contextList3.size());
@@ -87,7 +87,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		assertEquals(0, testContexts("the terma", "\"the term\"").size());
 		assertEquals(28, testContexts("the. term?!", "\"the term\"").size());
 		assertEquals(0, testContexts("the...term?!", "\"the term\"").size());
-		List<StudyContext> contextListA = testContexts("the term", "\"the term\"");
+		List<TextualReference> contextListA = testContexts("the term", "\"the term\"");
 		assertEquals("Hallo, please try to find the term in this short text snippet.", contextListA.get(0).toString());
 		assertEquals("please try to find . the term . in this short text", contextListA.get(1).toString());
 		// ...and for wildcard phrase queries
@@ -96,7 +96,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 		assertEquals(100-14, testContexts("", "\"to find the * in\"").size());
 	}
 
-	private List<StudyContext> testContexts(String searchTerm, String searchQuery) throws Exception {
+	private List<TextualReference> testContexts(String searchTerm, String searchQuery) throws Exception {
 
 		Execution exec = new Execution();
         exec.setAlgorithm(SearchTermPosition.class);
@@ -106,9 +106,9 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         Algorithm algo = exec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
 
-		ArrayList<StudyContext> contextList = new ArrayList<StudyContext>();
+		ArrayList<TextualReference> contextList = new ArrayList<TextualReference>();
 		for (String uri : exec.getStudyContexts()) {
-			contextList.add(dataStoreClient.get(StudyContext.class, uri));
+			contextList.add(dataStoreClient.get(TextualReference.class, uri));
 		}
 		return contextList;
 		

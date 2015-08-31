@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;

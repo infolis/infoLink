@@ -3,7 +3,7 @@ package io.github.infolis.datastore;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import io.github.infolis.model.InfolisFile;
+import io.github.infolis.model.entity.InfolisFile;
 
 import org.junit.Assume;
 import org.junit.Test;

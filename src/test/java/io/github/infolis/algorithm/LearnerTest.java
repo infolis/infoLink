@@ -7,9 +7,9 @@ import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.algorithm.SearchTermPositionTest;
 import io.github.infolis.algorithm.SearchTermPositionTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public class LearnerTest extends InfolisBaseTest {
     Set<String> getContextStrings(List<String> contextURIs) {
     	Set<String> contextSet = new HashSet<String>();
     	for (String uri : contextURIs) {
-    		StudyContext infolisContext = dataStoreClient.get(StudyContext.class, uri);
+    		TextualReference infolisContext = dataStoreClient.get(TextualReference.class, uri);
     		contextSet.add(infolisContext.getLeftText() + " " + infolisContext.getTerm() + " " + infolisContext.getRightText());
     	}
     	return contextSet;

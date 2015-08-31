@@ -1,7 +1,7 @@
 package io.github.infolis.util;
 
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.TextualReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -147,7 +147,7 @@ public class SerializationUtils {
 		return StringEscapeUtils.unescapeXml(string);
 	}
 	
-	public static void writeContextToXML(StudyContext context, String filename) throws IOException {
+	public static void writeContextToXML(TextualReference context, String filename) throws IOException {
 		try {
 			InfolisFileUtils.prepareOutputFile(filename);
 			InfolisFileUtils.writeToFile(new File(filename), "UTF-8", context.toXML(), true);

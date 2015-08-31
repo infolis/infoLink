@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sun.research.ws.wadl.Link;
+import io.github.infolis.model.entity.SearchResult;
 
 /**
  *
@@ -31,6 +32,76 @@ import com.sun.research.ws.wadl.Link;
 public class Execution extends BaseModel {
 
 	private static final Logger logger = LoggerFactory.getLogger(Execution.class);
+
+    /**
+     * @return the textualReference
+     */
+    public String getTextualReference() {
+        return textualReference;
+    }
+
+    /**
+     * @param textualReference the textualReference to set
+     */
+    public void setTextualReference(String textualReference) {
+        this.textualReference = textualReference;
+    }
+
+    /**
+     * @return the queryForQueryService
+     */
+    public String getQueryForQueryService() {
+        return queryForQueryService;
+    }
+
+    /**
+     * @param queryForQueryService the queryForQueryService to set
+     */
+    public void setQueryForQueryService(String queryForQueryService) {
+        this.queryForQueryService = queryForQueryService;
+    }
+
+    /**
+     * @return the queriesForQueryService
+     */
+    public List<String> getQueriesForQueryService() {
+        return queriesForQueryService;
+    }
+
+    /**
+     * @param queriesForQueryService the queriesForQueryService to set
+     */
+    public void setQueriesForQueryService(List<String> queriesForQueryService) {
+        this.queriesForQueryService = queriesForQueryService;
+    }
+
+    /**
+     * @return the searchResults
+     */
+    public Set<String> getSearchResults() {
+        return searchResults;
+    }
+
+    /**
+     * @param searchResults the searchResults to set
+     */
+    public void setSearchResults(Set<String> searchResults) {
+        this.searchResults = searchResults;
+    }
+
+    /**
+     * @return the queryServices
+     */
+    public List<String> getQueryServices() {
+        return queryServices;
+    }
+
+    /**
+     * @param queryServices the queryServices to set
+     */
+    public void setQueryServices(List<String> queryServices) {
+        this.queryServices = queryServices;
+    }
 
 	public enum Strategy {
 		mergeCurrent, mergeNew, mergeAll, separate, reliability;
@@ -72,9 +143,21 @@ public class Execution extends BaseModel {
 	private String inputMediaType = null;
 	private String outputMediaType = null;
 
-	// Linker
+	// Resolver
+        //todo: entityLink instead of StudyLink
 	private Set<StudyLink> links;
-
+        
+        //MetaDataExtractor
+        private String textualReference;
+        private String queryForQueryService;
+                
+        //FederatedSearcher
+        private List<String> queriesForQueryService;
+        private List<String> queryServices;
+        private Set<String> searchResults;
+        
+        
+        
 	//
 	// CONSTRUCTORS
 	// /

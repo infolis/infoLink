@@ -5,8 +5,8 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
-	public static final StudyContext EMPTY_CONTEXT = new StudyContext();
+	public static final TextualReference EMPTY_CONTEXT = new TextualReference();
 
     public FrequencyBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -37,17 +37,17 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
 
-        List<StudyContext> detectedContexts = new ArrayList<>();
+        List<TextualReference> detectedContexts = new ArrayList<>();
         try {
             detectedContexts.addAll(bootstrapFrequencyBased());
             // POST all the StudyContexts
-            this.getOutputDataStoreClient().post(StudyContext.class, detectedContexts);
+            this.getOutputDataStoreClient().post(TextualReference.class, detectedContexts);
         } catch (ParseException | IOException | InstantiationException | IllegalAccessException ex) {
             fatal(log, "Could not apply frequency bootstrapping: " + ex);
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
 
-        for (StudyContext sC : detectedContexts) {
+        for (TextualReference sC : detectedContexts) {
             this.getExecution().getStudyContexts().add(sC.getUri());
             //TODO: use URI instead of the term string?
             this.getExecution().getStudies().add(sC.getTerm());
@@ -74,9 +74,9 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         }
     }
    
-    private StudyContext getContextForTerm(List<StudyContext> contextList, String term) {
+    private TextualReference getContextForTerm(List<TextualReference> contextList, String term) {
     	
-    	for (StudyContext context : contextList) {
+    	for (TextualReference context : contextList) {
     		if (context.getTerm().equals(term)) return context;
     	}
     	// TODO Won't this create empty (non-sensical) contexts? Why can this happen?
@@ -105,10 +105,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
      * @throws InstantiationException 
      *
      */
-    private List<StudyContext> bootstrapFrequencyBased() throws ParseException, IOException, InstantiationException, IllegalAccessException {
+    private List<TextualReference> bootstrapFrequencyBased() throws ParseException, IOException, InstantiationException, IllegalAccessException {
         int numIter = 0;
-        List<StudyContext> extractedContextsFromSeed = new ArrayList<>();
-        List<StudyContext> extractedContextsFromPatterns = new ArrayList<>();
+        List<TextualReference> extractedContextsFromSeed = new ArrayList<>();
+        List<TextualReference> extractedContextsFromPatterns = new ArrayList<>();
         List<String> processedSeeds = new ArrayList<>();
         List<String> processedPatterns = new ArrayList<>();
         Set<String> seeds = new HashSet<>();
@@ -119,10 +119,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         	newSeedsIteration = new HashSet<>();
         	debug(log, "Start iteration #%s Looking for seeds: %s", numIter, seeds);
             Set<InfolisPattern> newPatterns = new HashSet<>();
-            List<StudyContext> contexts_currentIteration = new ArrayList<>();
+            List<TextualReference> contexts_currentIteration = new ArrayList<>();
             for (String seed : seeds) {
             	
-            	List<StudyContext> detectedContexts = new ArrayList<>();
+            	List<TextualReference> detectedContexts = new ArrayList<>();
             	
                 if (processedSeeds.contains(seed)) {
                 	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
@@ -143,7 +143,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.instantiateAlgorithm(this).run();
                 getExecution().getLog().addAll(execution.getLog());
 
-                for (StudyContext studyContext : getInputDataStoreClient().get(StudyContext.class, execution.getStudyContexts())) {
+                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, execution.getStudyContexts())) {
 					detectedContexts.add(studyContext);
 //                    log.warn("{}", studyContext.getPattern());
                 }
@@ -176,12 +176,12 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             }
             
             // 3. search for patterns in corpus
-            List<StudyContext> res = findNewContextsForPatterns(newPatterns);
+            List<TextualReference> res = findNewContextsForPatterns(newPatterns);
             // res contains all contexts extracted by searching for patterns
             extractedContextsFromPatterns.addAll(res);
             processedSeeds.addAll(seeds);
             
-            for (StudyContext entry : res) {
+            for (TextualReference entry : res) {
             	newSeedsIteration.add(entry.getTerm());
             }
             
@@ -202,8 +202,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         return extractedContextsFromPatterns;
     }
 
-    private List<StudyContext> findNewContextsForPatterns(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
-        List<StudyContext> contexts = new ArrayList<>();
+    private List<TextualReference> findNewContextsForPatterns(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
+        List<TextualReference> contexts = new ArrayList<>();
 
         for (InfolisPattern curPat : patterns) {
         	if (curPat.getUri() == null)
@@ -227,7 +227,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 applierExecution.getInputFiles().add(filenameIn);
                 applierExecution.instantiateAlgorithm(this).run();
 
-                for (StudyContext studyContext : getInputDataStoreClient().get(StudyContext.class, applierExecution.getStudyContexts())) {
+                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, applierExecution.getStudyContexts())) {
                 	// TODO: really? overwrite the pattern for every context?
                     studyContext.setPattern(curPat.getUri());
                     contexts.add(studyContext);

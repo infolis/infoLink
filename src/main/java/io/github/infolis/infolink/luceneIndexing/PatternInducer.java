@@ -4,8 +4,8 @@ package io.github.infolis.infolink.luceneIndexing;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.RegexUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class PatternInducer {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(PatternInducer.class);
 	public List<InfolisPattern> candidates = new ArrayList<>();
 	
-	public PatternInducer(StudyContext context, Double[] thresholds) {
+	public PatternInducer(TextualReference context, Double[] thresholds) {
 		List<String> leftWords = context.getLeftWords();
         List<String> rightWords = context.getRightWords();
 
@@ -188,12 +188,12 @@ public class PatternInducer {
      * @param processedPattern
      * @return Set of created Infolis Patterns
      */
-    public static Set<InfolisPattern> inducePatterns(List<StudyContext> contexts, double threshold, List<String> processedMinimals) {
+    public static Set<InfolisPattern> inducePatterns(List<TextualReference> contexts, double threshold, List<String> processedMinimals) {
         Set<InfolisPattern> patterns = new HashSet<>();
         Set<String> processedMinimals_iteration = new HashSet<>();
-        List<String> allContextStrings_iteration = StudyContext.getContextStrings(contexts);
+        List<String> allContextStrings_iteration = TextualReference.getContextStrings(contexts);
         int n = 0;
-        for (StudyContext context : contexts) {
+        for (TextualReference context : contexts) {
         	n++;
         	log.debug("Inducing relevant patterns for context " + n + " of " + contexts.size());
         	Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};

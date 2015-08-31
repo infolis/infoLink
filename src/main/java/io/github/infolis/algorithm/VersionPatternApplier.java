@@ -9,9 +9,9 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Instance;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.entity.Instance;
 import io.github.infolis.util.LimitedTimeMatcher;
 
 import java.io.IOException;

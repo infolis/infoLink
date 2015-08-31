@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +78,7 @@ public class PatternApplierTest extends InfolisBaseTest {
 		// find the contexts of "FOOBAR" and "term" (see also
 		// FrequencyBasedBootstrappingTest)
 		log.debug("LOG: {}", execution.getLog());
-		for (StudyContext sc: dataStoreClient.get(StudyContext.class, execution.getStudyContexts())) {
+		for (TextualReference sc: dataStoreClient.get(TextualReference.class, execution.getStudyContexts())) {
 			log.debug("Study Context: {}", sc);
 		}
 		assertEquals(3, execution.getStudyContexts().size());

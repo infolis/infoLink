@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.model;
+package io.github.infolis.model.entity;
 
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.util.RegexUtils;
@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.model.TextualReference;
+import java.util.HashMap;
 
 /**
  *
@@ -37,12 +39,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InfolisPattern extends Entity {
 
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
-	// TODO can this be final?
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
+    // TODO can this be final?
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
     private List<String> words = new ArrayList<>();
+    private double threshold;
+    private double reliability;
+    private Map<String, Double> associations = new HashMap<>();
     
     public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
     	super(minimal);
@@ -148,7 +153,7 @@ public class InfolisPattern extends Entity {
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
         log.debug("Relevance score: " + tf_idf);
         log.debug("Occurrences: " + count_pos);
-        if ((tf_idf >= this.threshold) & (count_pos > 0)) {
+        if ((tf_idf >= this.getThreshold()) & (count_pos > 0)) {
             return true;
         } else {
             return false;
@@ -219,7 +224,7 @@ public class InfolisPattern extends Entity {
         return patternSet;
     }
     
-    public boolean isReliable(List<String> contexts_pattern, int dataSize, Set<String> reliableInstances, Map<String, Set<StudyContext>> contexts_seeds, Reliability r) throws IOException, ParseException {
+    public boolean isReliable(List<String> contexts_pattern, int dataSize, Set<String> reliableInstances, Map<String, Set<TextualReference>> contexts_seeds, Reliability r) throws IOException, ParseException {
     	this.setReliability(r.computeReliability(contexts_pattern, dataSize, reliableInstances, contexts_seeds, this));
         if (this.getReliability() >= this.getThreshold()) {
             return true;
@@ -228,4 +233,57 @@ public class InfolisPattern extends Entity {
         }
     }
 
+    /**
+     * @return the threshold
+     */
+    public double getThreshold() {
+        return threshold;
+    }
+
+    /**
+     * @param threshold the threshold to set
+     */
+    public void setThreshold(double threshold) {
+        this.threshold = threshold;
+    }
+
+    /**
+     * @return the reliability
+     */
+    public double getReliability() {
+        return reliability;
+    }
+
+    /**
+     * @param reliability the reliability to set
+     */
+    public void setReliability(double reliability) {
+        this.reliability = reliability;
+    }
+
+    
+    /**
+     * @return the associations
+     */
+    public Map<String, Double> getAssociations() {
+        return associations;
+    }
+
+    /**
+     * @param associations the associations to set
+     */
+    public void setAssociations(Map<String, Double> associations) {
+        this.associations = associations;
+    }
+    
+        public boolean addAssociation(String entityName, double score) {
+        if (this.getAssociations().containsKey(entityName)) {
+            log.debug("association between entity " + this.getName()
+                    + " and entity " + entityName
+                    + " already known, overwriting previously saved score.");
+        }
+        return (this.getAssociations().put(entityName, score) == null);
+    }
+    
+    
 }

@@ -7,9 +7,9 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.InfolisFile;
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.StudyContext;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;
@@ -54,11 +54,11 @@ public class ExampleChecker extends InfolisBaseTest {
         List<String> pattern = postPattern(patternFile);
         List<String> txt = postTxtFiles(txtDir);
         List<String> contexts = searchPattern(pattern, txt);
-        ArrayList<StudyContext> contextList = new ArrayList<>();
+        ArrayList<TextualReference> contextList = new ArrayList<>();
         for (String uri : contexts) {
-            contextList.add(dataStoreClient.get(StudyContext.class, (uri)));
+            contextList.add(dataStoreClient.get(TextualReference.class, (uri)));
         }
-        for (StudyContext sc : contextList) {
+        for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
             printFileNameOfContext(sc);
             System.out.println("study: " + sc.getTerm());
@@ -66,7 +66,7 @@ public class ExampleChecker extends InfolisBaseTest {
         
     }
 
-protected void printFileNameOfContext(StudyContext sc) throws BadRequestException, ProcessingException {
+protected void printFileNameOfContext(TextualReference sc) throws BadRequestException, ProcessingException {
 	String fileUri = sc.getFile();
 	InfolisFile file = dataStoreClient.get(InfolisFile.class, fileUri);
 	System.out.println("file: " + file.getFileName());
@@ -132,11 +132,11 @@ protected void printFileNameOfContext(StudyContext sc) throws BadRequestExceptio
 			throw(e);
 		}
         
-        ArrayList<StudyContext> contextList = new ArrayList<>();
+        ArrayList<TextualReference> contextList = new ArrayList<>();
         for (String uri : search.getStudyContexts()) {
-            contextList.add(dataStoreClient.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
-        for (StudyContext sc : contextList) {
+        for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
         }
         
@@ -153,11 +153,11 @@ protected void printFileNameOfContext(StudyContext sc) throws BadRequestExceptio
         Algorithm algo = search.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         
-        ArrayList<StudyContext> contextList = new ArrayList<>();
+        ArrayList<TextualReference> contextList = new ArrayList<>();
         for (String uri : search.getStudyContexts()) {
-            contextList.add(dataStoreClient.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
-        for (StudyContext sc : contextList) {
+        for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
         }
         
@@ -226,11 +226,11 @@ protected void printFileNameOfContext(StudyContext sc) throws BadRequestExceptio
             patternList.add(dataStoreClient.get(InfolisPattern.class, uri));
         }
 
-        ArrayList<StudyContext> contextList = new ArrayList<>();
+        ArrayList<TextualReference> contextList = new ArrayList<>();
         for (String uri : bootstrapping.getStudyContexts()) {
-            contextList.add(dataStoreClient.get(StudyContext.class, uri));
+            contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
-        for (StudyContext sc : contextList) {
+        for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
             printFileNameOfContext(sc);
         }

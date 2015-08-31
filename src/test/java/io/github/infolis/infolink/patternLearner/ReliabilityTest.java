@@ -9,8 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.infolis.model.InfolisPattern;
-import io.github.infolis.model.Instance;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.entity.Instance;
 
 import org.junit.Test;
 import org.slf4j.Logger;

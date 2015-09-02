@@ -6,10 +6,7 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.InfolisPattern;
-import java.util.List;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -53,7 +50,7 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[6]));
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[7]));        
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[8]));
-//        
+      
         assertEquals("?q=title:ALLBUS&?date:1996/08", mde.extractQuery(testContexts[9]));
         assertEquals("?q=title:ALLBUS&?date:1982   -   1983", mde.extractQuery(testContexts[10]));
         assertEquals("?q=title:ALLBUS&?date:85/01", mde.extractQuery(testContexts[11]));
@@ -61,7 +58,7 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("?q=title:ALLBUS&?date:1982 to 1983", mde.extractQuery(testContexts[13]));
         assertEquals("?q=title:ALLBUS&?date:1982 bis 1983", mde.extractQuery(testContexts[14]));
         assertEquals("?q=title:ALLBUS&?date:1982 und 1983", mde.extractQuery(testContexts[15]));
-//        
+     
         assertEquals("?q=title:Eurobarometer&?date:2000&?date:56.1&?date:2", mde.extractQuery(testContexts[16]));
         assertEquals("?q=title:Eurobarometer&?date:2000&?date:2", mde.extractQuery(testContexts[17]));
 

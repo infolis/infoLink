@@ -63,30 +63,16 @@ public class Execution extends BaseModel {
     }
 
     /**
-     * @return the queriesForQueryService
-     */
-    public List<String> getQueriesForQueryService() {
-        return queriesForQueryService;
-    }
-
-    /**
-     * @param queriesForQueryService the queriesForQueryService to set
-     */
-    public void setQueriesForQueryService(List<String> queriesForQueryService) {
-        this.queriesForQueryService = queriesForQueryService;
-    }
-
-    /**
      * @return the searchResults
      */
-    public Set<String> getSearchResults() {
+    public List<String> getSearchResults() {
         return searchResults;
     }
 
     /**
      * @param searchResults the searchResults to set
      */
-    public void setSearchResults(Set<String> searchResults) {
+    public void setSearchResults(List<String> searchResults) {
         this.searchResults = searchResults;
     }
 
@@ -152,9 +138,8 @@ public class Execution extends BaseModel {
         private String queryForQueryService;
                 
         //FederatedSearcher
-        private List<String> queriesForQueryService;
         private List<String> queryServices;
-        private Set<String> searchResults;
+        private List<String> searchResults;
         
         
         

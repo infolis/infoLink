@@ -6,12 +6,12 @@ import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
-import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.SearchResult;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -25,11 +25,9 @@ public class FederatedSearcher extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
+        Set<List<SearchResult>> allResults = new HashSet<>();
 
-        List<SearchQuery> searchQueries = new ArrayList<>();
-        for (String queryString : getExecution().getQueriesForQueryService()) {
-            searchQueries.add(getInputDataStoreClient().get(SearchQuery.class, queryString));
-        }
+        String queryString = getExecution().getQueryForQueryService();
         //TODO: how to register QueryServices?
         for (String queryService : getExecution().getQueryServices()) {
             
@@ -37,15 +35,21 @@ public class FederatedSearcher extends BaseAlgorithm {
             convertExec.setAlgorithm(SolrQueryService.class);
             Algorithm algo = convertExec.instantiateAlgorithm(this);
             algo.run();
-           // Set<SearchResult> results = algo.getOutputDataStoreClient().get(SearchResult.class, convertExec.getSearchResults());
-
+            //TODO: post the searchResults in the algorithm!
+            List<SearchResult> results = getOutputDataStoreClient().get(SearchResult.class, convertExec.getSearchResults());
+            allResults.add(results);
         }
 
     }
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (null == getExecution().getQueryForQueryService()) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "Required parameter 'query for query service' is missing!");
+        }
+        if (null == getExecution().getQueryServices() || getExecution().getQueryServices().isEmpty()) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
+        }
     }
 
 }

@@ -9,8 +9,9 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.StudyLink;
+import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.util.RegexUtils;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,29 +35,29 @@ public class DaraLinkerTest extends InfolisBaseTest {
 	Map<String, Set<String>> expectedLinks;
 	private List<String> uris = new ArrayList<>();
 	TextualReference[] testContexts = {
-			new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", "pattern","ref"),
 
-			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", "pattern","ref"),
 
-			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", "pattern","ref"),
 
-			new TextualReference("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", new InfolisPattern()),
+			new TextualReference("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", "pattern","ref"),
 
-			new TextualReference("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
+			new TextualReference("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
 
-			new TextualReference("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", new InfolisPattern()),
-			new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())
+			new TextualReference("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", "pattern","ref"),
+			new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", "pattern","ref")
 	};
 
 	// studies/datasets found in generated contexts:
@@ -151,16 +152,17 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		execution.setAlgorithm(DaraLinker.class);
 		execution.setStudyContexts(contextURIs);
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		Set<StudyLink> links = execution.getLinks();
+		Set<EntityLink> links = execution.getLinks();
 		Map<String, Set<String>> generatedLinks = new HashMap<>();
-		for (StudyLink link : links) {
+		for (EntityLink link : links) {
 			// log.debug(link.toString());
-			String key = link.getAltName() + " " + link.getVersion();
+                        String key = link.getReferenceEntity().getName();
+			//String key = link.getAltName() + " " + link.getVersion();
 			Set<String> dois = new HashSet<>();
 			if (generatedLinks.containsKey(key)) {
 				dois = generatedLinks.get(key);
 			}
-			dois.add(link.getLink());
+			dois.add(link.getReferenceEntity().getUri());
 			generatedLinks.put(key, dois);
 		}
 		assertEquals(expectedLinks, generatedLinks);
@@ -168,7 +170,6 @@ public class DaraLinkerTest extends InfolisBaseTest {
 
 	@Test
 	public void ignoreStudyTest() {
-		DaraLinker linker = new DaraLinker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertTrue(RegexUtils.ignoreStudy("eigene Erhebung"));
 		assertTrue(RegexUtils.ignoreStudy("eigene Erhebungen"));
 		assertTrue(RegexUtils.ignoreStudy("eigene Berechnung"));

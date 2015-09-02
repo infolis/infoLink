@@ -35,9 +35,7 @@ public class FederatedSearcher extends BaseAlgorithm {
             
             Execution convertExec = new Execution();
             convertExec.setAlgorithm(SolrQueryService.class);
-            // TODO wire this more efficiently so files are stored temporarily
             Algorithm algo = convertExec.instantiateAlgorithm(this);
-            // do the actual conversion
             algo.run();
            // Set<SearchResult> results = algo.getOutputDataStoreClient().get(SearchResult.class, convertExec.getSearchResults());
 

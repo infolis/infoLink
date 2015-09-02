@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sun.research.ws.wadl.Link;
+import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
 
 /**
@@ -144,8 +145,7 @@ public class Execution extends BaseModel {
 	private String outputMediaType = null;
 
 	// Resolver
-        //todo: entityLink instead of StudyLink
-	private Set<StudyLink> links;
+	private Set<EntityLink> links;
         
         //MetaDataExtractor
         private String textualReference;
@@ -502,11 +502,11 @@ public class Execution extends BaseModel {
 		this.bootstrapStrategy = bootstrapStrategy;
 	}
 
-	public Set<StudyLink> getLinks() {
+	public Set<EntityLink> getLinks() {
 		return this.links;
 	}
 
-	public void setLinks(Set<StudyLink> links) {
+	public void setLinks(Set<EntityLink> links) {
 		this.links = links;
 	}
 }

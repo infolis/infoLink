@@ -67,11 +67,11 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		reliableInstances.add(seed);
 		r.setSeedInstances(reliableInstances);
 
-		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", new InfolisPattern(), "version");
-		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", new InfolisPattern(), "version");
-		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", new InfolisPattern(), "version");
-		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", new InfolisPattern(), "version");
-		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", new InfolisPattern(), "version");
+		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", "pattern","ref");
+		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", "pattern","ref");
+		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", "pattern","ref");
+		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", "pattern","ref");
+		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", "pattern","ref");
 		
 		contexts_seed.add(context_bar_0);
 		contexts_seed.add(context_bar_1);

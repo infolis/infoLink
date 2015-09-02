@@ -20,7 +20,9 @@ import org.apache.lucene.queryParser.ParseException;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.infolis.model.TextualReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -38,6 +40,7 @@ public class Instance extends Entity {
     @XmlAttribute
     private String number;
     private Map<String, Double> associations = new HashMap<>();
+    private List<String> alternativeNames = new ArrayList<>();
     
     public Instance() {
     	super();
@@ -91,6 +94,27 @@ public class Instance extends Entity {
                     + " already known, overwriting previously saved score.");
         }
         return (this.getAssociations().put(entityName, score) == null);
+    }
+
+    /**
+     * @return the alternativeNames
+     */
+    public List<String> getAlternativeNames() {
+        return alternativeNames;
+    }
+
+    /**
+     * @param alternativeNames the alternativeNames to set
+     */
+    public void setAlternativeNames(List<String> alternativeNames) {
+        this.alternativeNames = alternativeNames;
+    }
+    
+    /**
+     * @param alternativeNames the alternativeName to add
+     */
+    public void addAlternativeNames(String alternativeName) {
+        this.alternativeNames.add(alternativeName);
     }
     
 }

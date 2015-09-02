@@ -18,8 +18,7 @@ public class StudyContextTest extends InfolisBaseTest {
 	@Test
 	public void testXML() throws JsonProcessingException {
 
-		InfolisPattern p = new InfolisPattern("par1");
-		TextualReference ctx = new TextualReference("a b c d e f", "FOOBAR!", "v w x y z", "doc1", p);
+		TextualReference ctx = new TextualReference("a b c d e f", "FOOBAR!", "v w x y z", "doc1", "pattern","ref");
 		assertEquals(SerializationUtils.toXML(ctx).replaceAll("\\s", ""), ctx.toXML().replaceAll("\\s", ""));
 		String x = SerializationUtils.jacksonMapper.writeValueAsString(ctx);
 		log.debug(x);

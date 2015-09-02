@@ -45,45 +45,24 @@ public class TextualReference extends BaseModel {
 	private String			textFile;
 	@XmlTransient
 	private String			pattern;
+        @XmlTransient
+	private String			mentionsReference;
 
-	public TextualReference() {
-	}
+    public TextualReference() {
+    }
 
-	/**
-	 * Class constructor specifying the left context, the term, the right
-	 * context, the document from which the context was extracted and the
-	 * pattern used to extract the context.
-	 * 
-	 * @param left
-	 * @param term
-	 * @param right
-	 * @param document
-	 * @param pattern
-	 */
-	public TextualReference(String left, String term, String right, String document,
-			InfolisPattern pattern) {
-		this.setLeftText(left);
-		this.setLeftWords(Arrays.asList(left.split("\\s+")));
-		this.setTerm(term);
-		this.setRightText(right);
-		this.setRightWords(Arrays.asList(right.split("\\s+")));
-		this.setFile(document);
-		this.setPattern(pattern.getUri());
-	}
-
-	public TextualReference(String left, String term, String right, String document,
-			InfolisPattern pattern, String version) {
-		this.setLeftText(left);
-		this.setLeftWords(Arrays.asList(left.split("\\s+")));
-		this.setTerm(term);
-		this.setRightText(right);
-		this.setRightWords(Arrays.asList(right.split("\\s+")));
-		this.setFile(document);
-		this.setPattern(pattern.getUri());
-	}
-
+    public TextualReference(String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference) {
+        setLeftText(leftText);
+        setRightText(rightText);
+        this.reference = reference;
+        this.textFile = textFile;
+        this.pattern = pattern;
+        this.mentionsReference = mentionsReference;
+        
+    }    
+        
 	public String toXML() {
-		return "\t<context term=\"" + SerializationUtils.escapeXML(this.getTerm()) + "\" file=\""
+		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getTerm()) + "\" textFile=\""
 				+ this.getFile() + "\">" + System.getProperty("line.separator") + "\t\t"
 				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
@@ -123,6 +102,7 @@ public class TextualReference extends BaseModel {
 
 	public void setLeftText(String leftText) {
 		this.leftText = leftText;
+                setLeftWords(Arrays.asList(leftText.split("\\s+")));
 	}
 
 	public String getRightText() {
@@ -131,6 +111,7 @@ public class TextualReference extends BaseModel {
 
 	public void setRightText(String rightText) {
 		this.rightText = rightText;
+                setRightWords(Arrays.asList(rightText.split("\\s+")));
 	}
 
 	public String getTerm() {
@@ -177,5 +158,19 @@ public class TextualReference extends BaseModel {
 			.append(rightText)
 			.toString();
 	}
+
+    /**
+     * @return the mentionsReference
+     */
+    public String getMentionsReference() {
+        return mentionsReference;
+    }
+
+    /**
+     * @param mentionsReference the mentionsReference to set
+     */
+    public void setMentionsReference(String mentionsReference) {
+        this.mentionsReference = mentionsReference;
+    }
 
 }

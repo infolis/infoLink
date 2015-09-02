@@ -27,7 +27,7 @@ public class Entity extends BaseModel {
     @XmlAttribute
     private String name;
     private String identifier;
-    private List<String> tags;
+    private List<String> tags;    
     
     public enum EntityIdentifierType { DOI, URL, STRING; }
 

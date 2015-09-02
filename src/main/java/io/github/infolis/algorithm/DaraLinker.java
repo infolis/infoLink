@@ -8,8 +8,10 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.StudyLink;
 import io.github.infolis.model.StudyType;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -48,15 +50,15 @@ public class DaraLinker extends BaseAlgorithm {
 
 	private static final long maxTimeMillis = 75000;
 
-	public Set<StudyLink> createLinks(List<String> contextURIs) throws IOException {
-		Set<StudyLink> links = new HashSet<>();
+	public Set<EntityLink> createLinks(List<String> contextURIs) throws IOException {
+		Set<EntityLink> links = new HashSet<>();
 		for (TextualReference context : getInputDataStoreClient().get(TextualReference.class, contextURIs)) {
 			links.addAll(linkContext(context));
 		}
 		return links;
 	}
 
-	private Set<StudyLink> linkContext(TextualReference context) throws IOException {
+	private Set<EntityLink> linkContext(TextualReference context) throws IOException {
 		Instance study = extractStudy(context);
 		log.debug("study: " + study.getName());
 		// whitespace create problems for json parsing
@@ -66,57 +68,66 @@ public class DaraLinker extends BaseAlgorithm {
 		JsonArray candidates = matcher.query();
 		log.debug("number of candidates in dara: " + String.valueOf(candidates.size()));
 		JsonArray matchingDatasets = FilterDaraJsonResults.filter(candidates, study);
-		Set<StudyLink> links = createStudyLinks(matchingDatasets, study, context);
+		Set<EntityLink> links = createStudyLinks(matchingDatasets, study, context);
 		return links;
 	}
 
-	private class DaraStudy {
+//	private class DaraStudy {
+//
+//		String[] title;
+//		String doi;
+//
+//		DaraStudy(String[] title, String doi) {
+//			this.title = title;
+//			this.doi = doi;
+//		}
+//	}
 
-		String[] title;
-		String doi;
-
-		DaraStudy(String[] title, String doi) {
-			this.title = title;
-			this.doi = doi;
-		}
-	}
-
-	private Set<DaraStudy> getDaraStudies(JsonArray datasets) throws IllegalArgumentException {
-		HashSet<DaraStudy> daraStudies = new HashSet<>();
+	private Set<Entity> getDaraStudies(JsonArray datasets) throws IllegalArgumentException {
+		Set<Entity> daraStudies = new HashSet<>();
 		for (JsonObject item : datasets.getValuesAs(JsonObject.class)) {
 			log.debug("item: " + item.toString());
 			// each dataset in dara should have exactly one DOI
+                        //TODO: set the DOI within the instance?
 			JsonArray dois = item.getJsonArray("doi");
 			String doi = dois.getString(0);
 			log.debug("DOI: " + doi);
 			// datasets must have at least one title
 			// may have more than one title: e.g. translations
 			JsonArray titles = item.getJsonArray("title");
-			String[] titleStringArray = new String[titles.size()];
-			for (int i = 0; i < titles.size(); i++) {
-				titleStringArray[i] = titles.get(i).toString();
-				log.debug("title " + i + ": " + titles.get(i).toString());
+			//String[] titleStringArray = new String[titles.size()];                        
+                        Instance daraStudy = new Instance();
+			
+			for (int i = 0; i < titles.size(); i++) { 
+                            log.debug("title " + i + ": " + titles.get(i).toString());
+                            if(i==0) {
+                                daraStudy.setName(titles.get(0).toString());
+                            }
+                            else {
+                                daraStudy.addAlternativeNames(titles.get(i).toString());
+                            }				
 			}
-			DaraStudy daraStudy = new DaraStudy(titleStringArray, doi);
+                        getOutputDataStoreClient().post(Instance.class, daraStudy);
 			daraStudies.add(daraStudy);
 		}
+                
 		return daraStudies;
 	}
 
 	// TODO: use URIs in StudyLinks for all entities?
-	private Set<StudyLink> createStudyLinks(JsonArray datasets, Instance study, TextualReference context) {
-		Set<StudyLink> links = new HashSet<>();
-		Set<DaraStudy> daraStudies = getDaraStudies(datasets);
-		String publication = context.getFile();
-		for (DaraStudy daraStudy : daraStudies) {
+	private Set<EntityLink> createStudyLinks(JsonArray datasets, Instance study, TextualReference context) {
+		Set<EntityLink> links = new HashSet<>();
+		Set<Entity> daraStudies = getDaraStudies(datasets);
+		Publication publication =  getInputDataStoreClient().get(Publication.class, context.getMentionsReference());
+		for (Entity daraStudy : daraStudies) {
 			float confidence = 0; // score, how to add?
 			String snippet = context.toPrettyString();
 			// where  to  get  that  info  from? // context?
 			ExtractionMethod extractionMethod = ExtractionMethod.PATTERN;
 			// TODO: implement methods for string and url links, not only doi...
 			// TODO: use other titles as well, not only the first one
-			StudyLink link = new StudyLink(publication, daraStudy.title[0], study.getNumber(), study.getName(), daraStudy.doi, StudyType.DOI,
-					confidence, snippet, extractionMethod);
+                        //TODO not really a nice link reason by now
+			EntityLink link = new EntityLink(publication, daraStudy, confidence, snippet + " " +extractionMethod);
 			links.add(link);
 		}
 		return links;
@@ -176,7 +187,7 @@ public class DaraLinker extends BaseAlgorithm {
 			// TODO: post links etc.
 			List<String> contexts = getExecution().getStudyContexts();
 			debug(log, "Linking " + String.valueOf(contexts.size()) + " contexts.");
-			Set<StudyLink> studyLinks = createLinks(contexts);
+			Set<EntityLink> studyLinks = createLinks(contexts);
 			getExecution().setLinks(studyLinks);
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		} catch (Exception e) {

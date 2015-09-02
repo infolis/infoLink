@@ -5,7 +5,9 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.OutputStream;
@@ -65,7 +67,6 @@ public class InfolisBaseTest {
 			file.setFileName(tempFile.toString());
 			file.setFileStatus("AVAILABLE");
 			file.setMediaType("text/plain");
-
 			dataStoreClient.post(InfolisFile.class, file);
 			OutputStream os = fileResolver.openOutputStream(file);
 			IOUtils.write(data, os);

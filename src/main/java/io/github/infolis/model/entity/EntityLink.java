@@ -8,10 +8,17 @@ package io.github.infolis.model.entity;
 public class EntityLink {
     
     private Entity referenceEntity;
-    private Entity mentionsReferece;
+    private Entity mentionsReference;
     private double confidence;
     private String linkReason;
 
+    public EntityLink(Entity referenceEntity, Entity mentionsReference, double confidence, String linkReason) {
+        this.referenceEntity = referenceEntity;
+        this.mentionsReference = mentionsReference;
+        this.confidence = confidence;
+        this.linkReason = linkReason;
+    }
+    
     /**
      * @return the referenceEntity
      */
@@ -29,15 +36,15 @@ public class EntityLink {
     /**
      * @return the mentionsReferece
      */
-    public Entity getMentionsReferece() {
-        return mentionsReferece;
+    public Entity getMentionsReference() {
+        return mentionsReference;
     }
 
     /**
      * @param mentionsReferece the mentionsReferece to set
      */
-    public void setMentionsReferece(Entity mentionsReferece) {
-        this.mentionsReferece = mentionsReferece;
+    public void setMentionsReference(Entity mentionsReferece) {
+        this.mentionsReference = mentionsReferece;
     }
 
     /**

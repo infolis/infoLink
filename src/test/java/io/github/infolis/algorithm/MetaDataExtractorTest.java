@@ -20,24 +20,24 @@ import org.junit.Test;
 public class MetaDataExtractorTest extends InfolisBaseTest {
 
     TextualReference[] testContexts = {
-        new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", new InfolisPattern()),
-        new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", new InfolisPattern())
+        new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 2000", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "ALLBUS", "2000 is to be extracted", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "Eurobarometer 56.1", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 56.1", "Eurobarometer", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 is to be extracted", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("reference to the 56.1 2000", "Eurobarometer", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "Eurobarometer", "56.1 2000 is to be", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "ALLBUS 1996/08", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 1982   -   1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("In this snippet, the reference", "ALLBUS", "85/01 is to be extracted", "document", "pattern","ref"),
+        new TextualReference("the reference to the 1982 till 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 1982 to 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 1982 bis 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 1982 und 1983", "ALLBUS", "is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 2nd wave of the", "2000 Eurobarometer", "56.1 is to be extracted as", "document", "pattern","ref"),
+        new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "2000 is to be extracted as", "document", "pattern","ref")
     };
 
     @Test

@@ -21,6 +21,9 @@ public class InfolisFile extends BaseModel {
 	private String mediaType;
 	private String fileStatus;
 	private Set<String> tags;
+        
+        public InfolisFile() {
+        }
 
 	@Override
 	public String toString() {

@@ -7,6 +7,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -220,18 +221,11 @@ public class SearchTermPosition extends BaseAlgorithm
 //	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
 	    }
 	    while (ltm.matched()) {
+                
 //	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
-	    	TextualReference sC = new TextualReference();
-	    	sC.setLeftText(ltm.group(1).trim());
-	    	//sC.setLeftWords(Arrays.asList(m.group(1).trim().split("\\s+")));
-	    	sC.setLeftWords(Arrays.asList(ltm.group(2).trim(), ltm.group(3).trim(), ltm.group(4).trim(), ltm.group(5).trim(), ltm.group(6).trim()));
-	    	sC.setTerm(term);
-	    	sC.setRightText(ltm.group(7).trim());
-	    	//sC.setRightWords(Arrays.asList(m.group(2).trim().split("\\s+")));
-	    	sC.setRightWords(Arrays.asList(ltm.group(8).trim(), ltm.group(9).trim(), ltm.group(10).trim(), ltm.group(11).trim(), ltm.group(12).trim()));
-	    	sC.setFile(fileName);
-	    	sC.setPattern(infolisPat.getUri());
-
+                Publication p = new Publication();
+                outputDataStoreClient.post(Publication.class, p);
+	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
 	    	contextList.add(sC);
 	    	ltm.run();
 	    }

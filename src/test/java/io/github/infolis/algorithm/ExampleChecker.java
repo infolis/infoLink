@@ -10,6 +10,8 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;

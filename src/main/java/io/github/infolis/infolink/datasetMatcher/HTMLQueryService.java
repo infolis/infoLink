@@ -24,6 +24,9 @@ import org.jsoup.select.Elements;
 /**
  *
  * @author domi
+ * 
+ * Perform a query which uses an HTML search portal. Parse the 
+ * retuned HTML page to detect the search results.
  */
 public class HTMLQueryService extends QueryService {
 
@@ -104,6 +107,7 @@ public class HTMLQueryService extends QueryService {
             if(title.isEmpty() && identifier.isEmpty()) {
                 continue;
             }
+            //create the search result
             String num = NumericInformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
             sr.setIdentifier(identifier);            

@@ -50,8 +50,8 @@ public class DaraLinker extends BaseAlgorithm {
 
 	private static final long maxTimeMillis = 75000;
 
-	public Set<EntityLink> createLinks(List<String> contextURIs) throws IOException {
-		Set<EntityLink> links = new HashSet<>();
+	public List<EntityLink> createLinks(List<String> contextURIs) throws IOException {
+		List<EntityLink> links = new ArrayList<>();
 		for (TextualReference context : getInputDataStoreClient().get(TextualReference.class, contextURIs)) {
 			links.addAll(linkContext(context));
 		}
@@ -177,8 +177,13 @@ public class DaraLinker extends BaseAlgorithm {
 			// TODO: post links etc.
 			List<String> contexts = getExecution().getStudyContexts();
 			debug(log, "Linking " + String.valueOf(contexts.size()) + " contexts.");
-			Set<EntityLink> studyLinks = createLinks(contexts);
-			getExecution().setLinks(studyLinks);
+			List<EntityLink> studyLinks = createLinks(contexts);                        
+                        List<String> linkURIs = new ArrayList<>();
+                        for(EntityLink el : studyLinks) {
+                            getOutputDataStoreClient().post(EntityLink.class, el);
+                            linkURIs.add(el.getUri());
+                        }
+			getExecution().setLinks(linkURIs);
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		} catch (Exception e) {
 			log.error("Error executing Linker: " + e);

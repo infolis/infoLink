@@ -152,7 +152,7 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		execution.setAlgorithm(DaraLinker.class);
 		execution.setStudyContexts(contextURIs);
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		Set<EntityLink> links = execution.getLinks();
+		List<EntityLink> links = dataStoreClient.get(EntityLink.class, execution.getLinks());
 		Map<String, Set<String>> generatedLinks = new HashMap<>();
 		for (EntityLink link : links) {
 			// log.debug(link.toString());

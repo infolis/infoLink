@@ -3,10 +3,16 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.entity.SearchResult;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,17 +38,17 @@ public class Resolver extends BaseAlgorithm {
      * @param result
      * @return 
      */
-    public boolean computeScorebasedOnNumbers(TextualReference textRef, SearchResult result) {
+    public double computeScorebasedOnNumbers(TextualReference textRef, SearchResult result) {
         List<String> numericInfosRef = NumericInformationExtractor.extractNumericInfoFromTextRef(textRef);
         List<String> numericInfoSearch = result.getNumericInformation();
         for (String ref : numericInfosRef) {
             for (String search : numericInfoSearch) {
                 if(numericInfoMatches(ref, search)) {
-                    return true;
+                    return 1.0;
                 }
             }
         }
-        return false;
+        return 0.0;
     }
 
     protected boolean numericInfoMatches(String numericInfoRef, String numericInfoSearch) {
@@ -347,18 +353,40 @@ public class Resolver extends BaseAlgorithm {
         String textRefURI = getExecution().getTextualReference();
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
         //check which search results fit 
-        for(SearchResult r : results) {            
-            computeScorebasedOnNumbers(textRef, r);
+        Map<SearchResult,Double> resultValues = new HashMap<>();
+        for(SearchResult r : results) {    
+            double confidenceValue=0.0;
+            confidenceValue += computeScorebasedOnNumbers(textRef, r);
             //the source has been written into the first tag
-            reliabilityOfTheSource(r.getTags().get(0));
-            //TODO: take the index of the query list into account and/or
-            //the relevance score if one exists (not implemented yet)
+            confidenceValue+=reliabilityOfTheSource(r.getTags().get(0));
+            confidenceValue+=(double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex();
             
-            //TODO: create the instance for the search result and post it
-            //TODO: create the entity link(s)
-            //TODO: set the link(s) as output
-        }        
-        
+            resultValues.put(r, confidenceValue);
+        }
+        //determine the best search result for the textual reference
+        SearchResult bestSearchResult = null;
+        double bestConfidence = -1.0;
+        for(SearchResult sr : resultValues.keySet()) {
+            if(resultValues.get(sr)> bestConfidence) {
+                bestConfidence = resultValues.get(sr);
+                bestSearchResult = sr;
+            }
+        }
+        //create and post the instance representing the search result
+        Instance referencedInstance = new Instance();
+        referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
+        referencedInstance.setName(bestSearchResult.getTitles().get(0));
+        referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
+        getOutputDataStoreClient().post(Instance.class, referencedInstance);
+        //TODO: how to define the link reason?
+        String linkReason = "";
+        //genretate the link
+        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()), bestConfidence, linkReason);
+        getOutputDataStoreClient().post(EntityLink.class, el);
+        List<String> allLinks = new ArrayList<>();
+        allLinks.add(el.getUri());
+        //set the final link as output of this algorithm
+        getExecution().setLinks(allLinks);
     }
     
     /**

@@ -24,11 +24,13 @@ import io.github.infolis.model.BaseModel;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Entity extends BaseModel {
 
+    //TODO: list of names instead one? 
     @XmlAttribute
     private String name;
     private String identifier;
     private List<String> tags;    
     
+    //TODO: use entity identifier types
     public enum EntityIdentifierType { DOI, URL, STRING; }
 
     public Entity(String name) {

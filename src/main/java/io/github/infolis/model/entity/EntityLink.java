@@ -3,6 +3,7 @@ package io.github.infolis.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.model.BaseModel;
 
 /**
  *
@@ -10,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EntityLink {
+public class EntityLink extends BaseModel {
     
     private Entity referenceEntity;
     private Entity mentionsReference;

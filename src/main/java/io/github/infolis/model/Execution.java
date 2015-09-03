@@ -90,6 +90,20 @@ public class Execution extends BaseModel {
         this.queryServices = queryServices;
     }
 
+    /**
+     * @return the links
+     */
+    public List<String> getLinks() {
+        return links;
+    }
+
+    /**
+     * @param links the links to set
+     */
+    public void setLinks(List<String> links) {
+        this.links = links;
+    }
+
 	public enum Strategy {
 		mergeCurrent, mergeNew, mergeAll, separate, reliability;
 	}
@@ -131,7 +145,7 @@ public class Execution extends BaseModel {
 	private String outputMediaType = null;
 
 	// Resolver
-	private Set<EntityLink> links;
+	private List<String> links;
         
         //MetaDataExtractor
         private String textualReference;
@@ -485,13 +499,5 @@ public class Execution extends BaseModel {
 	 */
 	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
 		this.bootstrapStrategy = bootstrapStrategy;
-	}
-
-	public Set<EntityLink> getLinks() {
-		return this.links;
-	}
-
-	public void setLinks(Set<EntityLink> links) {
-		this.links = links;
 	}
 }

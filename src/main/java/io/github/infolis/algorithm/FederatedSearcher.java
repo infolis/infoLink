@@ -22,23 +22,19 @@ public class FederatedSearcher extends BaseAlgorithm {
     public FederatedSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-
+    
     @Override
     public void execute() throws IOException {
         Set<List<SearchResult>> allResults = new HashSet<>();
 
         String queryString = getExecution().getQueryForQueryService();
-        //TODO: how to register QueryServices?
-        for (String queryService : getExecution().getQueryServices()) {
-            
-            Execution convertExec = new Execution();
-            convertExec.setAlgorithm(SolrQueryService.class);
-            Algorithm algo = convertExec.instantiateAlgorithm(this);
-            algo.run();
-            //TODO: post the searchResults in the algorithm!
-            List<SearchResult> results = getOutputDataStoreClient().get(SearchResult.class, convertExec.getSearchResults());
+        //TODO: query services have to be postet first!
+        for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
+            List<SearchResult> results = queryService.executeQuery(queryString);
             allResults.add(results);
         }
+        
+        //TODO: consolidate results
 
     }
 

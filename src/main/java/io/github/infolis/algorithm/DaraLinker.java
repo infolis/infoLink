@@ -72,17 +72,6 @@ public class DaraLinker extends BaseAlgorithm {
 		return links;
 	}
 
-//	private class DaraStudy {
-//
-//		String[] title;
-//		String doi;
-//
-//		DaraStudy(String[] title, String doi) {
-//			this.title = title;
-//			this.doi = doi;
-//		}
-//	}
-
 	private Set<Entity> getDaraStudies(JsonArray datasets) throws IllegalArgumentException {
 		Set<Entity> daraStudies = new HashSet<>();
 		for (JsonObject item : datasets.getValuesAs(JsonObject.class)) {
@@ -126,6 +115,7 @@ public class DaraLinker extends BaseAlgorithm {
 			ExtractionMethod extractionMethod = ExtractionMethod.PATTERN;
 			// TODO: implement methods for string and url links, not only doi...
 			// TODO: use other titles as well, not only the first one
+                        
                         //TODO not really a nice link reason by now
 			EntityLink link = new EntityLink(publication, daraStudy, confidence, snippet + " " +extractionMethod);
 			links.add(link);
@@ -149,7 +139,7 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	private List<String> extractNumericInfo(TextualReference context) {
-		List<String> numericInfo = new ArrayList<String>();
+		List<String> numericInfo = new ArrayList<>();
 		for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
 			String year = searchComplexNumericInfo(string);
 			if (year != null) {

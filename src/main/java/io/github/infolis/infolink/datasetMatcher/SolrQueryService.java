@@ -7,14 +7,15 @@ package io.github.infolis.infolink.datasetMatcher;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import static io.github.infolis.algorithm.MetaDataExtractor.complexNumericInfoRegex;
+import io.github.infolis.algorithm.NumericInformationExtractor;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.LimitedTimeMatcher;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -27,8 +28,6 @@ import javax.json.JsonReader;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SolrQueryService extends QueryService {
-
-    private String target;
 
     public SolrQueryService() {
         super();
@@ -56,17 +55,22 @@ public class SolrQueryService extends QueryService {
             JsonArray result = response.getJsonArray("docs");
             reader.close();
             is.close();
-            
-            int listIndex =0;
+
+            int listIndex = 0;
             for (JsonObject item : result.getValuesAs(JsonObject.class)) {
                 SearchResult sr = new SearchResult();
                 sr.setListIndex(listIndex);
                 JsonArray titles = item.getJsonArray("title");
                 for (int i = 0; i < titles.size(); i++) {
                     String title = titles.get(i).toString();
-                    String num = getNumericInfo(title);
+                    String num = NumericInformationExtractor.getNumericInfo(title);
                     sr.addTitle(title);
                     sr.addNumericInformation(num);
+                    //TODO: better have an unique name like da|ra etc.
+                    sr.addTag(target);
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    Date date = new Date();
+                    sr.setDate(dateFormat.format(date));
                 }
                 results.add(sr);
                 listIndex++;

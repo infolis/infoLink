@@ -1,12 +1,16 @@
 package io.github.infolis.infolink.datasetMatcher;
 
+import io.github.infolis.algorithm.NumericInformationExtractor;
 import io.github.infolis.model.entity.SearchResult;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +27,6 @@ import org.jsoup.select.Elements;
  */
 public class HTMLQueryService extends QueryService {
 
-    private String target;
     private int maxNumber = 10;
 
     public HTMLQueryService() {
@@ -33,11 +36,11 @@ public class HTMLQueryService extends QueryService {
     public HTMLQueryService(String target) {
         super(target);
     }
-
+    
     public String adaptQuery(String solrQuery) {
         //only extract the title
         String title = solrQuery.split("\\?date")[0];
-        title = title.replace("?q=title", "");
+        title = title.replace("?q=title:", "");
         String query = String.format("%s?title=%s&max=%s&lang=de", target, title, String.valueOf(maxNumber));
         return query;
     }
@@ -45,12 +48,12 @@ public class HTMLQueryService extends QueryService {
     @Override
     public List<SearchResult> executeQuery(String solrQuery) {
         try {
-            URL url = new URL(adaptQuery(solrQuery));
+            URL url = new URL(adaptQuery(solrQuery));            
             URLConnection connection = url.openConnection();
             connection.setRequestProperty("Accept-Charset", "UTF-8");
             //connection.setConnectTimeout(6000);
             System.out.println("Reading from url...");
-            // make sure that all data is read
+            //make sure that all data is read
             byte[] resultBuff = new byte[0];
             byte[] buff = new byte[1024];
             int k = -1;
@@ -60,7 +63,7 @@ public class HTMLQueryService extends QueryService {
                 System.arraycopy(buff, 0, tbuff, resultBuff.length, k);  // copy current lot
                 resultBuff = tbuff; // call the temp buffer as your result buff
             }
-            String htmlPage = new String(resultBuff);   
+            String htmlPage = new String(resultBuff);
             return parseHTML(htmlPage);
 
         } catch (MalformedURLException ex) {
@@ -82,7 +85,7 @@ public class HTMLQueryService extends QueryService {
         List<SearchResult> results = new ArrayList<>();
         Document doc = Jsoup.parseBodyFragment(html);
         Elements hitlist = doc.getElementsByTag("li");
-        int i=0;
+        int i = 0;
         for (Element hit : hitlist) {
             String title = "";
             String identifier = "";
@@ -98,12 +101,19 @@ public class HTMLQueryService extends QueryService {
             for (Element doi : dois) {
                 identifier = doi.text().trim();
             }
-            String num = getNumericInfo(title);
+            if(title.isEmpty() && identifier.isEmpty()) {
+                continue;
+            }
+            String num = NumericInformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
-            sr.setIdentifier(identifier);
+            sr.setIdentifier(identifier);            
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
             sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
             sr.setListIndex(i);
+            sr.addTag(target);
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            sr.setDate(dateFormat.format(date));
             i++;
             results.add(sr);
         }

@@ -1,27 +1,29 @@
 package io.github.infolis.infolink.datasetMatcher;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import static io.github.infolis.algorithm.MetaDataExtractor.complexNumericInfoRegex;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.LimitedTimeMatcher;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  *
  * @author domi
  */
-//TODO: subclass of BaseModel?
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(as = HTMLQueryService.class)
+@JsonTypeInfo(use = Id.CLASS,include = JsonTypeInfo.As.PROPERTY,property = "type")
+@JsonSubTypes({
+    @Type(value = HTMLQueryService.class),
+    @Type(value = SolrQueryService.class),
+    })
 public abstract class QueryService extends BaseModel {
 
     public QueryService() {
     }
 
-    private String target = "";
+    protected String target = "";
 
     public QueryService(String target) {
         this.target = target;
@@ -29,16 +31,6 @@ public abstract class QueryService extends BaseModel {
     private static final long maxTimeMillis = 75000;
     
     public abstract List<SearchResult> executeQuery(String solrQuery);
-
-    public String getNumericInfo(String title) {
-        String num="";
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(complexNumericInfoRegex), title, maxTimeMillis, title + "\n" + complexNumericInfoRegex);
-        ltm.run();
-        while (ltm.finished() && ltm.matched()) {
-            num = ltm.group();
-        }
-        return num;
-    }
 
     /**
      * @return the target

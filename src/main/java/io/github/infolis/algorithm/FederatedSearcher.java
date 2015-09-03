@@ -3,15 +3,10 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
-import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -25,17 +20,19 @@ public class FederatedSearcher extends BaseAlgorithm {
     
     @Override
     public void execute() throws IOException {
-        Set<List<SearchResult>> allResults = new HashSet<>();
+        List<SearchResult> allResults = new ArrayList<>();
 
         String queryString = getExecution().getQueryForQueryService();
-        //TODO: query services have to be postet first!
         for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
             List<SearchResult> results = queryService.executeQuery(queryString);
-            allResults.add(results);
+            allResults.addAll(results);
         }
-        
-        //TODO: consolidate results
-
+        getOutputDataStoreClient().post(SearchResult.class, allResults);
+        List<String> searchResultUris = new ArrayList<>();
+        for(SearchResult sr : allResults) {
+            searchResultUris.add(sr.getUri());
+        }
+        getExecution().setSearchResults(searchResultUris);
     }
 
     @Override

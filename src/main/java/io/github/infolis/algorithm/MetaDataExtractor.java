@@ -31,18 +31,6 @@ public class MetaDataExtractor extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(MetaDataExtractor.class);
 
-    public static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
-    public static final String yearRegex = "(\\d{4})";
-    public static final String yearAbbrRegex = "('\\d\\d)";
-    public static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes
-    // yearRegex
-    public static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
-
-    public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
-    public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
-    public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
-
-    private static final long maxTimeMillis = 75000;
     
     //methods from DataLinker to extract dates etc.
     @Override
@@ -79,7 +67,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         if (RegexUtils.ignoreStudy(ref.getTerm())) {
             return null;
         }
-        List<String> numericInfo = extractNumericInfo(ref);
+        List<String> numericInfo = NumericInformationExtractor.extractNumericInfoFromTextRef(ref);
         String name = ref.getTerm().replaceAll("[^a-zA-Z]", "");
         
         if(name!=null && !name.isEmpty()) {
@@ -95,34 +83,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         //TODO: author of publications? other information?
         return finalQuery;
     }
-    
-
-    private String searchComplexNumericInfo(String string) {
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(complexNumericInfoRegex), string, maxTimeMillis, string + "\n" + complexNumericInfoRegex);
-        ltm.run();
-        // if thread was aborted due to long processing time, matchFound should
-        // be false
-        if (!ltm.finished()) {
-            // TODO: what to do if search was aborted?
-            log.error("Search was aborted. TODO");
-        }
-        while (ltm.finished() && ltm.matched()) {
-            return ltm.group();
-        }
-        return null;
-    }
-
-    private List<String> extractNumericInfo(TextualReference context) {
-        List<String> numericInfo = new ArrayList<>();
-        for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
-            String year = searchComplexNumericInfo(string);
-            if (year != null) {
-                numericInfo.add(year);
-            }
-        }
-        return numericInfo;
-    }
-
+ 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
          if (null == getExecution().getTextualReference()) {

@@ -1,6 +1,8 @@
 
 package io.github.infolis.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,12 +10,15 @@ import java.util.List;
  *
  * @author domi
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchResult extends Entity {
     
     private int listIndex;
     private double relevanceScore;
     private List<String> titles = new ArrayList<>();
     private List<String> numericInformation = new ArrayList<>();
+    private String date;
 
     /**
      * @return the listIndex
@@ -83,6 +88,20 @@ public class SearchResult extends Entity {
      */
     public void setNumericInformation(List<String> numericInformation) {
         this.numericInformation = numericInformation;
+    }
+
+    /**
+     * @return the date
+     */
+    public String getDate() {
+        return date;
+    }
+
+    /**
+     * @param date the date to set
+     */
+    public void setDate(String date) {
+        this.date = date;
     }
     
 }

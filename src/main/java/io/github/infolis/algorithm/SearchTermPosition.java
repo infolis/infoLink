@@ -138,7 +138,7 @@ public class SearchTermPosition extends BaseAlgorithm
 
 		debug(log, "Query: " + q.toString());
 		TopDocs td = searcher.search(q, 10000);
-		debug(log, "Number of hits: " + td.totalHits);
+		debug(log, "Number of hits (documents): " + td.totalHits);
 		ScoreDoc[] scoreDocs = td.scoreDocs;
 		
 		for (int i = 0; i < scoreDocs.length; i++)
@@ -170,6 +170,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		Indexer.createAnalyzer().close();
 		IndexReader.open(FSDirectory.open(new File(indexExecution.getOutputDirectory()))).close();
 		FSDirectory.open(new File(indexExecution.getOutputDirectory())).close();
+		log.debug("number of extracted contexts: " + getExecution().getStudyContexts().size());
 		log.debug("Finished SearchTermPosition#execute");
 	}
 	

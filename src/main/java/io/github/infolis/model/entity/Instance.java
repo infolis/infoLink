@@ -21,6 +21,7 @@ import org.apache.lucene.queryParser.ParseException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.infolis.model.TextualReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import org.slf4j.LoggerFactory;
@@ -64,8 +65,8 @@ public class Instance extends Entity {
         this.number = number;
     }
     
-    public boolean isReliable(Set<TextualReference> contexts_patterns, int dataSize, Set<String> reliablePatterns, Map<String, Set<TextualReference>> contexts_seeds, Reliability r, double threshold) throws IOException, ParseException {
-    	double instanceReliability = r.computeReliability(contexts_patterns, dataSize, reliablePatterns, contexts_seeds, this);
+    public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
+    	double instanceReliability = r.computeReliability(dataSize, reliablePatterns, this);
         if (instanceReliability >= threshold) {
             return true;
         } else {

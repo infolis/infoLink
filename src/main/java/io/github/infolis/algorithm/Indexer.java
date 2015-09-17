@@ -19,10 +19,10 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,9 +50,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Class for adding text files to a Lucene index.
  * 
- * @author katarina.boland@gesis.org
+ * @author kata
  * @author kba
- * @version 2014-01-27
  */
 public class Indexer extends BaseAlgorithm
 {
@@ -75,8 +74,8 @@ public class Indexer extends BaseAlgorithm
 
 	@Override
 	public void execute() throws IOException {
-
-		File indexDir = new File(Files.createTempDirectory(INDEX_DIR_PREFIX).toString());
+		File indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
+		log.debug("Indexing to: " + indexDir.getAbsolutePath());
 		FileUtils.forceDeleteOnExit(indexDir);
 		getExecution().setOutputDirectory(indexDir.toString());
 
@@ -93,7 +92,7 @@ public class Indexer extends BaseAlgorithm
 		log.debug("Starting to index");
 		try {
 			for (InfolisFile file : files) {
-				// log.debug("Indexing file " + file);
+				log.trace("Indexing file " + file);
 				writer.addDocument(toLuceneDocument(getInputFileResolver(), file));
 			}
 		} catch (FileNotFoundException fnfe) {

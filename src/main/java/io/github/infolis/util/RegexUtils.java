@@ -262,23 +262,6 @@ public class RegexUtils {
 		return seed.replace(":", "_").replace("\\", "_").replace("/", "_").replace("?",  "_").replace(">",  "_").replace("<",  "_");
 	}
 	
-			// TODO needed?
-//	/**
-//	 * Determines reliablity of instance based on instance ranking: if an instance is extracted by many 
-//	 * reliable patterns, it has a high reliability. Reliability of pattern: extracts many reliable instances 
-//	 * (in proportion to unreliable instances).
-//	 * 
-//	 * @param instance	the instance (dataset title) to be assessed
-//	 * @return			boolean value: reliablity score above threshold or not
-//	 */
-//	private double reliability_instance( String instance )
-//	{
-//		System.out.println("Checking if instance is reliable: " + instance);
-//		Reliability.Instance curInstance = this.reliability.instances.get(instance);
-//		return reliability(curInstance);
-//	}
-	//TODO: ADD INSTANCE FILTERING FOR GENERIC PATTERNS (need to substitute 
-    //google-based method there...)
     /**
      * Checks whether a given word is a stop word
      *

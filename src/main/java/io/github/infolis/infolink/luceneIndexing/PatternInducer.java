@@ -9,16 +9,15 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.RegexUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Class for inducing patterns based on given textual references. 
+ * Pattern thresholds are set according values specified in thresholds parameter. 
+ * 
  * @author kata
- * @author domi
  */
 public class PatternInducer {
     
@@ -75,6 +74,7 @@ public class PatternInducer {
         //TODO: atomic regex...?
         // most general pattern: two words enclosing study name
         String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
+        //TODO: minimal regex should also be normalized...
         String regex1_quoted = leftWords_quoted.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_quoted.get(0);
         String regex1_normalizedAndQuoted = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
 
@@ -174,63 +174,10 @@ public class PatternInducer {
         InfolisPattern typeE = new InfolisPattern(regexD_normalizedAndQuoted, luceneQueryD, regexD_quoted, new ArrayList<String>(Arrays.asList(
         		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3), rightWords.get(4))), 
         		thresholds[8]);
+        // order is important here: patterns are listed in ascending order with regard to their generality
+        // type2 and typeB, type3 and typeC etc. have equal generality
         this.candidates.addAll(Arrays.asList(type_general, type2, typeB, type3, typeC, type4, typeD, type5, typeE));
 	}
-	
-	
-	
-    /**
-     * Analyse contexts and induce relevant patterns given the specified
-     * threshold.
-     *
-     * @param contexts
-     * @param threshold
-     * @param processedPattern
-     * @return Set of created Infolis Patterns
-     */
-    public static Set<InfolisPattern> inducePatterns(List<TextualReference> contexts, double threshold, List<String> processedMinimals) {
-        Set<InfolisPattern> patterns = new HashSet<>();
-        Set<String> processedMinimals_iteration = new HashSet<>();
-        List<String> allContextStrings_iteration = TextualReference.getContextStrings(contexts);
-        int n = 0;
-        for (TextualReference context : contexts) {
-        	n++;
-        	log.debug("Inducing relevant patterns for context " + n + " of " + contexts.size());
-        	Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};
-        	PatternInducer inducer = new PatternInducer(context, thresholds);
-            
-        	// constraint for patterns: at least one component not be a stopword
-            // prevent induction of patterns less general than already known patterns:
-            // check whether pattern is known before continuing
-        	
-            for (InfolisPattern candidate : inducer.candidates) {
-            	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
-            	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {
-            		// no need to induce less general patterns, continue with next context
-            		//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-            		//TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
-            		log.debug("Pattern already known, returning.");
-                    break;
-            	}
-            	boolean nonStopwordPresent = false;
-            	for (String word : candidate.getWords()) {
-            		if (!RegexUtils.isStopword(word)) { 
-            			nonStopwordPresent = true;
-            			continue;
-            		}
-            	}
-            	if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
-            	if (nonStopwordPresent & candidate.isRelevant(allContextStrings_iteration)) {
-            		patterns.add(candidate);
-            		processedMinimals_iteration.add(candidate.getMinimal());
-            		log.debug("Pattern accepted");
-            		//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-            		break;
-            	}
-            } 
-        }
-        return patterns;
-    }
-    
+	    
 }
 

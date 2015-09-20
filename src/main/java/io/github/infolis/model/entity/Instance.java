@@ -41,6 +41,7 @@ public class Instance extends Entity {
     @XmlAttribute
     private String number;
     private Map<String, Double> associations = new HashMap<>();
+    private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
     
     public Instance() {
@@ -49,6 +50,13 @@ public class Instance extends Entity {
     
     public Instance(String name) {
     	super(name);
+    }
+    
+    /**
+     * Set reliability to 1.0 for manually selected seed instances.
+     */
+    public void setIsSeed() {
+    	this.reliability = 1.0;
     }
     
     /**
@@ -65,9 +73,13 @@ public class Instance extends Entity {
         this.number = number;
     }
     
+    public double getReliability() {
+    	return this.reliability;
+    }
+    
     public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
-    	double instanceReliability = r.computeReliability(dataSize, reliablePatterns, this);
-        if (instanceReliability >= threshold) {
+    	this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
+        if (this.getReliability() >= threshold) {
             return true;
         } else {
             return false;

@@ -60,6 +60,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             log.info("Bootstrapping with seed \"" + seed + "\"");
             Instance newSeed = new Instance(seed);
             newSeed.setTextualReferences(getStudyContexts(getContextsForSeed(seed)));
+            newSeed.setIsSeed();
             seeds.add(newSeed);
         }
         log.info("Extracted contexts of all seeds.");
@@ -124,13 +125,15 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
                 // considered as new instance here
+                //todo: adjust threshold for instances. *0.01?
                 if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold())) {
                     seeds.add(newInstance);
                 }
+                log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
             }
 
             for (Instance i : r.getInstances()) {
-                log.debug("stored instance: " + i.getName());
+                log.debug("stored instance: \"" + i.getName() + "\"=" + i.getReliability());
                 log.debug("stored associations: " + i.getAssociations().size());
             }
             for (InfolisPattern p : r.getPatterns()) {
@@ -158,7 +161,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
         log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  ");
-        for (Instance i : reliableInstances) { log.debug(i.getName()); }
+        for (Instance i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final top patterns: " + patternRanker.topK);
         return removeUnreliableInstances(topContexts, reliableInstances);
     }

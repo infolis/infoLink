@@ -225,7 +225,7 @@ public class InfolisPattern extends Entity {
     }
     
     public boolean isReliable(int dataSize, Set<Instance> reliableInstances, Reliability r) throws IOException, ParseException {
-    	this.setReliability(r.computeReliability(dataSize, reliableInstances, this));
+    	this.reliability = r.computeReliability(dataSize, reliableInstances, this);
         if (this.getReliability() >= this.getThreshold()) {
             return true;
         } else {
@@ -257,9 +257,10 @@ public class InfolisPattern extends Entity {
     /**
      * @param reliability the reliability to set
      */
+    /*
     public void setReliability(double reliability) {
         this.reliability = reliability;
-    }
+    }*/
 
     
     /**

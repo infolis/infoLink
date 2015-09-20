@@ -14,9 +14,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -100,7 +103,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         int numIter = 1;
         List<TextualReference> extractedContextsFromSeeds = new ArrayList<>();
         List<TextualReference> extractedContextsFromPatterns = new ArrayList<>();
-        List<String> processedSeeds = new ArrayList<>();
+        Map<String, Instance> processedSeeds = new HashMap<>();
         List<String> processedPatterns = new ArrayList<>();
         Set<Instance> seeds = new HashSet<>();
         Set<Instance> newSeedsIteration = new HashSet<>();
@@ -116,9 +119,9 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             List<TextualReference> contexts_currentIteration = new ArrayList<>();
             for (Instance seed : seeds) {
             	log.info("Bootstrapping with seed \"" + seed.getName() + "\"");
-                if (processedSeeds.contains(seed.getName())) {
+                if (processedSeeds.keySet().contains(seed.getName())) {
                 	if (getExecution().getBootstrapStrategy() == Execution.Strategy.mergeCurrent) {
-                		contexts_currentIteration.addAll(seed.getTextualReferences());
+                		contexts_currentIteration.addAll(processedSeeds.get(seed.getName()).getTextualReferences());
                 	}
                 	debug(log, "seed " + seed.getName() + " already known, continuing.");
                     continue;
@@ -141,6 +144,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 //                    log.warn("{}", studyContext.getPattern());
                 }
                 seed.setTextualReferences(detectedContexts);
+                processedSeeds.put(seed.getName(), seed);
 
                 log.info("Extracted contexts of seed.");
                 // 2. generate patterns
@@ -181,9 +185,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             
             // 3. search for patterns in corpus
             List<TextualReference> res = findNewContextsForPatterns(newPatterns);
-            // res contains all contexts extracted by searching for patterns
             extractedContextsFromPatterns.addAll(res);
-            for (Instance i : seeds) processedSeeds.add(i.getName());
             
             for (TextualReference entry : res) {
             	newSeedsIteration.add(new Instance(entry.getTerm()));
@@ -194,16 +196,25 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             numIter++;
             
             persistExecution();
-            if (processedSeeds.containsAll(newSeedTermsIteration)) {
+            if (newSeedTermsIteration.isEmpty() | processedSeeds.keySet().containsAll(newSeedTermsIteration)) {
             	debug(log, "No new seeds found in iteration, returning.");
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here
+            	log.info("Final iteration: " + numIter);
+                log.debug("Final list of instances:  ");
+                for (Instance i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+                log.debug("Final list of patterns: " + processedPatterns);
             	return extractedContextsFromPatterns;
             }
         }
         debug(log, "Maximum number of iterations reached, returning.");
         // TODO now delete all the contexts that were only temporary
+        
+        log.info("Final iteration: " + numIter);
+        log.debug("Final list of instances:  ");
+        for (Instance i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+        log.debug("Final list of patterns: " + processedPatterns);
         return extractedContextsFromPatterns;
     }
     
@@ -229,7 +240,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         		throw new RuntimeException("Pattern does not have a URI!");
 
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
-			debug(log, "Regex: " + curPat.getPatternRegex());
+			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
+			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 
         	Execution stpExecution = new Execution();
             stpExecution.setAlgorithm(SearchTermPosition.class);
@@ -244,6 +256,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 applierExecution.setPattern(Arrays.asList(curPat.getUri()));
                 applierExecution.setAlgorithm(PatternApplier.class);                
                 applierExecution.getInputFiles().add(filenameIn);
+                applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
                 applierExecution.instantiateAlgorithm(this).run();
 
                 for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, applierExecution.getStudyContexts())) {

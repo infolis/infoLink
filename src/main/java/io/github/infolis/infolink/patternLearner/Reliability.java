@@ -179,10 +179,10 @@ public class Reliability {
 	    log.debug("total studycontexts where instance can be found: " + instanceCount);
 	    log.debug("total studycontexts where pattern can be found: " + patternCount);
 	    log.debug("total studycontexts where both instance and pattern can be found: " + jointOccurrences);
-	    log.debug("p_xy: " + p_xy);
-	    log.debug("p_x: " + p_x);
-	    log.debug("p_y: " + p_y);
-	    log.debug("pmi: " + pmi_score);
+	    log.trace("p_xy: " + p_xy);
+	    log.trace("p_x: " + p_x);
+	    log.trace("p_y: " + p_y);
+	    log.trace("pmi: " + pmi_score);
 	    return pmi_score;
     }
     

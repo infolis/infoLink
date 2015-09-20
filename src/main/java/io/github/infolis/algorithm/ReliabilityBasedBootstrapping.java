@@ -75,6 +75,9 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
             // add seeds selected in last iteration to list of reliable instances
             reliableInstances.addAll(seeds);
+            
+            // delete cache of reliability scores as they may change with new evidence of new iterations
+            r.deleteScoreCache();
 
             // Pattern Induction 
             double threshold = getExecution().getThreshold();
@@ -126,7 +129,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 // if instance had been found by patterns of earlier iterations, it would not be 
                 // considered as new instance here
                 //todo: adjust threshold for instances. *0.01?
-                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold())) {
+                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold() *0.5)) {
                     seeds.add(newInstance);
                 }
                 log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());

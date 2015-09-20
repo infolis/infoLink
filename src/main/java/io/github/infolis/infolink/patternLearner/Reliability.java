@@ -35,6 +35,10 @@ public class Reliability {
     Set<String> seedTerms;
     double maximumPmi;
     private static final Logger log = LoggerFactory.getLogger(Reliability.class);
+    // reliability scores may change between iterations in bootstrapping but not during one iteration
+    // avoid multiple computations of score for the same entities inside the same iteration
+    // to allow scores to change between iterations, reset all scores at beginning of new iteration
+    Map<String, Double> scoreCache;
 
     /**
      * Class constructor initializing empty sets for instances and patterns.
@@ -44,6 +48,11 @@ public class Reliability {
         this.patterns = new HashMap<>();
         this.maximumPmi = -100.0;
         this.seedTerms = new HashSet<>();
+        this.scoreCache = new HashMap<>();
+    }
+    
+    public void deleteScoreCache() {
+    	this.scoreCache = new HashMap<>();
     }
     
     public void setSeedTerms(Set<String> seedTerms) {
@@ -139,7 +148,7 @@ public class Reliability {
      * @param pattern	
      * @return
      */
-    public int countJointOccurrences(Instance instance, InfolisPattern pattern) {
+    private int countJointOccurrences(Instance instance, InfolisPattern pattern) {
     	int jointOccurrences = 0;
     	// joint occurrences can be calculated in two different ways: 
     	// either search for pattern in textual references of instance (note: search pattern in the 
@@ -163,7 +172,7 @@ public class Reliability {
      * @param instance			name of the instance
      * @return					point-wise mutual information score of instance and pattern (belonging to regex)
      */
-    public double computePmi(int dataSize, Instance instance, InfolisPattern pattern) {
+    private double computePmi(int dataSize, Instance instance, InfolisPattern pattern) {
     	log.debug("computing pmi of instance \"" + instance.getName() + "\" and pattern \"" + pattern.getMinimal() + "\"");
     	int patternCount = pattern.getTextualReferences().size();
     	int instanceCount = instance.getTextualReferences().size();
@@ -257,6 +266,7 @@ public class Reliability {
     	if (this.seedTerms.contains(instance.getName())) {
     		return 1.0;
     	}
+    	if (scoreCache.containsKey(instance.getName())) return scoreCache.get(instance.getName());
         double rp = 0.0;
         Map<String, Double> patternsAndPmis = instance.getAssociations();
         float P = Float.valueOf(patternsAndPmis.size());
@@ -273,7 +283,9 @@ public class Reliability {
 		log.debug("instance number of associations: " + P);
 		log.debug("instance rp: " + rp);
 		log.debug("instance returned reliability: " + rp / P);
-        return rp / P;
+		double score = rp / P;
+		scoreCache.put(instance.getName(), score);
+        return score;
     }
 
     /**
@@ -283,6 +295,7 @@ public class Reliability {
      */
     public double reliability(InfolisPattern pattern, String callingEntity) {
     	log.debug("Computing reliability of pattern: " + pattern.getMinimal());
+    	if (scoreCache.containsKey(pattern.getMinimal())) return scoreCache.get(pattern.getMinimal());
         double rp = 0.0;
         Map<String, Double> instancesAndPmis = pattern.getAssociations();
         float P = Float.valueOf(instancesAndPmis.size());
@@ -300,7 +313,10 @@ public class Reliability {
 		log.debug("pattern number of associations: " + P);
 		log.debug("pattern rp: " + rp);
 		log.debug("returned pattern reliability: " + rp / P);
-        return rp / P;
+		double score = rp / P;
+		scoreCache.put(pattern.getMinimal(), score);
+		return score;
     }
+
     
 }

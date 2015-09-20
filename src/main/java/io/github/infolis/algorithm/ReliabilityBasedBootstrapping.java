@@ -248,6 +248,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             Execution execution_pa = new Execution();
             execution_pa.getPattern().add(pattern.getUri());
             execution_pa.setAlgorithm(PatternApplier.class);
+            execution_pa.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
             execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
             Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
             algo.run();

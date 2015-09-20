@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.infolis.model.TextualReference;
 import java.util.HashMap;
 
 /**

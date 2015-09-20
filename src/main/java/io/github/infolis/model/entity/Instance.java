@@ -9,7 +9,6 @@ import io.github.infolis.infolink.patternLearner.Reliability;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -19,7 +18,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.lucene.queryParser.ParseException;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.infolis.model.TextualReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

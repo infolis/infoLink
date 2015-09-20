@@ -128,8 +128,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
                 // considered as new instance here
-                //todo: adjust threshold for instances. *0.01?
-                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold() *0.5)) {
+                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold())) {
                     seeds.add(newInstance);
                 }
                 log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
@@ -295,7 +294,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
                     // Pattern Ranking / Selection
                     if (candidate.isReliable(size, relInstances, r)) {
-                        //TODO: k as param...
                         double candidateReliability = candidate.getReliability();
                         log.debug("Pattern reliable, score: " + candidateReliability);
                         Collection<String> minimalsWithSameScore = new ArrayList<>();
@@ -307,6 +305,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 	            		// this returns the top k patterns regardless if their score is above the threshold
                         //topK = getTopK(this.reliableMinimals, 5);
                         // this returns all top k patterns above the threshold 
+                        //TODO: start with small k and increase with each iteration
+                        //TODO: at the same time, decrease thresholds slightly
                         this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getThreshold()), 100);
                         processedMinimals_iteration.add(candidate.getMinimal());
                         break; // this prohibits induction of less general patterns 

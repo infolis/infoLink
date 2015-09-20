@@ -52,7 +52,6 @@ public class RegexUtils {
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 
 
-	//TODO: change name to denormalizeRegex or something similar...
 	/**
 	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their 
 	 * regular expressions.
@@ -60,7 +59,7 @@ public class RegexUtils {
 	 * @param string	input text where placeholders shall be replaced
 	 * @return			string with placeholders replaced by regular expressions
 	 */
-	public static String escapeRegex(String string)
+	public static String denormalizeRegex(String string)
 	{	
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
@@ -101,9 +100,7 @@ public class RegexUtils {
 	 * @param string	input text where placeholders shall be replaced and all literals quoted
 	 * @return			quoted regular expression string
 	 */
-	public static String normalizeAndEscapeRegex(String string)
-	{	//TODO: norm stuff is only needed when writing to and reading from arff files
-		//delete additional replacements
+	public static String normalizeAndEscapeRegex(String string) {	
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");

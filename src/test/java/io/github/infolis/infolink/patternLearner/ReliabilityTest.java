@@ -28,7 +28,7 @@ public class ReliabilityTest {
 	public ReliabilityTest() {
 		Set<String> reliableInstances = new HashSet<>();
 		reliableInstances.add("instance");
-		r.setSeedInstances(reliableInstances);
+		r.setSeedTerms(reliableInstances);
 		pattern.setMinimal("regex");
 		newPattern.setMinimal("new regex");
 		double pmi = 1.0;

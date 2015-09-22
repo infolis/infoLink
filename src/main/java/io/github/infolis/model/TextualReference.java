@@ -1,6 +1,5 @@
 package io.github.infolis.model;
 
-import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import com.google.common.collect.Lists;
 /**
  * Class for saving contexts (= surrounding words of a term).
  * 
- * @author katarina.boland@gesis.org
+ * @author kata
  * @author kba
  *
  */
@@ -138,8 +137,6 @@ public class TextualReference extends BaseModel {
 		this.pattern = patternUri;
 	}
 
-
-	// TODO: not the best place
 	public static List<String> getContextStrings(List<TextualReference> contexts) {
 		Function<TextualReference, String> context_toString = new Function<TextualReference, String>() {
 			public String apply(TextualReference c) {

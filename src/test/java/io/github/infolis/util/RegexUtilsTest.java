@@ -58,5 +58,12 @@ public class RegexUtilsTest {
 		assertFalse(RegexUtils.isStopword("Daten"));
 	}
 	
+	@Test
+	public void testNormalizeAndEscapeRegex() {
+		assertEquals("\\Q\\E" + RegexUtils.percentRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2%"));
+		assertEquals("\\Q\\E" + RegexUtils.numberRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
+		assertEquals("\\Q\\E" + RegexUtils.yearRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
+	}
+	
 
 }

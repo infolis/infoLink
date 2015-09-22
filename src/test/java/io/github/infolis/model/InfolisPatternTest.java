@@ -7,10 +7,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.github.infolis.InfolisBaseTest;
@@ -57,31 +55,32 @@ public class InfolisPatternTest extends InfolisBaseTest {
 	@Test
 	public void testIsReliable() throws Exception {
 		int dataSize = contextStrings.size();
-		List<String> contexts_pattern = Arrays.asList(
-				"foO bar foO", "foO bar foO", "foO bar foO");
-		Set<String> reliableInstances = new HashSet<>();
-		Set<TextualReference> contexts_seed = new HashSet<>();
-		Map<String, Set<TextualReference>> contexts = new HashMap<>();;
+		//String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference
+		List<TextualReference> contexts_pattern = Arrays.asList(
+				new TextualReference("foO", "bar", "foO", "textfile1", "pattern", "ref"), 
+				new TextualReference("foO", "bar", "foO", "textfile2", "pattern", "ref"), 
+				new TextualReference("foO", "bar", "foO", "textfile3", "pattern", "ref"));
+		Set<String> reliableInstanceTerms = new HashSet<>();
+		Set<Instance> reliableInstances = new HashSet<>();
+		Set<TextualReference> contexts = new HashSet<>();;
 		Reliability r = new Reliability();
 		String seed = "bar";
-		reliableInstances.add(seed);
-		r.setSeedInstances(reliableInstances);
+		reliableInstanceTerms.add(seed);
+		r.setSeedTerms(reliableInstanceTerms);
 
 		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", "pattern","ref");
 		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", "pattern","ref");
 		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", "pattern","ref");
 		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", "pattern","ref");
 		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", "pattern","ref");
-		
-		contexts_seed.add(context_bar_0);
-		contexts_seed.add(context_bar_1);
-		contexts_seed.add(context_bar_2);
-		contexts_seed.add(context_bar_3);
-		contexts_seed.add(context_bar_4);
-		
-		contexts.put(seed, contexts_seed);
-
+		contexts.add(context_bar_0);
+		contexts.add(context_bar_1);
+		contexts.add(context_bar_2);
+		contexts.add(context_bar_3);
+		contexts.add(context_bar_4);
 		Instance bar = new Instance(seed);
+		bar.setTextualReferences(contexts);
+		reliableInstances.add(bar);
 		
 		double p_x = 5 / 10.0; // "bar" occurs 5 times as instance in all data
 		double p_y = 3 / 10.0; // bar_patt occurs 3 times
@@ -93,8 +92,11 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		r.addInstance(bar);
 		r.addPattern(pat);
 		r.setMaxPmi(pmi_score);
+		pat.setTextualReferences(contexts_pattern);
+		
 		double expectedReliability = r.reliability(pat, "");
-		pat.isReliable(contexts_pattern, dataSize, reliableInstances, contexts, r);
+		
+		pat.isReliable(dataSize, reliableInstances, r);
 		assertEquals(expectedReliability, pat.getReliability(), 0.0);
 		log.debug("Expected reliability: " + expectedReliability);
 		log.debug("Computed reliability: " + pat.getReliability());

@@ -52,7 +52,6 @@ public class RegexUtils {
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 
 
-	//TODO: change name to denormalizeRegex or something similar...
 	/**
 	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their 
 	 * regular expressions.
@@ -60,7 +59,7 @@ public class RegexUtils {
 	 * @param string	input text where placeholders shall be replaced
 	 * @return			string with placeholders replaced by regular expressions
 	 */
-	public static String escapeRegex(String string)
+	public static String denormalizeRegex(String string)
 	{	
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
@@ -101,9 +100,7 @@ public class RegexUtils {
 	 * @param string	input text where placeholders shall be replaced and all literals quoted
 	 * @return			quoted regular expression string
 	 */
-	public static String normalizeAndEscapeRegex(String string)
-	{	//TODO: norm stuff is only needed when writing to and reading from arff files
-		//delete additional replacements
+	public static String normalizeAndEscapeRegex(String string) {	
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");
@@ -262,23 +259,6 @@ public class RegexUtils {
 		return seed.replace(":", "_").replace("\\", "_").replace("/", "_").replace("?",  "_").replace(">",  "_").replace("<",  "_");
 	}
 	
-			// TODO needed?
-//	/**
-//	 * Determines reliablity of instance based on instance ranking: if an instance is extracted by many 
-//	 * reliable patterns, it has a high reliability. Reliability of pattern: extracts many reliable instances 
-//	 * (in proportion to unreliable instances).
-//	 * 
-//	 * @param instance	the instance (dataset title) to be assessed
-//	 * @return			boolean value: reliablity score above threshold or not
-//	 */
-//	private double reliability_instance( String instance )
-//	{
-//		System.out.println("Checking if instance is reliable: " + instance);
-//		Reliability.Instance curInstance = this.reliability.instances.get(instance);
-//		return reliability(curInstance);
-//	}
-	//TODO: ADD INSTANCE FILTERING FOR GENERIC PATTERNS (need to substitute 
-    //google-based method there...)
     /**
      * Checks whether a given word is a stop word
      *

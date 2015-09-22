@@ -11,7 +11,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This is an extension of the {@link CentralFileResolver} but resolving from a
- * per-instance temporary directory instead of the directory returned by
+ * per-instance temporary directory at {@link InfolisConfig#getTmpFilePath()} 
+ * instead of the directory returned by
  * {@link InfolisConfig#getFileSavePath()}.
  * 
  * @author kba
@@ -25,7 +26,7 @@ public class TempFileResolver extends CentralFileResolver {
 
 	public TempFileResolver() {
 		try {
-			this.tempDir = Files.createTempDirectory("infolis-");
+			this.tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), "infolis-");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

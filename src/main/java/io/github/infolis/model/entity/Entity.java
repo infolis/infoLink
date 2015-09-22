@@ -1,9 +1,8 @@
 package io.github.infolis.model.entity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -12,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.TextualReference;
 
 /**
  * Class for all InFoLiS entities, e.g. patterns, datasets, publications.
@@ -28,7 +28,10 @@ public class Entity extends BaseModel {
     @XmlAttribute
     private String name;
     private String identifier;
-    private List<String> tags;    
+    private List<String> tags;  
+  //TODO use uris instead of TextualReference objects
+    //private Collection<String> textualReferences;
+    private Collection<TextualReference> textualReferences;
     
     //TODO: use entity identifier types
     public enum EntityIdentifierType { DOI, URL, STRING; }
@@ -45,6 +48,23 @@ public class Entity extends BaseModel {
 
     public String getName() {
         return this.name;
+    }
+    //TODO use uris instead of TextualReference objects
+    /*
+    public void setTextualReferences(Collection<String> uris) {
+    	this.textualReferences = uris;
+    }
+    
+    public Collection<String> getTextualReferences() {
+    	return this.textualReferences;
+    }*/
+    
+    public void setTextualReferences(Collection<TextualReference> textualReferences) {
+    	this.textualReferences = textualReferences;
+    }
+    
+    public Collection<TextualReference> getTextualReferences() {
+    	return this.textualReferences;
     }
 
     /**

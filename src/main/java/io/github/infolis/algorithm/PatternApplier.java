@@ -58,9 +58,11 @@ public class PatternApplier extends BaseAlgorithm {
 
         List<TextualReference> res = new ArrayList<>();
         for (String patternURI : this.getExecution().getPattern()) {
-            debug(log, patternURI);
+            //debug(log, patternURI);
+        	log.trace(patternURI);
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
-            debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
+            //debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
+            log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
 			// set upper limit for processing time - prevents stack overflow
@@ -89,13 +91,14 @@ public class PatternApplier extends BaseAlgorithm {
                 // curPat + "\n", true);
             }
             while (ltm.matched()) {
-                log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
                 String context = ltm.group();
                 String studyName = ltm.group(1).trim();
+                log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
+                log.debug("referenced study name: " + studyName);
 				// if studyname contains no characters: ignore
                 // TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
-                    log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+                    log.debug("Invalid study name \"" + studyName + "\". Searching for next match of pattern " + pattern.getPatternRegex());
                     ltm.run();
                     continue;
                 }
@@ -139,19 +142,20 @@ public class PatternApplier extends BaseAlgorithm {
 //					SearchTermPosition stp = new SearchTermPosition();
 //					stp.setDataStoreClient(getDataStoreClient());
 //					stp.setInputFileResolver(getInputFileResolver());
-                    List<TextualReference> con = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
-                    for (TextualReference oneContext : con) {
-                        oneContext.setPattern(pattern.getUri());
+                    List<TextualReference> references = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
+                    for (TextualReference ref : references) {
+                        ref.setPattern(pattern.getUri());
+                        log.debug("added reference: " + ref);
                     }
-                    res.addAll(con);
-                    log.debug("Added context.");
+                    res.addAll(references);
+                    log.trace("Added references.");
                 }
 
-                log.debug("Searching for next match of pattern " + pattern.getPatternRegex());
+                log.trace("Searching for next match of pattern " + pattern.getPatternRegex());
                 ltm.run();
             }
         }
-        log.debug("Done searching for patterns in " + file);
+        log.trace("Done searching for patterns in " + file);
         return res;
     }
 
@@ -159,7 +163,7 @@ public class PatternApplier extends BaseAlgorithm {
     public void execute() throws IOException {
         List<TextualReference> detectedContexts = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
-            log.debug("Input file URI: '{}'", inputFileURI);
+            log.trace("Input file URI: '{}'", inputFileURI);
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
@@ -180,14 +184,14 @@ public class PatternApplier extends BaseAlgorithm {
                     algo.run();
                     // Set the inputFile to the file we just created
                     InfolisFile convertedInputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
-                    log.trace("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());
+                    log.debug("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());
                     log.trace("Content: " + IOUtils.toString(algo.getInputFileResolver().openInputStream(convertedInputFile)));
                     inputFile = convertedInputFile;
                 } else {
                     throw new RuntimeException(getClass() + " execution / inputFiles " + "Can only search through text files or PDF files");
                 }
             }
-            log.debug("Start extracting from '{}'.", inputFile);
+            log.trace("Start extracting from '{}'.", inputFile);
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
 
@@ -197,7 +201,7 @@ public class PatternApplier extends BaseAlgorithm {
         }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        log.debug("No context found: {}", getExecution().getStudyContexts().size());
+        log.debug("No. contexts found: {}", getExecution().getStudyContexts().size());
     }
 
     @Override

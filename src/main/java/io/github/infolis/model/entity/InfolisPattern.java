@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.infolis.model.TextualReference;
 import java.util.HashMap;
 
 /**
@@ -224,8 +223,8 @@ public class InfolisPattern extends Entity {
         return patternSet;
     }
     
-    public boolean isReliable(List<String> contexts_pattern, int dataSize, Set<String> reliableInstances, Map<String, Set<TextualReference>> contexts_seeds, Reliability r) throws IOException, ParseException {
-    	this.setReliability(r.computeReliability(contexts_pattern, dataSize, reliableInstances, contexts_seeds, this));
+    public boolean isReliable(int dataSize, Set<Instance> reliableInstances, Reliability r) throws IOException, ParseException {
+    	this.reliability = r.computeReliability(dataSize, reliableInstances, this);
         if (this.getReliability() >= this.getThreshold()) {
             return true;
         } else {
@@ -257,9 +256,10 @@ public class InfolisPattern extends Entity {
     /**
      * @param reliability the reliability to set
      */
+    /*
     public void setReliability(double reliability) {
         this.reliability = reliability;
-    }
+    }*/
 
     
     /**

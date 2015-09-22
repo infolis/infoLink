@@ -3,6 +3,7 @@ package io.github.infolis;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,6 +59,8 @@ public class InfolisConfig {
 		// Load default config
 		try {
 			InputStream inStream = InfolisConfig.class.getClassLoader().getResourceAsStream(CONFIG_PROPERTIES_NAME);
+			String classPath = InfolisConfig.class.getClassLoader().getResource(CONFIG_PROPERTIES_NAME).getFile().toString();
+			log.debug("Classpath: " + classPath);
 			prop.load(inStream);
 		} catch (IOException | NullPointerException e) {
 			System.err.println("Couldn't load properties from classpath, deployment broken.");
@@ -90,6 +93,9 @@ public class InfolisConfig {
 		if (!Files.exists(getFileSavePath())) {
 			Files.createDirectories(getFileSavePath());
 		}
+		if (!Files.exists(getTmpFilePath())) {
+			Files.createDirectories(getTmpFilePath());
+		}
 	}
 
 	/**
@@ -99,6 +105,16 @@ public class InfolisConfig {
 	 */
 	public static Path getFileSavePath() {
 		Path path = Paths.get(INSTANCE.prop.getProperty("fileSavePath"));
+		return path;
+	}
+	
+	/**
+	 * Property "tmpFilePath"
+	 * 
+	 * @return {@link Path} to the directory where temporary files are to be saved
+	 */
+	public static Path getTmpFilePath() {
+		Path path = Paths.get(INSTANCE.prop.getProperty("tmpFilePath"));
 		return path;
 	}
 

@@ -9,7 +9,6 @@ import io.github.infolis.infolink.patternLearner.Reliability;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -19,8 +18,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.lucene.queryParser.ParseException;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.github.infolis.model.TextualReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,7 @@ public class Instance extends Entity {
     @XmlAttribute
     private String number;
     private Map<String, Double> associations = new HashMap<>();
+    private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
     
     public Instance() {
@@ -48,6 +48,13 @@ public class Instance extends Entity {
     
     public Instance(String name) {
     	super(name);
+    }
+    
+    /**
+     * Set reliability to 1.0 for manually selected seed instances.
+     */
+    public void setIsSeed() {
+    	this.reliability = 1.0;
     }
     
     /**
@@ -64,9 +71,13 @@ public class Instance extends Entity {
         this.number = number;
     }
     
-    public boolean isReliable(Set<TextualReference> contexts_patterns, int dataSize, Set<String> reliablePatterns, Map<String, Set<TextualReference>> contexts_seeds, Reliability r, double threshold) throws IOException, ParseException {
-    	double instanceReliability = r.computeReliability(contexts_patterns, dataSize, reliablePatterns, contexts_seeds, this);
-        if (instanceReliability >= threshold) {
+    public double getReliability() {
+    	return this.reliability;
+    }
+    
+    public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
+    	this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
+        if (this.getReliability() >= threshold) {
             return true;
         } else {
             return false;

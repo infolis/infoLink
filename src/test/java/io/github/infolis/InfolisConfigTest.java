@@ -3,7 +3,6 @@ package io.github.infolis;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;

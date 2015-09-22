@@ -5,17 +5,17 @@
  */
 package io.github.infolis.algorithm;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.tagger.Tagger;
 import io.github.infolis.model.Chunk;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.LimitedTimeMatcher;
-import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package io.github.infolis.ws.server;
+package io.github.infolis;
 
 import java.io.IOException;
 import java.io.InputStream;

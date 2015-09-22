@@ -1,7 +1,7 @@
 package io.github.infolis.util;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.StringReader;

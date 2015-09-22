@@ -2,6 +2,7 @@ package io.github.infolis.ws.server;
 
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;

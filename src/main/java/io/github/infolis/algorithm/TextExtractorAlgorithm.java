@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -11,7 +12,6 @@ import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
-import io.github.infolis.ws.server.InfolisConfig;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -80,7 +80,6 @@ class CentralFileResolver implements FileResolver {
 
 	@Override
 	public InputStream openInputStream(InfolisFile inputFile) throws IOException{
-		log.debug("FNAPP: {}", inputFile.getMd5());
 		return openInputStream(inputFile.getMd5());
 	}
 

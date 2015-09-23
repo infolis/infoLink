@@ -27,7 +27,7 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
-        execution.setQueryForQueryService("?q=title:ALLBUS");
+        execution.setSearchQuery("?q=title:ALLBUS");
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         

@@ -161,16 +161,16 @@ public class SearchTermPosition extends BaseAlgorithm
 					
 					// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
 					getOutputDataStoreClient().post(TextualReference.class, sC);
-					getExecution().getStudyContexts().add(sC.getUri());
+					getExecution().getTextualReferences().add(sC.getUri());
 				}
 			}
-			getExecution().getMatchingFilenames().add(file.getUri());
+			getExecution().getMatchingFiles().add(file.getUri());
 		}
 		searcher.close();
 		Indexer.createAnalyzer().close();
 		IndexReader.open(FSDirectory.open(new File(indexExecution.getOutputDirectory()))).close();
 		FSDirectory.open(new File(indexExecution.getOutputDirectory())).close();
-		log.debug("number of extracted contexts: " + getExecution().getStudyContexts().size());
+		log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
 		log.debug("Finished SearchTermPosition#execute");
 	}
 	

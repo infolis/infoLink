@@ -7,6 +7,7 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -123,7 +124,7 @@ protected void printFileNameOfContext(TextualReference sc) throws BadRequestExce
     public List<String> searchPattern(List<String> pattern, List<String> input) {
         Execution search = new Execution();
         search.setAlgorithm(PatternApplier.class);
-        search.setPattern(pattern);
+        search.setPatternUris(pattern);
         search.setInputFiles(input);
         dataStoreClient.post(Execution.class, search);
         Algorithm algo = search.instantiateAlgorithm(dataStoreClient, fileResolver);
@@ -135,14 +136,14 @@ protected void printFileNameOfContext(TextualReference sc) throws BadRequestExce
 		}
         
         ArrayList<TextualReference> contextList = new ArrayList<>();
-        for (String uri : search.getStudyContexts()) {
+        for (String uri : search.getTextualReferences()) {
             contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
         for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
         }
         
-        return search.getStudyContexts();
+        return search.getTextualReferences();
     }
 
     public List<String> searchSeed(String seed, List<String> input) {
@@ -156,14 +157,14 @@ protected void printFileNameOfContext(TextualReference sc) throws BadRequestExce
         algo.run();
         
         ArrayList<TextualReference> contextList = new ArrayList<>();
-        for (String uri : search.getStudyContexts()) {
+        for (String uri : search.getTextualReferences()) {
             contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
         for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
         }
         
-        return search.getStudyContexts();
+        return search.getTextualReferences();
     }
 
     public List<String> pdf2txt(File dir) throws IOException {
@@ -212,24 +213,24 @@ protected void printFileNameOfContext(TextualReference sc) throws BadRequestExce
         Execution bootstrapping = new Execution();
         bootstrapping.setAlgorithm(FrequencyBasedBootstrapping.class);
 
-        bootstrapping.getTerms().add("ALLBUS");
+        bootstrapping.getSeeds().add("ALLBUS");
         bootstrapping.setInputFiles(input);
         bootstrapping.setSearchTerm("ALLBUS");
         bootstrapping.setMaxIterations(4);
-        bootstrapping.setThreshold(0.1);
-        bootstrapping.setBootstrapStrategy(Execution.Strategy.mergeAll);
+        bootstrapping.setReliabilityThreshold(0.1);
+        bootstrapping.setBootstrapStrategy(BootstrapStrategy.mergeAll);
         dataStoreClient.post(Execution.class, bootstrapping);
 
         Algorithm algo3 = bootstrapping.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo3.run();
 
         ArrayList<InfolisPattern> patternList = new ArrayList<>();
-        for (String uri : bootstrapping.getPattern()) {
+        for (String uri : bootstrapping.getPatterns()) {
             patternList.add(dataStoreClient.get(InfolisPattern.class, uri));
         }
 
         ArrayList<TextualReference> contextList = new ArrayList<>();
-        for (String uri : bootstrapping.getStudyContexts()) {
+        for (String uri : bootstrapping.getTextualReferences()) {
             contextList.add(dataStoreClient.get(TextualReference.class, uri));
         }
         for (TextualReference sc : contextList) {
@@ -241,10 +242,7 @@ protected void printFileNameOfContext(TextualReference sc) throws BadRequestExce
             System.out.println("pattern: " + p.getPatternRegex());
         }
 
-        for (String uri : bootstrapping.getStudies()) {
-            System.out.println("study: " + uri);
-        }
-        return bootstrapping.getPattern();
+        return bootstrapping.getPatterns();
     }
 
 }

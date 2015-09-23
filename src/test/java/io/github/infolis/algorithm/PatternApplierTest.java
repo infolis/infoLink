@@ -69,7 +69,7 @@ public class PatternApplierTest extends InfolisBaseTest {
 	public void testPatternApplierWithPdf() throws Exception {
 
 		Execution execution = new Execution();
-		execution.getPattern().add(testPattern.getUri());
+		execution.getPatterns().add(testPattern.getUri());
 		execution.setAlgorithm(PatternApplier.class);
 		execution.getInputFiles().addAll(pdfUris);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
@@ -78,17 +78,17 @@ public class PatternApplierTest extends InfolisBaseTest {
 		// find the contexts of "FOOBAR" and "term" (see also
 		// FrequencyBasedBootstrappingTest)
 		log.debug("LOG: {}", execution.getLog());
-		for (TextualReference sc: dataStoreClient.get(TextualReference.class, execution.getStudyContexts())) {
+		for (TextualReference sc: dataStoreClient.get(TextualReference.class, execution.getTextualReferences())) {
 			log.debug("Study Context: {}", sc);
 		}
-		assertEquals(3, execution.getStudyContexts().size());
+		assertEquals(3, execution.getTextualReferences().size());
 	}
 
 	@Test
 	public void testPatternApplier() throws Exception {
 
 		Execution execution = new Execution();
-		execution.getPattern().add(testPattern.getUri());
+		execution.getPatterns().add(testPattern.getUri());
 		execution.setAlgorithm(PatternApplier.class);
 		execution.getInputFiles().addAll(textUris);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
@@ -97,7 +97,7 @@ public class PatternApplierTest extends InfolisBaseTest {
 		// find the contexts of "FOOBAR" and "term" (see also
 		// FrequencyBasedBootstrappingTest)
 		log.debug("LOG: {}", execution.getLog());
-		assertEquals(3, execution.getStudyContexts().size());
+		assertEquals(3, execution.getTextualReferences().size());
 	}
 
 }

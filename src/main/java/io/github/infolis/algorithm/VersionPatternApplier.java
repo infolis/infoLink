@@ -45,7 +45,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
-        for (String patternURI : this.getExecution().getPattern()) {
+        for (String patternURI : this.getExecution().getPatterns()) {
 
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
@@ -86,11 +86,11 @@ public class VersionPatternApplier extends BaseAlgorithm {
 
         for (Instance s : detectedStudies) {
             getOutputDataStoreClient().post(Instance.class, s);
-            this.getExecution().getStudyContexts().add(s.getUri());
+            this.getExecution().getTextualReferences().add(s.getUri());
         }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        log.debug("No study found: {}", getExecution().getStudyContexts().size());
+        log.debug("No study found: {}", getExecution().getTextualReferences().size());
     }
 
     @Override

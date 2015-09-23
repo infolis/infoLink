@@ -4,6 +4,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.entity.SearchResult;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     public void execute() throws IOException {
         List<SearchResult> allResults = new ArrayList<>();
 
-        String queryString = getExecution().getQueryForQueryService();
+        String queryString = getExecution().getSearchQuery();
         for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
             List<SearchResult> results = queryService.executeQuery(queryString);
             allResults.addAll(results);
@@ -37,7 +38,7 @@ public class FederatedSearcher extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == getExecution().getQueryForQueryService()) {
+        if (null == getExecution().getSearchQuery()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "Required parameter 'query for query service' is missing!");
         }
         if (null == getExecution().getQueryServices() || getExecution().getQueryServices().isEmpty()) {

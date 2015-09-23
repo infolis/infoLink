@@ -8,6 +8,7 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.*;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -87,15 +88,15 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 	public void testReliabilityBasedBootstrapping() throws Exception {
 		Execution execution = new Execution();
 		execution.setAlgorithm(ReliabilityBasedBootstrapping.class);
-		execution.getTerms().addAll(terms);
+		execution.getSeeds().addAll(terms);
 		execution.setInputFiles(uris);
-		execution.setThreshold(-0.0);
-		execution.setBootstrapStrategy(Execution.Strategy.reliability);
+		execution.setReliabilityThreshold(-0.0);
+		execution.setBootstrapStrategy(BootstrapStrategy.reliability);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
 		algo.run();
 
-		assertTrue("StudyContexts must not be empty!", execution.getStudyContexts().size() > 0);
-		for (String s : execution.getStudyContexts()) {
+		assertTrue("StudyContexts must not be empty!", execution.getTextualReferences().size() > 0);
+		for (String s : execution.getTextualReferences()) {
 			TextualReference studyContext = dataStoreClient.get(TextualReference.class, s);
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());

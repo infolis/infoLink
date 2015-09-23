@@ -1,21 +1,15 @@
 package io.github.infolis.algorithm;
 
-import static io.github.infolis.algorithm.DaraLinker.complexNumericInfoRegex;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.Instance;
-import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +30,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
 
-        String tr = getExecution().getTextualReference();
+        String tr = getExecution().getTextualReferences().get(0);
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
         
         debug(log, "Start to build query from texteual reference %s", ref);
@@ -50,7 +44,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         SearchQuery squery = new SearchQuery();
         squery.setQuery(query);        
         getOutputDataStoreClient().post(SearchQuery.class, squery);
-        getExecution().setQueryForQueryService(squery.getUri());        
+        getExecution().setSearchQuery(squery.getUri());        
         getExecution().setStatus(ExecutionStatus.FINISHED);
         persistExecution();
     }
@@ -86,7 +80,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
  
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-         if (null == getExecution().getTextualReference()) {
+         if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "textualReference", "Required parameter 'textual reference' is missing!");
         } 
     }

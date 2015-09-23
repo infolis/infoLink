@@ -7,6 +7,7 @@ import io.github.infolis.algorithm.FrequencyBasedBootstrapping;
 import io.github.infolis.algorithm.SearchTermPositionTest;
 import io.github.infolis.algorithm.SearchTermPositionTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -51,18 +52,19 @@ public class LearnerTest extends InfolisBaseTest {
 		}
 	}
 	
-    void testBootstrapping(Class<? extends Algorithm> algorithm, Execution.Strategy strategy, double threshold, Set<String> expectedStudies, Set<String> expectedPatterns, Set<String> expectedContexts) throws Exception {
+    void testBootstrapping(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> expectedStudies, Set<String> expectedPatterns, Set<String> expectedContexts) throws Exception {
     	Execution execution = new Execution();
         execution.setAlgorithm(algorithm);
-        execution.getTerms().addAll(terms);
+        execution.getSeeds().addAll(terms);
         execution.setInputFiles(uris);
         execution.setSearchTerm(terms.get(0));
-        execution.setThreshold(threshold);
+        execution.setReliabilityThreshold(threshold);
         execution.setBootstrapStrategy(strategy);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         //TODO: use this when URIs are posted in FrequencyBasedBootstrapping instead of the term string
         //assertEquals(expectedStudies, getTerms(execution.getStudies()));
-        assertEquals(expectedStudies, new HashSet<>(execution.getStudies()));
+        // TODO replace, since exeution.getStudies() is gone
+//        assertEquals(expectedStudies, new HashSet<>(execution.getStudies()));
         // TODO @bolandka Expected 2 patterns, got only 1) is missing the '.the term .' version
 //        assertEquals(expectedPatterns, getRegex(execution.getPattern()));
 //        assertEquals(expectedContexts, getContextStrings(execution.getStudyContexts()));
@@ -98,13 +100,13 @@ public class LearnerTest extends InfolisBaseTest {
     
     private class ExpectedOutput {
     	Class<? extends Algorithm> algorithm;
-    	Execution.Strategy strategy;
+    	BootstrapStrategy strategy;
     	double threshold;
     	Set<String> studies;
     	Set<String> patterns;
     	Set<String> contexts;
     	
-    	ExpectedOutput(Class<? extends Algorithm> algorithm, Execution.Strategy strategy, double threshold, Set<String> studies, Set<String> patterns, Set<String> contexts) {
+    	ExpectedOutput(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> studies, Set<String> patterns, Set<String> contexts) {
     		this.algorithm = algorithm;
     		this.strategy = strategy;
     		this.threshold = threshold;
@@ -157,10 +159,10 @@ public class LearnerTest extends InfolisBaseTest {
     	
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeCurrent, 0.45, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeNew, 0.45, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, Execution.Strategy.mergeAll, 0.45, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)//,
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeCurrent, 0.45, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeNew, 0.45, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeAll, 0.45, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)//,
     			//new ExpectedOutput(ReliabilityBasedBootstrapping.class, Execution.Strategy.reliability, 0.4, expectedStudies_reliability, expectedPatterns_reliability, expectedContexts_reliability)
     	));
     	return expectedOutput;

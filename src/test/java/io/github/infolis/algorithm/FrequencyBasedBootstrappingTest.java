@@ -8,6 +8,7 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -57,20 +58,20 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	 * @param strategy
 	 * @throws Exception
 	 */
-	void testFrequencyBasedBootstrapping(Execution.Strategy strategy) throws Exception {
+	void testFrequencyBasedBootstrapping(BootstrapStrategy strategy) throws Exception {
 
 		Execution execution = new Execution();
 		execution.setAlgorithm(FrequencyBasedBootstrapping.class);
-		execution.getTerms().addAll(terms);
+		execution.getSeeds().addAll(terms);
 		execution.setInputFiles(uris);
 		execution.setSearchTerm(terms.get(0));
-		execution.setThreshold(0.0);
+		execution.setReliabilityThreshold(0.0);
 		execution.setBootstrapStrategy(strategy);
 		
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
 
-		for (String s : execution.getStudyContexts()) {
+		for (String s : execution.getTextualReferences()) {
 			TextualReference studyContext = dataStoreClient.get(TextualReference.class, s);
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
@@ -84,10 +85,10 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	@Test
 	public void testBootstrapping_basic() throws Exception {
 
-		testFrequencyBasedBootstrapping(Execution.Strategy.separate);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeCurrent);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeNew);
-		testFrequencyBasedBootstrapping(Execution.Strategy.mergeAll);
+		testFrequencyBasedBootstrapping(BootstrapStrategy.separate);
+		testFrequencyBasedBootstrapping(BootstrapStrategy.mergeCurrent);
+		testFrequencyBasedBootstrapping(BootstrapStrategy.mergeNew);
+		testFrequencyBasedBootstrapping(BootstrapStrategy.mergeAll);
 	}
 
 }

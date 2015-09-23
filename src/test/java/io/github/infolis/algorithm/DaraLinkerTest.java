@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
@@ -136,12 +137,12 @@ public class DaraLinkerTest extends InfolisBaseTest {
 	public List<String> generateTestContexts() {
 		Execution execution = new Execution();
 		execution.setAlgorithm(FrequencyBasedBootstrapping.class);
-		execution.getTerms().add("Studierendensurvey");
+		execution.getSeeds().add("Studierendensurvey");
 		execution.setInputFiles(uris);
-		execution.setThreshold(0.0);
-		execution.setBootstrapStrategy(Execution.Strategy.mergeAll);
+		execution.setReliabilityThreshold(0.0);
+		execution.setBootstrapStrategy(BootstrapStrategy.mergeAll);
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		return execution.getStudyContexts();
+		return execution.getTextualReferences();
 	}
 
 	@Test
@@ -151,7 +152,7 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		List<String> contextURIs = generateTestContexts();
 		Execution execution = new Execution();
 		execution.setAlgorithm(DaraLinker.class);
-		execution.setStudyContexts(contextURIs);
+		execution.setTextualReferences(contextURIs);
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		List<EntityLink> links = dataStoreClient.get(EntityLink.class, execution.getLinks());
 		Map<String, Set<String>> generatedLinks = new HashMap<>();

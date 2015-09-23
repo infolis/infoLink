@@ -350,7 +350,7 @@ public class Resolver extends BaseAlgorithm {
         List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> results = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
         
-        String textRefURI = getExecution().getTextualReference();
+        String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
         //check which search results fit 
         Map<SearchResult,Double> resultValues = new HashMap<>();
@@ -406,8 +406,8 @@ public class Resolver extends BaseAlgorithm {
         if (null == getExecution().getSearchResults()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "searchResults", "Required parameter 'search results' is missing!");
         }
-        if (null == getExecution().getTextualReference()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "textualReference", "Required parameter 'textual reference' is missing!");
+        if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "textualReferences", "Required parameter 'textual reference' is missing!");
         }
     }
 

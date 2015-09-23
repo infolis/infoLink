@@ -4,8 +4,8 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.Execution.Strategy;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.File;
@@ -123,19 +123,19 @@ public class Learner extends BaseAlgorithm {
     private List<String> bootstrap() throws IOException, ParseException {
         Execution e = new Execution();
         e.setBootstrapStrategy(this.getExecution().getBootstrapStrategy());
-        if (this.getExecution().getBootstrapStrategy().equals(Strategy.reliability)) {
+        if (this.getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)) {
         	e.setAlgorithm(ReliabilityBasedBootstrapping.class); 
         }
         else { e.setAlgorithm(FrequencyBasedBootstrapping.class); }
         e.setInputFiles(this.getExecution().getInputFiles());
-        e.setTerms(this.getExecution().getTerms());
-        e.setThreshold(this.getExecution().getThreshold());
+        e.setSeeds(this.getExecution().getSeeds());
+        e.setReliabilityThreshold(this.getExecution().getReliabilityThreshold());
         e.setMaxIterations(this.getExecution().getMaxIterations());
         e.setUpperCaseConstraint(this.getExecution().isUpperCaseConstraint());
         Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         algorithm.run();
         log.debug("input files: " + this.getExecution().getInputFiles());
-        return e.getStudyContexts();
+        return e.getTextualReferences();
     }
 
 
@@ -145,7 +145,7 @@ public class Learner extends BaseAlgorithm {
     		//TODO more than one root directory may be given as input corpus...
         	getExecution().setInputFiles(getInputCorpus(new File(getExecution().getFirstInputFile())));
     		List<String> contextURIs = bootstrap();
-    		getExecution().setStudyContexts(contextURIs);
+    		getExecution().setTextualReferences(contextURIs);
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		} catch (Exception e) {
 			log.error("Error executing Learner: " + e);

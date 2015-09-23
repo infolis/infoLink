@@ -49,7 +49,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         int numIter = 1;
         Set<Instance> seeds = new HashSet<>();
         Set<String> seedTerms = new HashSet<>();
-        seedTerms.addAll(getExecution().getTerms());
+        seedTerms.addAll(getExecution().getSeeds());
         this.r.setSeedTerms(seedTerms); 
         Map<String, Double> lastTopK = new HashMap<>();
         //Set<TextualReference> contextsOfReliablePatterns = new HashSet<>();
@@ -80,7 +80,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             r.deleteScoreCache();
 
             // Pattern Induction 
-            double threshold = getExecution().getThreshold();
+            double threshold = getExecution().getReliabilityThreshold();
             Double[] thresholds = new Double[9];
             // use equal threshold for all candidates
             Arrays.fill(thresholds, threshold);
@@ -128,7 +128,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
                 // considered as new instance here
-                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getThreshold())) {
+                if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getReliabilityThreshold())) {
                     seeds.add(newInstance);
                 }
                 log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
@@ -187,10 +187,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         execution.setSearchTerm(seed);
         execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
         execution.setInputFiles(getExecution().getInputFiles());
-        execution.setThreshold(getExecution().getThreshold());
+        execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
         Algorithm algo = execution.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         algo.run();
-        return execution.getStudyContexts();
+        return execution.getTextualReferences();
     }
 
     /**
@@ -248,13 +248,13 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
          */
         private List<String> extractContexts(InfolisPattern pattern) {
             Execution execution_pa = new Execution();
-            execution_pa.getPattern().add(pattern.getUri());
+            execution_pa.getPatterns().add(pattern.getUri());
             execution_pa.setAlgorithm(PatternApplier.class);
             execution_pa.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
             execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
             Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
             algo.run();
-            return execution_pa.getStudyContexts();
+            return execution_pa.getTextualReferences();
         }
 
         /**
@@ -307,7 +307,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                         // this returns all top k patterns above the threshold 
                         //TODO: start with small k and increase with each iteration
                         //TODO: at the same time, decrease thresholds slightly
-                        this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getThreshold()), 100);
+                        this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getReliabilityThreshold()), 100);
                         processedMinimals_iteration.add(candidate.getMinimal());
                         break; // this prohibits induction of less general patterns 
                         // and equally general pattern of the other type (e.g. candidate2 vs. candidateB)
@@ -392,8 +392,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
 
         for (TextualReference sC : detectedContexts) {
             getOutputDataStoreClient().post(TextualReference.class, sC);
-            this.getExecution().getStudyContexts().add(sC.getUri());
-            this.getExecution().getPattern().add(sC.getPattern());
+            this.getExecution().getTextualReferences().add(sC.getUri());
+            this.getExecution().getPatterns().add(sC.getPattern());
         }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
@@ -404,8 +404,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         //TODO: warn when standard values are used (threshold, maxIterations not specified)
         //TODO: warn when superfluous parameters are specified
         //TODO: BaseAlgorithm: bootstrapStrategy wrong in case of r. based bootstrapping...
-        if (null == this.getExecution().getTerms()
-                || this.getExecution().getTerms().isEmpty()) {
+        if (null == this.getExecution().getSeeds()
+                || this.getExecution().getSeeds().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one term as seed!");
         }
         if (null == this.getExecution().getInputFiles()

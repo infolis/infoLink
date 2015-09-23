@@ -175,7 +175,7 @@ public class DaraLinker extends BaseAlgorithm {
 	public void execute() throws IOException {
 		try {
 			// TODO: post links etc.
-			List<String> contexts = getExecution().getStudyContexts();
+			List<String> contexts = getExecution().getTextualReferences();
 			debug(log, "Linking " + String.valueOf(contexts.size()) + " contexts.");
 			List<EntityLink> studyLinks = createLinks(contexts);                        
                         List<String> linkURIs = new ArrayList<>();

@@ -1,6 +1,10 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.FederatedSearcher;
+import io.github.infolis.algorithm.Learner;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 
@@ -9,7 +13,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.sun.research.ws.wadl.Link;
-import io.github.infolis.model.entity.EntityLink;
-import io.github.infolis.model.entity.SearchResult;
 
 /**
  *
@@ -34,132 +34,13 @@ public class Execution extends BaseModel {
 
 	private static final Logger logger = LoggerFactory.getLogger(Execution.class);
 
-    /**
-     * @return the textualReference
-     */
-    public String getTextualReference() {
-        return textualReference;
-    }
-
-    /**
-     * @param textualReference the textualReference to set
-     */
-    public void setTextualReference(String textualReference) {
-        this.textualReference = textualReference;
-    }
-
-    /**
-     * @return the queryForQueryService
-     */
-    public String getQueryForQueryService() {
-        return queryForQueryService;
-    }
-
-    /**
-     * @param queryForQueryService the queryForQueryService to set
-     */
-    public void setQueryForQueryService(String queryForQueryService) {
-        this.queryForQueryService = queryForQueryService;
-    }
-
-    /**
-     * @return the searchResults
-     */
-    public List<String> getSearchResults() {
-        return searchResults;
-    }
-
-    /**
-     * @param searchResults the searchResults to set
-     */
-    public void setSearchResults(List<String> searchResults) {
-        this.searchResults = searchResults;
-    }
-
-    /**
-     * @return the queryServices
-     */
-    public List<String> getQueryServices() {
-        return queryServices;
-    }
-
-    /**
-     * @param queryServices the queryServices to set
-     */
-    public void setQueryServices(List<String> queryServices) {
-        this.queryServices = queryServices;
-    }
-
-    /**
-     * @return the links
-     */
-    public List<String> getLinks() {
-        return links;
-    }
-
-    /**
-     * @param links the links to set
-     */
-    public void setLinks(List<String> links) {
-        this.links = links;
-    }
-
-	public enum Strategy {
-		mergeCurrent, mergeNew, mergeAll, separate, reliability;
-	}
-
-	private Class<? extends Algorithm> algorithm;
-	private ExecutionStatus status = ExecutionStatus.PENDING;
-	private List<String> log = new ArrayList<>();
-	private Date startTime;
-	private Date endTime;
-
 	//
-	// Parameters
 	//
-	private List<String> inputFiles = new ArrayList<>();
-	private List<String> outputFiles = new ArrayList<>();
-	// TextExtractor
-	private boolean removeBib = false;
-	private String outputDirectory = "";
-
-	// SearchTermPosition
-	private int phraseSlop = 10;
-	private boolean allowLeadingWildcards = true;
-	private int maxClauseCount = Integer.MAX_VALUE;
-	private String searchTerm;
-	private String searchQuery;
-	private List<String> studyContexts = new ArrayList<>();
-	private List<String> matchingFilenames = new ArrayList<>();
-	private List<String> studies = new ArrayList<>();
-	private boolean overwrite = false;
-	private List<String> pattern = new ArrayList<>();
-	private boolean upperCaseConstraint = false;
-	private boolean requiresContainedInNP = false;
-	private List<String> terms = new ArrayList<>();
-	private int maxIterations = 10;
-	private double threshold = 0.8;
-	// private Strategy bootstrapStrategy = Strategy.separate;
-	private Strategy bootstrapStrategy = Strategy.mergeAll;
-	private String inputMediaType = null;
-	private String outputMediaType = null;
-
-	// Resolver
-	private List<String> links;
-        
-        //MetaDataExtractor
-        private String textualReference;
-        private String queryForQueryService;
-                
-        //FederatedSearcher
-        private List<String> queryServices;
-        private List<String> searchResults;
-        
-        
-        
 	//
-	// CONSTRUCTORS
-	// /
+	// CONSTRUCTORS AND METHODS
+	//
+	//
+	//
 
 	public Execution() {
 	}
@@ -205,7 +86,153 @@ public class Execution extends BaseModel {
 	}
 
 	//
+	//
+	//
+	// EXECUTION ATTRIBUTES
+	//
+	//
+	//
+
+	/**
+	 * {@link Algorithm to execute}
+	 */
+	private Class<? extends Algorithm> algorithm;
+
+	/**
+	 * {@link ExecutionStatus} of the execution.
+	 */
+	private ExecutionStatus status = ExecutionStatus.PENDING;
+
+	/**
+	 * Log messages of this execution.
+	 */
+	private List<String> log = new ArrayList<>();
+
+	/**
+	 * Timestamp when execution started.
+	 */
+	private Date startTime;
+
+	/**
+	 * Timestamp when execution ended.
+	 */
+	private Date endTime;
+
+	//
+	//
+	//
+	// Parameters
+	//
+	//
+	//
+
+	/**
+	 * Input files {@link Learner} ...
+	 */
+	private List<String> inputFiles = new ArrayList<>();
+
+	/**
+	 * Output files {@link SearchTermPosition}
+	 */
+	private List<String> outputFiles = new ArrayList<>();
+
+	/**
+	 * Whether to remove bibliographies from text/plain articles.
+	 * {@link TextExtractor}
+	 */
+	private boolean removeBib = false;
+
+	/**
+	 * Output directory of the indexer. {@link SearchTermPosition}
+	 * {@link TextExtractorAlgorithm}
+	 */
+	private String outputDirectory = "";
+
+	/**
+	 * {@link SearchTermPosition}
+	 */
+	private int phraseSlop = 10;
+
+	/**
+	 * {@link SearchTermPosition}
+	 */
+	private boolean allowLeadingWildcards = true;
+
+	/**
+	 * {@link SearchTermPosition}
+	 */
+	private int maxClauseCount = Integer.MAX_VALUE;
+
+	/**
+	 * {@link SearchTermPosition}
+	 */
+	private String searchTerm;
+
+	/**
+	 * {@link SearchTermPosition} {@link FederatedSearcher}
+	 */
+	private String searchQuery;
+
+	/**
+	 * {@link Learner} {@link FederatedSearcher}
+	 */
+	private List<String> textualReferences = new ArrayList<>();
+
+	/**
+	 * {@link SearchTermPosition}
+	 */
+	private List<String> matchingFiles = new ArrayList<>();
+
+	// TODO Plural
+	private List<String> patterns = new ArrayList<>();
+
+	// TODO @bolandka not used now, is it worth the computation?
+	private boolean upperCaseConstraint = false;
+	// TODO @bolandka not used now, is it worth the computation?
+	private boolean requiresContainedInNP = false;
+
+	/**
+	 * Seeds used for bootstrapping.
+	 */
+	private List<String> seeds = new ArrayList<>();
+
+	/**
+	 * Maximum number of iterations.
+	 */
+	private int maxIterations = 10;
+
+	/**
+	 * reliablityThreshold (perIteration)?
+	 */
+	private double reliabilityThreshold = 0.8;
+
+	/**
+	 * Strategy to use for bootstrapping.
+	 */
+	// private Strategy bootstrapStrategy = Strategy.separate;
+	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
+
+	/*
+	 * {@link Resolver}
+	 */
+	private List<String> links;
+
+	/**
+	 * {@link FederatedSearcher}
+	 */
+	private List<String> queryServices;
+
+	/**
+	 * {@link FederatedSearcher}
+	 */
+	private List<String> searchResults;
+
+	//
+	//
+	//
 	// GETTERS / SETTERS
+	//
+	//
 	//
 
 	public ExecutionStatus getStatus() {
@@ -216,9 +243,6 @@ public class Execution extends BaseModel {
 		this.status = status;
 	}
 
-	/**
-	 * @return a {@link List} of {@link String} log entries
-	 */
 	public List<String> getLog() {
 		return log;
 	}
@@ -357,147 +381,100 @@ public class Execution extends BaseModel {
 		this.searchQuery = searchQuery;
 	}
 
-	public List<String> getStudyContexts() {
-		return studyContexts;
+	public List<String> getTextualReferences() {
+		return textualReferences;
 	}
 
-	public void setStudyContexts(List<String> studyContexts) {
-		this.studyContexts = studyContexts;
+	public void setTextualReferences(List<String> textualReferences) {
+		this.textualReferences = textualReferences;
 	}
 
-	public boolean isOverwrite() {
-		return overwrite;
+	public List<String> getMatchingFiles() {
+		return matchingFiles;
 	}
 
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
+	public void setMatchingFiles(List<String> matchingFilenUris) {
+		this.matchingFiles = matchingFilenUris;
 	}
 
-	public List<String> getMatchingFilenames() {
-		return matchingFilenames;
+	public List<String> getPatterns() {
+		return patterns;
 	}
 
-	public void setMatchingFilenames(List<String> matchingFilenames) {
-		this.matchingFilenames = matchingFilenames;
+	public void setPatternUris(List<String> patternUris) {
+		this.patterns = patternUris;
 	}
 
-	/**
-	 * @return the pattern
-	 */
-	public List<String> getPattern() {
-		return pattern;
-	}
-
-	/**
-	 * @param pattern
-	 *            the pattern to set
-	 */
-	public void setPattern(List<String> pattern) {
-		this.pattern = pattern;
-	}
-
-	/**
-	 * @return the upperCaseConstraint
-	 */
 	public boolean isUpperCaseConstraint() {
 		return upperCaseConstraint;
 	}
 
-	/**
-	 * @param upperCaseConstraint
-	 *            the upperCaseConstraint to set
-	 */
 	public void setUpperCaseConstraint(boolean upperCaseConstraint) {
 		this.upperCaseConstraint = upperCaseConstraint;
 	}
 
-	/**
-	 * @return the requiresContainedInNP
-	 */
 	public boolean isRequiresContainedInNP() {
 		return requiresContainedInNP;
 	}
 
-	/**
-	 * @param requiresContainedInNP
-	 *            the requiresContainedInNP to set
-	 */
 	public void setRequiresContainedInNP(boolean requiresContainedInNP) {
 		this.requiresContainedInNP = requiresContainedInNP;
 	}
 
-	/**
-	 * @return the studies
-	 */
-	public List<String> getStudies() {
-		return studies;
+	public List<String> getLinks() {
+		return links;
 	}
 
-	/**
-	 * @param studies
-	 *            the studies to set
-	 */
-	public void setStudies(List<String> studies) {
-		this.studies = studies;
+	public List<String> getSeeds() {
+		return seeds;
 	}
 
-	/**
-	 * @return the terms
-	 */
-	public List<String> getTerms() {
-		return terms;
+	public void setSeeds(List<String> terms) {
+		this.seeds = terms;
 	}
 
-	/**
-	 * @param terms
-	 *            the terms to set
-	 */
-	public void setTerms(List<String> terms) {
-		this.terms = terms;
-	}
-
-	/**
-	 * @return the maxIterations
-	 */
 	public int getMaxIterations() {
 		return maxIterations;
 	}
 
-	/**
-	 * @param maxIterations
-	 *            the maxIterations to set
-	 */
 	public void setMaxIterations(int maxIterations) {
 		this.maxIterations = maxIterations;
 	}
 
-	/**
-	 * @return the threshold
-	 */
-	public double getThreshold() {
-		return threshold;
+	public double getReliabilityThreshold() {
+		return reliabilityThreshold;
 	}
 
-	/**
-	 * @param threshold
-	 *            the threshold to set
-	 */
-	public void setThreshold(double threshold) {
-		this.threshold = threshold;
+	public void setReliabilityThreshold(double threshold) {
+		this.reliabilityThreshold = threshold;
 	}
 
-	/**
-	 * @return the bootstrapStrategy
-	 */
-	public Strategy getBootstrapStrategy() {
+	public BootstrapStrategy getBootstrapStrategy() {
 		return bootstrapStrategy;
 	}
 
-	/**
-	 * @param bootstrapStrategy
-	 *            the bootstrapStrategy to set
-	 */
-	public void setBootstrapStrategy(Strategy bootstrapStrategy) {
+	public void setBootstrapStrategy(BootstrapStrategy bootstrapStrategy) {
 		this.bootstrapStrategy = bootstrapStrategy;
 	}
+
+	public List<String> getQueryServices() {
+		return queryServices;
+	}
+
+	public void setQueryServices(List<String> queryServices) {
+		this.queryServices = queryServices;
+	}
+
+	public List<String> getSearchResults() {
+		return searchResults;
+	}
+
+	public void setSearchResults(List<String> searchResults) {
+		this.searchResults = searchResults;
+	}
+
+	public void setLinks(List<String> links) {
+		this.links = links;
+	}
+
 }

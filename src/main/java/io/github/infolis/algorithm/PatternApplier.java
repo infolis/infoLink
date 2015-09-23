@@ -57,7 +57,7 @@ public class PatternApplier extends BaseAlgorithm {
         String inputClean = getFileAsString(file);
 
         List<TextualReference> res = new ArrayList<>();
-        for (String patternURI : this.getExecution().getPattern()) {
+        for (String patternURI : this.getExecution().getPatterns()) {
             //debug(log, patternURI);
         	log.trace(patternURI);
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
@@ -197,11 +197,11 @@ public class PatternApplier extends BaseAlgorithm {
 
         for (TextualReference sC : detectedContexts) {
             getOutputDataStoreClient().post(TextualReference.class, sC);
-            this.getExecution().getStudyContexts().add(sC.getUri());
+            this.getExecution().getTextualReferences().add(sC.getUri());
         }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        log.debug("No. contexts found: {}", getExecution().getStudyContexts().size());
+        log.debug("No. contexts found: {}", getExecution().getTextualReferences().size());
     }
 
     @Override
@@ -210,7 +210,7 @@ public class PatternApplier extends BaseAlgorithm {
                 || this.getExecution().getInputFiles().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if (null == this.getExecution().getPattern() || this.getExecution().getPattern().isEmpty()) {
+        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
             throw new IllegalArgumentException("No patterns given.");
         }
     }

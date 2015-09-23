@@ -29,7 +29,7 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
         Assume.assumeNotNull(System.getProperty("gesisRemoteTest")); 
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
-        execution.setQueryForQueryService("?q=title:Studierendensurvey");
+        execution.setSearchQuery("?q=title:Studierendensurvey");
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         

@@ -107,7 +107,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         algo.run();
 
 		ArrayList<TextualReference> contextList = new ArrayList<TextualReference>();
-		for (String uri : exec.getStudyContexts()) {
+		for (String uri : exec.getTextualReferences()) {
 			contextList.add(dataStoreClient.get(TextualReference.class, uri));
 		}
 		return contextList;

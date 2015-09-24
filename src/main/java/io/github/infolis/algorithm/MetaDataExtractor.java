@@ -5,6 +5,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.util.NumericInformationExtractor;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;

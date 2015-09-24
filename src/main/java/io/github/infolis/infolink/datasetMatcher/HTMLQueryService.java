@@ -1,7 +1,8 @@
 package io.github.infolis.infolink.datasetMatcher;
 
-import io.github.infolis.algorithm.NumericInformationExtractor;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.util.NumericInformationExtractor;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

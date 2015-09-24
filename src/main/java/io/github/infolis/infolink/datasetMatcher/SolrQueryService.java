@@ -7,8 +7,10 @@ package io.github.infolis.infolink.datasetMatcher;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.infolis.algorithm.NumericInformationExtractor;
+
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.util.NumericInformationExtractor;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DateFormat;
@@ -16,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;

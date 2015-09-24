@@ -1,7 +1,7 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.util;
 
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.util.LimitedTimeMatcher;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

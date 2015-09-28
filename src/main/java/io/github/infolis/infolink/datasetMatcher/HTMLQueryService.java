@@ -42,6 +42,10 @@ public class HTMLQueryService extends QueryService {
         super(target);
     }
     
+    public HTMLQueryService(String target, double reliability) {
+        super(target,reliability);
+    }
+    
     public String adaptQuery(String solrQuery) {
         //only extract the title
         String title = solrQuery.split("\\?date")[0];
@@ -117,6 +121,7 @@ public class HTMLQueryService extends QueryService {
             sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
             sr.setListIndex(i);
             sr.addTag(target);
+            sr.setQueryService(this.getUri());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             sr.setDate(dateFormat.format(date));

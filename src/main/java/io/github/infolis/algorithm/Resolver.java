@@ -2,6 +2,7 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -359,11 +360,11 @@ public class Resolver extends BaseAlgorithm {
         Map<SearchResult,Double> resultValues = new HashMap<>();
         for(SearchResult r : results) {    
             double confidenceValue=0.0;
-            confidenceValue += computeScorebasedOnNumbers(textRef, r);
-            //the source has been written into the first tag
-            confidenceValue+=reliabilityOfTheSource(r.getTags().get(0));
-            confidenceValue+=(double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex();
-            
+            //a fitting number counts twice than for example the list index
+            confidenceValue += 2*computeScorebasedOnNumbers(textRef, r);
+            //reliability of the used query service
+            confidenceValue+=getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            confidenceValue+=1-((double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex());
             resultValues.put(r, confidenceValue);
         }
         //determine the best search result for the textual reference
@@ -391,18 +392,6 @@ public class Resolver extends BaseAlgorithm {
         //set the final link as output of this algorithm
         getExecution().setLinks(allLinks);
     }
-    
-    /**
-     * Computes the reliability of the source which has been queried.
-     * 
-     * @return 
-     */
-    private double reliabilityOfTheSource(String source) {
-        //TODO: implement
-        return 0.0;
-    }
-    
-
     
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {

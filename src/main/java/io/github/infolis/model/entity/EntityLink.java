@@ -4,13 +4,17 @@ package io.github.infolis.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.infolis.model.BaseModel;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author domi
  */
+@XmlRootElement(name = "link")
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntityLink extends BaseModel {
     
     private Entity referenceEntity;
@@ -24,6 +28,8 @@ public class EntityLink extends BaseModel {
         this.confidence = confidence;
         this.linkReason = linkReason;
     }
+    
+    public EntityLink(){};
     
     /**
      * @return the referenceEntity

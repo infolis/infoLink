@@ -30,7 +30,7 @@ import javax.json.JsonReader;
  * 
  * Query service to perform a Solr query.
  * Currently only used for da|ra, if other portals follow, 
- * we need to think about whioch fields etc. are queried.
+ * we need to think about which fields etc. are queried.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,6 +42,10 @@ public class SolrQueryService extends QueryService {
 
     public SolrQueryService(String target) {
         super(target);
+    }
+    
+    public SolrQueryService(String target,double reliability) {
+        super(target,reliability);
     }
 
     public String adaptQuery(String solrQuery) {

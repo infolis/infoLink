@@ -20,7 +20,7 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     
     @Test
     public void searchWeb() {
-        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");              
+        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);              
         dataStoreClient.post(QueryService.class, qs);
         List<String> qsList = new ArrayList<>();
         qsList.add(qs.getUri());

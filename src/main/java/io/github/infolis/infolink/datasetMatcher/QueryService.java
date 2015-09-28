@@ -24,11 +24,16 @@ public abstract class QueryService extends BaseModel {
     }
 
     protected String target = "";
+    private double reliability =0.0;
 
     public QueryService(String target) {
         this.target = target;
     }
-    private static final long maxTimeMillis = 75000;
+    
+    public QueryService(String target, double reliability) {
+        this.target = target;
+        this.reliability = reliability;
+    }
     
     public abstract List<SearchResult> executeQuery(String solrQuery);
 
@@ -37,5 +42,19 @@ public abstract class QueryService extends BaseModel {
      */
     public String getTarget() {
         return target;
+    }
+
+    /**
+     * @return the reliability
+     */
+    public double getReliability() {
+        return reliability;
+    }
+
+    /**
+     * @param reliability the reliability to set
+     */
+    public void setReliability(double reliability) {
+        this.reliability = reliability;
     }
 }

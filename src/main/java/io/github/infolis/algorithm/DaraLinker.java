@@ -117,7 +117,7 @@ public class DaraLinker extends BaseAlgorithm {
 			// TODO: use other titles as well, not only the first one
                         
                         //TODO not really a nice link reason by now
-			EntityLink link = new EntityLink(publication, daraStudy, confidence, snippet + " " +extractionMethod);
+			EntityLink link = new EntityLink(daraStudy,publication, confidence, snippet + " " +extractionMethod);
 			links.add(link);
 		}
 		return links;

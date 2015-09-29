@@ -7,6 +7,7 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.Instance;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -353,6 +354,7 @@ public class Resolver extends BaseAlgorithm {
     public void execute() throws IOException {
         List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> results = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
+        System.out.println(results.size());
         
         String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
@@ -383,9 +385,11 @@ public class Resolver extends BaseAlgorithm {
         referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
         getOutputDataStoreClient().post(Instance.class, referencedInstance);
         //TODO: how to define the link reason?
-        String linkReason = "";
+        String linkReason = textRefURI;
         //genretate the link
-        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()), bestConfidence, linkReason);
+        System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
+        System.out.println("file: " +getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()).getInfolisFile());
+        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()), bestConfidence, linkReason);
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();
         allLinks.add(el.getUri());

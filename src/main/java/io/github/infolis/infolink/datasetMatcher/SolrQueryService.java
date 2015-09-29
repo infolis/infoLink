@@ -7,6 +7,7 @@ package io.github.infolis.infolink.datasetMatcher;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.model.SearchQuery;
 
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
@@ -48,18 +49,19 @@ public class SolrQueryService extends QueryService {
         super(target,reliability);
     }
 
-    public String adaptQuery(String solrQuery) {
+    public String adaptQuery(String solrQuery) {        
         String beginning = "select/";
         String remainder = "&start=0&rows=10000&fl=doi,title&wt=json";
         return "" + target + beginning + solrQuery + remainder;
-    }
+    }    
 
     @Override
-    public List<SearchResult> executeQuery(String solrQuery) {
+    public List<SearchResult> executeQuery(SearchQuery solrQuery) {
         //TODO: use solr results and do not parse JSON
         List<SearchResult> results = new ArrayList<>();
         try {
-            URL url = new URL(adaptQuery(solrQuery));
+            
+            URL url = new URL(adaptQuery(solrQuery.getQuery()));
             InputStream is = url.openStream();
             JsonReader reader = Json.createReader(is);
             JsonObject obj = reader.readObject();

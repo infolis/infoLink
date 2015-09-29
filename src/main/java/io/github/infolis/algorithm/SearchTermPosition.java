@@ -161,7 +161,7 @@ public class SearchTermPosition extends BaseAlgorithm
 					
 					// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
 					getOutputDataStoreClient().post(TextualReference.class, sC);
-					getExecution().getTextualReferences().add(sC.getUri());
+					getExecution().getTextualReferences().add(sC.getUri());                                       
 				}
 			}
 			getExecution().getMatchingFiles().add(file.getUri());
@@ -225,8 +225,9 @@ public class SearchTermPosition extends BaseAlgorithm
                 
 //	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
                 Publication p = new Publication();
-                outputDataStoreClient.post(Publication.class, p);
-	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
+                p.setInfolisFile(fileName);
+                outputDataStoreClient.post(Publication.class, p);                
+	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri(),TextualReference.ReferenceType.TITEL);
 	    	contextList.add(sC);
 	    	ltm.run();
 	    }

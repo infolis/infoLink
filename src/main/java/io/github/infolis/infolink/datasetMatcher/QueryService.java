@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public abstract class QueryService extends BaseModel {
         this.reliability = reliability;
     }
     
-    public abstract List<SearchResult> executeQuery(String solrQuery);
+    public abstract List<SearchResult> executeQuery(SearchQuery solrQuery);
 
     /**
      * @return the target

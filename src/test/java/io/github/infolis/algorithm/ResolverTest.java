@@ -5,7 +5,9 @@ import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.Publication;
 import io.github.infolis.model.entity.SearchResult;
@@ -43,11 +45,14 @@ public class ResolverTest extends InfolisBaseTest {
         Publication p = new Publication();
         p.setIdentifier("xyz");
         p.setName("abc");
+        p.setInfolisFile(p.getUri());
         dataStoreClient.post(Publication.class, p);
         //instantiate the textual reference which is later used to
         //compare against the search results
-        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
+        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri(),TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(TextualReference.class, r);
+        
+        System.out.println("ref: " +r.getMentionsReference());
         
         Execution execution = new Execution();
         execution.setAlgorithm(Resolver.class);
@@ -76,7 +81,7 @@ public class ResolverTest extends InfolisBaseTest {
         p.setIdentifier("xyz");
         p.setName("abc");
         dataStoreClient.post(Publication.class, p);
-        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
+        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri(),TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(TextualReference.class, r);
         //get the search results from both query services
         List<String> combinedResults = new ArrayList<>();
@@ -107,9 +112,14 @@ public class ResolverTest extends InfolisBaseTest {
         List<String> qsList = new ArrayList<>();
         qsList.add(qs.getUri());
         
+        SearchQuery sq = new SearchQuery();
+        sq.setQuery("?q=title:Studierendensurvey");
+        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
+        dataStoreClient.post(SearchQuery.class, sq);
+        
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
-        execution.setSearchQuery("?q=title:Studierendensurvey");
+        execution.setSearchQuery(sq.getUri());
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         

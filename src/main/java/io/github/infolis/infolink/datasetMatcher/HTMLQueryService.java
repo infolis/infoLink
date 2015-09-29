@@ -1,5 +1,7 @@
 package io.github.infolis.infolink.datasetMatcher;
 
+import io.github.infolis.model.SearchQuery;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -26,9 +28,9 @@ import org.jsoup.select.Elements;
 /**
  *
  * @author domi
- * 
- * Perform a query which uses an HTML search portal. Parse the 
- * retuned HTML page to detect the search results.
+ *
+ * Perform a query which uses an HTML search portal. Parse the retuned HTML page
+ * to detect the search results.
  */
 public class HTMLQueryService extends QueryService {
 
@@ -41,23 +43,34 @@ public class HTMLQueryService extends QueryService {
     public HTMLQueryService(String target) {
         super(target);
     }
-    
+
     public HTMLQueryService(String target, double reliability) {
-        super(target,reliability);
+        super(target, reliability);
     }
-    
-    public String adaptQuery(String solrQuery) {
-        //only extract the title
-        String title = solrQuery.split("\\?date")[0];
-        title = title.replace("?q=title:", "");
-        String query = String.format("%s?title=%s&max=%s&lang=de", target, title, String.valueOf(maxNumber));
+
+    public String adaptQuery(SearchQuery solrQuery) {        
+        String query ="";
+        switch (solrQuery.getReferenceType()) {
+            case TITEL:
+                //only extract the title
+                String title = solrQuery.getQuery().split("\\?date")[0];
+                title = title.replace("?q=title:", "");
+                query = String.format("%s?title=%s&max=%s&lang=de", target, title, String.valueOf(maxNumber));
+                break;
+            case DOI:
+                String doi = solrQuery.getQuery();
+                doi = doi.replace("?q=doi:", "");
+                query = String.format("%s?doi=%s&max=%s&lang=de", target, doi, String.valueOf(maxNumber));
+                break;
+
+        }
         return query;
     }
 
     @Override
-    public List<SearchResult> executeQuery(String solrQuery) {
+    public List<SearchResult> executeQuery(SearchQuery solrQuery) {
         try {
-            URL url = new URL(adaptQuery(solrQuery));            
+            URL url = new URL(adaptQuery(solrQuery));
             URLConnection connection = url.openConnection();
             connection.setRequestProperty("Accept-Charset", "UTF-8");
             //connection.setConnectTimeout(6000);
@@ -110,13 +123,13 @@ public class HTMLQueryService extends QueryService {
             for (Element doi : dois) {
                 identifier = doi.text().trim();
             }
-            if(title.isEmpty() && identifier.isEmpty()) {
+            if (title.isEmpty() && identifier.isEmpty()) {
                 continue;
             }
             //create the search result
             String num = NumericInformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
-            sr.setIdentifier(identifier);            
+            sr.setIdentifier(identifier);
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
             sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
             sr.setListIndex(i);

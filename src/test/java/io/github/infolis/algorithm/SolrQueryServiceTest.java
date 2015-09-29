@@ -5,6 +5,8 @@ import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.SearchQuery;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +31,7 @@ import org.junit.Test;
 public class SolrQueryServiceTest extends InfolisBaseTest {
     
     @Test
-    public void searchWeb() {        
+    public void searchWeb() throws IOException {        
         
         QueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/");              
         dataStoreClient.post(QueryService.class, qs);
@@ -39,7 +41,8 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
         Assume.assumeNotNull(System.getProperty("gesisRemoteTest")); 
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
-        execution.setSearchQuery("?q=title:Studierendensurvey");
+        String searchQuery = postTitleQuery();
+        execution.setSearchQuery(searchQuery);
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         
@@ -47,6 +50,14 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
         List<SearchResult> result = dataStoreClient.get(SearchResult.class, sr);
         
         //TODO: find test examples
+    }
+    
+    public String postTitleQuery() throws IOException {
+        SearchQuery sq = new SearchQuery();
+        sq.setQuery("?q=title:Studierendensurvey");
+        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
+        dataStoreClient.post(SearchQuery.class, sq);
+        return sq.getUri();
     }
     
     @Test

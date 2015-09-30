@@ -8,12 +8,14 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.util.NumericInformationExtractor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.json.Json;
@@ -68,18 +70,63 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
     }
     
     @Test
-    public void testResponse() throws FileNotFoundException, IOException {
-        InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrResponse.json").getFile()));
+    public void testTitleResponse() throws FileNotFoundException, IOException {
+        InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrTitleResponse.json").getFile()));
         JsonReader reader = null;
         try {
             reader = Json.createReader(is);
             JsonObject obj = reader.readObject();
             JsonObject response = obj.getJsonObject("response");
             JsonArray result = response.getJsonArray("docs");
-            Iterator i = result.iterator();
-            while(i.hasNext()) {
-                System.out.println(i.next());
+            int i=-1;
+            for (JsonObject single : result.getValuesAs(JsonObject.class)) {
+                i++;
+                String title1 = single.getJsonArray("title").getString(0);
+                String title2 = single.getJsonArray("title").getString(1);
+                String doi = single.getJsonArray("doi").getString(0);
+                switch (i) {
+                case 0:
+                    Assert.assertEquals("Studiensituation und studentische Orientierungen 2006/07 (Studierenden-Survey)", title1);
+                    break;
+                case 2:
+                    Assert.assertEquals("College Situation and Student Orientations 1992/93", title2);
+                    break;
+                case 6:
+                    Assert.assertEquals("10.4232/1.4344", doi);
+                    break;
+                }                
             }
+            Assert.assertEquals(11,i);
+        } finally {
+            reader.close();
+            is.close();
+        }
+    }
+    
+    @Test
+    public void testDoiResponse() throws FileNotFoundException, IOException {
+        InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrDOIResponse.json").getFile()));
+        JsonReader reader = null;
+        try {
+            reader = Json.createReader(is);
+            JsonObject obj = reader.readObject();
+            JsonObject response = obj.getJsonObject("response");
+            JsonArray result = response.getJsonArray("docs");
+            int i=-1;
+            for (JsonObject single : result.getValuesAs(JsonObject.class)) {
+                i++;
+                String title1 = single.getJsonArray("title").getString(0);
+                String title2 = single.getJsonArray("title").getString(1);
+                String doi = single.getJsonArray("doi").getString(0);
+                switch (i) {
+                case 0:
+                    Assert.assertEquals("Flash Eurobarometer 35", title1);
+                    Assert.assertEquals(title1, title2);
+                    Assert.assertEquals("10.4232/1.2525", doi);
+                    break;
+                }                
+            }
+            Assert.assertEquals(0,i);
         } finally {
             reader.close();
             is.close();

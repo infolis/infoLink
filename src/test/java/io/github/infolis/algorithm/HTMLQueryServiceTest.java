@@ -72,6 +72,8 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
         qs.setMaxNumber(10);
         SearchQuery sq = postDoiQuery("10.4232/1.2525");
+        String query = qs.adaptQuery(sq);
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?doi=10.4232/1.2525&max=10&lang=de", query);
         List<SearchResult> sr = qs.executeQuery(sq);
         for(SearchResult s : sr) {
             System.out.println(s.getTitles().get(0));

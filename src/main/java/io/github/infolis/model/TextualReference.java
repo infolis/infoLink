@@ -62,10 +62,22 @@ public class TextualReference extends BaseModel {
 	private String			pattern;
         @XmlTransient
 	private String			mentionsReference;
-        @XmlTransient private ReferenceType     referenceType;
+        @XmlTransient 
+        private ReferenceType     referenceType;
         
 
     public TextualReference() {
+    }
+    
+    public TextualReference(String term, ReferenceType referenceType) {
+        this.leftText = "";
+        this.rightText = "";
+        this.leftWords = new ArrayList<>();
+        this.rightWords = new ArrayList<>();
+        this.textFile = "";
+        this.pattern = "";
+        this.mentionsReference = "";
+        this.referenceType = referenceType;
     }
 
     public TextualReference(String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference, ReferenceType referenceType) {

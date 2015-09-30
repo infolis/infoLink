@@ -1,0 +1,1 @@
+{"responseHeader":{"status":0,"QTime":3,"params":{"fl":"doi,title","wt":"json","rows":"10000","start":"0","q":"doi:10.4232/1.2525"}},"response":{"numFound":1,"start":0,"docs":[{"title":["Flash Eurobarometer 35","Flash Eurobarometer 35"],"doi":["10.4232/1.2525"]}]}}

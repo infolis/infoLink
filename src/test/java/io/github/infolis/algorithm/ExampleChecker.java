@@ -5,6 +5,7 @@ import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -84,6 +85,27 @@ public class ExampleChecker extends InfolisBaseTest {
             System.out.println(e.getReferenceEntity().getIdentifier() + " --- " +e.getReferenceEntity().getName() + " --- " +  f.getFileName());
         }
     }
+    
+    @Test    
+     public void resolveDOI() throws IOException {
+        List<String> qServices = postQueryServices();
+        String sq = postDoiQuery("10.4232/1.2525");   
+        List<String> searchRes = searchInRepositories(sq, qServices);
+        
+        TextualReference ref = new TextualReference("10.4232/1.2525",TextualReference.ReferenceType.DOI);
+        dataStoreClient.post(TextualReference.class, ref);
+        //TODO: create an entity link? to what?
+        //List<String> entityLinks = resolve(searchRes, ref.getUri());
+        
+    }
+
+    public String postDoiQuery(String q) throws IOException {
+        SearchQuery sq = new SearchQuery();
+        sq.setQuery(q);
+        sq.setReferenceType(TextualReference.ReferenceType.DOI);
+        dataStoreClient.post(SearchQuery.class, sq);
+        return sq.getUri();
+    }
 
     public List<String> resolve(List<String> searchResults, String textRef) {
         Execution resolve = new Execution();
@@ -125,7 +147,7 @@ public class ExampleChecker extends InfolisBaseTest {
         return postedQueryServices;
     }
 
-    @Test
+    //@Test
     public void checkExamples() throws IOException {
 
         File pdfDir = new File(getClass().getResource("/examples/pdfs").getFile());

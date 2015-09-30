@@ -136,7 +136,7 @@ public class ResolverTest extends InfolisBaseTest {
      * @throws IOException 
      */
     public List<String> loadResults() throws FileNotFoundException, IOException {
-        InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrResponse.json").getFile()));
+        InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrTitleResponse.json").getFile()));
         JsonReader reader = null;
         List<String> searchResults = new ArrayList<>();
         try {

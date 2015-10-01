@@ -57,7 +57,6 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
     public String postTitleQuery() throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery("?q=title:Studierendensurvey");
-        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq.getUri();
     }

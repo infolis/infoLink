@@ -1,11 +1,7 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;

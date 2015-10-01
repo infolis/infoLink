@@ -54,7 +54,6 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public SearchQuery postTitelQuery(String q) throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(q);
-        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq;
     }
@@ -62,7 +61,6 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public SearchQuery postDoiQuery(String q) throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(q);
-        sq.setReferenceType(TextualReference.ReferenceType.DOI);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq;
     }
@@ -71,13 +69,13 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public void testDoiQueryExecution() throws IOException {
         HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
         qs.setMaxNumber(10);
-        SearchQuery sq = postDoiQuery("10.4232/1.2525");
+        SearchQuery sq = postDoiQuery("?q=doi:10.4232/1.2525");
         String query = qs.adaptQuery(sq);
         Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?doi=10.4232/1.2525&max=10&lang=de", query);
         List<SearchResult> sr = qs.executeQuery(sq);
         for(SearchResult s : sr) {
-            System.out.println(s.getTitles().get(0));
-        }
+            Assert.assertEquals("Flash Eurobarometer 35", s.getTitles().get(0)); 
+        }     
     }    
     
     

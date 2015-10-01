@@ -49,7 +49,7 @@ public class ResolverTest extends InfolisBaseTest {
         dataStoreClient.post(Publication.class, p);
         //instantiate the textual reference which is later used to
         //compare against the search results
-        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri(),TextualReference.ReferenceType.TITEL);
+        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
         dataStoreClient.post(TextualReference.class, r);
         
         System.out.println("ref: " +r.getMentionsReference());
@@ -81,7 +81,7 @@ public class ResolverTest extends InfolisBaseTest {
         p.setIdentifier("xyz");
         p.setName("abc");
         dataStoreClient.post(Publication.class, p);
-        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri(),TextualReference.ReferenceType.TITEL);
+        TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
         dataStoreClient.post(TextualReference.class, r);
         //get the search results from both query services
         List<String> combinedResults = new ArrayList<>();
@@ -114,7 +114,6 @@ public class ResolverTest extends InfolisBaseTest {
         
         SearchQuery sq = new SearchQuery();
         sq.setQuery("?q=title:Studierendensurvey");
-        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(SearchQuery.class, sq);
         
         Execution execution = new Execution();

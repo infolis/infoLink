@@ -1,8 +1,6 @@
 
 package io.github.infolis.model;
 
-import io.github.infolis.model.TextualReference.ReferenceType;
-
 /**
  *
  * @author domi
@@ -10,7 +8,6 @@ import io.github.infolis.model.TextualReference.ReferenceType;
 public class SearchQuery extends BaseModel{
     
     private String query;
-    private ReferenceType referenceType;
 
     /**
      * @return the query
@@ -24,20 +21,6 @@ public class SearchQuery extends BaseModel{
      */
     public void setQuery(String query) {
         this.query = query;
-    }
-
-    /**
-     * @return the referenceType
-     */
-    public ReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    /**
-     * @param referenceType the referenceType to set
-     */
-    public void setReferenceType(ReferenceType referenceType) {
-        this.referenceType = referenceType;
     }
     
 }

@@ -227,7 +227,7 @@ public class SearchTermPosition extends BaseAlgorithm
                 Publication p = new Publication();
                 p.setInfolisFile(fileName);
                 outputDataStoreClient.post(Publication.class, p);                
-	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri(),TextualReference.ReferenceType.TITEL);
+	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
 	    	contextList.add(sC);
 	    	ltm.run();
 	    }

@@ -89,23 +89,4 @@ public class EntityLink extends BaseModel {
     public void setLinkReason(String linkReason) {
         this.linkReason = linkReason;
     }
-
-    @Override
-    public boolean equals(Object object) {
-        EntityLink other = (EntityLink) object;
-        if (this.getMentionsReference().getInfolisFile().equals(other.getMentionsReference().getInfolisFile())
-                && this.getReferenceEntity().getIdentifier().equals(other.getReferenceEntity().getIdentifier())) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 31 * hash + Objects.hashCode(this.referenceEntity);
-        hash = 31 * hash + Objects.hashCode(this.mentionsReference);
-        return hash;
-    }
-
 }

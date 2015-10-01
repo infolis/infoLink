@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 
 import java.io.IOException;
@@ -22,10 +23,10 @@ public class FederatedSearcher extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
         List<SearchResult> allResults = new ArrayList<>();
-
-        String queryString = getExecution().getSearchQuery();
+        
+        SearchQuery query = getInputDataStoreClient().get(SearchQuery.class, getExecution().getSearchQuery());
         for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
-            List<SearchResult> results = queryService.executeQuery(queryString);
+            List<SearchResult> results = queryService.executeQuery(query);
             allResults.addAll(results);
         }
         getOutputDataStoreClient().post(SearchResult.class, allResults);

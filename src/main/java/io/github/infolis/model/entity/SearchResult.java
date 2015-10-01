@@ -19,6 +19,7 @@ public class SearchResult extends Entity {
     private List<String> titles = new ArrayList<>();
     private List<String> numericInformation = new ArrayList<>();
     private String date;
+    private String queryService;
 
     /**
      * @return the listIndex
@@ -102,6 +103,20 @@ public class SearchResult extends Entity {
      */
     public void setDate(String date) {
         this.date = date;
+    }
+
+    /**
+     * @return the queryService
+     */
+    public String getQueryService() {
+        return queryService;
+    }
+
+    /**
+     * @param queryService the queryService to set
+     */
+    public void setQueryService(String queryService) {
+        this.queryService = queryService;
     }
     
 }

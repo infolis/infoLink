@@ -44,7 +44,9 @@ class CentralClient extends AbstractClient {
 	static {
 		/*
 		 * Add mappings from class name to uri fragment here, e.g.
-		 * http://infolis-frontend/api/file/124 \__/ map this
+		 * http://infolis-frontend/api/file/124 
+		 *                             \__/
+		 *                            map this
 		 */
 		uriForClass.put(InfolisFile.class, "file");
 		uriForClass.put(Execution.class, "execution");

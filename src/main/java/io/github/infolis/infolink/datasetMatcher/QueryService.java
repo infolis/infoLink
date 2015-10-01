@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 import java.util.List;
 
@@ -24,18 +25,37 @@ public abstract class QueryService extends BaseModel {
     }
 
     protected String target = "";
+    private double reliability =0.0;
 
     public QueryService(String target) {
         this.target = target;
     }
-    private static final long maxTimeMillis = 75000;
     
-    public abstract List<SearchResult> executeQuery(String solrQuery);
+    public QueryService(String target, double reliability) {
+        this.target = target;
+        this.reliability = reliability;
+    }
+    
+    public abstract List<SearchResult> executeQuery(SearchQuery solrQuery);
 
     /**
      * @return the target
      */
     public String getTarget() {
         return target;
+    }
+
+    /**
+     * @return the reliability
+     */
+    public double getReliability() {
+        return reliability;
+    }
+
+    /**
+     * @param reliability the reliability to set
+     */
+    public void setReliability(double reliability) {
+        this.reliability = reliability;
     }
 }

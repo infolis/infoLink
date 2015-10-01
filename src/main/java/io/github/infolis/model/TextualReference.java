@@ -30,6 +30,22 @@ import com.google.common.collect.Lists;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TextualReference extends BaseModel {
 
+    /**
+     * @return the referenceType
+     */
+    public ReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    /**
+     * @param referenceType the referenceType to set
+     */
+    public void setReferenceType(ReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+    
+    public enum ReferenceType { DOI, URL, TITEL; }
+
 	@XmlTransient
 	private List<String>	leftWords;
 	@XmlTransient
@@ -46,18 +62,32 @@ public class TextualReference extends BaseModel {
 	private String			pattern;
         @XmlTransient
 	private String			mentionsReference;
+        @XmlTransient 
+        private ReferenceType     referenceType;
+        
 
     public TextualReference() {
     }
+    
+    public TextualReference(String term, ReferenceType referenceType) {
+        this.leftText = "";
+        this.rightText = "";
+        this.leftWords = new ArrayList<>();
+        this.rightWords = new ArrayList<>();
+        this.textFile = "";
+        this.pattern = "";
+        this.mentionsReference = "";
+        this.referenceType = referenceType;
+    }
 
-    public TextualReference(String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference) {
+    public TextualReference(String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference, ReferenceType referenceType) {
         setLeftText(leftText);
         setRightText(rightText);
         this.reference = reference;
         this.textFile = textFile;
         this.pattern = pattern;
         this.mentionsReference = mentionsReference;
-        
+        this.referenceType = referenceType;
     }    
         
 	public String toXML() {

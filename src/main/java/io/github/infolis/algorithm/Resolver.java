@@ -2,10 +2,12 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.Instance;
+import io.github.infolis.model.entity.Publication;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -352,6 +354,7 @@ public class Resolver extends BaseAlgorithm {
     public void execute() throws IOException {
         List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> results = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
+        System.out.println(results.size());
         
         String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
@@ -359,11 +362,11 @@ public class Resolver extends BaseAlgorithm {
         Map<SearchResult,Double> resultValues = new HashMap<>();
         for(SearchResult r : results) {    
             double confidenceValue=0.0;
-            confidenceValue += computeScorebasedOnNumbers(textRef, r);
-            //the source has been written into the first tag
-            confidenceValue+=reliabilityOfTheSource(r.getTags().get(0));
-            confidenceValue+=(double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex();
-            
+            //a fitting number counts twice than for example the list index
+            confidenceValue += 2*computeScorebasedOnNumbers(textRef, r);
+            //reliability of the used query service
+            confidenceValue+=getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            confidenceValue+=1-((double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex());
             resultValues.put(r, confidenceValue);
         }
         //determine the best search result for the textual reference
@@ -382,27 +385,17 @@ public class Resolver extends BaseAlgorithm {
         referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
         getOutputDataStoreClient().post(Instance.class, referencedInstance);
         //TODO: how to define the link reason?
-        String linkReason = "";
+        String linkReason = textRefURI;
         //genretate the link
-        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()), bestConfidence, linkReason);
+        System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
+        System.out.println("file: " +getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()).getInfolisFile());
+        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()), bestConfidence, linkReason);
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();
         allLinks.add(el.getUri());
         //set the final link as output of this algorithm
         getExecution().setLinks(allLinks);
     }
-    
-    /**
-     * Computes the reliability of the source which has been queried.
-     * 
-     * @return 
-     */
-    private double reliabilityOfTheSource(String source) {
-        //TODO: implement
-        return 0.0;
-    }
-    
-
     
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {

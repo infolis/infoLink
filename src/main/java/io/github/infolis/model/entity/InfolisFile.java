@@ -16,7 +16,6 @@ import io.github.infolis.model.BaseModel;
 public class InfolisFile extends BaseModel {
 	
 	private String md5;
-	private String sha1;
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
@@ -35,12 +34,6 @@ public class InfolisFile extends BaseModel {
 	}
 	public void setMd5(String md5) {
 		this.md5 = md5;
-	}
-	public String getSha1() {
-		return sha1;
-	}
-	public void setSha1(String sha1) {
-		this.sha1 = sha1;
 	}
 	public String getFileName() {
 		return fileName;

@@ -46,6 +46,7 @@ public class InfolisPattern extends Entity {
     private List<String> words = new ArrayList<>();
     private double threshold;
     private double reliability;
+    // TODO @bolandka Make this a class so it can be persisted
     private Map<String, Double> associations = new HashMap<>();
     
     public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {

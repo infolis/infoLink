@@ -9,7 +9,6 @@ import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
-import io.github.infolis.model.entity.Publication;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 import java.io.File;
@@ -42,11 +41,11 @@ public class ResolverTest extends InfolisBaseTest {
     @Test
     public void evaluateSearchResultsFromOneSource() throws IOException {
         
-        Publication p = new Publication();
+        Entity p = new Entity();
         p.setIdentifier("xyz");
         p.setName("abc");
         p.setInfolisFile(p.getUri());
-        dataStoreClient.post(Publication.class, p);
+        dataStoreClient.post(Entity.class, p);
         //instantiate the textual reference which is later used to
         //compare against the search results
         TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
@@ -77,10 +76,10 @@ public class ResolverTest extends InfolisBaseTest {
      */
     @Test
     public void evaluateSearchResultCombination() throws IOException {
-        Publication p = new Publication();
+        Entity p = new Entity();
         p.setIdentifier("xyz");
         p.setName("abc");
-        dataStoreClient.post(Publication.class, p);
+        dataStoreClient.post(Entity.class, p);
         TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
         dataStoreClient.post(TextualReference.class, r);
         //get the search results from both query services
@@ -152,12 +151,10 @@ public class ResolverTest extends InfolisBaseTest {
                 SearchResult r = new SearchResult();
                 r.setIdentifier(doi);
                 r.setListIndex(i);
-                r.setName(title1);
                 List allTitles = Arrays.asList(title1,title2);
                 r.setTitles(allTitles);
                 r.setDate(Long.toString(System.currentTimeMillis()));
                 List allTags = Arrays.asList("http://www.da-ra.de/solr/dara/");
-                r.setTags(allTags);
                 QueryService solr = new SolrQueryService("http://www.da-ra.de/solr/dara/", 1.0);             
                 dataStoreClient.post(QueryService.class, solr);
                 r.setQueryService(solr.getUri());

@@ -1,8 +1,8 @@
 package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.MathUtils;
 
 import java.util.Collection;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Reliability {
 
-    Map<String, Instance> instances;
+    Map<String, Entity> instances;
     Map<String, InfolisPattern> patterns;
     Set<String> seedTerms;
     double maximumPmi;
@@ -63,7 +63,7 @@ public class Reliability {
     	return this.seedTerms;
     }
     
-    public Collection<Instance> getInstances() {
+    public Collection<Entity> getInstances() {
     	return this.instances.values();
     }
 
@@ -84,9 +84,9 @@ public class Reliability {
      * @return	true, if instance was not included in this instances before,
      * false if already in this instances
      */
-    public boolean addInstance(Instance instance) {
+    public boolean addInstance(Entity instance) {
         if (this.instances.containsKey(instance.getName())) {
-            Instance curInstance = this.instances.get(instance.getName());
+            Entity curInstance = this.instances.get(instance.getName());
             Map<String, Double> curAssociations = curInstance.getAssociations();
             curAssociations.putAll(instance.getAssociations());
             instance.setAssociations(curAssociations);
@@ -148,7 +148,7 @@ public class Reliability {
      * @param pattern	
      * @return
      */
-    private int countJointOccurrences(Instance instance, InfolisPattern pattern) {
+    private int countJointOccurrences(Entity instance, InfolisPattern pattern) {
     	int jointOccurrences = 0;
     	// joint occurrences can be calculated in two different ways: 
     	// either search for pattern in textual references of instance (note: search pattern in the 
@@ -172,7 +172,7 @@ public class Reliability {
      * @param instance			name of the instance
      * @return					point-wise mutual information score of instance and pattern (belonging to regex)
      */
-    private double computePmi(int dataSize, Instance instance, InfolisPattern pattern) {
+    private double computePmi(int dataSize, Entity instance, InfolisPattern pattern) {
     	log.debug("computing pmi of instance \"" + instance.getName() + "\" and pattern \"" + pattern.getMinimal() + "\"");
     	int patternCount = pattern.getTextualReferences().size();
     	int instanceCount = instance.getTextualReferences().size();
@@ -203,16 +203,16 @@ public class Reliability {
      * @param pattern				pattern to compute the reliability score for
      * @return						pattern reliability score
      */
-    public double computeReliability(int dataSize, Set<Instance> reliableInstances, InfolisPattern pattern) {
+    public double computeReliability(int dataSize, Set<Entity> reliableInstances, InfolisPattern pattern) {
     	//TODO: use custom comparator for Entities to avoid necessity of building this map
-    	Map<String, Instance> reliableInstanceNames = new HashMap<>();
-    	for (Instance i : reliableInstances) { reliableInstanceNames.put(i.getName(), i); }
+    	Map<String, Entity> reliableInstanceNames = new HashMap<>();
+    	for (Entity i : reliableInstances) { reliableInstanceNames.put(i.getName(), i); }
     	
         // compute pmi for every known instance referenced using pattern
     	for (TextualReference ref : pattern.getTextualReferences()) {
     		// do not try to compute reliability of unknown instances at this step
     		if (!reliableInstanceNames.containsKey(ref.getTerm()))  continue; 
-    		Instance instance = reliableInstanceNames.get(ref.getTerm());
+    		Entity instance = reliableInstanceNames.get(ref.getTerm());
         	double pmi = this.computePmi(dataSize, instance, pattern);
         	// instance and pattern do not occur together in the data and are thus not associated
         	// should not happen here because instance is found as term in the textual references of pattern
@@ -238,7 +238,7 @@ public class Reliability {
      * @param instance				instance to compute the reliability score for
      * @return						instance reliability score
      */
-    public double computeReliability(int dataSize, Collection<InfolisPattern> reliablePatterns, Instance instance) {
+    public double computeReliability(int dataSize, Collection<InfolisPattern> reliablePatterns, Entity instance) {
         // for every known pattern, check whether instance is associated with it   
         for (InfolisPattern pattern : reliablePatterns) {
         	//double pmi = this.computePmi_instance(dataSize, pattern, instance);
@@ -261,7 +261,7 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(Instance instance, String callingEntity) {
+    public double reliability(Entity instance, String callingEntity) {
     	log.debug("Computing reliability of instance: " + instance.getName());
     	if (this.seedTerms.contains(instance.getName())) {
     		return 1.0;
@@ -302,7 +302,7 @@ public class Reliability {
         for (String instanceName : instancesAndPmis.keySet()) {
         	if (instanceName.equals(callingEntity)) { continue; }
             double pmi = instancesAndPmis.get(instanceName);
-            Instance instance = instances.get(instanceName);
+            Entity instance = instances.get(instanceName);
             double reliability_instance = reliability(instance, pattern.getMinimal());
             log.debug("stored pmi for pattern \"" + pattern.getMinimal() + "\" and instance \"" + instanceName +"\": " + pmi);
             if (maximumPmi != 0) {

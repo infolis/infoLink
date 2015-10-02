@@ -7,11 +7,10 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 import io.github.infolis.util.LimitedTimeMatcher;
 
 import java.io.IOException;
@@ -37,8 +36,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(VersionPatternApplier.class);
 
-    private List<Instance> searchForStudyPatterns(InfolisFile file) throws IOException {
-        List<Instance> foundStudies = new ArrayList<>();
+    private List<Entity> searchForStudyPatterns(InfolisFile file) throws IOException {
+        List<Entity> foundStudies = new ArrayList<>();
         InputStream in = getInputFileResolver().openInputStream(file);
         String input = IOUtils.toString(in);
         in.close();
@@ -62,7 +61,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
             while (ltm.finished() && ltm.matched()) {
                 String studyName = ltm.group(1).trim();
                 String version = ltm.group(2).trim();
-                Instance study = new Instance();
+                Entity study = new Entity();
                 study.setName(studyName);
                 study.setNumber(version);
                 foundStudies.add(study);
@@ -73,7 +72,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        List<Instance> detectedStudies = new ArrayList<>();
+        List<Entity> detectedStudies = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
             log.debug("Input file URI: '{}'", inputFileURI);
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
@@ -84,8 +83,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
             detectedStudies.addAll(searchForStudyPatterns(inputFile));
         }
 
-        for (Instance s : detectedStudies) {
-            getOutputDataStoreClient().post(Instance.class, s);
+        for (Entity s : detectedStudies) {
+            getOutputDataStoreClient().post(Entity.class, s);
             this.getExecution().getTextualReferences().add(s.getUri());
         }
 

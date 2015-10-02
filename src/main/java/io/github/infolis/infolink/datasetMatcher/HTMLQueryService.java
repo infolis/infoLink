@@ -133,7 +133,6 @@ public class HTMLQueryService extends QueryService {
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
             sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
             sr.setListIndex(i);
-            sr.addTag(target);
             sr.setQueryService(this.getUri());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();

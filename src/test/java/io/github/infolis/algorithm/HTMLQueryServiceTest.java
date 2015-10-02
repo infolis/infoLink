@@ -41,12 +41,12 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         //be careful, could change from time to time
         Assert.assertEquals("Arbeitsorientierung (ALLBUS)", result.get(0).getTitles().get(0));
         Assert.assertEquals("10.6102/zis13", result.get(0).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", result.get(0).getTags().get(0));
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
         Assert.assertEquals(0, result.get(0).getListIndex());
 
         Assert.assertEquals("German Social Survey (ALLBUS), 1998", result.get(6).getTitles().get(0));
         Assert.assertEquals("10.3886/ICPSR02779.v1", result.get(6).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", result.get(6).getTags().get(0));
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
         Assert.assertEquals(6, result.get(6).getListIndex());
         Assert.assertEquals("1998", result.get(6).getNumericInformation().get(0)); 
     }
@@ -98,12 +98,10 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         //be careful, could change from time to time
         Assert.assertEquals("Arbeitsorientierung (ALLBUS)", sr.get(0).getTitles().get(0));
         Assert.assertEquals("10.6102/zis13", sr.get(0).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", sr.get(0).getTags().get(0));
         Assert.assertEquals(0, sr.get(0).getListIndex());
 
         Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));
         Assert.assertEquals("10.3886/ICPSR02779.v1", sr.get(6).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", sr.get(6).getTags().get(0));
         Assert.assertEquals(6, sr.get(6).getListIndex());
         Assert.assertEquals("1998", sr.get(6).getNumericInformation().get(0));
     }

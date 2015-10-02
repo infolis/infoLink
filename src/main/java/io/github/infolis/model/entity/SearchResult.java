@@ -3,6 +3,7 @@ package io.github.infolis.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.model.BaseModel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SearchResult extends Entity {
+public class SearchResult extends BaseModel {
     
     private int listIndex;
     private double relevanceScore;
@@ -20,6 +21,8 @@ public class SearchResult extends Entity {
     private List<String> numericInformation = new ArrayList<>();
     private String date;
     private String queryService;
+    private String identifier;
+    private List<String> tags;
 
     /**
      * @return the listIndex
@@ -118,5 +121,18 @@ public class SearchResult extends Entity {
     public void setQueryService(String queryService) {
         this.queryService = queryService;
     }
-    
+
+    /**
+     * @return the identifier
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * @param identifier the identifier to set
+     */
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
 }

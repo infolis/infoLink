@@ -7,8 +7,8 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -103,13 +103,13 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         int numIter = 1;
         List<TextualReference> extractedContextsFromSeeds = new ArrayList<>();
         List<TextualReference> extractedContextsFromPatterns = new ArrayList<>();
-        Map<String, Instance> processedSeeds = new HashMap<>();
+        Map<String, Entity> processedSeeds = new HashMap<>();
         List<String> processedPatterns = new ArrayList<>();
-        Set<Instance> seeds = new HashSet<>();
-        Set<Instance> newSeedsIteration = new HashSet<>();
+        Set<Entity> seeds = new HashSet<>();
+        Set<Entity> newSeedsIteration = new HashSet<>();
         Set<String> newSeedTermsIteration = new HashSet<>();
         PatternRanker ranker = new PatternRanker();
-        for (String term : getExecution().getSeeds()) newSeedsIteration.add(new Instance(term)); 
+        for (String term : getExecution().getSeeds()) newSeedsIteration.add(new Entity(term)); 
 
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
@@ -117,7 +117,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         	log.info("Bootstrapping... Iteration: " + numIter);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<TextualReference> contexts_currentIteration = new ArrayList<>();
-            for (Instance seed : seeds) {
+            for (Entity seed : seeds) {
             	log.info("Bootstrapping with seed \"" + seed.getName() + "\"");
                 if (processedSeeds.keySet().contains(seed.getName())) {
                 	if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent) {
@@ -188,7 +188,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             extractedContextsFromPatterns.addAll(res);
             
             for (TextualReference entry : res) {
-            	newSeedsIteration.add(new Instance(entry.getTerm()));
+            	newSeedsIteration.add(new Entity(entry.getTerm()));
             	newSeedTermsIteration.add(entry.getTerm());
             }
             
@@ -203,7 +203,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	// thus, return the latter here
             	log.info("Final iteration: " + numIter);
                 log.debug("Final list of instances:  ");
-                for (Instance i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+                for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
                 log.debug("Final list of patterns: " + processedPatterns);
             	return extractedContextsFromPatterns;
             }
@@ -213,7 +213,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         
         log.info("Final iteration: " + numIter);
         log.debug("Final list of instances:  ");
-        for (Instance i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+        for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final list of patterns: " + processedPatterns);
         return extractedContextsFromPatterns;
     }

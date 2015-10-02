@@ -7,7 +7,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.Publication;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -224,9 +224,9 @@ public class SearchTermPosition extends BaseAlgorithm
 	    while (ltm.matched()) {
                 
 //	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
-                Publication p = new Publication();
+                Entity p = new Entity();
                 p.setInfolisFile(fileName);
-                outputDataStoreClient.post(Publication.class, p);                
+                outputDataStoreClient.post(Entity.class, p);                
 	    	TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
 	    	contextList.add(sC);
 	    	ltm.run();

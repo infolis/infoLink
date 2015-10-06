@@ -174,7 +174,7 @@ public class Execution extends BaseModel {
 	private String searchQuery;
 
 	/**
-	 * {@link Learner} {@link FederatedSearcher}
+	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataResolver}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
 
@@ -212,6 +212,11 @@ public class Execution extends BaseModel {
 	// private Strategy bootstrapStrategy = Strategy.separate;
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
+        /**
+	 * {@link MetaDataResolver}
+	 */
+	private MetaDataExtractingStrategy metaDataExtratingStrategy = MetaDataExtractingStrategy.title;
+        
 	/*
 	 * {@link Resolver}
 	 */
@@ -476,5 +481,19 @@ public class Execution extends BaseModel {
 	public void setLinks(List<String> links) {
 		this.links = links;
 	}
+
+    /**
+     * @return the metaDataExtratingStrategy
+     */
+    public MetaDataExtractingStrategy getMetaDataExtratingStrategy() {
+        return metaDataExtratingStrategy;
+    }
+
+    /**
+     * @param metaDataExtratingStrategy the metaDataExtratingStrategy to set
+     */
+    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtratingStrategy) {
+        this.metaDataExtratingStrategy = metaDataExtratingStrategy;
+    }
 
 }

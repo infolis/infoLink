@@ -5,9 +5,7 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.OutputStream;

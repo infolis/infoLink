@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.TextualReference;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -36,7 +39,7 @@ import java.util.HashMap;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class InfolisPattern extends Entity {
+public class InfolisPattern extends BaseModel {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(InfolisPattern.class);
     // TODO can this be final?
@@ -48,26 +51,33 @@ public class InfolisPattern extends Entity {
     private double reliability;
     // TODO @bolandka Make this a class so it can be persisted
     private Map<String, Double> associations = new HashMap<>();
-    
+    //TODO: change to URI -> string
+    private Collection<TextualReference> textualReferences;
+
     public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
-    	super(minimal);
-    	this.setLuceneQuery(luceneQuery);
-    	this.setPatternRegex(patternRegex);
-    	this.setMinimal(minimal);
-    	this.setWords(words);
-    	this.setThreshold(threshold);
-	}
+        this.setLuceneQuery(luceneQuery);
+        this.setPatternRegex(patternRegex);
+        this.setMinimal(minimal);
+        this.setWords(words);
+        this.setThreshold(threshold);
+    }
 
     public InfolisPattern(String patternRegex) {
-    	super();
-    	this.setPatternRegex(patternRegex);
-	}
+        this.setPatternRegex(patternRegex);
+    }
 
-	public InfolisPattern() {
-		super();
-	}
+    public InfolisPattern() {
+    }
 
-	/**
+    public void setTextualReferences(Collection<TextualReference> textualReferences) {
+    	this.textualReferences = textualReferences;
+    }
+    
+    public Collection<TextualReference> getTextualReferences() {
+    	return this.textualReferences;
+    }
+    
+    /**
      * @return the patternRegex
      */
     public String getPatternRegex() {
@@ -80,21 +90,21 @@ public class InfolisPattern extends Entity {
     public String getLuceneQuery() {
         return luceneQuery;
     }
-    
+
     /**
      * @return the words
      */
     public List<String> getWords() {
         return words;
     }
-    
-	public void setPatternRegex(String patternRegex) {
-		this.patternRegex = patternRegex;
-	}
 
-	public void setLuceneQuery(String luceneQuery) {
-		this.luceneQuery = luceneQuery;
-	}
+    public void setPatternRegex(String patternRegex) {
+        this.patternRegex = patternRegex;
+    }
+
+    public void setLuceneQuery(String luceneQuery) {
+        this.luceneQuery = luceneQuery;
+    }
 
     /**
      * @return the minimal
@@ -109,19 +119,19 @@ public class InfolisPattern extends Entity {
     public void setMinimal(String minimal) {
         this.minimal = minimal;
     }
-    
+
     /**
-     * 
+     *
      * @param words the words to set
      */
     public void setWords(List<String> words) {
-    	this.words = words;
+        this.words = words;
     }
 
     /**
-     * Determines whether this pattern is suitable for extracting
-     * dataset references using a frequency-based measure. As threshold, 
-     * this pattern's threshold is used. 
+     * Determines whether this pattern is suitable for extracting dataset
+     * references using a frequency-based measure. As threshold, this pattern's
+     * threshold is used.
      *
      * @param contextStrings	set of extracted contexts as strings
      * @return				<emph>true</emph>, if regex is found to be relevant,
@@ -137,17 +147,17 @@ public class InfolisPattern extends Entity {
             count_pos += patternFound(this.minimal, context);
         }
         /*
-        for (String context : contexts_neg) {
-            count_neg += patternFound(regex, context);
-        }*/
+         for (String context : contexts_neg) {
+         count_neg += patternFound(regex, context);
+         }*/
 
         //TODO: rename - this is not really tf-idf ;)
         // compute relevance...
         /*
-        double idf = 0;
-        if (count_neg + count_pos > 0) {
-            idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
-        }*/
+         double idf = 0;
+         if (count_neg + count_pos > 0) {
+         idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
+         }*/
         int idf = 1;
 
         double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
@@ -223,9 +233,9 @@ public class InfolisPattern extends Entity {
         }
         return patternSet;
     }
-    
-    public boolean isReliable(int dataSize, Set<Instance> reliableInstances, Reliability r) throws IOException, ParseException {
-    	this.reliability = r.computeReliability(dataSize, reliableInstances, this);
+
+    public boolean isReliable(int dataSize, Set<Entity> reliableInstances, Reliability r) throws IOException, ParseException {
+        this.reliability = r.computeReliability(dataSize, reliableInstances, this);
         if (this.getReliability() >= this.getThreshold()) {
             return true;
         } else {
@@ -258,11 +268,9 @@ public class InfolisPattern extends Entity {
      * @param reliability the reliability to set
      */
     /*
-    public void setReliability(double reliability) {
-        this.reliability = reliability;
-    }*/
-
-    
+     public void setReliability(double reliability) {
+     this.reliability = reliability;
+     }*/
     /**
      * @return the associations
      */
@@ -276,15 +284,14 @@ public class InfolisPattern extends Entity {
     public void setAssociations(Map<String, Double> associations) {
         this.associations = associations;
     }
-    
-        public boolean addAssociation(String entityName, double score) {
+
+    public boolean addAssociation(String entityName, double score) {
         if (this.getAssociations().containsKey(entityName)) {
-            log.debug("association between entity " + this.getName()
+            log.debug("association between entity " + this.getMinimal()
                     + " and entity " + entityName
                     + " already known, overwriting previously saved score.");
         }
         return (this.getAssociations().put(entityName, score) == null);
     }
-    
-    
+
 }

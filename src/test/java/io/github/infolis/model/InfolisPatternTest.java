@@ -1,7 +1,6 @@
 package io.github.infolis.model;
 
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -13,6 +12,7 @@ import java.util.Set;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.infolink.patternLearner.Reliability;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.MathUtils;
 
 import org.junit.Test;
@@ -57,28 +57,28 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		int dataSize = contextStrings.size();
 		//String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference
 		List<TextualReference> contexts_pattern = Arrays.asList(
-				new TextualReference("foO", "bar", "foO", "textfile1", "pattern", "ref",TextualReference.ReferenceType.TITEL), 
-				new TextualReference("foO", "bar", "foO", "textfile2", "pattern", "ref",TextualReference.ReferenceType.TITEL), 
-				new TextualReference("foO", "bar", "foO", "textfile3", "pattern", "ref",TextualReference.ReferenceType.TITEL));
+				new TextualReference("foO", "bar", "foO", "textfile1", "pattern", "ref"), 
+				new TextualReference("foO", "bar", "foO", "textfile2", "pattern", "ref"), 
+				new TextualReference("foO", "bar", "foO", "textfile3", "pattern", "ref"));
 		Set<String> reliableInstanceTerms = new HashSet<>();
-		Set<Instance> reliableInstances = new HashSet<>();
+		Set<Entity> reliableInstances = new HashSet<>();
 		Set<TextualReference> contexts = new HashSet<>();;
 		Reliability r = new Reliability();
 		String seed = "bar";
 		reliableInstanceTerms.add(seed);
 		r.setSeedTerms(reliableInstanceTerms);
 
-		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", "pattern","ref",TextualReference.ReferenceType.TITEL);
-		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", "pattern","ref",TextualReference.ReferenceType.TITEL);
-		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", "pattern","ref",TextualReference.ReferenceType.TITEL);
-		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", "pattern","ref",TextualReference.ReferenceType.TITEL);
-		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", "pattern","ref",TextualReference.ReferenceType.TITEL);
+		TextualReference context_bar_0 = new TextualReference("bar", "bar", "bar", "document4", "pattern","ref");
+		TextualReference context_bar_1 = new TextualReference("bar", "bar", "bar", "document5", "pattern","ref");
+		TextualReference context_bar_2 = new TextualReference("foO", "bar", "foO", "document6", "pattern","ref");
+		TextualReference context_bar_3 = new TextualReference("foO", "bar", "foO", "document7", "pattern","ref");
+		TextualReference context_bar_4 = new TextualReference("foO", "bar", "foO", "document8", "pattern","ref");
 		contexts.add(context_bar_0);
 		contexts.add(context_bar_1);
 		contexts.add(context_bar_2);
 		contexts.add(context_bar_3);
 		contexts.add(context_bar_4);
-		Instance bar = new Instance(seed);
+		Entity bar = new Entity(seed);
 		bar.setTextualReferences(contexts);
 		reliableInstances.add(bar);
 		

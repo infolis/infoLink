@@ -41,12 +41,12 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         //be careful, could change from time to time
         Assert.assertEquals("Arbeitsorientierung (ALLBUS)", result.get(0).getTitles().get(0));
         Assert.assertEquals("10.6102/zis13", result.get(0).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", result.get(0).getTags().get(0));
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
         Assert.assertEquals(0, result.get(0).getListIndex());
 
         Assert.assertEquals("German Social Survey (ALLBUS), 1998", result.get(6).getTitles().get(0));
         Assert.assertEquals("10.3886/ICPSR02779.v1", result.get(6).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", result.get(6).getTags().get(0));
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
         Assert.assertEquals(6, result.get(6).getListIndex());
         Assert.assertEquals("1998", result.get(6).getNumericInformation().get(0)); 
     }
@@ -54,7 +54,6 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public SearchQuery postTitelQuery(String q) throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(q);
-        sq.setReferenceType(TextualReference.ReferenceType.TITEL);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq;
     }
@@ -62,7 +61,6 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public SearchQuery postDoiQuery(String q) throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(q);
-        sq.setReferenceType(TextualReference.ReferenceType.DOI);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq;
     }
@@ -71,13 +69,13 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
     public void testDoiQueryExecution() throws IOException {
         HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
         qs.setMaxNumber(10);
-        SearchQuery sq = postDoiQuery("10.4232/1.2525");
+        SearchQuery sq = postDoiQuery("?q=doi:10.4232/1.2525");
         String query = qs.adaptQuery(sq);
         Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?doi=10.4232/1.2525&max=10&lang=de", query);
         List<SearchResult> sr = qs.executeQuery(sq);
         for(SearchResult s : sr) {
-            System.out.println(s.getTitles().get(0));
-        }
+            Assert.assertEquals("Flash Eurobarometer 35", s.getTitles().get(0)); 
+        }     
     }    
     
     
@@ -100,12 +98,10 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         //be careful, could change from time to time
         Assert.assertEquals("Arbeitsorientierung (ALLBUS)", sr.get(0).getTitles().get(0));
         Assert.assertEquals("10.6102/zis13", sr.get(0).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", sr.get(0).getTags().get(0));
         Assert.assertEquals(0, sr.get(0).getListIndex());
 
         Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));
         Assert.assertEquals("10.3886/ICPSR02779.v1", sr.get(6).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", sr.get(6).getTags().get(0));
         Assert.assertEquals(6, sr.get(6).getListIndex());
         Assert.assertEquals("1998", sr.get(6).getNumericInformation().get(0));
     }

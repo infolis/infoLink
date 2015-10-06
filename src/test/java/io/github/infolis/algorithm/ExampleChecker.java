@@ -29,6 +29,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -36,86 +37,29 @@ import org.junit.Test;
  *
  * @author domi
  */
-@Ignore
+//@Ignore
 public class ExampleChecker extends InfolisBaseTest {
-    
-    /**
-     * Applies a given set of pattern (loaded from a file)
-     * and resolves the references.
-     * 
-     * @throws IOException 
-     */
-    @Test
-    public void applyPatternAndResolveRefs() throws IOException {
 
-        File txtDir = new File(getClass().getResource("/examples/txts").getFile());
-        File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
-
-        //post all improtant stuff
-        List<String> pattern = postPattern(patternFile);
-        List<String> txt = postTxtFiles(txtDir);
+    //@Test    
+    public void resolveDOI() throws IOException {
         List<String> qServices = postQueryServices();
-
-        List<EntityLink> createdLinks = new ArrayList<>();
-        //extract the textual references
-        List<String> textRef = searchPattern(pattern, txt);
-        
-        //for each textual reference, extract the metadata,
-        //query the given repository(ies) and generate links.
-        for (String s : textRef) {
-            String searchQuery = extractMetaData(s);            
-            List<String> searchRes = searchInRepositories(searchQuery, qServices);
-            
-            if(searchRes.size()>0) {
-                List<String> entityLinks = resolve(searchRes, s);
-                if (!entityLinks.isEmpty()) {
-                    for(String oneLink : entityLinks) {
-                        EntityLink resolvedLink = dataStoreClient.get(EntityLink.class, oneLink);
-                        //ensure that only one link is created per entity/publication combination
-                        if(!createdLinks.contains(resolvedLink)) {
-                            createdLinks.add(resolvedLink);
-                        }
-                    }
-                }
-            }
-        }
-        System.out.println("size:" + createdLinks.size());
-        for (EntityLink e : createdLinks) {
-            InfolisFile f = dataStoreClient.get(InfolisFile.class, e.getMentionsReference().getInfolisFile());
-            System.out.println(e.getReferenceEntity().getIdentifier() + " --- " +e.getReferenceEntity().getName() + " --- " +  f.getFileName());
-        }
-    }
-    
-    @Test    
-     public void resolveDOI() throws IOException {
-        List<String> qServices = postQueryServices();
-        String sq = postDoiQuery("10.4232/1.2525");   
+        String sq = postDoiQuery("10.4232/1.2525");
         List<String> searchRes = searchInRepositories(sq, qServices);
+
+        //TextualReference ref = new TextualReference("10.4232/1.2525", TextualReference.ReferenceType.DOI);
+        //dataStoreClient.post(TextualReference.class, ref);
         
-        TextualReference ref = new TextualReference("10.4232/1.2525",TextualReference.ReferenceType.DOI);
-        dataStoreClient.post(TextualReference.class, ref);
         //TODO: create an entity link? to what?
         //List<String> entityLinks = resolve(searchRes, ref.getUri());
-        
+
     }
 
     public String postDoiQuery(String q) throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(q);
-        sq.setReferenceType(TextualReference.ReferenceType.DOI);
+        //sq.setReferenceType(TextualReference.ReferenceType.DOI);
         dataStoreClient.post(SearchQuery.class, sq);
         return sq.getUri();
-    }
-
-    public List<String> resolve(List<String> searchResults, String textRef) {
-        Execution resolve = new Execution();
-        resolve.setAlgorithm(Resolver.class);
-        resolve.setSearchResults(searchResults);
-        List<String> textRefs = Arrays.asList(textRef);
-        resolve.setTextualReferences(textRefs);
-        dataStoreClient.post(Execution.class, resolve);
-        resolve.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        return resolve.getLinks();
     }
 
     public List<String> searchInRepositories(String query, List<String> queryServices) {
@@ -127,16 +71,6 @@ public class ExampleChecker extends InfolisBaseTest {
         System.out.println("q: " + query + " qs " + queryServices.get(0));
         searchRepo.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         return searchRepo.getSearchResults();
-    }
-
-    public String extractMetaData(String textualReference) {
-        Execution extract = new Execution();
-        extract.setAlgorithm(MetaDataExtractor.class);
-        List<String> textRefs = Arrays.asList(textualReference);
-        extract.setTextualReferences(textRefs);
-        dataStoreClient.post(Execution.class, extract);
-        extract.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        return extract.getSearchQuery();
     }
 
     public List<String> postQueryServices() throws IOException {

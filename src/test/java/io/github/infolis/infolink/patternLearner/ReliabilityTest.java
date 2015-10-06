@@ -1,5 +1,6 @@
 package io.github.infolis.infolink.patternLearner;
 
+import io.github.infolis.model.entity.Entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -10,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -22,8 +22,8 @@ public class ReliabilityTest {
 	private Reliability r = new Reliability();
 	InfolisPattern pattern = new InfolisPattern();
 	InfolisPattern newPattern = new InfolisPattern();
-	Instance instance = new Instance("instance");
-	Instance newInstance = new Instance("new instance");
+	Entity instance = new Entity("instance");
+	Entity newInstance = new Entity("new instance");
 	
 	public ReliabilityTest() {
 		Set<String> reliableInstances = new HashSet<>();

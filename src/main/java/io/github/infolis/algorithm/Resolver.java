@@ -6,8 +6,6 @@ import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
-import io.github.infolis.model.entity.Instance;
-import io.github.infolis.model.entity.Publication;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -379,17 +377,17 @@ public class Resolver extends BaseAlgorithm {
             }
         }
         //create and post the instance representing the search result
-        Instance referencedInstance = new Instance();
+        Entity referencedInstance = new Entity();
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
         referencedInstance.setName(bestSearchResult.getTitles().get(0));
         referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
-        getOutputDataStoreClient().post(Instance.class, referencedInstance);
+        getOutputDataStoreClient().post(Entity.class, referencedInstance);
         //TODO: how to define the link reason?
         String linkReason = textRefURI;
         //genretate the link
         System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
-        System.out.println("file: " +getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()).getInfolisFile());
-        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Publication.class,textRef.getMentionsReference()), bestConfidence, linkReason);
+        System.out.println("file: " +getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()).getInfolisFile());
+        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()), bestConfidence, linkReason);
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();
         allLinks.add(el.getUri());

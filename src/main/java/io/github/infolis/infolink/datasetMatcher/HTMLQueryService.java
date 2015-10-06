@@ -50,20 +50,20 @@ public class HTMLQueryService extends QueryService {
 
     public String adaptQuery(SearchQuery solrQuery) {        
         String query ="";
-        switch (solrQuery.getReferenceType()) {
-            case TITEL:
+        
+            if(solrQuery.getQuery().contains("?q=title")) {
                 //only extract the title
                 String title = solrQuery.getQuery().split("\\?date")[0];
                 title = title.replace("?q=title:", "");
                 query = String.format("%s?title=%s&max=%s&lang=de", target, title, String.valueOf(maxNumber));
-                break;
-            case DOI:
+            }
+            else if(solrQuery.getQuery().contains("?q=doi")) {
                 String doi = solrQuery.getQuery();
                 doi = doi.replace("?q=doi:", "");
                 query = String.format("%s?doi=%s&max=%s&lang=de", target, doi, String.valueOf(maxNumber));
-                break;
+            }
 
-        }
+        
         return query;
     }
 
@@ -133,7 +133,6 @@ public class HTMLQueryService extends QueryService {
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
             sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
             sr.setListIndex(i);
-            sr.addTag(target);
             sr.setQueryService(this.getUri());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();

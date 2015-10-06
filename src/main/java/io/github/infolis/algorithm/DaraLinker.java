@@ -6,12 +6,9 @@ import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
 import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
-import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.StudyType;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
-import io.github.infolis.model.entity.Publication;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -59,7 +56,7 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	private Set<EntityLink> linkContext(TextualReference context) throws IOException {
-		Instance study = extractStudy(context);
+		Entity study = extractStudy(context);
 		log.debug("study: " + study.getName());
 		// whitespace create problems for json parsing
 		String studyName = study.getName().replaceAll("\\s", "-").trim();
@@ -85,7 +82,7 @@ public class DaraLinker extends BaseAlgorithm {
 			// may have more than one title: e.g. translations
 			JsonArray titles = item.getJsonArray("title");
 			//String[] titleStringArray = new String[titles.size()];                        
-                        Instance daraStudy = new Instance();
+                        Entity daraStudy = new Entity();
 			
 			for (int i = 0; i < titles.size(); i++) { 
                             log.debug("title " + i + ": " + titles.get(i).toString());
@@ -96,7 +93,7 @@ public class DaraLinker extends BaseAlgorithm {
                                 daraStudy.addAlternativeNames(titles.get(i).toString());
                             }				
 			}
-                        getOutputDataStoreClient().post(Instance.class, daraStudy);
+                        getOutputDataStoreClient().post(Entity.class, daraStudy);
 			daraStudies.add(daraStudy);
 		}
                 
@@ -104,10 +101,10 @@ public class DaraLinker extends BaseAlgorithm {
 	}
 
 	// TODO: use URIs in StudyLinks for all entities?
-	private Set<EntityLink> createStudyLinks(JsonArray datasets, Instance study, TextualReference context) {
+	private Set<EntityLink> createStudyLinks(JsonArray datasets, Entity study, TextualReference context) {
 		Set<EntityLink> links = new HashSet<>();
 		Set<Entity> daraStudies = getDaraStudies(datasets);
-		Publication publication =  getInputDataStoreClient().get(Publication.class, context.getMentionsReference());
+		Entity publication =  getInputDataStoreClient().get(Entity.class, context.getMentionsReference());
 		for (Entity daraStudy : daraStudies) {
 			float confidence = 0; // score, how to add?
 			String snippet = context.toPrettyString();
@@ -149,9 +146,9 @@ public class DaraLinker extends BaseAlgorithm {
 		return numericInfo;
 	}
 
-	Instance extractStudy(TextualReference context) {
+	Entity extractStudy(TextualReference context) {
 		List<String> numericInfo = extractNumericInfo(context);
-		Instance study = new Instance();
+		Entity study = new Entity();
 		if (RegexUtils.ignoreStudy(context.getTerm())) {
 			return study;
 		}

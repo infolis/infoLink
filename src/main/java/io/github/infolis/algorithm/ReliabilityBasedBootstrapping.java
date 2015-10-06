@@ -7,8 +7,8 @@ import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.model.entity.Instance;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -43,11 +43,11 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     private Reliability r = new Reliability();
 
     private List<TextualReference> bootstrap() throws IOException, ParseException {
-        Set<Instance> reliableInstances = new HashSet<>();
+        Set<Entity> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns = new HashSet<>();
         PatternRanker patternRanker = new PatternRanker();
         int numIter = 1;
-        Set<Instance> seeds = new HashSet<>();
+        Set<Entity> seeds = new HashSet<>();
         Set<String> seedTerms = new HashSet<>();
         seedTerms.addAll(getExecution().getSeeds());
         this.r.setSeedTerms(seedTerms); 
@@ -58,7 +58,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         // 1. search for all initial seeds and save contexts
         for (String seed : seedTerms) {
             log.info("Bootstrapping with seed \"" + seed + "\"");
-            Instance newSeed = new Instance(seed);
+            Entity newSeed = new Entity(seed);
             newSeed.setTextualReferences(getStudyContexts(getContextsForSeed(seed)));
             newSeed.setIsSeed();
             seeds.add(newSeed);
@@ -114,14 +114,14 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             for (TextualReference sC : reliableContexts_iteration) {
                 String newInstanceName = sC.getTerm();
                 Collection<String> reliableInstanceTerms = new HashSet<>();
-                for (Instance i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
+                for (Entity i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
                 if (!reliableInstanceTerms.contains(newInstanceName)) {
                     newInstanceNames.add(newInstanceName);
                     log.debug("Found new instance: " + newInstanceName);
                 }
             }
             for (String newInstanceName : newInstanceNames) {
-                Instance newInstance = new Instance(newInstanceName);
+                Entity newInstance = new Entity(newInstanceName);
                 // counts of instances are required for computation of pmi
                 newInstance.setTextualReferences(getStudyContexts(getContextsForSeed(newInstanceName)));
                 log.debug("new Instance stored contexts: " + newInstance.getTextualReferences());
@@ -134,7 +134,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                 log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
             }
 
-            for (Instance i : r.getInstances()) {
+            for (Entity i : r.getInstances()) {
                 log.debug("stored instance: \"" + i.getName() + "\"=" + i.getReliability());
                 log.debug("stored associations: " + i.getAssociations().size());
             }
@@ -163,14 +163,14 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
         log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  ");
-        for (Instance i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
+        for (Entity i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final top patterns: " + patternRanker.topK);
         return removeUnreliableInstances(topContexts, reliableInstances);
     }
 
-    private List<TextualReference> removeUnreliableInstances(Collection<TextualReference> contexts, Set<Instance> reliableInstances) {
+    private List<TextualReference> removeUnreliableInstances(Collection<TextualReference> contexts, Set<Entity> reliableInstances) {
     	Set<String> reliableInstanceTerms = new HashSet<String>();
-    	for (Instance i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
+    	for (Entity i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
         List<TextualReference> res = new ArrayList<>();
         for (TextualReference context : contexts) {
             if (reliableInstanceTerms.contains(context.getTerm())) {
@@ -218,9 +218,9 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
      * @param thresholds	thresholds for different generality levels of patterns
      * @return
      */
-    private List<List<InfolisPattern>> constructCandidates(Collection<Instance> instances, Double[] thresholds) {
+    private List<List<InfolisPattern>> constructCandidates(Collection<Entity> instances, Double[] thresholds) {
         List<List<InfolisPattern>> candidateList = new ArrayList<>();
-        for (Instance i : instances) { 
+        for (Entity i : instances) { 
         	for (TextualReference context : i.getTextualReferences()) {
         		candidateList.add(new PatternInducer(context, thresholds).candidates);
         	}
@@ -265,7 +265,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
          * @throws IOException
          * @throws ParseException
          */
-        private Map<String, Double> getReliablePatterns(List<List<InfolisPattern>> candidatesPerContext, Set<Instance> relInstances) throws IOException, ParseException {
+        private Map<String, Double> getReliablePatterns(List<List<InfolisPattern>> candidatesPerContext, Set<Entity> relInstances) throws IOException, ParseException {
             int size = getExecution().getInputFiles().size();
             List<String> processedMinimals_iteration = new ArrayList<>();
             for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {

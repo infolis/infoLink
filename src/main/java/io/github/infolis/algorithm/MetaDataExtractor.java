@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.MetaDataExtractingStrategy;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.NumericInformationExtractor;
@@ -31,11 +32,13 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public void execute() throws IOException {
 
         String tr = getExecution().getTextualReferences().get(0);
+        MetaDataExtractingStrategy strat = getExecution().getMetaDataExtratingStrategy();
+        
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 
         debug(log, "Start to build query from texteual reference %s", ref);
 
-        String query = extractQuery(ref);
+        String query = extractQuery(ref,strat);
         if (query == null || query.isEmpty()) {
             debug(log, "could not create a query");
             getExecution().setStatus(ExecutionStatus.FAILED);
@@ -43,7 +46,6 @@ public class MetaDataExtractor extends BaseAlgorithm {
         }
         SearchQuery squery = new SearchQuery();
         squery.setQuery(query);
-        squery.setReferenceType(ref.getReferenceType());
         getOutputDataStoreClient().post(SearchQuery.class, squery);
         getExecution().setSearchQuery(squery.getUri());
         getExecution().setStatus(ExecutionStatus.FINISHED);
@@ -55,16 +57,17 @@ public class MetaDataExtractor extends BaseAlgorithm {
      * context like date information or version.
      *
      * @param ref
+     * @param strat
      * @return
      */
-    public String extractQuery(TextualReference ref) {
+    public String extractQuery(TextualReference ref, MetaDataExtractingStrategy strat) {
         String finalQuery = "?q=";
         String name = "";
         if (RegexUtils.ignoreStudy(ref.getTerm())) {
             return null;
         }
-        switch (ref.getReferenceType()) {
-            case TITEL:
+        switch (strat) {
+            case title:
                 List<String> numericInfo = NumericInformationExtractor.extractNumericInfoFromTextRef(ref);
                 name = ref.getTerm().replaceAll("[^a-zA-Z]", "");
 
@@ -78,7 +81,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
                 }
                 finalQuery = finalQuery.substring(0, finalQuery.lastIndexOf("&"));
                 break;
-            case DOI:
+            case doi:
                 name = ref.getTerm();
                 finalQuery += "doi:" + name;
                 break;

@@ -80,8 +80,6 @@ public class SolrQueryService extends QueryService {
                     String num = NumericInformationExtractor.getNumericInfo(title);
                     sr.addTitle(title);
                     sr.addNumericInformation(num);
-                    //TODO: better have an unique name like da|ra etc.
-                    sr.addTag(target);
                     DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                     Date date = new Date();
                     sr.setDate(dateFormat.format(date));

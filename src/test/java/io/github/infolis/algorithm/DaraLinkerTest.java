@@ -158,13 +158,13 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		Map<String, Set<String>> generatedLinks = new HashMap<>();
 		for (EntityLink link : links) {
 			// log.debug(link.toString());
-                        String key = link.getReferenceEntity().getName();
+                        String key = link.getToEntity().getName();
 			//String key = link.getAltName() + " " + link.getVersion();
 			Set<String> dois = new HashSet<>();
 			if (generatedLinks.containsKey(key)) {
 				dois = generatedLinks.get(key);
 			}
-			dois.add(link.getReferenceEntity().getUri());
+			dois.add(link.getToEntity().getUri());
 			generatedLinks.put(key, dois);
 		}
 		assertEquals(expectedLinks, generatedLinks);

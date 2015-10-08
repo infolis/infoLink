@@ -15,14 +15,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityLink extends BaseModel {
 
-    private Entity referenceEntity;
-    private Entity mentionsReference;
+    private Entity toEntity;
+    private Entity fromEntity;
     private double confidence;
     private String linkReason;
 
-    public EntityLink(Entity referenceEntity, Entity mentionsReference, double confidence, String linkReason) {
-        this.referenceEntity = referenceEntity;
-        this.mentionsReference = mentionsReference;
+    public EntityLink(Entity toEntity, Entity fromEntity, double confidence, String linkReason) {
+        this.toEntity = toEntity;
+        this.fromEntity = fromEntity;
         this.confidence = confidence;
         this.linkReason = linkReason;
     }
@@ -35,29 +35,29 @@ public class EntityLink extends BaseModel {
     /**
      * @return the referenceEntity
      */
-    public Entity getReferenceEntity() {
-        return referenceEntity;
+    public Entity getToEntity() {
+        return toEntity;
     }
 
     /**
-     * @param referenceEntity the referenceEntity to set
+     * @param toEntity the referenceEntity to set
      */
-    public void setReferenceEntity(Entity referenceEntity) {
-        this.referenceEntity = referenceEntity;
+    public void setToEntity(Entity toEntity) {
+        this.toEntity = toEntity;
     }
 
     /**
      * @return the mentionsReferece
      */
-    public Entity getMentionsReference() {
-        return mentionsReference;
+    public Entity getFromEntity() {
+        return fromEntity;
     }
 
     /**
-     * @param mentionsReferece the mentionsReferece to set
+     * @param fromEntity the mentionsReferece to set
      */
-    public void setMentionsReference(Entity mentionsReferece) {
-        this.mentionsReference = mentionsReferece;
+    public void setFromEntity(Entity fromEntity) {
+        this.fromEntity = fromEntity;
     }
 
     /**

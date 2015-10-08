@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -128,9 +130,9 @@ class CentralClient extends AbstractClient {
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		log.debug("-> HTTP {}", resp.getStatus());
 		if (resp.getStatus() == 404) {
-			throw new BadRequestException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
+			throw new RuntimeException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
 		} else if (resp.getStatus() >= 400) {
-			throw new BadRequestException(resp);
+			throw new WebApplicationException(resp);
 		}
 		T thing;
 		try {

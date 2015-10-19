@@ -231,6 +231,12 @@ public class Execution extends BaseModel {
 	 * {@link FederatedSearcher}
 	 */
 	private List<String> searchResults;
+        
+        /**
+         * 
+         * {@link LocalResolver}
+         */
+        private List<String> linkedEntities;
 
 	//
 	//
@@ -494,6 +500,20 @@ public class Execution extends BaseModel {
      */
     public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtratingStrategy) {
         this.metaDataExtratingStrategy = metaDataExtratingStrategy;
+    }
+
+    /**
+     * @return the linkedEntities
+     */
+    public List<String> getLinkedEntities() {
+        return linkedEntities;
+    }
+
+    /**
+     * @param linkedEntities the linkedEntities to set
+     */
+    public void setLinkedEntities(List<String> linkedEntities) {
+        this.linkedEntities = linkedEntities;
     }
 
 }

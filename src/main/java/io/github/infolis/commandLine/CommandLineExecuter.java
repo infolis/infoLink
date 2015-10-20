@@ -55,9 +55,11 @@ public class CommandLineExecuter {
         JsonObject o = reader.readObject();
 
         Execution e = new Execution();
+        //TODO: any better solution? e.g. to indicate the strategy as method parameter?
         dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
         fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
         
+        //iterate through the entries in the JSON file
         for (Entry<String, JsonValue> values : o.entrySet()) {
             switch (values.getValue().getValueType()) {
                 case STRING:

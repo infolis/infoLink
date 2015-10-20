@@ -9,6 +9,7 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UnknownFormatConversionException;
+import org.apache.commons.io.IOUtils;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -133,6 +135,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 execution.setSearchQuery(RegexUtils.normalizeQuery(seed.getName(), true));
                 execution.setInputFiles(getExecution().getInputFiles());
                 execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
+                getOutputDataStoreClient().post(Execution.class, execution);
                 execution.instantiateAlgorithm(this).run();
                 getExecution().getLog().addAll(execution.getLog());
 

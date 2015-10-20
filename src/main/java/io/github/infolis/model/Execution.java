@@ -21,6 +21,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.SerializationUtils;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -183,7 +189,9 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> matchingFiles = new ArrayList<>();
 
-	// TODO Plural
+        /**
+         * {@link PatternApplier}
+         */
 	private List<String> patterns = new ArrayList<>();
 
 	// TODO @bolandka not used now, is it worth the computation?
@@ -514,6 +522,22 @@ public class Execution extends BaseModel {
      */
     public void setLinkedEntities(List<String> linkedEntities) {
         this.linkedEntities = linkedEntities;
+    }
+    
+    
+    public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field field = this.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);        
+        if (field.getType() == Character.TYPE) {field.set(getClass(), value.toString().charAt(0)); return;}
+        if (field.getType() == Short.TYPE) {field.set(getClass(), Short.parseShort(value.toString())); return;}
+        if (field.getType() == Integer.TYPE) {field.set(getClass(), Integer.parseInt(value.toString())); return;}
+        if (field.getType() == Long.TYPE) {field.set(getClass(), Long.parseLong(value.toString())); return;}
+        if (field.getType() == Float.TYPE) {field.set(getClass(), Float.parseFloat(value.toString())); return;}
+        if (field.getType() == Double.TYPE) {field.set(getClass(), Double.parseDouble(value.toString())); return;}
+        if (field.getType() == Byte.TYPE) {field.set(getClass(), Byte.parseByte(value.toString())); return;}
+        if (field.getType() == Boolean.TYPE) {field.set(getClass(), Boolean.parseBoolean(value.toString())); return;}
+       // if (field.getGenericType() == );
+        field.set(this, value);
     }
 
 }

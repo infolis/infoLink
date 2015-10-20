@@ -114,7 +114,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException
 	{
-		Execution indexExecution = createIndex();
+		Execution indexExecution = createIndex();                
 		
 		IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(indexExecution.getOutputDirectory()))));
 		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
@@ -182,10 +182,8 @@ public class SearchTermPosition extends BaseAlgorithm
 //		0 requires exact match, 5 means that up to 5 edit operations may be carried out...
 		execution.setPhraseSlop(this.getExecution().getPhraseSlop());
 		BooleanQuery.setMaxClauseCount(this.getExecution().getMaxClauseCount());
-
-		Algorithm algo = execution.instantiateAlgorithm(this);
-		algo.execute();
-
+                getOutputDataStoreClient().post(Execution.class, execution);
+                execution.instantiateAlgorithm(this).run();
 		return execution;
 	}
 

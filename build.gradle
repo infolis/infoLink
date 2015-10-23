@@ -58,50 +58,14 @@ test {
     systemProperties = System.properties
 }
 
-task copyPython(type:Copy) {
-    def source = 'src/main/python'
-    def target = new File(project.buildDir, 'bin')
-    from source
-    into target
-}
-applicationDistribution.from(copyPython) {
-    into "bin"
-}
-
-// http://stackoverflow.com/questions/18421857/is-it-possible-to-specify-multiple-main-classes-using-gradle-application-plugi
-// The next two lines disable the tasks for the primary main which by default
-// generates a script with a name matching the project name. 
-// You can leave them enabled but if so you'll need to define mainClassName
-// And you'll be creating your application scripts two different ways which 
-// could lead to confusion
-startScripts.enabled = false
-run.enabled = false
-// Creates scripts for entry points
-// Subproject must apply application plugin to be able to call this method.
-def createScript(mainClass, scriptName) {
-
-  def taskName = "Install_Script_For_" + scriptName
-
-  project.tasks.create(name: taskName, type: CreateStartScripts) {
-    outputDir       = new File(project.buildDir, 'scripts')
-    mainClassName   = mainClass
-    applicationName = scriptName
-    classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
-  }
-
-  project.tasks[taskName].dependsOn(project.jar)
-
-  project.applicationDistribution.with {
-    into("bin") {
-      from(project.tasks[taskName])
-      fileMode = 0755
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',  
+                   'Implementation-Version': version,
+                   'Main-Class': 'io.github.infolis.commandLine.CommandLineExecuter'
     }
-  }
+    doFirst {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }
-createScript('io.github.infolis.infolink.tagger.Tagger', 'Tagger')
-createScript('io.github.infolis.algorithm.TextExtractorAlgorithm', 'TextExtractor')
-createScript('io.github.infolis.algorithm.SearchTermPosition', 'SearchTermPosition')
-createScript('io.github.infolis.infolink.luceneIndexing.Indexer', 'Indexer')
-createScript('io.github.infolis.infolink.patternLearner.Learner', 'Learner')
-createScript('io.github.infolis.infolink.datasetMatcher.Linker', 'Linker')
-// vim: ft=groovy:

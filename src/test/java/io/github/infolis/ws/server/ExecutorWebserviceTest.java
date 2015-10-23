@@ -48,7 +48,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		log.debug("{}", post.readEntity(String.class));
 	}
 
-	@Ignore
+	@Test
 	public void testStartExecution() throws Exception {
 		DataStoreClient centralClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 		Execution e = new Execution();

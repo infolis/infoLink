@@ -7,6 +7,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -154,6 +155,12 @@ class CentralClient extends AbstractClient {
 	@Override
 	public void clear() {
 		log.error("clear not supported");
+		return;
+	}
+
+	@Override
+	public void dump(Path directory) {
+		log.error("dump not supported");
 		return;
 	}
 

@@ -3,8 +3,12 @@ package io.github.infolis.datastore;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.junit.Test;
 
@@ -19,7 +23,7 @@ public class LocalClientTest {
 //	
 
 	@Test
-	public void testCRUD() {
+	public void testCRUD() throws IOException {
 		
 		DataStoreClient client = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
 		
@@ -33,6 +37,10 @@ public class LocalClientTest {
 		InfolisFile file2 = client.get(InfolisFile.class, file.getUri());
 		assertEquals(file.getUri(), file2.getUri());
 		assertEquals(file.getFileName(), file2.getFileName());
+		
+		Path dumpPath = Paths.get("/tmp/infolis-test");
+		Files.createDirectories(dumpPath);
+		client.dump(dumpPath);
 		
 	}
 }

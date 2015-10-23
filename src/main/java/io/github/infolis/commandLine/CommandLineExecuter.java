@@ -1,8 +1,6 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.BaseAlgorithm;
-import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -12,33 +10,28 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
-import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+
 import org.apache.commons.io.IOUtils;
-import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 /**
  *
@@ -49,9 +42,8 @@ public class CommandLineExecuter {
     static protected DataStoreClient dataStoreClient;
     static protected FileResolver fileResolver;
 
-    public static void parseJson(String fileName) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
-        File jsonFile = new File(fileName);
-        JsonReader reader = Json.createReader(new BufferedReader(new FileReader(jsonFile)));
+    public static void parseJson(Path jsonPath, Path outputDir) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
+        JsonReader reader = Json.createReader(Files.newBufferedReader(jsonPath));
         JsonObject o = reader.readObject();
 
         Execution e = new Execution();
@@ -69,11 +61,11 @@ public class CommandLineExecuter {
                     //algorithm has to be handled as a special case since we need to find the class
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
-                        algorithmName = algorithmName.replace(fileName, fileName).replace("\"", "");
+                        algorithmName = algorithmName.replace("\"", "");
                         if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
                             algorithmName += "io.github.infolis.algorithm." + algorithmName;
                         }
-                        Class<? extends Algorithm> algoClass = determineClass(algorithmName);
+                        Class<? extends Algorithm> algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
                         e.setAlgorithm(algoClass);
                         break;
                     }
@@ -98,11 +90,13 @@ public class CommandLineExecuter {
                     }
                     e.setProperty(values.getKey(), listEntries);
                     break;
+			default:
+				System.err.println("WARNING: Unhandled value type " + values.getValue().getValueType());
+				break;
             }
         }       
         dataStoreClient.post(Execution.class, e);        
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-
     }
     
     private static List<String> convertPDF(List<String> uris) {
@@ -137,25 +131,6 @@ public class CommandLineExecuter {
         return txtUris;
     }
 
-    private static Class<? extends Algorithm> determineClass(String algoName) {
-        Set<Class<? extends Object>> clazzSet = getClassSet("io.github.infolis.algorithm");
-        for (Class<? extends Object> clazz : clazzSet) {
-            if (algoName.equals(clazz.getName())) {
-                return (Class<? extends Algorithm>) clazz;
-            }
-        }
-        return null;
-    }
-
-    public static Set<Class<? extends Object>> getClassSet(String pkg) {
-        // prepare reflection, include direct subclass of Object.class
-        Reflections reflections = new Reflections(new ConfigurationBuilder().setScanners(new SubTypesScanner(false), new ResourcesScanner())
-                .setUrls(ClasspathHelper.forClassLoader(ClasspathHelper.classLoaders(new ClassLoader[0])))
-                .filterInputsBy(new FilterBuilder().includePackage(pkg)));
-
-        return reflections.getSubTypesOf(Object.class);
-    }
-
     public static List<String> postFiles(String dir, DataStoreClient dsc, FileResolver rs) throws IOException {
         List<String> uris = new ArrayList<>();
         File dirFile = new File(dir);
@@ -186,11 +161,34 @@ public class CommandLineExecuter {
             }
             dsc.post(InfolisFile.class, inFile);       
             uris.add(inFile.getUri());
+            inputStream.close();
         }
         return uris;
     }
     
+    public static void usage(String problem) {
+    	System.out.println(String.format("%s <json-path> <output-dir>", CommandLineExecuter.class.getSimpleName()));
+    	if (null != problem)
+    		System.out.println(String.format("ERROR: %s", problem));
+    	System.exit(1);
+    }
+    
     public static void main(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
-        parseJson(args[0]);
+    	if (args.length < 2)
+    		usage("Not enough arguments");
+
+    	Path jsonPath = Paths.get(args[0]);
+    	if (! Files.exists(jsonPath) )
+    		usage("JSON doesn't exist");
+
+    	Path outputDir = Paths.get(args[1]);
+    	if (Files.exists(outputDir)) {
+    		System.err.println("WARNING: Output directory already exists, make sure it is empty.\nPress enter to continue or CTRL-C to exit");
+    		System.in.read();
+    	} else {
+    		Files.createDirectories(outputDir);
+    	}
+
+		parseJson(jsonPath, outputDir);
     }
 }

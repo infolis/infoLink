@@ -3,6 +3,7 @@ package io.github.infolis.datastore;
 import io.github.infolis.model.BaseModel;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.ws.rs.BadRequestException;
@@ -96,4 +97,10 @@ public interface DataStoreClient {
 	 * 
 	 */
 	void clear();
+	
+	/**
+	 * Dump the whole datastore in JSON format.
+	 * @param directory Directory to dump to
+	 */
+	void dump(Path directory);
 }

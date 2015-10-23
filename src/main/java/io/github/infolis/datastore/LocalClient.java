@@ -4,19 +4,28 @@ import io.github.infolis.model.BaseModel;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.ws.rs.BadRequestException;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class LocalClient extends AbstractClient {
 
 	// private static final Logger log =
 	// LoggerFactory.getLogger(LocalClient.class);
 	public static final Map<UUID, Map<String, String>> jsonDB = new HashMap<>();
+
 	private final UUID storeId;
 
 	public LocalClient(UUID uuid) {
@@ -61,10 +70,23 @@ public class LocalClient extends AbstractClient {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@Override
 	public void clear() {
 		jsonDB.get(storeId).clear();
+	}
+
+	@Override
+	public void dump(Path directory) {
+		for (Entry<String, String> entry : jsonDB.get(storeId).entrySet()) {
+			try {
+				OutputStream os = Files.newOutputStream(directory.resolve(entry.getKey()));
+				IOUtils.write(entry.getValue(), os);
+				os.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 }

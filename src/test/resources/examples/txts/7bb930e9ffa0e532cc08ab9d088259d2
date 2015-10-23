@@ -1,0 +1,465 @@
+Differentielle Sterblichkeit von Männern: 
+Ein Beispiel der Nutzungsmöglichkeiten des 
+Forschungsdatenzentrums der Rentenversicherung 
+(FDZ-RV) 
+Ralf K. Himmelreicher und Hans-Martin von Gaudecker 
+Einleitung 
+Der Beitrag diskutiert am Beispiel des Projektes ›Differentielle Sterblichkeit‹, in 
+welcher Form die Daten der Deutschen Rentenversicherung Bund über das FDZRV 
+genutzt werden können: zunächst wurde der Scientific Use File (SUF) Demografie 
+genutzt. Am Beginn einer wissenschaftlichen Nutzung der FDZ-RV-Daten 
+sollten stets SUFs stehen. Sind insbesondere größere Fallzahlen und spezielle Differenzierungen 
+von Merkmalen wichtig, dann können Analysen auf Gastwissen-schaftlerArbeitsplätzen 
+eine Alternative darstellen. Als dritte Form der Datennutzung 
+wurde hier das kontrollierte Fernrechnen, bei dem Wissenschaftler keinen 
+direkten Kontakt mit den Daten haben, praktiziert. 
+Die Befunde der Untersuchungen zur ›Differentiellen Sterblichkeit‹ verweisen 
+darauf, dass auf Sterbetafeln basierende Sterblichkeitsanalysen sehr hohe Fallzahlen 
+benötigen, die von Bevölkerungsumfragen nicht erreicht werden können. Im 
+Ergebnis zeigen die Berechnungen für die fernere Lebenserwartung im Alter von 65 
+Jahren für in Deutschland lebende Männer, dass die mittlere Lebenserwartung bei 
+15,7 Jahren liegt. Bezieht man das Lebensarbeitseinkommen in Form von Entgeltpunkten 
+bei der gesetzlichen Rentenversicherung in die Analysen ein, dann zeigt 
+sich eine positive, statistisch signifikante Assoziation zwischen Lebenseinkommen 
+und Lebenserwartung. Die maximale Differenz der Lebenserwartungen liegt bei gut 
+fünf Jahren, bei der überwiegenden Mehrheit der Männer liegen sie jedoch bei plus 
+minus anderthalb Jahren um die durchschnittliche Lebenserwartung. 
+1368 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+Zum Projekt ›Differentielle Sterblichkeit‹1 
+Die Grundfragestellung des am Mannheimer Forschungsinstitut Ökonomie und 
+demographischer Wandel (MEA) angesiedelten Projektes ›Differentielle Sterblichkeit‹ 
+lautet: Gibt es zwischen verschiedenen Einkommensgruppen Unterschiede bei 
+der ferneren Lebenserwartung im Alter ab 65 Jahren? Und falls ja, wie hoch sind 
+diese? Die Mikrodaten der Deutschen Rentenversicherung eignen sich für solche 
+Untersuchungen besonders gut, da sie eine Messgröße für das Lebensarbeitseinkommen 
+von rentenversicherten Personen beinhalten. Aufgrund von erstaunlich 
+hohen jährlichen Schwankungen des Einkommens in Umfragedaten sind diese für 
+Untersuchungen zum Lebensarbeitseinkommen nicht gut geeignet (vgl. Haider und 
+Solon 2006). Ferner ermöglichen die prozessproduzierten Daten Analysen mit sehr 
+hohen Fallzahlen. Wie sich im weiteren Verlauf des Artikels zeigen wird, sind diese 
+für die statistische Aussagekraft der Ergebnisse von besonderer Bedeutung. 
+Im Hinblick auf die Interpretation der hier vorgestellten Befunde ist Folgendes 
+zu beachten: Die Analysen dokumentieren lediglich die statistische Assoziation der 
+Größen »Lebensarbeitseinkommen« und »Lebenserwartung«. Sie lassen keinen 
+Rückschluss darauf zu, ob ein höheres Einkommen kausal zu einer höheren 
+Lebenserwartung führt. Dafür gibt es zwei wesentliche Gründe. Zum Einen sind 
+Faktoren zu benennen, die sowohl das Einkommen als auch die Sterblichkeit beeinflussen. 
+Ein Beispiel hierfür ist die Bildung, für die in internationalen Studien ein 
+kausaler Effekt auf die Sterblichkeit nachgewiesen wurde.2 Ein höheres Bildungsniveau 
+führt demnach sowohl zu geringerer Sterblichkeit als auch zu einem höheren 
+Einkommen. Allein aufgrund dieser Effekte kann in Studien zu Einkommen und 
+Sterblichkeit eine positive Assoziation der beiden Größen auftreten. Der zweite 
+Grund liegt darin, dass Menschen, die von Geburt an oder zu Beginn ihrer 
+Erwerbsphase gesundheitlich beeinträchtigt sind, tendenziell ein geringeres Einkommen 
+erzielen werden als solche mit einer robusten Konstitution. Aufgrund 
+ihres schlechteren Gesundheitszustands weisen sie jedoch auch eine geringere 
+Lebenserwartung auf. Wiederum muss dies nichts mit dem Einkommen zu tun 
+haben. Anders ausgedrückt lässt sich die Variable »Renteneinkommen« als ein 
+Konglomerat aus verschiedenen Variablen verstehen, das sich unter anderem aus 
+schulischer Bildung, beruflicher Ausbildung, Gesundheitszustand und aus dem Einkommen 
+aus rentenversicherungspflichtiger Tätigkeit zusammensetzt. 
+—————— 
+ 1 Zur institutionellen Einbettung des Projektes siehe Himmelreicher et al. 2006: 3f.; einige Vorarbeiten 
+in Zusammenarbeit mit dem FDZ-RV wurden publiziert von Gaudecker (2004, 2006), Berkel 
+und Börsch-Supan (2006), Scholz (2004, 2006). Eine auführliche Dokumentation der Ergebnisse 
+findet sich in Gaudecker und Scholz (2006) . 
+ 2 Lleras-Muney, Adriana: The Relationship Between Eduction and Adult Mortality in the United 
+States, Review of Economic Studies, 72, S. 189-221, Januar 2005. 
+ H I M M E L R E IC H E R / V O NG A U D E C K E R : D I F F E R E N T I E L L E S T E R B L I C H K E IT 1369 
+ 
+Nutzung von FDZ-RV-Daten durch das Projekt ›Differentielle 
+Sterblichkeit‹ und Befunde 
+Im Rahmen des Projektes ›Differentielle Sterblichkeit‹ sind die Daten des FDZ-RV 
+aus drei Gründen von besonderer Bedeutung. Dies ist einerseits auf das in den 
+Daten enthaltene Merkmal ›Entgeltpunkte‹ bzw. die ›Summe persönlicher Entgeltpunkte‹ 
+zurückzuführen. Das Merkmal ›Summe persönlicher Entgeltpunkte‹ wird 
+hier analog zum Lebensarbeitseinkommen aus versicherter Beschäftigung benutzt. 
+Wegen der Beitragsbemessungsgrenze unterliegen die beobachteten Entgeltpunkte 
+und Rentenzahlbeträge einer Rechtszensierung, weil über dieser liegende Arbeitseinkommen 
+die Ansprüche an die Rentenversicherung nicht erhöhen. Zudem 
+besteht eine Linkszensierung des Lebensarbeitseinkommens, weil die Entgeltpunkte 
+durch umverteilende Maßnahmen in der Rentenversicherung zum Teil erhöht wurden, 
+wie z.B. im Fall einer Rentenerhöhung wegen ›Rente nach Mindesteinkommen‹, 
+die bis 1992 bezogen werden konnte (vgl. Himmelreicher 2006: 60f.). Beide 
+Zensierungen werden in der vorliegenden Analyse nicht beachtet. Dennoch stellt 
+die ›Summe persönlicher Entgeltpunkte‹ eine valide Messgröße für das Lebensarbeitseinkommen 
+dar, weil die Gesamtzahl der in der Erwerbsbiografie erarbeiteten 
+Entgeltpunkte ein adäquates Maß für die tatsächliche Einkommensposition von 
+Beschäftigten bildet (vgl. Unger 2006). Die Arbeitseinkünfte von Personen, die nur 
+einen Teil ihres Erwerbslebens abhängig beschäftigt und ansonsten selbständig oder 
+verbeamtet waren, einem freien Beruf nachgegangen sind oder länger im Ausland 
+gearbeitet haben, werden von den Daten nur ungenügend repräsentiert. Trotz dieser 
+Einschränkung werden die Begriffe (Lebensarbeits-)Einkommen und Summe der 
+Entgeltpunkte synonym verwendet. 
+Der zweite wichtige Grund zur Nutzung von FDZ-RV-Daten ist auf die hohen 
+Fallzahlen zurückzuführen. Für die Berechnung der Sterblichkeit werden die Daten 
+des Rentenbestandes und die des Rentenwegfalls benutzt. Beide Statistiken der 
+Deutschen Rentenversicherung sind Vollerhebungen, die je nach Nutzungsart im 
+FDZ-RV unterschiedlich aufbereitet werden. 
+Drittens sind die FDZ-RV-Daten prozessproduziert. Das heißt, die in den Datensätzen 
+enthaltenen versicherungsrechtlich relevanten Merkmale, wie zum Beispiel die 
+Summe der Entgeltpunkte, sind von sehr hoher Qualität. Im Unterschied zu Befragungsdarten 
+treten bei prozessproduzierten Daten keine Erinnerungsfehler, keine 
+Antwortverweigerungen und keine Panelmortalität auf (vgl. Wübbecke 2006: 160). 
+Im Hinblick auf den untersuchten Personenkreis ist darauf hinzuweisen, dass 
+die Analyse auf Männer begrenzt wurde. Dies liegt daran, dass die Erwerbsquote 
+von Frauen in den betrachteten Kohorten vergleichsweise gering ist und damit die 
+Annahme, dass die Zahl der individuellen Entgeltpunkte ein hinreichendes Maß für 
+1370 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+das dem Haushalt zur Verfügung stehende Lebensarbeitseinkommen ist, nicht plausibel 
+erscheint. Im Hinblick auf eine adäquate Erfassung des Haushaltskontextes 
+wäre eine Messgröße, die das gesamte Haushaltseinkommen erfassen kann, erforderlich. 
+Die hier zu Grunde liegenden Mikrodaten beziehen sich auf Renten und 
+haben weder individuelle Verknüpfungsmöglichkeiten noch solche im Rahmen von 
+Ehepartnern. Die Zahl der Entgeltpunkte von Männern dürfte jedoch wegen ihren 
+überwiegend langjährigen Erwerbsbiografien eine hinreichende Approximation 
+darstellen (vgl. Himmelreicher und Frommert 2006). Ferner werden die Analysen 
+auf jene Männer in den alten und neuen Bundesländern begrenzt, die eigene 
+Versichertenrenten (Renten wegen Alters und wegen Erwerbsminderung) beziehen; 
+ausgeschlossen werden dadurch Männer mit Hinterbliebenenrenten. 
+Damit ist bereits das Hauptmerkmal der Analyse, die Summe der persönlichen 
+Entgeltpunkte, genannt. Es werden nur Personen mit mindestens 20 persönlichen 
+Entgeltpunkten berücksichtigt, da bei niedrigeren Werten davon auszugehen ist, 
+dass der überwiegende Teil des Lebensarbeitseinkommens nicht aus rentenversicherungspflichtiger 
+Beschäftigung stammte. Ausgehend von diesen Prämissen wurde 
+wie folgt vorgegangen: Das Lebensarbeitseinkommen wird in 11 Klassen à 5 Entgeltpunkte 
+eingeteilt, für jede Klasse wird separat die fernere Lebenserwartung im 
+Alter 65 berechnet (im weiteren Verlauf dieser Arbeit wird der Begriff Lebenserwartung 
+synonym für fernere Lebenserwartung im Alter 65 verwendet). 
+Im Rahmen des Projektes ›Differentielle Sterblichkeit‹ wurde in der Zeit zwischen 
+März und Dezember 2005 zunächst (1) der SUF Themendatensatz »Demographie 
+2003« beantragt und genutzt.3 Im nächsten Schritt wurde ein spezieller (2) 
+Datensatz für die Nutzung an einem Gastwissenschaftler-Arbeitsplatz in den Räumen 
+des Forschungsdatenzentrums in Berlin erstellt. Basierend auf diesen Erfahrungen 
+konnte schließlich das (3) Verfahren zur kontrollierten Datenfernverarbeitung zur Anwendung 
+kommen. 
+Die drei Zugangswege zu den Daten des FDZ-RV unterscheiden sich insbesondere 
+vor dem Hintergrund datenschutzrechtlicher Regelungen4 und damit in 
+Zusammenhang stehend dem Grad der Anonymisierung, mithin dem Stichprobenumfang 
+und der Differenziertheit der Merkmale (vgl. Stegmann et al. 2005: 210f.).5 
+—————— 
+ 3 Eine Dokumentation zu den Scientific Use Files Rentenzugang und Rentenbestand (»Themenfile 
+Demografie«) sowie über das aktuelle Datenangebot kann über das Internetportal unter http:// 
+www.fdz-rv.de eingesehen werden. Detaillierte Informationen zum Themenfile SUF Demografie 
+sind in Luckert (2006: 30–33) dokumentiert. 
+ 4 In diesem Zusammenhang sind die datenschutzrechtlichen Ausführungen von Heese (2004) von 
+Bedeutung. Grundsätzlich bewirkt die Anonymisierung eine Reduktion der in den Daten enthaltenen 
+Information und schränkt dadurch das Analysepotenzial ein. Insofern ist eine Balance zwischen 
+Einhaltung der datenschutzrechtlichen Regelungen und Analysemöglichkeiten zu finden. 
+ 5 Die Spezifika der drei Zugangswege sind ausführlich in Himmelreicher et al. (2006) dokumentiert. 
+ H I M M E L R E IC H E R / V O NG A U D E C K E R : D I F F E R E N T I E L L E S T E R B L I C H K E IT 1371 
+ 
+Zu 1: Der Themedatensatz SUF Demografie wurde bereits an anderer Stelle hinreichend 
+beschrieben (vgl. www.fdz-rv.de oder Himmelreicher et al. 2006). 
+Zu 2: Der für die Nutzung auf einem Gastwissenschaftler-Arbeitsplatz in den 
+Räumen des FDZ-RV erstellte Themenfile ›Differentielle Sterblichkeit‹ hat folgende 
+Besonderheiten: Im Unterschied zu den SUF Themendatensätzen Demografie 
+konnte der Stichprobenumfang beim Rentenwegfall von 10 auf 25 Prozent und 
+beim Rentenbestand von einem auf vier Prozent erhöht werden. Hohe Stichprobenumfänge 
+sind vor allem deshalb wichtig, weil das Analyseverfahren einen hohen 
+Datenbedarf erordert. Man kann sich das Verfahren dahingehend vorstellen, dass 
+für 35 Altersklassen – vom 65. bis zum 100. Lebensjahr – multipliziert mit 11 Entgeltpunktlassen 
+eine Tabelle mit 385 Zellen entsteht, bei der für jede Zelle die Sterbewahrscheinlichkeit 
+geschätzt wird. Im Durchschnitt macht dies 212 (780) Beobachtungen 
+pro Klasse im SUF Demografie (Gastwissenschaftler-Themenfile 
+›Differentielle Sterblichkeit‹). Diese Zahl erscheint zunächst recht hoch, jedoch konzentriert 
+sich die Verteilung der Personen stark auf die mittleren Entgeltpunkt- und 
+niedrigen Altersklassen. So finden sich zum Beispiel für die unterste Einkommensklasse 
+im SUF Demografie durchschnittlich lediglich 97 Personen in jeder 
+Altersstufe. Im Unterschied dazu konzentrieren sich die Rentner auf den Bereich 
+zwischen 40 und 59 Entgeltpunkte, weshalb in diesem Bereich vergleichsweise präzise 
+Aussagen möglich sind, an den Rändern der Entgeltpunktverteilung weniger. 
+Zu 3: Um die statistische Verlässlichkeit erhöhen und belastbare Befunde ermitteln 
+zu können, wurde die Fallzahl nochmals erhöht. Mittels des kontrollierten 
+Fernrechnens konnte mit dem gesamten Datenbestand der Rentenversicherung gerechnet 
+werden, ohne dass die vertraglich gebundenen Wissenschaftler mit den 
+Datensätzen in Kontakt gekommen wären: Entsprechend aufbereitete Datensätze 
+verbleiben im FDZ-RV und die Wissenschaftler senden ihre in STATA, SPSS bzw. 
+SAS geschriebenen Syntaxen an das FDZ-RV. Dort werden die Berechnungen mit 
+der jeweiligen Software durchgeführt und die empirischen Befunde dahingehend 
+überprüft, ob die datenschutzrechtlichen Vorschriften eingehalten wurden. 
+Einen Überblick über die je nach Zugangsweg realisierten Fallzahlen gibt 
+Tabelle 1. Aufgrund der unterschiedlichen Bezugszeiträume der drei verschiedenen 
+Datensätze sind die Befunde zur Sterblichkeit lediglich bedingt vergleichbar, zu 
+Illustrationszwecken vor allem Im Hinblick auf den hohen Datenbedarf demografischer 
+Analysemethoden sind sie jedoch sehr hilfreich. 
+ 
+ 
+ 
+ 
+ 
+ 
+1372 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+ SUF Demografie 
+2003 
+Gastwissenschaftler 
+Themenfile 
+›Differentielle 
+Sterblichkeit‹ 2003 
+Fernrechenfile 
+2002 
+Fallzahl 81.610 295.894 4.413.575 
+durchschnittliche 
+fernere Lebenserwartung 
+im Alter 65 
+15,43 Jahre 15,56 Jahre 15,74 Jahre 
+ 
+Tabelle 1: Fallzahlen der FDZ-RV Datensätze, Männer im Rentenbestand mit mindestens 20 
+persönlichen Entgeltpunkten und ihre durchschnittliche fernere Lebenserwartung (2002/2003) 
+ 
+(Quelle: FDZ-RV – SUFRTBNWF03DEM, Gastwissenschaftler-Themenfile ›Differentielle Sterblichkeit 2003‹, 
+Fernrechenfile ›Differentielle Sterblichkeit 2002‹, eigene Berechnungen.) 
+ 
+Tabelle 1 zeigt, dass bereits der SUF Demografie allein für Männer mit mehr als 20 
+Entgeltpunktenmehr als 80.000 Fälle enthält, der Gastwissenschaftler Themenfile 
+›Differentielle Sterblichkeit‹ 2003 umschließt nahezu 300.000 Fälle. Qua der 
+Methode des Fernrechnens kann die Fallzahl auf nahezu 4,5 Mio. Renten ausgedehnt 
+werden. Zu sehen ist in Tabelle 1 ferner, dass die durchschnittliche fernere 
+Lebenserwartung im Alter von 65 Jahren von Männern in Deutschland bei rund 
+15,5 Jahren liegt. Die Ergebnisse aus den Berechnungen mit den drei verschiedenen 
+Datensätzen im Hinblick auf die ›Differentielle Sterblichkeit‹ sind in Abbildung 1 zu 
+sehen. 
+ 
+ H I M M E L R E IC H E R / V O NG A U D E C K E R : D I F F E R E N T I E L L E S T E R B L I C H K E IT 1373 
+ 
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+20-24 25-29 30-34 35-39 40-44 45-49 50-54 55-59 60-64 65-69 70+ al le
+SUF DEMO 2003
+GaWi File 2003
+Fernrechenfile 2002
+ 
+Abbildung 1: Fernere Lebenserwartung von Männern im Alter 65 nach Zahl der persönlichen 
+Entgeltpunkte, Versicherte mit mindestens 20 per-sönlichen Entgeltpunkten – Vergleich der drei 
+Datensätze 
+ 
+(Quelle: FDZ-RV – SUFRTBNWF03DEM, Gastwissenschaftler-Themenfile ›Differentielle Sterblichkeit 2003‹, 
+Fernrechenfile ›Differentielle Sterblichkeit 2002‹, eigene Berechnungen. Die vertikalen Linien repräsentieren 99-prozentige 
+Konfidenzintervalle.) 
+ 
+Der Vergleich von Punktschätzungen und Konfidenzintervallen verdeutlicht, wie 
+wichtig die Einbeziehung der statistischen Schwankungen ist. So liegt die Punktschätzung 
+der Lebenserwartung in der höchsten Einkommensklasse für das 
+SUF Demographie fast eineinhalb Jahre unter derjenigen im Fernrechenfile ›Differentielle 
+Sterblichkeit 2002‹. Das Konfidenzintervall schließt jedoch die Punktschätzung 
+auf Basis des Fernrechenfiles mit ein und bewahrt vor Fehlschlüssen. So bleiben 
+die Ergebnisse aus dem SUF Demographie zwar instruktiv, erlauben jedoch 
+keine signifikanten Aussagen, da sich sämtliche Konfidenzintervalle überlappen. Die 
+Berechnungen zur Sterblichkeit auf Basis des Gastwissenschaftler-Themenfile 
+›Differentielle Sterblichkeit 2003‹ ergeben ein wesentlich präziseres Bild: So lässt 
+sich in fast allen Fällen mit 99-prozentiger Sicherheit feststellen, dass Sterblichkeitsunterschiede 
+zwischen solcher Gruppen bestehen, die nicht direkt nebeneinander 
+liegen. Hierbei sind jedoch die Unschärfen im Hinblick auf die Höhe der Lebensarbeitseinkommen 
+in den unteren Entgeltpunktklassen wegen jener Einkünften zu 
+beachten, die nicht verbeitragt sind. Dazu zählen zum Beispiel die Einkünfte von 
+Selbstständigen oder Freiberuflern mit einer kurzen rentenversicherungspflichtiger 
+Erwerbsbiografie. Mit anderen Worten, in den unteren Entgeltpunktklassen können 
+1374 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+sich männliche Versichertenrentner befinden, die bezüglich der Höhe ihres Lebensarbeitseinkommens 
+weiter oben angesiedelt sein sollten. 
+Die Berechnungen zur ferneren Lebenserwartung von Männern an Hand des 
+Fernrechenfile ›Differentielle Sterblichkeit 2002‹ zeigen – von den Unschärfen im 
+den unteren Einkommensklassen abgesehen – ab der Einkommensklasse von 35 bis 
+39 Entgeltpunkten eine mit dem Einkommen steigende Lebenserwartung, wobei die 
+ermittelten Differenzen in den Gruppenmittelwerten innerhalb der jeweiligen Vertrauensintervalle 
+liegen; das heißt, die Differenzen sind signifikant. 
+Die durchschnittliche fernere Lebenserwartung der Männer liegt bei etwa 15,7 
+Jahren. Im Hinblick auf die Entgeltpunktklassen haben die Männer mit zwischen 35 
+und bis einschließlich 49 Entgeltpunkten eine um etwa eineinhalb bis etwa ein Jahr 
+niedrigere Lebenserwartung als der Durchschnitt der Männer. Und andersherum 
+liegt die Lebenserwartung in den Klassen von 50 bis einschließlich 64 Entgeltpunkten 
+etwa ein halbes Jahr bis eineinhalb Jahre über der durchschnittlichen Lebenserwartung 
+von allen Männern. Vor dem Hintergrund dessen, dass in den Klassen von 
+35 bis 49 und von 50 bis 64 Entgeltpunkten je 37 Prozent der Männer angesiedelt 
+sind, lässt sich festhalten, dass für drei Viertel der männlichen Rentner die fernere 
+Lebenserwartung um plus minus eineinhalb Jahre schwankt, wenngleich die 
+Lebenserwartung für Männer in den höheren Entgeltpunktklassen signifikant höher 
+ist. In diesem Zusammenhang ist von Bedeutung, dass die hier vorgenommenen 
+Analysen die statistische Assoziation von Lebenseinkommen und Sterblichkeit 
+untersuchten. Ob und inwieweit eine höheres Lebenseinkommen einen kausalen 
+Einfluß auf die Lebenserwartung ausübt, kann aus den oben angerissenen Gründen 
+nicht geklärt werden.6 
+Zusammenfassung 
+Analysen zum differentiellen Mortalitätsgeschehen mit Sterbetafeln benötigen sehr 
+hohe Fallzahlen. Diese sind im Rahmen von umfragebasierten Erhebungen nicht 
+verfügbar. Auf Basis von prozessproduzierten Daten der gesetzlichen Rentenversicherung 
+wurden durch das am Mannheimer Forschungsinstitut Ökonomie und 
+demographischer Wandel (MEA) sowie am Max-Planck-Institut für Demographie 
+in Rostock angesiedelte Projekt ›Differentielle Sterblichkeit‹ Analysen zum Mortalitätsgeschehen 
+durchgeführt. In Abbildung 1 sind die Ergebnisse zusammenfassend 
+dargestellt, die auf Basis der drei verschiedenen Datensätze berechnet wurden. Bei 
+—————— 
+ 6 Weitere auf Datenbasis des Fernrechenfile »Differentielle Sterblichkeit« durchgeführte Analysen sind 
+in Gaudecker und Scholz (2006) dokumentiert. 
+ H I M M E L R E IC H E R / V O NG A U D E C K E R : D I F F E R E N T I E L L E S T E R B L I C H K E IT 1375 
+ 
+im Bereich der Wirtschafts- und Sozialwissenschaften angesiedelten Forschungsvorhaben 
+dürften in der Regel mit den Stichprobenumfängen der SUFs mit rund 
+100.000 Fällen hinreichende Fallzahlen zur Verfügung stehen. Diese sind im Hinblick 
+auf ihre Fallzahl erheblich größer als die in den Wirtschafts- und Sozialwissenschaften 
+üblichen Datensätze. 
+Die Berechnungen für die fernere Lebenserwartung im Alter von 65 Jahren für 
+in Deutschland lebende Männer verweisen darauf, dass die mittlere Lebenserwartung 
+bei 15,7 Jahren liegt. Bezieht man das Lebensarbeitseinkommen in Form von 
+Entgeltpunkten bei der gesetzlichen Rentenversicherung in die Analysen ein, dann 
+zeigt sich eine positive statistisch signifikante Assoziation zwischen Lebenseinkommen 
+und Lebenserwartung. Die Lebenserwartungen variieren allerdings bei der 
+überwiegenden Mehrheit der Männer lediglich plus minus eineinhalb Jahre um die 
+durchschnittliche Lebenserwartung. Dennoch lassen die signifikanten Mortalitätsunterschiede 
+im hohen Alter auf unterschiedliche Lebenschancen und Verhaltensweisen 
+in verschiedenen sozialen Gruppen schließen. Die Männer mit der höchsten 
+Lebenserwartung sind in der Gruppe der Rentner mit den höchsten persönlichen 
+Entgeltpunkten zu finden. 
+Kernziel des Forschungsdatenzentrums der Rentenversicherung ist, die Mikrodaten 
+der Rentenversicherung für wissenschaftliche Analysen aufzubereiten und 
+möglichst nutzerfreundlich zur Verfügung zu stellen. Insofern steht die Aufbereitung 
+weiterer Mikrodaten im Zentrum der Aktivitäten des FDZ-RV. In Abbildung 
+2 sind die wichtigsten Mikrodatensätze der Deutschen Rentenversicherung Bund 
+nach thematischen und methodischen Gesichtspunkten dokumentiert. Es zeigt sich, 
+dass die zahlreiche Mikrodatensätze aus den Bereichen Rente und Versicherte 
+sowohl im Quer- als auch im Längsschnitt für die wissenschaftliche Forschung aufbereitet 
+wurden. Insbesondere die Längsschnittdatensätze ›Vollendete Versichertenleben‹ 
+und ›Versicherungskontenstichprobe‹ haben das Analysepotenzial 
+des Datenangebotes des FDZ-RV erheblich erweitert. 
+Das Datenangebot des FDZ-RV soll ab Sommer 2007 auf die Rehabilitationsdaten, 
+zunächst im Querschnitt, ausgedehnt werden. Im Anschluss daran sollen die 
+Mikrodaten der Rentenzahlbestandsstatistik7 der wissenschaftlichen Forschung zur 
+Verfügung gestellt werden. 
+ 
+ 
+—————— 
+ 7 Zum Analysepotenzial der Rentenzahlbestandsstatistik siehe Hagen et al. (2007). 
+1376 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+Renten- 
+zugangs- 
+statistik 
+Renten- 
+bestands- 
+statistik 
+Rentenzahl- 
+bestands-
+statistik 
+Versicherten-
+statistik 
+Reha- 
+Statistik 
+ Querschnittsdatensätze 
+ Rentenzugang 
+Rentenwegfall 
+und 
+Rentenänderung 
+Renten-
+zahlungen aus 
+den Trägerkonten 
+
+Mehrfachbezug 
+von Rentenzahlungen 
+
+Statistik 
+der 
+aktiv 
+Versicherten 
+RSD-Jahreser-
+hebung 
+abgeschlossener 
+Reha-
+Leistungen 
+Längsschnittsdatensätze 
+Vollendete 
+Versicherten-
+leben 
+ Versicherungs- 
+kontenstich-
+probe 
+RSD-Verlaufs- 
+erhebung 
+ 
+Abbildung 2: Zentrale prozessproduzierte Mikrodaten der gesetzlichen Rentenversicherung und 
+deren Verfügbarkeit im FDZ-RV 
+ 
+(Quelle: In Anlehnung an Himmelreicher und Radl (2006); = verfügbar im FDZ-RV, zum Teil für die Berichtsjahre 
+2003, 2004 und 2005, Stand: Januar 2007) 
+ 
+Insofern wird sich das Datenangebot des FDZ-RV in Zukunft vergrößern. Und die 
+Zugangsmöglichkeiten werden, sofern es verfügbare Ressourcen ermöglichen, an 
+die besonderen Anforderungen der wissenschaftlichen Projekte angepasst. 
+Literatur 
+Berkel, Barbara/Börsch-Supan, Axel (2006): »Auswirkungen verschiedener Reformszenarien auf 
+Renteneintrittsentscheidungen« in: Forschungsrelevante Daten der Rentenversicherung. Bericht vom 
+zweiten Workshop des Forschungsdatenzentrums der Rentenversicherung (FDZ-RV) vom 27. bis 29. Juni 
+2005 in Würzburg, DRV-Schriften Bd. 55, Berlin, S. 213–225. 
+Gaudecker, Hans-Martin von (2004): »Intragenerationale Umverteilungswirkungen in der gesetzlichen 
+Rentenversicherung« in: Das Forschungsdatenzentrum der gesetzlichen Rentenversicherung (FDZRV) 
+im Aufbau. Bericht vom ersten Workshop des FDZ-RV am 28. und 29. Juni in Würzburg, DRVSchriften 
+Bd. 55, Frankfurt a.M., S. 126–129. 
+Gaudecker, Hans-Martin von (2006): »Differentielle Sterblichkeit in der GRV: Problemaufriss und 
+erste Berechnungen«, in: Forschungsrelevante Daten der Rentenversicherung. Bericht vom zweiten Work 
+H I M M E L R E IC H E R / V O NG A U D E C K E R : D I F F E R E N T I E L L E S T E R B L I C H K E IT 1377 
+ 
+shop des Forschungsdatenzentrums der Rentenversicherung (FDZ-RV) vom 27. bis 29. Juni 2005 in 
+Würzburg, DRV-Schriften Bd. 55, Berlin, S. 242–252. 
+Gaudecker, Hans-Martin von/Rembrandt, D. Scholz (2006): »Lifetime Earnings and Life Expectancy«, 
+MEA-Discussion Paper Nr. 101–06, verfügbar unter www.mea.uni-mannheim.de. 
+Hagen, Christine; Himmelreicher/Ralf K./Hoffmann, Hilmar (2007): »Typologie des (Mehrfach-) 
+Rentenbezugs«, RVaktuell, H. 3/2007 (im Erscheinen). 
+Haider, Steven/Solon, Gary (2006): »Life-Cycle Variation in the Association between Current and 
+Lifetime Earnings«, American Economic Review, Bd. 96 (4), S. 1308–1320. 
+Heese, Claudia (2004): »Aspekte des Datenschutzes im Forschungsdatenzentrum der gesetzlichen 
+Rentenversicherung«. in: Verband Deutscher Rentenversicherungsträger (Hg.): Das Forschungsdatenzentrum 
+der gesetzlichen Rentenversicherung (FDZ-RV) im Aufbau, Bericht vom ersten Workshop 
+des FDZ-RV am 28. und 29. Juni in Würzburg, Frankfurt a.M., S. 41–48. 
+Himmelreicher, Ralf K. (2001): Soziodemographie, Erwerbsarbeit, Einkommen und Vermögen von westdeutschen 
+Haushalten. Eine Längsschnitt-Kohortenanalyse auf Datenbasis des SOEP (1984–
+1997), Berlin. 
+Himmelreicher, Ralf K./Frommert, Dina (2006): »Gibt es Hinweise auf zunehmende Ungleichheit 
+der Alterseinkünfte und zunehmende Altersarmut? Der Einfluss von Erwerbs- und Familienbiografien 
+auf die Rentenhöhe in Deutschland«, DIW, Vierteljahreshefte zur Wirtschaftsforschung 
+1/2006, Berlin, S. 108–130. 
+Himmelreicher, Ralf K./Radl, Jonas (2006): »Zusammenfassung und Ausblick auf die weitere 
+Entwicklung im FDZ-RV«, in: Forschungsrelevante Daten der Rentenversicherung, Bericht vom zweiten 
+Workshop des Forschungsdatenzentrums der Rentenversicherung (FDZ-RV) vom 27. bis 
+29. Juni 2005 in Würzburg, DRV-Schriften Bd. 55, Berlin, S. 281–286. 
+Himmelreicher, Ralf K./von Gaudecker, Hans-Martin/Scholz, Rembrandt D. (2006): Nutzungsmöglichkeiten 
+von Daten der gesetzlichen Rentenversicherung über das Forschungsdatenzentrum der Rentenversicherung 
+(FDZ-RV), MPIDR Working Paper WP 2006-018, July 2006 
+(http://www.demogr.mpg.de/papers/working/wp-2006-018.pdf). 
+Scholz, Rembrandt D. (2004): »Datenbedarf in der Mortalitätsforschung in Deutschland«, in: Das 
+Forschungsdatenzentrum der gesetzlichen Rentenversicherung (FDZ-RV) im Aufbau, Bericht vom ersten 
+Workshop des FDZ-RV am 28. und 29. Juni in Würzburg. DRV-Schriften Bd. 55, Frankfurt 
+a.M., S. 141–146. 
+Scholz, Rembrandt D. (2006): »Differentielle Sterblichkeitsanalysen mit den Daten der Deutschen 
+Rentenstatistik«, in: Forschungsrelevante Daten der Rentenversicherung. Bericht vom zweiten Workshop des 
+Forschungsdatenzentrums der Rentenversicherung (FDZ-RV) vom 27. bis 29. Juni 2005 in Würzburg, 
+DRV-Schriften Bd. 55, Berlin, S. 253–266. 
+Stegmann, Michael/Luckert, Hilmar/Mika, Tatjana (2005): Die Bereitstellung prozessproduzierter Daten 
+der GRV im Forschungsdatenzentrum der Rentenversicherung (FDZ-RV): Grundsätze zur Anonymisierung 
+von Mikrodaten und zu Gastwissenschaftler-Arbeitsplätzen, Deutsche Rentenversicherung, 2-3, 
+S. 203–215. 
+Unger, Rainer (2006): »Das individuelle Zugangsrentenniveau 2003«, in: Forschungsrelevante Daten der 
+Rentenversicherung. Bericht vom zweiten Workshop des Forschungsdatenzentrums der Rentenversicherung 
+(FDZ-RV) vom 27. bis 29. Juni 2005 in Würzburg, DRV-Schriften Bd. 55, Berlin, S. 267–280. 
+Wübbeke, Christina (2006): »Der Einfluss betrieblicher Rahmenbedingungen auf Zeitpunkt und 
+Form des Ausscheidens älterer Arbeitnehmerinnen und Arbeitnehmer aus dem Erwerbsleben 
+– Eine Analyse für Westdeutschland auf basis der IAB-Beschäftigtenstichprobe 1975–1995 
+1378 S E K T IO N : A L T E R (N )/ M E D IZ IN - U N D G E S U N D H E IT S S O Z IO L O G IE 
+ 
+mit Ergänzungsteil I«, in: Forschungsrelevante Daten der Rentenversicherung. Bericht vom zweiten Workshop 
+des Forschungsdatenzentrums der Rentenversicherung (FDZ-RV) vom 27. bis 29. Juni 2005 in 
+Würzburg, DRV-Schriften Bd. 55, Berlin, S. 157–174. 
+ 
+ 
+ 

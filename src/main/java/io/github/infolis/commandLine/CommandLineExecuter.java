@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,7 +44,7 @@ public class CommandLineExecuter {
     static protected FileResolver fileResolver;
 
     public static void parseJson(Path jsonPath, Path outputDir) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
-        JsonReader reader = Json.createReader(Files.newBufferedReader(jsonPath));
+        JsonReader reader = Json.createReader(Files.newBufferedReader(jsonPath, Charset.forName("UTF-8")));
         JsonObject o = reader.readObject();
 
         Execution e = new Execution();

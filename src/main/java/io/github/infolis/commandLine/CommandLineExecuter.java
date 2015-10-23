@@ -98,6 +98,7 @@ public class CommandLineExecuter {
         }       
         dataStoreClient.post(Execution.class, e);        
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        dataStoreClient.dump(outputDir);
     }
     
     private static List<String> convertPDF(List<String> uris) {

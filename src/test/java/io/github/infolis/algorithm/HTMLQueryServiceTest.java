@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -21,6 +22,7 @@ import org.junit.Test;
  */
 public class HTMLQueryServiceTest extends InfolisBaseTest {
     
+    @Ignore
     @Test
     public void searchWeb() throws IOException {
         QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);              
@@ -65,6 +67,7 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         return sq;
     }
     
+    @Ignore
     @Test
     public void testDoiQueryExecution() throws IOException {
         HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
@@ -88,6 +91,7 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?title=ALLBUS&max=600&lang=de", query);
     }
 
+    @Ignore
     @Test
     public void testQueryExecution() throws IOException {
         HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");

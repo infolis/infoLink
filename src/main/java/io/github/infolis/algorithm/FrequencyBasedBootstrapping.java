@@ -9,7 +9,6 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UnknownFormatConversionException;
-import org.apache.commons.io.IOUtils;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -116,6 +114,8 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
         	newSeedsIteration = new HashSet<>();
+        	newSeedTermsIteration = new HashSet<>();
+        	HashSet<String> addedSeeds = new HashSet<>();
         	log.info("Bootstrapping... Iteration: " + numIter);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<TextualReference> contexts_currentIteration = new ArrayList<>();
@@ -123,7 +123,11 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	log.info("Bootstrapping with seed \"" + seed.getName() + "\"");
                 if (processedSeeds.keySet().contains(seed.getName())) {
                 	if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent) {
-                		contexts_currentIteration.addAll(processedSeeds.get(seed.getName()).getTextualReferences());
+                		// add context of each seed only once even if seed was found multiple times
+                		if (!addedSeeds.contains(seed.getName())) {
+                			contexts_currentIteration.addAll(processedSeeds.get(seed.getName()).getTextualReferences());
+                			addedSeeds.add(seed.getName());
+                		}
                 	}
                 	debug(log, "seed " + seed.getName() + " already known, continuing.");
                     continue;
@@ -144,10 +148,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 					detectedContexts.add(studyContext);
 					contexts_currentIteration.add(studyContext);
 					extractedContextsFromSeeds.add(studyContext);
-//                    log.warn("{}", studyContext.getPattern());
                 }
                 seed.setTextualReferences(detectedContexts);
                 processedSeeds.put(seed.getName(), seed);
+                addedSeeds.add(seed.getName());
 
                 log.info("Extracted contexts of seed.");
                 // 2. generate patterns
@@ -195,7 +199,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             	newSeedTermsIteration.add(entry.getTerm());
             }
             
-            debug(log, "Found %s seeds in current iteration: %s", newSeedsIteration.size(), newSeedsIteration);
+            debug(log, "Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration);
             numIter++;
             
             persistExecution();

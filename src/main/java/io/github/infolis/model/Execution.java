@@ -184,9 +184,9 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> matchingFiles = new ArrayList<>();
 
-        /**
-         * {@link PatternApplier}
-         */
+	/**
+	 * {@link PatternApplier}
+	 */
 	private List<String> patterns = new ArrayList<>();
 
 	// TODO @bolandka not used now, is it worth the computation?
@@ -213,10 +213,10 @@ public class Execution extends BaseModel {
 	 */
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
-        /**
+	/**
 	 * {@link MetaDataResolver}
 	 */
-	private MetaDataExtractingStrategy metaDataExtratingStrategy = MetaDataExtractingStrategy.title;
+	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
         
 	/*
 	 * {@link Resolver}
@@ -233,11 +233,17 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> searchResults;
         
-        /**
-         * 
-         * {@link LocalResolver}
-         */
-        private List<String> linkedEntities;
+	/**
+	 * 
+	 * {@link LocalResolver}
+	 */
+	private List<String> linkedEntities;
+        
+	/**
+	 * 
+	 * TODO
+	 */
+	private List<String> tags;
 
 	//
 	//
@@ -481,34 +487,29 @@ public class Execution extends BaseModel {
 		this.links = links;
 	}
 
-    /**
-     * @return the metaDataExtratingStrategy
-     */
-    public MetaDataExtractingStrategy getMetaDataExtratingStrategy() {
-        return metaDataExtratingStrategy;
+    public MetaDataExtractingStrategy getMetaDataExtractingStrategy() {
+        return metaDataExtractingStrategy;
     }
 
-    /**
-     * @param metaDataExtratingStrategy the metaDataExtratingStrategy to set
-     */
-    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtratingStrategy) {
-        this.metaDataExtratingStrategy = metaDataExtratingStrategy;
+    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
+        this.metaDataExtractingStrategy = metaDataExtractingStrategy;
     }
 
-    /**
-     * @return the linkedEntities
-     */
     public List<String> getLinkedEntities() {
         return linkedEntities;
     }
 
-    /**
-     * @param linkedEntities the linkedEntities to set
-     */
     public void setLinkedEntities(List<String> linkedEntities) {
         this.linkedEntities = linkedEntities;
     }
     
+    public List<String> getTags() {
+		return tags;
+	}
+    
+    public void setTags(List<String> tags) {
+		this.tags = tags;
+	}
     
     public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field field = this.getClass().getDeclaredField(fieldName);

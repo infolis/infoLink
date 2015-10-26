@@ -13,10 +13,9 @@ import io.github.infolis.model.MetaDataExtractingStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -35,12 +35,16 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author domi
  */
 public class CommandLineExecuter {
+	
+	private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
     static protected DataStoreClient dataStoreClient;
     static protected FileResolver fileResolver;
@@ -168,15 +172,16 @@ public class CommandLineExecuter {
         return txtUris;
     }
 
-    public static List<String> postFiles(String dir, DataStoreClient dsc, FileResolver rs) throws IOException {
+    public static List<String> postFiles(String dirStr, DataStoreClient dsc, FileResolver rs) throws IOException {
         List<String> uris = new ArrayList<>();
-        File dirFile = new File(dir);
-        for (File f : dirFile.listFiles()) {
-
-            Path tempFile = Files.createTempFile("infolis-", ".pdf");
+        Path dir = Paths.get(dirStr);
+        Iterator<Path> dirIter = Files.list(dir).iterator();
+		while (dirIter.hasNext()) {
+			Path f = dirIter.next();
+			Path tempFile = Files.createTempFile("infolis-", ".pdf");
             InfolisFile inFile = new InfolisFile();
 
-            FileInputStream inputStream = new FileInputStream(f.getAbsolutePath());
+            InputStream inputStream = Files.newInputStream(f);
 
             int numberBytes = inputStream.available();
             byte pdfBytes[] = new byte[numberBytes];

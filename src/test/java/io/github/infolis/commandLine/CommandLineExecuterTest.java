@@ -24,14 +24,14 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
 	private static final Logger log = LoggerFactory.getLogger(CommandLineExecuterTest.class);
     
     //TODO: paths in the JSON are absolute like the inputFiles
-    @Ignore
+//    @Ignore
     @Test
     public void test() throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, URISyntaxException {
     	String tempdir = System.getProperty("java.io.tmpdir")+"/infolis-test-" + UUID.randomUUID();
         File f = new File(tempdir);
         f.mkdir();
     	CommandLineExecuter.parseJson(
-                        Paths.get(getClass().getResource("/commandLine/algoDesc.json").toURI()),
+    			Paths.get(getClass().getResource("/commandLine/algoDesc.json").toURI()),
     			Paths.get(tempdir));
     	log.debug("Dumped execution to {}", tempdir);
     }

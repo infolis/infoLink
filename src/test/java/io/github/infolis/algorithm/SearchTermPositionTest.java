@@ -71,8 +71,6 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         assertEquals("term", contextList3.get(0).getTerm());
     }
 
-    //TODO: why??? should be ok?
-    @Ignore
     @Test
     public void complexSearch_getContextTest() throws Exception {
 

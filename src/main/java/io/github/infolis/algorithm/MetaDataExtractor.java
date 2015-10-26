@@ -32,7 +32,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public void execute() throws IOException {
 
         String tr = getExecution().getTextualReferences().get(0);
-        MetaDataExtractingStrategy strat = getExecution().getMetaDataExtratingStrategy();
+        MetaDataExtractingStrategy strat = getExecution().getMetaDataExtractingStrategy();
         
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 

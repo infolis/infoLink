@@ -482,16 +482,16 @@ public class Execution extends BaseModel {
 	}
 
     /**
-     * @return the metaDataExtratingStrategy
+     * @return the metaDataExtractingStrategy
      */
-    public MetaDataExtractingStrategy getMetaDataExtratingStrategy() {
+    public MetaDataExtractingStrategy getMetaDataExtractingStrategy() {
         return metaDataExtractingStrategy;
     }
 
     /**
-     * @param metaDataExtractingStrategy the metaDataExtratingStrategy to set
+     * @param metaDataExtractingStrategy the metaDataExtractingStrategy to set
      */
-    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
+    public void setMetaDataExtractingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
         this.metaDataExtractingStrategy = metaDataExtractingStrategy;
     }
 

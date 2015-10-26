@@ -50,6 +50,8 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 
 	@Test
 	public void testStartExecution() throws Exception {
+        Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
+
 		DataStoreClient centralClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 		Execution e = new Execution();
 		e.setAlgorithm(TextExtractorAlgorithm.class);

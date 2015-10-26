@@ -1,22 +1,23 @@
 package io.github.infolis.util; 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.regex.Pattern;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 
 public class LimitedTimeMatcherTest {
 	
 	@Test
-	@Ignore
-	public void testTimeout() throws Exception {
+	public void testTimeout() {
 		
 		Pattern pat = Pattern.compile("(x+x+)+y");
 		
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, "xxxxxxxxxxxxxxxxxxxxxxx", 1_000, "Test");
 		ltm.run();
+		assertTrue(ltm.timedOut());
 	}
 	
 	@Test

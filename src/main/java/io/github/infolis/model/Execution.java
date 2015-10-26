@@ -216,7 +216,7 @@ public class Execution extends BaseModel {
         /**
 	 * {@link MetaDataResolver}
 	 */
-	private MetaDataExtractingStrategy metaDataExtratingStrategy = MetaDataExtractingStrategy.title;
+	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
         
 	/*
 	 * {@link Resolver}
@@ -485,14 +485,14 @@ public class Execution extends BaseModel {
      * @return the metaDataExtratingStrategy
      */
     public MetaDataExtractingStrategy getMetaDataExtratingStrategy() {
-        return metaDataExtratingStrategy;
+        return metaDataExtractingStrategy;
     }
 
     /**
-     * @param metaDataExtratingStrategy the metaDataExtratingStrategy to set
+     * @param metaDataExtractingStrategy the metaDataExtratingStrategy to set
      */
-    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtratingStrategy) {
-        this.metaDataExtratingStrategy = metaDataExtratingStrategy;
+    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
+        this.metaDataExtractingStrategy = metaDataExtractingStrategy;
     }
 
     /**

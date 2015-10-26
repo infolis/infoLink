@@ -3,18 +3,15 @@ package io.github.infolis.datastore;
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -31,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Client to access the Linked Data frontend web services.
@@ -42,17 +40,27 @@ class CentralClient extends AbstractClient {
 
 	private Logger log = LoggerFactory.getLogger(CentralClient.class);
 
-	@SuppressWarnings("rawtypes")
-	private static Map<Class, String> uriForClass = new HashMap<>();
-	static {
-		/*
-		 * Add mappings from class name to uri fragment here, e.g.
-		 * http://infolis-frontend/api/file/124 
-		 *                             \__/
-		 *                            map this
-		 */
-		uriForClass.put(InfolisFile.class, "file");
-		uriForClass.put(Execution.class, "execution");
+	/*
+	 * <pre>
+	 * Add mappings from class name to uri fragment here, e.g.
+	 * http://infolis-frontend/api/file/124 
+	 *                             \__/
+	 *                            map this
+	 * </pre>
+	 */
+	private static Map<Class<?>, String> uriForClass = new ImmutableMap.Builder<Class<?>, String>()
+		.put(InfolisFile.class, "file")
+		.build();
+	public static String getEndpointForClass(Class<?> clazz) {
+		// if explicitly mapped
+		if (uriForClass.containsKey(clazz)) {
+			return uriForClass.get(clazz);
+		}
+		// otherwise use lcfirst-version of simplename ("QueryService" -> "queryService")
+		String name = clazz.getSimpleName();
+		char c[] = name.toCharArray();
+		c[0] = Character.toLowerCase(c[0]);
+		return new String(c);
 	}
 
 	private static <T extends BaseModel> String getUriForClass(Class<T> clazz) {

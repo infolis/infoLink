@@ -3,6 +3,8 @@ package io.github.infolis.datastore;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.IOException;
@@ -37,6 +39,12 @@ public class LocalClientTest {
 		InfolisFile file2 = client.get(InfolisFile.class, file.getUri());
 		assertEquals(file.getUri(), file2.getUri());
 		assertEquals(file.getFileName(), file2.getFileName());
+		
+		file2.setUri("foo");
+		client.post(InfolisFile.class, file2);
+		
+		QueryService qs = new HTMLQueryService();
+		client.post(QueryService.class, qs);
 		
 		Path dumpPath = Paths.get("/tmp/infolis-test");
 		Files.createDirectories(dumpPath);

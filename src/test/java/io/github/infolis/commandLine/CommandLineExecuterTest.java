@@ -2,6 +2,7 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.InfolisBaseTest;
+import java.io.File;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,7 +27,9 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
 //    @Ignore
     @Test
     public void test() throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, URISyntaxException {
-    	String tempdir = "/tmp/infolis-test-" + UUID.randomUUID();
+    	String tempdir = System.getProperty("java.io.tmpdir")+"/infolis-test-" + UUID.randomUUID();
+        File f = new File(tempdir);
+        f.mkdir();
     	CommandLineExecuter.parseJson(
     			Paths.get(getClass().getResource("/commandLine/algoDesc.json").toURI()),
     			Paths.get(tempdir));

@@ -175,7 +175,7 @@ public class CommandLineExecuter {
     public static List<String> postFiles(String dirStr, DataStoreClient dsc, FileResolver rs) throws IOException {
         List<String> uris = new ArrayList<>();
         Path dir = Paths.get(dirStr);
-        Iterator<Path> dirIter = Files.list(dir).iterator();
+        Iterator<Path> dirIter = Files.newDirectoryStream(dir).iterator();
 		while (dirIter.hasNext()) {
 			Path f = dirIter.next();
 			Path tempFile = Files.createTempFile("infolis-", ".pdf");

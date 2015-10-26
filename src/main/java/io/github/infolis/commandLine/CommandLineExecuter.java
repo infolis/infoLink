@@ -78,12 +78,12 @@ public class CommandLineExecuter {
                         break;
                     }
                     if (values.getKey().equals("bootstrapStrategy")) {
-                        BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString());
+                        BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString().replace("\"", ""));
                         e.setBootstrapStrategy(b);
                         break;
                     }
                     if (values.getKey().equals("metaDataExtractingStrategy")) {
-                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy.valueOf(values.getValue().toString());
+                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy.valueOf(values.getValue().toString().replace("\"", ""));
                         e.setMetaDataExtractingStrategy(mde);
                         break;
                     }

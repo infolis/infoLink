@@ -107,8 +107,8 @@ public class CommandLineExecuter {
                     JsonArray array = (JsonArray) values.getValue();
                     List<String> listEntries = new ArrayList<>();
                     for (int i = 0; i < array.size(); i++) {
-                        JsonString stringSeed = array.getJsonString(i);
-                        listEntries.add(stringSeed.getString());
+                        JsonString stringEntry = array.getJsonString(i);
+                        listEntries.add(stringEntry.getString());
                     }
                     e.setProperty(values.getKey(), listEntries);
                     break;

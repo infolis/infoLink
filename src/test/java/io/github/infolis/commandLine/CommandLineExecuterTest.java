@@ -2,18 +2,24 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.InfolisBaseTest;
-import java.io.File;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import sun.nio.ch.IOUtil;
 
 /**
  *
@@ -27,12 +33,17 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
 //    @Ignore
     @Test
     public void test() throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, URISyntaxException {
-    	String tempdir = System.getProperty("java.io.tmpdir")+"/infolis-test-" + UUID.randomUUID();
-        File f = new File(tempdir);
-        f.mkdir();
-    	CommandLineExecuter.parseJson(
-    			Paths.get(getClass().getResource("/commandLine/algoDesc.json").toURI()),
-    			Paths.get(tempdir));
+    	Path tempdir = Files.createTempDirectory("infolis-test-" + UUID.randomUUID());
+    	Path pdfDir = Paths.get(getClass().getResource("/examples/pdfs").toURI());
+
+    	Path jsonin = Paths.get(getClass().getResource("/commandLine/algoDesc.json").toURI());
+    	Path tempjson = Paths.get(System.getProperty("java.io.tmpdir")+"/infolis-test-" + UUID.randomUUID() + ".json");
+
+    	String jsonString = IOUtils.toString(Files.newInputStream(jsonin));
+    	jsonString = jsonString.replace("INPUT_FILES_PATH", pdfDir.toString());
+    	IOUtils.write(jsonString, Files.newOutputStream(tempjson));
+    	log.debug(jsonString);
+    	CommandLineExecuter.parseJson(tempjson, tempdir);
     	log.debug("Dumped execution to {}", tempdir);
     }
 }

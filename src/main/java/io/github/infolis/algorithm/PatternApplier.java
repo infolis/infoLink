@@ -5,11 +5,8 @@
  */
 package io.github.infolis.algorithm;
 
-import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.tagger.Tagger;
-import io.github.infolis.model.Chunk;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
@@ -103,10 +100,7 @@ public class PatternApplier extends BaseAlgorithm {
                     continue;
                 }
 				// a study name is supposed to be a named entity and thus should
-                // contain at least one upper-case
-                // character
-                // supposedly does not filter out many wrong names in German
-                // though
+                // contain at least one upper-case character
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
                         ltm.run();
@@ -115,41 +109,14 @@ public class PatternApplier extends BaseAlgorithm {
                         continue;
                     }
                 }
-                boolean containedInNP;
-                if (this.getExecution().isRequiresContainedInNP()) {
-                    Tagger tagger;
-                    try {
-                        tagger = new Tagger(InfolisConfig.getTagCommand(), InfolisConfig
-                                .getChunkCommand(), "utf-8");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new IOException("\nerror initializing tagger\n");
-                    }
-                    List<Chunk> nounPhrase = tagger.chunk(context).get("<NC>");
-                    containedInNP = false;
-                    if (nounPhrase != null) {
-                        for (Chunk chunk : nounPhrase) {
-                            if (chunk.getString().replaceAll("\\s", "").contains(studyName
-                                    .replaceAll("\\s", ""))) {
-                                containedInNP = true;
-                            }
-                        }
-                    }
-                } else {
-                    containedInNP = true;
+
+                List<TextualReference> references = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
+                for (TextualReference ref : references) {
+                	ref.setPattern(pattern.getUri());
+                    log.debug("added reference: " + ref);
                 }
-                if (containedInNP) {
-//					SearchTermPosition stp = new SearchTermPosition();
-//					stp.setDataStoreClient(getDataStoreClient());
-//					stp.setInputFileResolver(getInputFileResolver());
-                    List<TextualReference> references = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
-                    for (TextualReference ref : references) {
-                        ref.setPattern(pattern.getUri());
-                        log.debug("added reference: " + ref);
-                    }
-                    res.addAll(references);
-                    log.trace("Added references.");
-                }
+                res.addAll(references);
+                log.trace("Added references.");
 
                 log.trace("Searching for next match of pattern " + pattern.getPatternRegex());
                 ltm.run();

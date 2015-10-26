@@ -21,12 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.SerializationUtils;
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -195,9 +190,8 @@ public class Execution extends BaseModel {
 	private List<String> patterns = new ArrayList<>();
 
 	// TODO @bolandka not used now, is it worth the computation?
+	// @kba it is used in PatternApplier <- used in both bootstrapping methods, is very important
 	private boolean upperCaseConstraint = false;
-	// TODO @bolandka not used now, is it worth the computation?
-	private boolean requiresContainedInNP = false;
 
 	/**
 	 * Seeds used for bootstrapping.
@@ -217,7 +211,6 @@ public class Execution extends BaseModel {
 	/**
 	 * Strategy to use for bootstrapping.
 	 */
-	// private Strategy bootstrapStrategy = Strategy.separate;
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
         /**
@@ -430,14 +423,6 @@ public class Execution extends BaseModel {
 
 	public void setUpperCaseConstraint(boolean upperCaseConstraint) {
 		this.upperCaseConstraint = upperCaseConstraint;
-	}
-
-	public boolean isRequiresContainedInNP() {
-		return requiresContainedInNP;
-	}
-
-	public void setRequiresContainedInNP(boolean requiresContainedInNP) {
-		this.requiresContainedInNP = requiresContainedInNP;
 	}
 
 	public List<String> getLinks() {

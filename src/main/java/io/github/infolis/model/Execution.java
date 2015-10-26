@@ -491,7 +491,7 @@ public class Execution extends BaseModel {
         return metaDataExtractingStrategy;
     }
 
-    public void setMetaDataExtratingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
+    public void setMetaDataExtractingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
         this.metaDataExtractingStrategy = metaDataExtractingStrategy;
     }
 

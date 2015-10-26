@@ -3,7 +3,6 @@ package io.github.infolis;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -161,5 +160,14 @@ public class InfolisConfig {
 	 */
 	public static String getChunkCommand() {
 		return INSTANCE.prop.getProperty("chunkCommand");
+	}
+	
+	/**
+	 * Property "stopwords"
+	 * 
+	 * @return
+	 */
+	public static List<String> getStopwords() {
+		return Arrays.asList(INSTANCE.prop.getProperty("stopwords").trim().split("\\s*,\\s*"));
 	}
 }

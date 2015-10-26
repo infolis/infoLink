@@ -6,6 +6,7 @@ import io.github.infolis.algorithm.Indexer;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -182,73 +183,6 @@ public class RegexUtils {
 	}
 	
 	/**
-	 * Returns a selection of words to be treated as stopwords by the reference extraction algorithm
-	 * 
-	 * @return	a list of stopwords (English and German)
-	 */
-	public static Set<String> stopwordList()
-	{
-		Set<String> stopwords = new HashSet<String>();
-		stopwords.add("the");
-		stopwords.add("and");
-		stopwords.add("on");
-		stopwords.add("in");
-		stopwords.add("at");
-		stopwords.add("from");
-		stopwords.add("to");
-		stopwords.add("with");
-		stopwords.add("for");
-		stopwords.add("as");
-		stopwords.add("by");
-		stopwords.add("of");
-		stopwords.add("that");
-		stopwords.add("which");
-		stopwords.add("who");
-		stopwords.add("than");
-		
-		stopwords.add("als");
-		stopwords.add("durch");
-		stopwords.add("wegen");
-		stopwords.add("der");
-		stopwords.add("des");
-		stopwords.add("den");
-		stopwords.add("deren");
-		stopwords.add("dessen");
-		stopwords.add("dem");
-		stopwords.add("die");
-		stopwords.add("das");
-		stopwords.add("fuer");
-		stopwords.add("für");
-		stopwords.add("und");
-		stopwords.add("in");
-		stopwords.add("im");
-		stopwords.add("zu");
-		stopwords.add("zur");
-		stopwords.add("zum");
-		stopwords.add("um");
-		stopwords.add("und");
-		stopwords.add("mit");
-		stopwords.add("ohne");
-		stopwords.add("aus");
-		stopwords.add("von");
-		stopwords.add("vom");
-		stopwords.add("nach");
-		stopwords.add("zwischen");
-		stopwords.add("über");
-		stopwords.add("unter");
-		stopwords.add("neben");
-		stopwords.add("vor");
-		stopwords.add("hinter");
-		// todo: use list, e.g.  http://de.wiktionary.org/wiki/Wiktionary:Deutsch/Liste_der_Pr%C3%A4positionen
-		// + Konjunktionen	
-		// placeholders inserted into contexts
-		stopwords.add("<year>");
-		stopwords.add("<percent>");
-		stopwords.add("<number>");
-		return stopwords;
-	}
-	
-	/**
 	 * Removes all characters that are not allowed in filenames (on windows filesystems).
 	 * 
 	 * @param seed	the string to be escaped
@@ -277,14 +211,15 @@ public class RegexUtils {
         if (word.length() < 2) {
             return true;
         }
-        if (RegexUtils.stopwordList().contains(word)) {
+        List<String> stopwords = InfolisConfig.getStopwords();
+        if (stopwords.contains(word)) {
             return true;
         }
         // treat concatenations of two stopwords as stopword
-        for (String stopword : RegexUtils.stopwordList()) {
+        for (String stopword : stopwords) {
         	// replace with whitespace and use trim to avoid replacing occurrences inside of word, e.g.
         	// "Daten" -> replace "at" with "" would yield "den" -> stopword
-            if (stopwordList().contains(word.replace(stopword, " ").trim())) {
+            if (stopwords.contains(word.replace(stopword, " ").trim())) {
                 return true;
             }
             if (word.replace(stopword, "").isEmpty()) {

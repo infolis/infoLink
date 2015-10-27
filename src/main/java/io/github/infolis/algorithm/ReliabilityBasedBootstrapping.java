@@ -5,7 +5,6 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.search.BooleanQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,17 +32,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author kata
  */
-public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
+public class ReliabilityBasedBootstrapping extends Bootstrapping {
 
-    public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
     private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
-    Execution indexerExecution = new Execution();
     private Reliability r = new Reliability();
 
-    private List<TextualReference> bootstrap() throws IOException, ParseException {
+    List<TextualReference> bootstrap() throws IOException, ParseException {
         Set<Entity> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns = new HashSet<>();
         PatternRanker patternRanker = new PatternRanker();
@@ -384,54 +381,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             }
         }
         return topK;
-    }
-    
-    private Execution createIndex() throws IOException {
-		Execution execution = new Execution();
-		execution.setAlgorithm(Indexer.class);
-		execution.setInputFiles(getExecution().getInputFiles());
-		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-//		0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-		execution.setPhraseSlop(getExecution().getPhraseSlop());
-		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
-        getOutputDataStoreClient().post(Execution.class, execution);
-        execution.instantiateAlgorithm(this).run();
-		return execution;
-	}
-
-    @Override
-    public void execute() throws IOException {
-    	this.indexerExecution = createIndex();
-        List<TextualReference> detectedContexts = new ArrayList<>();
-        try {
-            detectedContexts = bootstrap();
-        } catch (IOException | ParseException ex) {
-            log.error("Could not apply reliability bootstrapping: " + ex);
-            getExecution().setStatus(ExecutionStatus.FAILED);
-        }
-
-        for (TextualReference sC : detectedContexts) {
-            getOutputDataStoreClient().post(TextualReference.class, sC);
-            this.getExecution().getTextualReferences().add(sC.getUri());
-            this.getExecution().getPatterns().add(sC.getPattern());
-        }
-
-        getExecution().setStatus(ExecutionStatus.FINISHED);
-    }
-
-    @Override
-    public void validate() {
-        //TODO: warn when standard values are used (threshold, maxIterations not specified)
-        //TODO: warn when superfluous parameters are specified
-        //TODO: BaseAlgorithm: bootstrapStrategy wrong in case of r. based bootstrapping...
-        if (null == this.getExecution().getSeeds()
-                || this.getExecution().getSeeds().isEmpty()) {
-            throw new IllegalArgumentException("Must set at least one term as seed!");
-        }
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
-            throw new IllegalArgumentException("Must set at least one input file!");
-        }
     }
 
 }

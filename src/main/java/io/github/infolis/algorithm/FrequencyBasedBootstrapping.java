@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.BooleanQuery;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -32,16 +33,17 @@ import org.slf4j.LoggerFactory;
  */
 public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
-    public FrequencyBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public FrequencyBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
+	Execution indexerExecution = new Execution();
 
     @Override
     public void execute() throws IOException {
-
         List<TextualReference> detectedContexts = new ArrayList<>();
+        this.indexerExecution = createIndex();
         try {
             detectedContexts.addAll(bootstrap());
             // POST all the StudyContexts
@@ -75,6 +77,19 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
             throw new IllegalArgumentException("Must set the bootstrap strategy");
         }
     }
+    
+	private Execution createIndex() throws IOException {
+		Execution execution = new Execution();
+		execution.setAlgorithm(Indexer.class);
+		execution.setInputFiles(getExecution().getInputFiles());
+		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+//		0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		execution.setPhraseSlop(getExecution().getPhraseSlop());
+		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
+        getOutputDataStoreClient().post(Execution.class, execution);
+        execution.instantiateAlgorithm(this).run();
+		return execution;
+	}
 
 
     /**
@@ -135,6 +150,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
                 // 1. use lucene index to search for term in corpus
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
+                execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
+                execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
+                execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
+                execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
                 execution.setSearchTerm(seed.getName());
                 execution.setSearchQuery(RegexUtils.normalizeQuery(seed.getName(), true));
                 execution.setInputFiles(getExecution().getInputFiles());
@@ -252,6 +271,10 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
         	Execution stpExecution = new Execution();
             stpExecution.setAlgorithm(SearchTermPosition.class);
+            stpExecution.setInputDirectory(this.indexerExecution.getOutputDirectory());
+            stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
+            stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
+            stpExecution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
             stpExecution.setSearchTerm("");
     		stpExecution.setSearchQuery(curPat.getLuceneQuery());
     		stpExecution.setInputFiles(getExecution().getInputFiles());
@@ -261,7 +284,7 @@ public class FrequencyBasedBootstrapping extends BaseAlgorithm {
 
                 Execution applierExecution = new Execution();
                 applierExecution.setPatternUris(Arrays.asList(curPat.getUri()));
-                applierExecution.setAlgorithm(PatternApplier.class);                
+                applierExecution.setAlgorithm(PatternApplier.class);    
                 applierExecution.getInputFiles().add(filenameIn);
                 applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
                 applierExecution.instantiateAlgorithm(this).run();

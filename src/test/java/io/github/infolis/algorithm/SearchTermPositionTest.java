@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.lucene.search.BooleanQuery;
 import org.junit.Ignore;
 
 import org.junit.Test;
@@ -32,8 +34,8 @@ public class SearchTermPositionTest extends InfolisBaseTest {
     String testString5 = "Hallo, please try to find the _ in this short text snippet. Thank you.";
     String testString6 = "Hallo, please try to find .the term. in this short text snippet. Thank you.";
     List<String> uris = new ArrayList<>();
-
-//	private SearchTermPosition stp;
+    Execution indexerExecution;
+    
     public SearchTermPositionTest() throws Exception {
         String[] testStrings = {
             "Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -47,7 +49,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         for (InfolisFile file : createTestTextFiles(100, testStrings)) {
             uris.add(file.getUri());
         }
-//		stp = new SearchTermPosition(dataStoreClient, dataStoreClient,fileResolver, fileResolver);
+        indexerExecution = createIndex();
     }
 
     @Test
@@ -95,14 +97,23 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         // ("_" should not be indexed by analyzer, thus there should be no word to match the wildcard)
         assertEquals(100 - 14, testContexts("", "\"to find the * in\"").size());
     }
+    
+    private Execution createIndex() throws IOException {
+		Execution execution = new Execution();
+		execution.setAlgorithm(Indexer.class);
+		execution.setInputFiles(uris);
+        //getOutputDataStoreClient().post(Execution.class, execution);
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		return execution;
+	}
 
     private List<TextualReference> testContexts(String searchTerm, String searchQuery) throws Exception {
-
         Execution exec = new Execution();
         exec.setAlgorithm(SearchTermPosition.class);
         exec.setSearchTerm(searchTerm);
         exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);
+        exec.setInputDirectory(indexerExecution.getOutputDirectory());
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         
 

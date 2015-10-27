@@ -18,8 +18,6 @@ package io.github.infolis.algorithm;
  */
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
 import io.github.infolis.model.Execution;
@@ -78,7 +76,7 @@ public class Indexer extends BaseAlgorithm {
         File indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
         log.debug("Indexing to: " + indexDir.getAbsolutePath());
         FileUtils.forceDeleteOnExit(indexDir);
-        getExecution().setOutputDirectory(indexDir.toString());
+        getExecution().setOutputDirectory(indexDir.getAbsolutePath().toString());
 
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
         indexWriterConfig.setOpenMode(OpenMode.CREATE);

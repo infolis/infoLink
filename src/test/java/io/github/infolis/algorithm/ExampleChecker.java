@@ -29,6 +29,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.lucene.search.BooleanQuery;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -183,10 +184,23 @@ public class ExampleChecker extends InfolisBaseTest {
 
         return search.getTextualReferences();
     }
+    
+    private Execution createIndex(List<String> input) throws IOException {
+		Execution execution = new Execution();
+		execution.setAlgorithm(Indexer.class);
+		execution.setInputFiles(input);
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		return execution;
+	}
 
-    public List<String> searchSeed(String seed, List<String> input) {
+    // TODO: bolandka @domi: I integrated the index generation here but could not test it as all tests are ignored
+    //and I don't know which part is supposed to be working and which isn't
+    // if you find any problem with searching the index when reactivating this class, please let me know
+    public List<String> searchSeed(String seed, List<String> input) throws IOException {
         Execution search = new Execution();
         search.setAlgorithm(SearchTermPosition.class);
+        Execution indexerExecution = createIndex(input);
+        search.setInputDirectory(indexerExecution.getOutputDirectory());
         search.setSearchTerm(seed);
         search.setSearchQuery(seed);
         search.setInputFiles(input);

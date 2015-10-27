@@ -144,11 +144,17 @@ public class Execution extends BaseModel {
 	private boolean removeBib = false;
 
 	/**
-	 * Output directory of the indexer. {@link SearchTermPosition}
+	 * Output directory of Indexer and TextExtractor. {@link Indexer}
 	 * {@link TextExtractorAlgorithm}
 	 */
 	private String outputDirectory = "";
 
+	/**
+	 * Input directory of SearchTermPosition = output directory of indexer. 
+	 * {@link SearchTermPosition}
+	 */
+	private String inputDirectory = "";
+	
 	/**
 	 * {@link SearchTermPosition}
 	 */
@@ -333,6 +339,14 @@ public class Execution extends BaseModel {
 
 	public void setOutputDirectory(String outputDirectory) {
 		this.outputDirectory = outputDirectory;
+	}
+	
+	public String getInputDirectory() {
+		return inputDirectory;
+	}
+
+	public void setInputDirectory(String inputDirectory) {
+		this.inputDirectory = inputDirectory;
 	}
 
 	public Class<? extends Algorithm> getAlgorithm() {

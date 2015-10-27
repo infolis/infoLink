@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.BooleanQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
+    Execution indexerExecution = new Execution();
     private Reliability r = new Reliability();
 
     private List<TextualReference> bootstrap() throws IOException, ParseException {
@@ -184,6 +186,10 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         // use lucene index to search for term in corpus
         Execution execution = new Execution();
         execution.setAlgorithm(SearchTermPosition.class);
+        execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
+        execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
+        execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
+        execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
         execution.setSearchTerm(seed);
         execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
         execution.setInputFiles(getExecution().getInputFiles());
@@ -379,9 +385,23 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         }
         return topK;
     }
+    
+    private Execution createIndex() throws IOException {
+		Execution execution = new Execution();
+		execution.setAlgorithm(Indexer.class);
+		execution.setInputFiles(getExecution().getInputFiles());
+		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+//		0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		execution.setPhraseSlop(getExecution().getPhraseSlop());
+		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
+        getOutputDataStoreClient().post(Execution.class, execution);
+        execution.instantiateAlgorithm(this).run();
+		return execution;
+	}
 
     @Override
     public void execute() throws IOException {
+    	this.indexerExecution = createIndex();
         List<TextualReference> detectedContexts = new ArrayList<>();
         try {
             detectedContexts = bootstrap();

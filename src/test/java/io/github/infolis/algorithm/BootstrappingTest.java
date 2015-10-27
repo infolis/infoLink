@@ -30,6 +30,7 @@ public class BootstrappingTest extends InfolisBaseTest {
 	
 	private List<String> uris = new ArrayList<>();
 	private static InfolisPattern pat = new InfolisPattern();
+	private static InfolisPattern pat2 = new InfolisPattern();
 
 	public BootstrappingTest() throws Exception {
 		String[] testStrings = {
@@ -45,7 +46,10 @@ public class BootstrappingTest extends InfolisBaseTest {
 			uris.add(file.getUri());
 		pat.setPatternRegex("\\S++\\s\\S++\\s\\S++\\s\\S++\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
 		pat.setLuceneQuery("the * in");
+		pat2.setPatternRegex("\\S++\\s\\S++\\s\\S++\\s\\S++\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
+		pat2.setLuceneQuery("the * in");
 		dataStoreClient.post(InfolisPattern.class, pat);
+		dataStoreClient.post(InfolisPattern.class, pat2);
 		indexerExecution = createIndex();
 	}
 	
@@ -62,7 +66,6 @@ public class BootstrappingTest extends InfolisBaseTest {
         Execution execution = new Execution();
         execution.getPatterns().add(pattern.getUri());
         execution.setAlgorithm(PatternApplier.class);
-        execution.setUpperCaseConstraint(false);
         execution.getInputFiles().addAll(uris);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
@@ -86,12 +89,13 @@ public class BootstrappingTest extends InfolisBaseTest {
      */
     public void testGetContextsForPatterns() throws IOException {
     	Set<String> references1 = new HashSet<>(getReferenceStrings(getContextsForPattern(pat)));
+    	references1.addAll(getReferenceStrings(getContextsForPattern(pat2)));
     	Execution e = new Execution();
     	e.setInputFiles(uris);
     	Bootstrapping b = new FrequencyBasedBootstrapping(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
-    	Set<String> references2 = new HashSet<>(getReferenceStrings(b.getContextsForPatterns(Arrays.asList(pat))));
+    	Set<String> references2 = new HashSet<>(getReferenceStrings(b.getContextsForPatterns(Arrays.asList(pat, pat2))));
     	assertEquals(references1, references2);
     }
 }

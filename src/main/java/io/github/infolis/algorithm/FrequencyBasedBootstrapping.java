@@ -3,7 +3,6 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
-import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -12,14 +11,12 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -92,25 +89,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
-                /*
-                Execution execution = new Execution();
-                execution.setAlgorithm(SearchTermPosition.class);
-                execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
-                execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
-                execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
-                execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
-                execution.setSearchTerm(seed.getName());
-                execution.setSearchQuery(RegexUtils.normalizeQuery(seed.getName(), true));
-                execution.setInputFiles(getExecution().getInputFiles());
-                execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
-                getOutputDataStoreClient().post(Execution.class, execution);
-                execution.instantiateAlgorithm(this).run();
-                getExecution().getLog().addAll(execution.getLog());*/
                 List<String> seedContexts = this.getContextsForSeed(seed.getName());
-                
 
                 List<TextualReference> detectedContexts = new ArrayList<>();
-                //for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, execution.getTextualReferences())) {
                 for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, seedContexts)) {
 					detectedContexts.add(studyContext);
 					contexts_currentIteration.add(studyContext);
@@ -160,8 +141,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             // 3. search for patterns in corpus
             List<String> res = this.getContextsForPatterns(newPatterns);
             for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
-            	// TODO: really? overwrite the pattern for every context?
-                //studyContext.setPattern(curPat.getUri());
             	extractedContextsFromPatterns.add(studyContext);
             	newSeedsIteration.add(new Entity(studyContext.getTerm()));
             	newSeedTermsIteration.add(studyContext.getTerm());

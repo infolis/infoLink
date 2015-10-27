@@ -226,23 +226,6 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         private Map<String, Double> topK = new HashMap<>();
 
         /**
-         * Calls PatternApplier to extract all contexts of this pattern.
-         *
-         * @param pattern
-         * @return
-         */
-        private List<String> extractContexts(InfolisPattern pattern) {
-            Execution execution_pa = new Execution();
-            execution_pa.getPatterns().add(pattern.getUri());
-            execution_pa.setAlgorithm(PatternApplier.class);
-            execution_pa.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-            execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
-            Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-            algo.run();
-            return execution_pa.getTextualReferences();
-        }
-
-        /**
          * 
          * @param candidatesPerContext
          * @param relInstances
@@ -273,8 +256,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
                         getOutputDataStoreClient().post(InfolisPattern.class, candidate);
-                        // TODO: use extractContextsforPatterns method
-                        candidate.setTextualReferences(getStudyContexts(this.extractContexts(candidate)));
+                        // TODO: use on set of candidates instead of on single candidate
+                        candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate))));
                         this.knownPatterns.put(candidate.getMinimal(), candidate);
                     }
 

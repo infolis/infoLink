@@ -8,7 +8,6 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 
@@ -58,7 +57,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         for (String seed : seedTerms) {
             log.info("Bootstrapping with seed \"" + seed + "\"");
             Entity newSeed = new Entity(seed);
-            newSeed.setTextualReferences(getStudyContexts(getContextsForSeed(seed)));
+            newSeed.setTextualReferences(getStudyContexts(this.getContextsForSeed(seed)));
             newSeed.setIsSeed();
             seeds.add(newSeed);
         }
@@ -122,7 +121,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             for (String newInstanceName : newInstanceNames) {
                 Entity newInstance = new Entity(newInstanceName);
                 // counts of instances are required for computation of pmi
-                newInstance.setTextualReferences(getStudyContexts(getContextsForSeed(newInstanceName)));
+                newInstance.setTextualReferences(getStudyContexts(this.getContextsForSeed(newInstanceName)));
                 log.debug("new Instance stored contexts: " + newInstance.getTextualReferences());
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
@@ -177,23 +176,6 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             }
         }
         return res;
-    }
-
-    private List<String> getContextsForSeed(String seed) {
-        // use lucene index to search for term in corpus
-        Execution execution = new Execution();
-        execution.setAlgorithm(SearchTermPosition.class);
-        execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
-        execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
-        execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
-        execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
-        execution.setSearchTerm(seed);
-        execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
-        execution.setInputFiles(getExecution().getInputFiles());
-        execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
-        Algorithm algo = execution.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-        algo.run();
-        return execution.getTextualReferences();
     }
 
     /**
@@ -291,7 +273,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
                         getOutputDataStoreClient().post(InfolisPattern.class, candidate);
-                        candidate.setTextualReferences(getStudyContexts(extractContexts(candidate)));
+                        // TODO: use extractContextsforPatterns method
+                        candidate.setTextualReferences(getStudyContexts(this.extractContexts(candidate)));
                         this.knownPatterns.put(candidate.getMinimal(), candidate);
                     }
 

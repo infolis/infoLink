@@ -92,6 +92,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
+                /*
                 Execution execution = new Execution();
                 execution.setAlgorithm(SearchTermPosition.class);
                 execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
@@ -104,10 +105,13 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
                 getOutputDataStoreClient().post(Execution.class, execution);
                 execution.instantiateAlgorithm(this).run();
-                getExecution().getLog().addAll(execution.getLog());
+                getExecution().getLog().addAll(execution.getLog());*/
+                List<String> seedContexts = this.getContextsForSeed(seed.getName());
+                
 
                 List<TextualReference> detectedContexts = new ArrayList<>();
-                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, execution.getTextualReferences())) {
+                //for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, execution.getTextualReferences())) {
+                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, seedContexts)) {
 					detectedContexts.add(studyContext);
 					contexts_currentIteration.add(studyContext);
 					extractedContextsFromSeeds.add(studyContext);
@@ -154,12 +158,13 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             log.info("--- Entering Instance Extraction phase ---");
             
             // 3. search for patterns in corpus
-            List<TextualReference> res = findNewContextsForPatterns(newPatterns);
-            extractedContextsFromPatterns.addAll(res);
-            
-            for (TextualReference entry : res) {
-            	newSeedsIteration.add(new Entity(entry.getTerm()));
-            	newSeedTermsIteration.add(entry.getTerm());
+            List<String> res = this.getContextsForPatterns(newPatterns);
+            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
+            	// TODO: really? overwrite the pattern for every context?
+                //studyContext.setPattern(curPat.getUri());
+            	extractedContextsFromPatterns.add(studyContext);
+            	newSeedsIteration.add(new Entity(studyContext.getTerm()));
+            	newSeedTermsIteration.add(studyContext.getTerm());
             }
             
             debug(log, "Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration);
@@ -200,47 +205,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		patterns.add(inducer.candidates);
     	}
     	return patterns;
-    }
-
-    private List<TextualReference> findNewContextsForPatterns(Set<InfolisPattern> patterns) throws IOException, ParseException, InstantiationException, IllegalAccessException {
-        List<TextualReference> contexts = new ArrayList<>();
-
-        for (InfolisPattern curPat : patterns) {
-        	if (curPat.getUri() == null)
-        		throw new RuntimeException("Pattern does not have a URI!");
-
-    		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
-			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
-			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
-
-        	Execution stpExecution = new Execution();
-            stpExecution.setAlgorithm(SearchTermPosition.class);
-            stpExecution.setInputDirectory(this.indexerExecution.getOutputDirectory());
-            stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
-            stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
-            stpExecution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
-            stpExecution.setSearchTerm("");
-    		stpExecution.setSearchQuery(curPat.getLuceneQuery());
-    		stpExecution.setInputFiles(getExecution().getInputFiles());
-    		stpExecution.instantiateAlgorithm(this).run();
-
-            for (String filenameIn : stpExecution.getMatchingFiles()) {
-
-                Execution applierExecution = new Execution();
-                applierExecution.setPatternUris(Arrays.asList(curPat.getUri()));
-                applierExecution.setAlgorithm(PatternApplier.class);    
-                applierExecution.getInputFiles().add(filenameIn);
-                applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-                applierExecution.instantiateAlgorithm(this).run();
-
-                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, applierExecution.getTextualReferences())) {
-                	// TODO: really? overwrite the pattern for every context?
-                    studyContext.setPattern(curPat.getUri());
-                    contexts.add(studyContext);
-                }
-            }
-        }
-        return contexts;
     }
     
     class PatternRanker {

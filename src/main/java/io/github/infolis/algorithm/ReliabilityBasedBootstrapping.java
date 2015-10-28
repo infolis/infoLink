@@ -5,11 +5,9 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 
@@ -33,16 +31,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author kata
  */
-public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
+public class ReliabilityBasedBootstrapping extends Bootstrapping {
 
-    public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public ReliabilityBasedBootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
     private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
     private Reliability r = new Reliability();
 
-    private List<TextualReference> bootstrap() throws IOException, ParseException {
+    List<TextualReference> bootstrap() throws IOException, ParseException {
         Set<Entity> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns = new HashSet<>();
         PatternRanker patternRanker = new PatternRanker();
@@ -59,7 +57,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         for (String seed : seedTerms) {
             log.info("Bootstrapping with seed \"" + seed + "\"");
             Entity newSeed = new Entity(seed);
-            newSeed.setTextualReferences(getStudyContexts(getContextsForSeed(seed)));
+            newSeed.setTextualReferences(getStudyContexts(this.getContextsForSeed(seed)));
             newSeed.setIsSeed();
             seeds.add(newSeed);
         }
@@ -123,7 +121,7 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             for (String newInstanceName : newInstanceNames) {
                 Entity newInstance = new Entity(newInstanceName);
                 // counts of instances are required for computation of pmi
-                newInstance.setTextualReferences(getStudyContexts(getContextsForSeed(newInstanceName)));
+                newInstance.setTextualReferences(getStudyContexts(this.getContextsForSeed(newInstanceName)));
                 log.debug("new Instance stored contexts: " + newInstance.getTextualReferences());
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
@@ -180,19 +178,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         return res;
     }
 
-    private List<String> getContextsForSeed(String seed) {
-        // use lucene index to search for term in corpus
-        Execution execution = new Execution();
-        execution.setAlgorithm(SearchTermPosition.class);
-        execution.setSearchTerm(seed);
-        execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
-        execution.setInputFiles(getExecution().getInputFiles());
-        execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
-        Algorithm algo = execution.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-        algo.run();
-        return execution.getTextualReferences();
-    }
-
     /**
      * Resolves list of study context URIs and returns list of corresponding
      * studyContexts.
@@ -241,23 +226,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
         private Map<String, Double> topK = new HashMap<>();
 
         /**
-         * Calls PatternApplier to extract all contexts of this pattern.
-         *
-         * @param pattern
-         * @return
-         */
-        private List<String> extractContexts(InfolisPattern pattern) {
-            Execution execution_pa = new Execution();
-            execution_pa.getPatterns().add(pattern.getUri());
-            execution_pa.setAlgorithm(PatternApplier.class);
-            execution_pa.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-            execution_pa.getInputFiles().addAll(getExecution().getInputFiles());
-            Algorithm algo = execution_pa.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-            algo.run();
-            return execution_pa.getTextualReferences();
-        }
-
-        /**
          * 
          * @param candidatesPerContext
          * @param relInstances
@@ -288,7 +256,8 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
                         getOutputDataStoreClient().post(InfolisPattern.class, candidate);
-                        candidate.setTextualReferences(getStudyContexts(extractContexts(candidate)));
+                        // TODO: use on set of candidates instead of on single candidate
+                        candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate))));
                         this.knownPatterns.put(candidate.getMinimal(), candidate);
                     }
 
@@ -378,40 +347,6 @@ public class ReliabilityBasedBootstrapping extends BaseAlgorithm {
             }
         }
         return topK;
-    }
-
-    @Override
-    public void execute() throws IOException {
-        List<TextualReference> detectedContexts = new ArrayList<>();
-        try {
-            detectedContexts = bootstrap();
-        } catch (IOException | ParseException ex) {
-            log.error("Could not apply reliability bootstrapping: " + ex);
-            getExecution().setStatus(ExecutionStatus.FAILED);
-        }
-
-        for (TextualReference sC : detectedContexts) {
-            getOutputDataStoreClient().post(TextualReference.class, sC);
-            this.getExecution().getTextualReferences().add(sC.getUri());
-            this.getExecution().getPatterns().add(sC.getPattern());
-        }
-
-        getExecution().setStatus(ExecutionStatus.FINISHED);
-    }
-
-    @Override
-    public void validate() {
-        //TODO: warn when standard values are used (threshold, maxIterations not specified)
-        //TODO: warn when superfluous parameters are specified
-        //TODO: BaseAlgorithm: bootstrapStrategy wrong in case of r. based bootstrapping...
-        if (null == this.getExecution().getSeeds()
-                || this.getExecution().getSeeds().isEmpty()) {
-            throw new IllegalArgumentException("Must set at least one term as seed!");
-        }
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
-            throw new IllegalArgumentException("Must set at least one input file!");
-        }
     }
 
 }

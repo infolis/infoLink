@@ -88,9 +88,9 @@ public interface DataStoreClient {
 	 *            class of the thing to post
 	 * @param thing
 	 *            the thing
-	 * @return the server representation of the thing
+	 * @return a list of URIs
 	 */
-	<T extends BaseModel> void post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException;
+	<T extends BaseModel> List<String> post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException;
 
 	/**
 	 * DELETE the complete datastore.

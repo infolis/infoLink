@@ -32,11 +32,14 @@ public abstract class AbstractClient implements DataStoreClient{
 	}
 	
 	@Override
-	public <T extends BaseModel> void post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException {
+	public <T extends BaseModel> List<String> post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException {
+		ArrayList<String> ret = new ArrayList<>();
 		for (Iterator<T> iterator = thingList.iterator(); iterator.hasNext();) {
 			T thing = iterator.next();
 			post(clazz, (T) thing);
+			ret.add(thing.getUri());
 		}
+		return ret;
 	}
 
 }

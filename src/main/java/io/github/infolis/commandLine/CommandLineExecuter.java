@@ -1,6 +1,8 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -116,6 +118,15 @@ public class CommandLineExecuter {
                     System.err.println("WARNING: Unhandled value type " + values.getValue().getValueType());
                     break;
             }
+        }
+        if (e.getAlgorithm().equals(SearchTermPosition.class)) {
+        	Execution indexerExecution = new Execution();
+        	indexerExecution.setAlgorithm(Indexer.class);
+        	indexerExecution.setInputFiles(e.getInputFiles());
+        	indexerExecution.setPhraseSlop(0);
+        	dataStoreClient.post(Execution.class, indexerExecution);
+        	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        	e.setInputDirectory(indexerExecution.getOutputDirectory());
         }
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();

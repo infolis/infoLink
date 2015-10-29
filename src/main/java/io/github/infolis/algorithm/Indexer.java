@@ -73,9 +73,14 @@ public class Indexer extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        File indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
+        File indexDir;
+        if (null != getExecution().getInputDirectory() && ! getExecution().getInputDirectory().isEmpty()) {
+            indexDir = new File(getExecution().getInputDirectory());
+        } else {
+            indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
+            FileUtils.forceDeleteOnExit(indexDir);
+        }
         log.debug("Indexing to: " + indexDir.getAbsolutePath());
-        FileUtils.forceDeleteOnExit(indexDir);
         getExecution().setOutputDirectory(indexDir.getAbsolutePath().toString());
 
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());

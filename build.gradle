@@ -50,8 +50,8 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
 
     // Unit testing
-    testCompile 'junit:junit:4.4'
-    compile 'junit:junit:4.4'
+    testCompile 'junit:junit:4.6'
+    compile 'junit:junit:4.6'
 }
 
 test {

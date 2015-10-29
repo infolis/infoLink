@@ -200,7 +200,7 @@ public class ExampleChecker extends InfolisBaseTest {
         Execution search = new Execution();
         search.setAlgorithm(SearchTermPosition.class);
         Execution indexerExecution = createIndex(input);
-        search.setInputDirectory(indexerExecution.getOutputDirectory());
+        search.setIndexDirectory(indexerExecution.getOutputDirectory());
         search.setSearchTerm(seed);
         search.setSearchQuery(seed);
         search.setInputFiles(input);

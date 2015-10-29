@@ -2,6 +2,7 @@ package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -41,20 +42,7 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchTermPosition;
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.model.BootstrapStrategy;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.SerializationUtils;
+import ch.qos.logback.classic.Level;
 
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
@@ -78,10 +66,10 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
-    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR")
+    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = { "--json", "--tag" })
     private Path indexDir;
 
-    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON", required = true)
+    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
@@ -196,14 +184,18 @@ public class CommandLineExecuter {
                     if (!dirStream.iterator().hasNext()) {
                         dirStream.close();
                         throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
-                    }                    
+                    }
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
         } else {
             if (null == textDir || !Files.exists(textDir)) {
-                Files.createDirectories(textDir);
-                exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                if (shouldConvertToText) {
+                    Files.createDirectories(textDir);
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                } else {
+                    throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
+                }
             } else {
                 if (shouldConvertToText) {
                     System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
@@ -309,6 +301,8 @@ public class CommandLineExecuter {
         }
         if (System.getProperty("testing") == null)
             System.exit(1);
+        else
+            throw new RuntimeException(e);
     }
 
     public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
@@ -316,10 +310,12 @@ public class CommandLineExecuter {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
-            // ch.qos.logback.classic.Logger root =
-            // (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-            // root.setLevel(Level.toLevel(logLevel));
-        } catch (CmdLineException e) {
+            if (null == json && false == shouldConvertToText) {
+                throwCLI("Must specify JSON if not --convert-to-text");
+            }
+            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            root.setLevel(Level.toLevel(logLevel));
+        } catch (Exception e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
             throwCLI("", e);
@@ -329,41 +325,49 @@ public class CommandLineExecuter {
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
-        try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
-            JsonObject jsonObject = Json.createReader(reader).readObject();
-
-            // Check the JSOn
-            checkJsonFile(jsonObject);
-
-            // Set the input files, convert if necessary
+        if (null == json) {
             try {
                 setExecutionInputFiles(exec);
             } catch (IOException e) {
                 throwCLI("Problem setting input files", e);
             }
+        } else {
+            try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
+                JsonObject jsonObject = Json.createReader(reader).readObject();
 
-            // Create index if necessary
-            if (indexDir != null) {
-                Files.createDirectories(indexDir);
-                setExecutionIndexDir(exec);
+                // Check the JSOn
+                checkJsonFile(jsonObject);
+
+                // Set the input files, convert if necessary
+                try {
+                    setExecutionInputFiles(exec);
+                } catch (IOException e) {
+                    throwCLI("Problem setting input files", e);
+                }
+
+                // Create index if necessary
+                if (indexDir != null) {
+                    Files.createDirectories(indexDir);
+                    setExecutionIndexDir(exec);
+                }
+
+                // Set the other options from JSON
+                setExecutionFromJSON(jsonObject, exec);
+            } catch (IOException e) {
+                throwCLI("Problem reading JSON " + json, e);
             }
 
-            // Set the other options from JSON
-            setExecutionFromJSON(jsonObject, exec);
-        } catch (IOException e) {
-            throwCLI("Problem reading JSON " + json, e);
+            dataStoreClient.post(Execution.class, exec);
+            try {
+                exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+            } catch (Exception e) {
+                throwCLI("Execution threw an excepion", e);
+            }
         }
-
-        dataStoreClient.post(Execution.class, exec);
-        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         dataStoreClient.dump(dbDir, tag);
     }
 
-    public static void main(String args[]) {
-        try {
-            new CommandLineExecuter().doMain(args);
-        } catch (Exception e) {
-            throwCLI("doMain", e);
-        }
+    public static void main(String args[]) throws Exception {
+        new CommandLineExecuter().doMain(args);
     }
 }

@@ -45,7 +45,8 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
         assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
-        FileUtils.forceDelete(outputBaseDir.toFile());
+        //TODO: duplicate entries in all log files?
+        //FileUtils.forceDelete(outputBaseDir.toFile());
     }
 
     @Test
@@ -62,18 +63,20 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
+    
     @Test
     public void testSearchTermPosition() throws Exception {
         Path outputBaseDir = mktempdir();
         Path emptyInputDir = outputBaseDir.resolve("dummy-input");
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
-                "--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
+                "--json", getResourcePath("/commandLine/stpCall.json"),
                 "--pdf-dir", getResourcePath("/examples/pdfs"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--index-dir", outputBaseDir.resolve("index").toString(),
-                "--tag", "foo-bar"
+                "--tag", "foo-bar",
+                "--queries-file", getResourcePath("/commandLine/queryTerms.csv"),
         });
 //        FileUtils.forceDelete(outputBaseDir.toFile());
     }

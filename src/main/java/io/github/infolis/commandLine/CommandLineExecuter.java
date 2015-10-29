@@ -13,8 +13,10 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.MetaDataExtractingStrategy;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +35,9 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import javax.ws.rs.BadRequestException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -76,6 +80,9 @@ public class CommandLineExecuter {
     
     @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends={"--pdf-dir"})
     private boolean shouldConvertToText = false;
+    
+    @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE")
+    private String queriesFile;
 
     @SuppressWarnings("unchecked")
     private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
@@ -137,20 +144,44 @@ public class CommandLineExecuter {
             throwCLI("No such field", e);
         }
     }
+    
+    List<String> getQueryTermsFromFile(String filename) throws IOException {
+    	return FileUtils.readLines(new File(filename), "UTF-8");
+    }
+    
+    private void executeStp(Execution exec) throws BadRequestException, IOException {
+    	// TODO: check whether index was specified
+    	// TODO: check: 1. searchQuery specified in json?
+		// 				2. queries-file given as argument?
+    	//				3. both?
+    	// currently: overwrite searchQuery with entries in query-file if specified
+		if (null != queriesFile) {
+			for (String query : getQueryTermsFromFile(queriesFile)) {
+				// normalize to treat phrase query properly
+				exec.setSearchQuery(RegexUtils.normalizeQuery(query.trim(), true));
+				dataStoreClient.post(Execution.class, exec);
+				exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+				dataStoreClient.dump(dbDir, tag);
+				exec.setMatchingFiles(new ArrayList<String>());
+			}
+		}
+		else { 
+			exec.setSearchQuery(RegexUtils.normalizeQuery(exec.getSearchQuery().trim(), true));
+			dataStoreClient.post(Execution.class, exec); 
+			exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+			dataStoreClient.dump(dbDir, tag);
+		}
+    }
 
-    private void doExecute(Execution exec) {
+    private void doExecute(Execution exec) throws BadRequestException, IOException {
     	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
-        	Execution indexerExecution = new Execution();
-        	indexerExecution.setAlgorithm(Indexer.class);
-        	indexerExecution.setInputFiles(exec.getInputFiles());
-        	indexerExecution.setPhraseSlop(0);
-        	dataStoreClient.post(Execution.class, indexerExecution);
-        	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        	exec.setIndexDirectory(indexerExecution.getOutputDirectory());
+    		executeStp(exec);
         }
-        dataStoreClient.post(Execution.class, exec);
-        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        dataStoreClient.dump(dbDir, tag);
+    	else {
+	        dataStoreClient.post(Execution.class, exec);
+	        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+	        dataStoreClient.dump(dbDir, tag);
+    	}
     }
 
     private void setExecutionIndexDir(Execution exec) {

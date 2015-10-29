@@ -1,0 +1,4 @@
+{
+    "algorithm": "io.github.infolis.algorithm.SearchTermPosition", 
+    "phraseSlop": 0
+}

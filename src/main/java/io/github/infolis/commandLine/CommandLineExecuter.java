@@ -60,8 +60,11 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
-    @Option(name = "--json", usage = "json", metaVar = "Execution as JSON", required = true)
+    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON", required = true)
     private Path json;
+
+    @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
+    private String tag;
 
     @SuppressWarnings("unchecked")
     private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
@@ -127,7 +130,7 @@ public class CommandLineExecuter {
     private void doExecute(Execution exec) {
         dataStoreClient.post(Execution.class, exec);
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        dataStoreClient.dump(dbDir);
+        dataStoreClient.dump(dbDir, tag);
     }
 
     private void setExecutionInputFiles(Execution exec) throws IOException {
@@ -246,12 +249,14 @@ public class CommandLineExecuter {
 
     private static void throwCLI(String msg, Exception e)
     {
-        System.err.println("**ERROR** " + msg);
+        if (null != msg)
+            System.err.println("**ERROR** " + msg);
         if (null != e) {
             System.err.println(e.getMessage());
             e.printStackTrace(System.err);
         }
-        System.exit(1);
+        if (System.getProperty("testing") == null)
+            System.exit(1);
     }
 
     public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
@@ -259,10 +264,12 @@ public class CommandLineExecuter {
         try {
             parser.parseArgument(args);
         } catch (CmdLineException e) {
-            System.err.println(e.getMessage());
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
+            throwCLI("", e);
+            return;
         }
+            
 
         Files.createDirectories(dbDir);
 

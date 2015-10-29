@@ -1,5 +1,6 @@
 package io.github.infolis.commandLine;
 
+import static org.junit.Assert.assertTrue;
 import io.github.infolis.InfolisBaseTest;
 
 import java.io.IOException;
@@ -29,17 +30,24 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     private Path mktempdir() throws IOException {
         return Files.createTempDirectory("infolis-test-" + UUID.randomUUID());
     }
+    
+    public CommandLineExecuterTest() {
+//        System.setProperty("testing", "true");
+    }
 
     @Test
     public void test() throws Exception {
-
         Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
         CommandLineExecuter.main(new String[] {
                 "--json", getResourcePath("/commandLine/algoDesc.json"),
                 "--pdf-dir", getResourcePath("/examples/pdfs"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--tag", tag,
         });
+        Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
+        assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
 
@@ -53,6 +61,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--pdf-dir", emptyInputDir.toString(),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--tag", "foo-bar"
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }

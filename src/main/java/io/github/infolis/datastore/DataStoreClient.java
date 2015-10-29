@@ -102,5 +102,5 @@ public interface DataStoreClient {
 	 * Dump the whole datastore in JSON format.
 	 * @param directory Directory to dump to
 	 */
-	void dump(Path directory);
+	void dump(Path directory, String dumpName);
 }

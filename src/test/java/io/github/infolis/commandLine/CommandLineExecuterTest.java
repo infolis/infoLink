@@ -45,7 +45,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         String tag = "foo-bar";
         CommandLineExecuter.main(new String[] {
                 "--json", getResourcePath("/commandLine/algoDesc.json"),
-                "--pdf-dir", getResourcePath("/examples/apply/"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf/"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--log-level", "INFO",

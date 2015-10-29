@@ -113,7 +113,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setSearchTerm(searchTerm);
         exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);
-        exec.setInputDirectory(indexerExecution.getOutputDirectory());
+        exec.setIndexDirectory(indexerExecution.getOutputDirectory());
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         
 

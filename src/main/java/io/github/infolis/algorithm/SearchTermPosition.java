@@ -114,7 +114,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	public void execute() throws IOException
 	{        
 		//input directory = indexer's output directory
-		IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getInputDirectory()))));
+		IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))));
 		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
 		// set phrase slop because dataset titles may consist of more than one word
 		qp.setPhraseSlop(getExecution().getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
@@ -166,8 +166,8 @@ public class SearchTermPosition extends BaseAlgorithm
 		}
 		searcher.close();
 		Indexer.createAnalyzer().close();
-		IndexReader.open(FSDirectory.open(new File(getExecution().getInputDirectory()))).close();
-		FSDirectory.open(new File(getExecution().getInputDirectory())).close();
+		IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))).close();
+		FSDirectory.open(new File(getExecution().getIndexDirectory())).close();
 		log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
 		log.debug("Finished SearchTermPosition#execute");
 	}
@@ -255,7 +255,7 @@ public class SearchTermPosition extends BaseAlgorithm
 //				 || this.getExecution().getInputFiles().isEmpty())
 		// throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
 		// "must be set and non-empty");
-		if (null == this.getExecution().getInputDirectory())
+		if (null == this.getExecution().getIndexDirectory())
 			throw new IllegalAlgorithmArgumentException(getClass(), "inputDirectory", "must be set and non-empty");
 		if (null == this.getExecution().getSearchQuery())
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "must be set and non-empty");

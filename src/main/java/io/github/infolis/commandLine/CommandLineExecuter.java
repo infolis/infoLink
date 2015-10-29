@@ -126,7 +126,7 @@ public class CommandLineExecuter {
         	indexerExecution.setPhraseSlop(0);
         	dataStoreClient.post(Execution.class, indexerExecution);
         	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        	e.setInputDirectory(indexerExecution.getOutputDirectory());
+        	e.setIndexDirectory(indexerExecution.getOutputDirectory());
         }
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();

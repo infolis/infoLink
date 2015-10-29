@@ -1,6 +1,8 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -128,6 +130,15 @@ public class CommandLineExecuter {
     }
 
     private void doExecute(Execution exec) {
+    	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
+        	Execution indexerExecution = new Execution();
+        	indexerExecution.setAlgorithm(Indexer.class);
+        	indexerExecution.setInputFiles(exec.getInputFiles());
+        	indexerExecution.setPhraseSlop(0);
+        	dataStoreClient.post(Execution.class, indexerExecution);
+        	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        	exec.setInputDirectory(indexerExecution.getOutputDirectory());
+        }
         dataStoreClient.post(Execution.class, exec);
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         dataStoreClient.dump(dbDir, tag);
@@ -157,7 +168,6 @@ public class CommandLineExecuter {
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             }
         }
-        log.debug("Here i be");
     }
 
     /**

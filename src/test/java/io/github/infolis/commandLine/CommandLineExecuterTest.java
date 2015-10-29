@@ -15,10 +15,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- * @author domi
- */
 public class CommandLineExecuterTest extends InfolisBaseTest {
 
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuterTest.class);
@@ -57,12 +53,28 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         Path emptyInputDir = outputBaseDir.resolve("dummy-input");
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
-                "--json", getResourcePath("/commandLine/double.json"),
+        		"--json", getResourcePath("/commandLine/double.json"),
                 "--pdf-dir", emptyInputDir.toString(),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--tag", "foo-bar"
         });
+        FileUtils.forceDelete(outputBaseDir.toFile());
+    }
+    
+    @Test
+    public void testsearchTermPositionCall() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        CommandLineExecuter.main(new String[] {
+                "--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
+                "--pdf-dir", getResourcePath("/examples/pdfs"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--tag", tag,
+        });
+        Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
+        assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
 }

@@ -2,7 +2,6 @@ package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -43,7 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * CLI to Infolis to make it easy to run an execution and store its results in a JSON file.
+ * CLI to Infolis to make it easy to run an execution and store its results in a
+ * JSON file.
  * 
  */
 public class CommandLineExecuter {
@@ -70,11 +70,11 @@ public class CommandLineExecuter {
 
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
-    
+
     @Option(name = "--log-level", usage = "minimum log level")
     private String logLevel = "DEBUG";
-    
-    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends={"--pdf-dir"})
+
+    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
     private boolean shouldConvertToText = false;
 
     @SuppressWarnings("unchecked")
@@ -87,7 +87,8 @@ public class CommandLineExecuter {
                 case NUMBER:
                 case TRUE:
                 case FALSE:
-                    // algorithm has to be handled as a special case since we need
+                    // algorithm has to be handled as a special case since we
+                    // need
                     // to find the class
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
@@ -99,7 +100,7 @@ public class CommandLineExecuter {
                             Class<? extends Algorithm> algoClass;
                             algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
                             exec.setAlgorithm(algoClass);
-                        } catch (ClassNotFoundException |ClassCastException e1) {
+                        } catch (ClassNotFoundException | ClassCastException e1) {
                             throwCLI("No such algorithm: " + algorithmName);
                         }
                         break;
@@ -118,7 +119,7 @@ public class CommandLineExecuter {
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
-                    // for arrays we first have to create a list
+                // for arrays we first have to create a list
                 case ARRAY:
                     JsonArray array = (JsonArray) values.getValue();
                     List<String> listEntries = new ArrayList<>();
@@ -133,24 +134,9 @@ public class CommandLineExecuter {
                     break;
                 }
             }
-        } catch (NoSuchFieldException|IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throwCLI("No such field", e);
         }
-    }
-
-    private void doExecute(Execution exec) {
-    	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
-        	Execution indexerExecution = new Execution();
-        	indexerExecution.setAlgorithm(Indexer.class);
-        	indexerExecution.setInputFiles(exec.getInputFiles());
-        	indexerExecution.setPhraseSlop(0);
-        	dataStoreClient.post(Execution.class, indexerExecution);
-        	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        	exec.setIndexDirectory(indexerExecution.getOutputDirectory());
-        }
-        dataStoreClient.post(Execution.class, exec);
-        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        dataStoreClient.dump(dbDir, tag);
     }
 
     private void setExecutionIndexDir(Execution exec) {
@@ -158,29 +144,28 @@ public class CommandLineExecuter {
         indexerExecution.setAlgorithm(Indexer.class);
         indexerExecution.setInputFiles(exec.getInputFiles());
         indexerExecution.setPhraseSlop(0);
-//        indexerExecution.setInputDirectory(indexDir.toString());
+        // indexerExecution.setInputDirectory(indexDir.toString());
         indexerExecution.setOutputDirectory(indexDir.toString());
         dataStoreClient.post(Execution.class, indexerExecution);
         indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        exec.setIndexDirectory(indexerExecution.getOutputDirectory()); 
+        exec.setIndexDirectory(indexerExecution.getOutputDirectory());
     }
 
-    
     private void setExecutionInputFiles(Execution exec) throws IOException {
-        if (null == pdfDir || ! Files.exists(pdfDir)) {
+        if (null == pdfDir || !Files.exists(pdfDir)) {
             if (shouldConvertToText) {
                 throwCLI("Cannot convert to text: Empty/non-existing PDF directory" + pdfDir);
             }
-            if (null == textDir || ! Files.exists(textDir)) {
+            if (null == textDir || !Files.exists(textDir)) {
                 throwCLI("Neither PDFDIR nor TEXTDIR exist");
             } else {
-                if (! Files.newDirectoryStream(textDir).iterator().hasNext()) {
+                if (!Files.newDirectoryStream(textDir).iterator().hasNext()) {
                     throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
         } else {
-            if (null == textDir || ! Files.exists(textDir)) {
+            if (null == textDir || !Files.exists(textDir)) {
                 Files.createDirectories(textDir);
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             } else {
@@ -254,23 +239,24 @@ public class CommandLineExecuter {
         DirectoryStream<Path> dirStream = null;
         try {
             dirStream = Files.newDirectoryStream(dir);
+            for (Path file : dirStream) {
+                InfolisFile infolisFile = new InfolisFile();
+
+                try (InputStream inputStream = Files.newInputStream(file)) {
+                    byte[] bytes = IOUtils.toByteArray(inputStream);
+                    infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
+                } catch (IOException e) {
+                    throwCLI("Could not read file " + file, e);
+                }
+
+                infolisFile.setFileName(file.toString());
+                infolisFile.setMediaType(mimetype);
+                infolisFile.setFileStatus("AVAILABLE");
+                infolisFiles.add(infolisFile);
+            }
+            dirStream.close();
         } catch (IOException e) {
             throwCLI("Couldn't list directory contents of " + dir, e);
-        }
-        for (Path file : dirStream) {
-            InfolisFile infolisFile = new InfolisFile();
-
-            try (InputStream inputStream = Files.newInputStream(file)) {
-                byte[] bytes = IOUtils.toByteArray(inputStream);
-                infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
-            } catch (IOException e) {
-                throwCLI("Could not read file " + file, e);
-            }
-
-            infolisFile.setFileName(file.toString());
-            infolisFile.setMediaType(mimetype);
-            infolisFile.setFileStatus("AVAILABLE");
-            infolisFiles.add(infolisFile);
         }
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
@@ -295,32 +281,32 @@ public class CommandLineExecuter {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
-//            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-//            root.setLevel(Level.toLevel(logLevel));
+            // ch.qos.logback.classic.Logger root =
+            // (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            // root.setLevel(Level.toLevel(logLevel));
         } catch (CmdLineException e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
             throwCLI("", e);
             return;
         }
-            
 
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
         try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
             JsonObject jsonObject = Json.createReader(reader).readObject();
-            
+
             // Check the JSOn
             checkJsonFile(jsonObject);
-            
+
             // Set the input files, convert if necessary
             try {
                 setExecutionInputFiles(exec);
             } catch (IOException e) {
                 throwCLI("Problem setting input files", e);
             }
-            
+
             // Create index if necessary
             if (indexDir != null) {
                 Files.createDirectories(indexDir);
@@ -332,7 +318,10 @@ public class CommandLineExecuter {
         } catch (IOException e) {
             throwCLI("Problem reading JSON " + json, e);
         }
-        doExecute(exec);
+
+        dataStoreClient.post(Execution.class, exec);
+        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        dataStoreClient.dump(dbDir, tag);
     }
 
     public static void main(String args[]) {

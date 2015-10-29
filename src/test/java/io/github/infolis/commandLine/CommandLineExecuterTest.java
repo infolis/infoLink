@@ -25,7 +25,6 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
 	private static final Logger log = LoggerFactory.getLogger(CommandLineExecuterTest.class);
     
     //TODO: paths in the JSON are absolute like the inputFiles
-//    @Ignore
     @Test
     public void test() throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, URISyntaxException {
     	Path tempdir = Files.createTempDirectory("infolis-test-" + UUID.randomUUID());
@@ -40,6 +39,23 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
             jsonString = jsonString.replace("\\","\\\\");
         }
         
+    	IOUtils.write(jsonString, Files.newOutputStream(tempjson));
+    	log.debug(jsonString);
+    	CommandLineExecuter.parseJson(tempjson, tempdir);
+    	log.debug("Dumped execution to {}", tempdir);
+    }
+    
+    @Test
+    public void testSearchTermPositionCall() throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException, URISyntaxException {
+    	Path tempdir = Files.createTempDirectory("infolis-test-" + UUID.randomUUID());
+    	Path pdfDir = Paths.get(getClass().getResource("/examples/pdfs").toURI());
+    	Path jsonin = Paths.get(getClass().getResource("/commandLine/searchTermPositionCall.json").toURI());
+    	Path tempjson = Paths.get(System.getProperty("java.io.tmpdir")+"/infolis-test-" + UUID.randomUUID() + ".json");
+    	String jsonString = IOUtils.toString(Files.newInputStream(jsonin));
+    	jsonString = jsonString.replace("INPUT_FILES_PATH", pdfDir.toString());
+        if(System.getProperty("os.name").contains("Windows")) {
+            jsonString = jsonString.replace("\\","\\\\");
+        }
     	IOUtils.write(jsonString, Files.newOutputStream(tempjson));
     	log.debug(jsonString);
     	CommandLineExecuter.parseJson(tempjson, tempdir);

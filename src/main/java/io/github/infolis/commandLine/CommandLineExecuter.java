@@ -136,10 +136,8 @@ public class CommandLineExecuter {
     private void setExecutionInputFiles(Execution exec) throws IOException {
         if (null == pdfDir || ! Files.exists(pdfDir)) {
             if (null == textDir || ! Files.exists(textDir)) {
-                log.debug("Case 4");
                 throwCLI("Neither PDFDIR nor TEXTDIR exist");
             } else {
-                log.debug("Case 3");
                 if (! Files.newDirectoryStream(textDir).iterator().hasNext()) {
                     throwCLI("No PDFDIR specified, TEXTDIR specified, but empty.");
                 }
@@ -147,7 +145,6 @@ public class CommandLineExecuter {
             }
         } else {
             if (null == textDir || ! Files.exists(textDir)) {
-                log.debug("Case 2");
                 Files.createDirectories(textDir);
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             } else {
@@ -157,7 +154,6 @@ public class CommandLineExecuter {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                log.debug("Case 1");
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             }
         }

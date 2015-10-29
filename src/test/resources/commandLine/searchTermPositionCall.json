@@ -1,6 +1,6 @@
 {
 "algorithm":"io.github.infolis.algorithm.SearchTermPosition",
+"searchQuery":"ALLBUS",
 "searchQuery":"Foo",
-"inputFiles":"INPUT_FILES_PATH",
 "phraseSlop":"0"
 }

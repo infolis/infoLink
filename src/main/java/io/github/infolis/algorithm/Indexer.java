@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @author kba
  */
 public class Indexer extends BaseAlgorithm {
-
+//
     private final static String INDEX_DIR_PREFIX = "infolis-index-";
 
     public Indexer(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
@@ -73,9 +73,14 @@ public class Indexer extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        File indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
+        File indexDir;
+        if (null != getExecution().getIndexDirectory() && ! getExecution().getIndexDirectory().isEmpty()) {
+            indexDir = new File(getExecution().getIndexDirectory());
+        } else {
+            indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
+            FileUtils.forceDeleteOnExit(indexDir);
+        }
         log.debug("Indexing to: " + indexDir.getAbsolutePath());
-        FileUtils.forceDeleteOnExit(indexDir);
         getExecution().setOutputDirectory(indexDir.getAbsolutePath().toString());
 
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());

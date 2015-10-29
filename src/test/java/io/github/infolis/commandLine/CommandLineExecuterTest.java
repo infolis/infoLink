@@ -28,7 +28,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     }
     
     public CommandLineExecuterTest() {
-//        System.setProperty("testing", "true");
+        System.setProperty("testing", "true");
     }
 
     @Test
@@ -40,6 +40,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--pdf-dir", getResourcePath("/examples/pdfs"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--log-level", "INFO",
                 "--tag", tag,
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
@@ -61,20 +62,21 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
-    
     @Test
-    public void testsearchTermPositionCall() throws Exception {
+    public void testSearchTermPosition() throws Exception {
         Path outputBaseDir = mktempdir();
-        String tag = "foo-bar";
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
                 "--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
                 "--pdf-dir", getResourcePath("/examples/pdfs"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
-                "--tag", tag,
+                "--index-dir", outputBaseDir.resolve("index").toString(),
+                "--tag", "foo-bar"
         });
-        Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
-        assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
-        FileUtils.forceDelete(outputBaseDir.toFile());
+//        FileUtils.forceDelete(outputBaseDir.toFile());
     }
+
+
 }

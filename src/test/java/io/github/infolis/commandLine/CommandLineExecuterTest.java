@@ -5,6 +5,7 @@ import io.github.infolis.InfolisBaseTest;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,7 +21,10 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuterTest.class);
 
     private String getResourcePath(String resName) throws URISyntaxException {
-        return Paths.get(getClass().getResource(resName).toURI()).toString();
+    	URL resource = CommandLineExecuterTest.class.getResource(resName);
+    	log.debug("{}", resource);
+        Path uri = Paths.get(resource.toURI());
+		return uri.toString();
     }
 
     private Path mktempdir() throws IOException {
@@ -37,16 +41,16 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         String tag = "foo-bar";
         CommandLineExecuter.main(new String[] {
                 "--json", getResourcePath("/commandLine/algoDesc.json"),
-                "--pdf-dir", getResourcePath("/examples/pdfs"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf/"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
                 "--log-level", "INFO",
                 "--tag", tag,
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
         assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
-        //TODO: duplicate entries in all log files?
-        //FileUtils.forceDelete(outputBaseDir.toFile());
+        FileUtils.deleteDirectory(outputBaseDir.toFile());
     }
 
     @Test
@@ -59,27 +63,70 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--pdf-dir", emptyInputDir.toString(),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
                 "--tag", "foo-bar"
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
     
     @Test
-    public void testSearchTermPosition() throws Exception {
+    public void testSearchTermPosition_queryJson() throws Exception {
+        Path outputBaseDir = mktempdir();
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
+        CommandLineExecuter.main(new String[] {
+        		"--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--index-dir", outputBaseDir.resolve("index").toString(),
+                "--convert-to-text",
+                "--tag", "foo-bar"
+        });
+        log.debug("OutputBase exists at " + outputBaseDir.toFile());
+        log.debug("OutputBase exists at (toFile) " + outputBaseDir);
+
+        FileUtils.deleteDirectory(outputBaseDir.toFile());
+    }
+    
+    @Test
+    public void testSearchTermPosition_queryList() throws Exception {
         Path outputBaseDir = mktempdir();
         Path emptyInputDir = outputBaseDir.resolve("dummy-input");
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
                 "--json", getResourcePath("/commandLine/stpCall.json"),
-                "--pdf-dir", getResourcePath("/examples/pdfs"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--index-dir", outputBaseDir.resolve("index").toString(),
+                "--convert-to-text",
                 "--tag", "foo-bar",
-                "--queries-file", getResourcePath("/commandLine/queryTerms.csv"),
+                "--queries-file", getResourcePath("/commandLine/queryTerms.csv")
         });
-//        FileUtils.forceDelete(outputBaseDir.toFile());
+        log.debug("OutputBase exists at " + outputBaseDir.toFile());
+        log.debug("OutputBase exists at (toFile) " + outputBaseDir);
+
+        FileUtils.deleteDirectory(outputBaseDir.toFile());
     }
 
+
+    @Test
+    public void testConvertOnly() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        CommandLineExecuter.main(new String[] {
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf/"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
+                "--tag", tag,
+        });
+        Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
+        assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
+        Path expectedText = outputBaseDir.resolve("text").resolve("4493.txt");
+        assertTrue("text exists at " + expectedText, Files.exists(expectedText));
+        FileUtils.deleteDirectory(outputBaseDir.toFile());
+    }
 
 }

@@ -46,12 +46,16 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+
 /**
- * CLI to Infolis to make it easy to run an execution and store its results in a JSON file.
+ * CLI to Infolis to make it easy to run an execution and store its results in a
+ * JSON file.
  * 
  */
 public class CommandLineExecuter {
 
+    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
@@ -66,19 +70,19 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
-    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR")
+    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = { "--json", "--tag" })
     private Path indexDir;
 
-    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON", required = true)
+    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
-    
+
     @Option(name = "--log-level", usage = "minimum log level")
     private String logLevel = "DEBUG";
-    
-    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends={"--pdf-dir"})
+
+    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
     private boolean shouldConvertToText = false;
     
     @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE")
@@ -94,7 +98,8 @@ public class CommandLineExecuter {
                 case NUMBER:
                 case TRUE:
                 case FALSE:
-                    // algorithm has to be handled as a special case since we need
+                    // algorithm has to be handled as a special case since we
+                    // need
                     // to find the class
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
@@ -106,7 +111,7 @@ public class CommandLineExecuter {
                             Class<? extends Algorithm> algoClass;
                             algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
                             exec.setAlgorithm(algoClass);
-                        } catch (ClassNotFoundException |ClassCastException e1) {
+                        } catch (ClassNotFoundException | ClassCastException e1) {
                             throwCLI("No such algorithm: " + algorithmName);
                         }
                         break;
@@ -118,14 +123,15 @@ public class CommandLineExecuter {
                         break;
                     }
                     if (values.getKey().equals("metaDataExtractingStrategy")) {
-                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy.valueOf(values.getValue().toString().replace("\"", ""));
+                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy
+                                .valueOf(values.getValue().toString().replace("\"", ""));
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
-                    // for arrays we first have to create a list
+                // for arrays we first have to create a list
                 case ARRAY:
                     JsonArray array = (JsonArray) values.getValue();
                     List<String> listEntries = new ArrayList<>();
@@ -136,11 +142,12 @@ public class CommandLineExecuter {
                     exec.setProperty(values.getKey(), listEntries);
                     break;
                 default:
-                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key " + values.getKey());
+                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
+                            + values.getKey());
                     break;
                 }
             }
-        } catch (NoSuchFieldException|IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throwCLI("No such field", e);
         }
     }
@@ -175,7 +182,7 @@ public class CommandLineExecuter {
 
     private void doExecute(Execution exec) throws BadRequestException, IOException {
     	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
-    		executeStp(exec);
+		executeStp(exec);
         }
     	else {
 	        dataStoreClient.post(Execution.class, exec);
@@ -189,34 +196,41 @@ public class CommandLineExecuter {
         indexerExecution.setAlgorithm(Indexer.class);
         indexerExecution.setInputFiles(exec.getInputFiles());
         indexerExecution.setPhraseSlop(0);
-//        indexerExecution.setInputDirectory(indexDir.toString());
+        // indexerExecution.setInputDirectory(indexDir.toString());
         indexerExecution.setOutputDirectory(indexDir.toString());
         dataStoreClient.post(Execution.class, indexerExecution);
         indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        exec.setIndexDirectory(indexerExecution.getOutputDirectory()); 
+        exec.setIndexDirectory(indexerExecution.getOutputDirectory());
     }
 
-    
     private void setExecutionInputFiles(Execution exec) throws IOException {
-        if (null == pdfDir || ! Files.exists(pdfDir)) {
+        if (null == pdfDir || !Files.exists(pdfDir)) {
             if (shouldConvertToText) {
                 throwCLI("Cannot convert to text: Empty/non-existing PDF directory" + pdfDir);
             }
-            if (null == textDir || ! Files.exists(textDir)) {
+            if (null == textDir || !Files.exists(textDir)) {
                 throwCLI("Neither PDFDIR nor TEXTDIR exist");
             } else {
-                if (! Files.newDirectoryStream(textDir).iterator().hasNext()) {
-                    throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
+                try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(textDir)) {
+                    if (!dirStream.iterator().hasNext()) {
+                        dirStream.close();
+                        throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
+                    }
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
         } else {
-            if (null == textDir || ! Files.exists(textDir)) {
-                Files.createDirectories(textDir);
-                exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+            if (null == textDir || !Files.exists(textDir)) {
+                if (shouldConvertToText) {
+                    Files.createDirectories(textDir);
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                } else {
+                    throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
+                }
             } else {
                 if (shouldConvertToText) {
-                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir + "' were specified. Will possibly clobber text files in conversion!");
+                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
+                            + "' were specified. Will possibly clobber text files in conversion!");
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
                     exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
@@ -282,27 +296,26 @@ public class CommandLineExecuter {
 
     public List<String> postFiles(Path dir, String mimetype) {
         List<InfolisFile> infolisFiles = new ArrayList<>();
-        DirectoryStream<Path> dirStream = null;
-        try {
-            dirStream = Files.newDirectoryStream(dir);
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
+            for (Path file : dirStream) {
+                InfolisFile infolisFile = new InfolisFile();
+
+                try (InputStream inputStream = Files.newInputStream(file)) {
+                    byte[] bytes = IOUtils.toByteArray(inputStream);
+                    infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
+                } catch (IOException e) {
+                    throwCLI("Could not read file " + file, e);
+                }
+
+                infolisFile.setFileName(file.toString());
+                infolisFile.setMediaType(mimetype);
+                infolisFile.setFileStatus("AVAILABLE");
+                infolisFiles.add(infolisFile);
+            }
         } catch (IOException e) {
             throwCLI("Couldn't list directory contents of " + dir, e);
         }
-        for (Path file : dirStream) {
-            InfolisFile infolisFile = new InfolisFile();
 
-            try (InputStream inputStream = Files.newInputStream(file)) {
-                byte[] bytes = IOUtils.toByteArray(inputStream);
-                infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
-            } catch (IOException e) {
-                throwCLI("Could not read file " + file, e);
-            }
-
-            infolisFile.setFileName(file.toString());
-            infolisFile.setMediaType(mimetype);
-            infolisFile.setFileStatus("AVAILABLE");
-            infolisFiles.add(infolisFile);
-        }
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
 
@@ -310,8 +323,7 @@ public class CommandLineExecuter {
         throwCLI(msg, null);
     }
 
-    private static void throwCLI(String msg, Exception e)
-    {
+    private static void throwCLI(String msg, Exception e) {
         if (null != msg)
             System.err.println("**ERROR** " + msg);
         if (null != e) {
@@ -320,57 +332,74 @@ public class CommandLineExecuter {
         }
         if (System.getProperty("testing") == null)
             System.exit(1);
+        else
+            throw new RuntimeException(e);
     }
 
-    public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
+    public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
+            IllegalAccessException, IOException {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
-//            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-//            root.setLevel(Level.toLevel(logLevel));
-        } catch (CmdLineException e) {
+            if (null == json && false == shouldConvertToText) {
+                throwCLI("Must specify JSON if not --convert-to-text");
+            }
+            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            root.setLevel(Level.toLevel(logLevel));
+        } catch (Exception e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
             throwCLI("", e);
             return;
         }
-            
 
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
-        try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
-            JsonObject jsonObject = Json.createReader(reader).readObject();
-            
-            // Check the JSOn
-            checkJsonFile(jsonObject);
-            
-            // Set the input files, convert if necessary
+        if (null == json) {
             try {
                 setExecutionInputFiles(exec);
             } catch (IOException e) {
                 throwCLI("Problem setting input files", e);
             }
-            
-            // Create index if necessary
-            if (indexDir != null) {
-                Files.createDirectories(indexDir);
-                setExecutionIndexDir(exec);
+        } else {
+            try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
+                JsonObject jsonObject = Json.createReader(reader).readObject();
+
+                // Check the JSOn
+                checkJsonFile(jsonObject);
+
+                // Set the input files, convert if necessary
+                try {
+                    setExecutionInputFiles(exec);
+                } catch (IOException e) {
+                    throwCLI("Problem setting input files", e);
+                }
+
+                // Create index if necessary
+                if (indexDir != null) {
+                    Files.createDirectories(indexDir);
+                    setExecutionIndexDir(exec);
+                }
+
+                // Set the other options from JSON
+                setExecutionFromJSON(jsonObject, exec);
+            } catch (IOException e) {
+                throwCLI("Problem reading JSON " + json, e);
             }
 
-            // Set the other options from JSON
-            setExecutionFromJSON(jsonObject, exec);
-        } catch (IOException e) {
-            throwCLI("Problem reading JSON " + json, e);
+            //dataStoreClient.post(Execution.class, exec);
+            try {
+                //exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+            	doExecute(exec);
+            } catch (Exception e) {
+                throwCLI("Execution threw an excepion", e);
+            }
         }
-        doExecute(exec);
+        dataStoreClient.dump(dbDir, tag);
     }
 
-    public static void main(String args[]) {
-        try {
-            new CommandLineExecuter().doMain(args);
-        } catch (Exception e) {
-            throwCLI("doMain", e);
-        }
+    public static void main(String args[]) throws Exception {
+        new CommandLineExecuter().doMain(args);
     }
 }

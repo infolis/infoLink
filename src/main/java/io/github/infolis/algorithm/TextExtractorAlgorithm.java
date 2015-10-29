@@ -40,7 +40,8 @@ import com.google.common.net.MediaType;
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
-    public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+            FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
@@ -58,63 +59,50 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {
-        InputStream inStream = null;
-        OutputStream outStream = null;
-        PDDocument pdfIn;
         String asText = null;
 
-        try {
-            try {
-                if (log.isTraceEnabled()) {
-                    log.trace(IOUtils.toString(getInputFileResolver().openInputStream(inFile)));
+        try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
+            try (PDDocument pdfIn = PDDocument.load(inStream)) {
+                // check whether the bibliography should be removed
+                if (getExecution().isRemoveBib()) {
+                    asText = extractTextAndRemoveBibliography(pdfIn);
+                } else {
+                    asText = extractText(pdfIn);
                 }
-                inStream = getInputFileResolver().openInputStream(inFile);
-            } catch (IOException e) {
-                getExecution().getLog().add("Error opening input stream: " + e);
-                throw e;
-            }
-            try {
-                pdfIn = PDDocument.load(inStream);
+                if (null == asText) {
+                    throw new IOException("extractText/extractTextAndRemoveBibliography Returned null!");
+                }
+
+                // TODO make configurable
+                String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
+                if (null != getExecution().getOutputDirectory()) {
+                    outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
+                }
+                InfolisFile outFile = new InfolisFile();
+                outFile.setFileName(outFileName);
+                outFile.setMediaType("text/plain");
+                outFile.setMd5(SerializationUtils.getHexMd5(asText));
+                outFile.setFileStatus("AVAILABLE");
+
+                try (OutputStream outStream = getOutputFileResolver().openOutputStream(outFile)) {
+                    try {
+                        IOUtils.write(asText, outStream);
+                    } catch (IOException e) {
+                        fatal(log, "Error copying text to output stream: " + e);
+                        throw e;
+                    }
+                } catch (IOException e) {
+                    fatal(log, "Error opening output stream to text file: " + e);
+                    throw e;
+                }
+                return outFile;
             } catch (Exception e) {
-                getExecution().getLog().add("Error reading PDF from stream: " + e);
+                fatal(log, "Error reading PDF from stream: " + e);
                 throw e;
             }
-            // check whether the bibliography should be removed
-            if (getExecution().isRemoveBib()) {
-                asText = extractTextAndRemoveBibliography(pdfIn);
-            } else {
-                asText = extractText(pdfIn);
-            }
-            if (null == asText) {
-                throw new IOException("extractText/extractTextAndRemoveBibliography Returned null!");
-            }
-
-            // TODO make configurable
-            String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-            if (null != getExecution().getOutputDirectory()) {
-                outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
-            }
-            InfolisFile outFile = new InfolisFile();
-            outFile.setFileName(outFileName);
-            outFile.setMediaType("text/plain");
-            outFile.setMd5(SerializationUtils.getHexMd5(asText));
-            outFile.setFileStatus("AVAILABLE");
-
-            try {
-                outStream = getOutputFileResolver().openOutputStream(outFile);
-            } catch (IOException e) {
-                fatal(log, "Error opening output stream to text file: " + e);
-                throw e;
-            }
-            try {
-                IOUtils.write(asText, outStream);
-            } catch (IOException e) {
-                fatal(log, "Error copying text to output stream: " + e);
-                throw e;
-            }
-            pdfIn.close();
-            inStream.close();
-            return outFile;
+        } catch (IOException e) {
+            fatal(log, "Error opening input stream: " + e);
+            throw e;
         } catch (Exception e) {
             fatal(log, "Error converting PDF to text: " + e);
             throw e;
@@ -124,7 +112,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     /**
      * Extract the text of a PDF and remove control sequences and line breaks.
      *
-     * @param pdfIn {@link PDDocument} to extract text from
+     * @param pdfIn
+     *            {@link PDDocument} to extract text from
      * @return text of the PDF
      * @throws IOException
      */
@@ -145,7 +134,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
      * to be typical for bibliographies as they contain many years, page numbers
      * and dates.
      *
-     * @param pdfIn {@link PDDocument} to extract text from
+     * @param pdfIn
+     *            {@link PDDocument} to extract text from
      * @return text of the PDF sans the bibliography
      * @throws IOException
      */
@@ -187,8 +177,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 }
             }
             // use hasBibNumberRatio_d method from python scripts
-            if (containsCueWord && ((numNumbers / numChars) >= 0.005)
-                    && ((numNumbers / numChars) <= 0.1) && ((numDecimals / numChars) <= 0.004)) {
+            if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1)
+                    && ((numDecimals / numChars) <= 0.004)) {
                 startedBib = true;
                 continue;
             }
@@ -234,8 +224,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 return;
             }
             debug(log, "Converted to file %s", outputFile);
-//			log.debug("LOG {}", getExecution().getLog());
-//			 FrontendClient.post(InfolisFile.class, outputFile);
+            // log.debug("LOG {}", getExecution().getLog());
+            // FrontendClient.post(InfolisFile.class, outputFile);
             getOutputDataStoreClient().post(InfolisFile.class, outputFile);
             if (null == outputFile) {
                 fatal(log, "Conversion failed for input file %s", inputFileURI);
@@ -243,7 +233,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
-//				throw new RuntimeException("Conversion failed for input file " + inputFileURI);
+                // throw new RuntimeException("Conversion failed for input file
+                // " + inputFileURI);
             } else {
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }
@@ -256,13 +247,15 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         if (null == getExecution().getInputFiles()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "Required parameter 'inputFiles' is missing!");
+            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
+                    "Required parameter 'inputFiles' is missing!");
         } else if (0 == getExecution().getInputFiles().size()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "No values for parameter 'inputFiles'!");
+            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
+                    "No values for parameter 'inputFiles'!");
         }
-//		if (null == getExecution().getOutputFiles()) {
-//			getExecution().setOutputFiles(new ArrayList<String>());
-//		}
+        // if (null == getExecution().getOutputFiles()) {
+        // getExecution().setOutputFiles(new ArrayList<String>());
+        // }
     }
 
     /**
@@ -294,9 +287,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             }
 
             Execution execution = new Execution();
-//			Algorithm algo = new TextExtractorAlgorithm();
+            // Algorithm algo = new TextExtractorAlgorithm();
             execution.setAlgorithm(TextExtractorAlgorithm.class);
-//			algo.setExecution(execution);
+            // algo.setExecution(execution);
             FileResolver ifr = FileResolverFactory.create(DataStoreStrategy.LOCAL);
             DataStoreClient idsc = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
             Algorithm algo = execution.instantiateAlgorithm(idsc, idsc, ifr, ifr);

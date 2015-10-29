@@ -85,7 +85,8 @@ public class Indexer extends BaseAlgorithm {
 
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
-        IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir), indexWriterConfig);
+        FSDirectory fsIndexDir = FSDirectory.open(indexDir);
+        IndexWriter writer = new IndexWriter(fsIndexDir, indexWriterConfig);
 
         List<InfolisFile> files = new ArrayList<>();
         for (String fileUri : getExecution().getInputFiles()) {   
@@ -109,6 +110,7 @@ public class Indexer extends BaseAlgorithm {
             writer.forceMerge(1);
             writer.close();
         }
+        fsIndexDir.close();
         log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
     }
 

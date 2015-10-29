@@ -1,0 +1,5 @@
+{
+"algorithm":"io.github.infolis.algorithm.SearchTermPosition",
+"searchQuery":"ALLBUS",
+"phraseSlop":"0"
+}

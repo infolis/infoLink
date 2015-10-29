@@ -1,6 +1,7 @@
 package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -60,11 +61,20 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
+    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR")
+    private Path indexDir;
+
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON", required = true)
     private Path json;
 
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
+    
+    @Option(name = "--log-level", usage = "minimum log level")
+    private String logLevel = "DEBUG";
+    
+    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends={"--pdf-dir"})
+    private boolean shouldConvertToText = false;
 
     @SuppressWarnings("unchecked")
     private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
@@ -133,13 +143,29 @@ public class CommandLineExecuter {
         dataStoreClient.dump(dbDir, tag);
     }
 
+    private void setExecutionIndexDir(Execution exec) {
+        Execution indexerExecution = new Execution();
+        indexerExecution.setAlgorithm(Indexer.class);
+        indexerExecution.setInputFiles(exec.getInputFiles());
+        indexerExecution.setPhraseSlop(0);
+//        indexerExecution.setInputDirectory(indexDir.toString());
+        indexerExecution.setOutputDirectory(indexDir.toString());
+        dataStoreClient.post(Execution.class, indexerExecution);
+        indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        exec.setInputDirectory(indexerExecution.getOutputDirectory()); 
+    }
+
+    
     private void setExecutionInputFiles(Execution exec) throws IOException {
         if (null == pdfDir || ! Files.exists(pdfDir)) {
+            if (shouldConvertToText) {
+                throwCLI("Cannot convert to text: Empty/non-existing PDF directory" + pdfDir);
+            }
             if (null == textDir || ! Files.exists(textDir)) {
                 throwCLI("Neither PDFDIR nor TEXTDIR exist");
             } else {
                 if (! Files.newDirectoryStream(textDir).iterator().hasNext()) {
-                    throwCLI("No PDFDIR specified, TEXTDIR specified, but empty.");
+                    throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
@@ -148,16 +174,16 @@ public class CommandLineExecuter {
                 Files.createDirectories(textDir);
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             } else {
-                System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir + "' exist. Convert from PDF anyway?\n\t<Ctrl-C> to quit, <Enter> to continue");
-                try {
+                if (shouldConvertToText) {
+                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir + "' were specified. Will possibly clobber text files in conversion!");
+                    System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                } else {
+                    exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }
-                exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             }
         }
-        log.debug("Here i be");
     }
 
     /**
@@ -259,6 +285,8 @@ public class CommandLineExecuter {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
+//            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+//            root.setLevel(Level.toLevel(logLevel));
         } catch (CmdLineException e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
@@ -272,12 +300,24 @@ public class CommandLineExecuter {
         Execution exec = new Execution();
         try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
             JsonObject jsonObject = Json.createReader(reader).readObject();
+            
+            // Check the JSOn
             checkJsonFile(jsonObject);
+            
+            // Set the input files, convert if necessary
             try {
                 setExecutionInputFiles(exec);
             } catch (IOException e) {
                 throwCLI("Problem setting input files", e);
             }
+            
+            // Create index if necessary
+            if (indexDir != null) {
+                Files.createDirectories(indexDir);
+                setExecutionIndexDir(exec);
+            }
+
+            // Set the other options from JSON
             setExecutionFromJSON(jsonObject, exec);
         } catch (IOException e) {
             throwCLI("Problem reading JSON " + json, e);

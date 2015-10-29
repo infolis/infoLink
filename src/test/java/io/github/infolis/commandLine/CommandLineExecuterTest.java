@@ -32,7 +32,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     }
     
     public CommandLineExecuterTest() {
-//        System.setProperty("testing", "true");
+        System.setProperty("testing", "true");
     }
 
     @Test
@@ -44,6 +44,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--pdf-dir", getResourcePath("/examples/pdfs"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--log-level", "INFO",
                 "--tag", tag,
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
@@ -65,4 +66,22 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
+
+    @Test
+    public void testSearchTermPosition() throws Exception {
+        Path outputBaseDir = mktempdir();
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
+        CommandLineExecuter.main(new String[] {
+                "--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
+                "--pdf-dir", getResourcePath("/examples/pdfs"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--index-dir", outputBaseDir.resolve("index").toString(),
+                "--tag", "foo-bar"
+        });
+//        FileUtils.forceDelete(outputBaseDir.toFile());
+    }
+
+
 }

@@ -41,6 +41,21 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.MetaDataExtractingStrategy;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.SerializationUtils;
+
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
  * JSON file.
@@ -48,6 +63,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CommandLineExecuter {
 
+    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
@@ -112,7 +128,8 @@ public class CommandLineExecuter {
                         break;
                     }
                     if (values.getKey().equals("metaDataExtractingStrategy")) {
-                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy.valueOf(values.getValue().toString().replace("\"", ""));
+                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy
+                                .valueOf(values.getValue().toString().replace("\"", ""));
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
@@ -130,13 +147,29 @@ public class CommandLineExecuter {
                     exec.setProperty(values.getKey(), listEntries);
                     break;
                 default:
-                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key " + values.getKey());
+                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
+                            + values.getKey());
                     break;
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throwCLI("No such field", e);
         }
+    }
+
+    private void doExecute(Execution exec) {
+        if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
+            Execution indexerExecution = new Execution();
+            indexerExecution.setAlgorithm(Indexer.class);
+            indexerExecution.setInputFiles(exec.getInputFiles());
+            indexerExecution.setPhraseSlop(0);
+            dataStoreClient.post(Execution.class, indexerExecution);
+            indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+            exec.setIndexDirectory(indexerExecution.getOutputDirectory());
+        }
+        dataStoreClient.post(Execution.class, exec);
+        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        dataStoreClient.dump(dbDir, tag);
     }
 
     private void setExecutionIndexDir(Execution exec) {
@@ -159,8 +192,11 @@ public class CommandLineExecuter {
             if (null == textDir || !Files.exists(textDir)) {
                 throwCLI("Neither PDFDIR nor TEXTDIR exist");
             } else {
-                if (!Files.newDirectoryStream(textDir).iterator().hasNext()) {
-                    throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
+                try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(textDir)) {
+                    if (!dirStream.iterator().hasNext()) {
+                        dirStream.close();
+                        throwCLI("No PDFDIR specified, TEXTDIR exists, but empty.");
+                    }                    
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
@@ -170,7 +206,8 @@ public class CommandLineExecuter {
                 exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
             } else {
                 if (shouldConvertToText) {
-                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir + "' were specified. Will possibly clobber text files in conversion!");
+                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
+                            + "' were specified. Will possibly clobber text files in conversion!");
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
                     exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
@@ -236,9 +273,7 @@ public class CommandLineExecuter {
 
     public List<String> postFiles(Path dir, String mimetype) {
         List<InfolisFile> infolisFiles = new ArrayList<>();
-        DirectoryStream<Path> dirStream = null;
-        try {
-            dirStream = Files.newDirectoryStream(dir);
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
             for (Path file : dirStream) {
                 InfolisFile infolisFile = new InfolisFile();
 
@@ -254,10 +289,10 @@ public class CommandLineExecuter {
                 infolisFile.setFileStatus("AVAILABLE");
                 infolisFiles.add(infolisFile);
             }
-            dirStream.close();
         } catch (IOException e) {
             throwCLI("Couldn't list directory contents of " + dir, e);
         }
+
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
 
@@ -265,8 +300,7 @@ public class CommandLineExecuter {
         throwCLI(msg, null);
     }
 
-    private static void throwCLI(String msg, Exception e)
-    {
+    private static void throwCLI(String msg, Exception e) {
         if (null != msg)
             System.err.println("**ERROR** " + msg);
         if (null != e) {
@@ -277,7 +311,8 @@ public class CommandLineExecuter {
             System.exit(1);
     }
 
-    public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
+    public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
+            IllegalAccessException, IOException {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);

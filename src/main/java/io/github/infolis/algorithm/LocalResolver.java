@@ -53,7 +53,7 @@ public class LocalResolver extends BaseAlgorithm {
         List<EntityLink> links= new ArrayList<>();;
         
         //dereference the toEntities
-        List<String> toEntities = new ArrayList();
+        List<String> toEntities = new ArrayList<>();
         for(EntityLink link : links) {
             toEntities.add(link.getToEntity().getIdentifier());
         }

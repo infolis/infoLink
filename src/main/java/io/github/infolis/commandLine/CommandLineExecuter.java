@@ -18,93 +18,98 @@ import io.github.infolis.util.SerializationUtils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
 import org.apache.commons.io.IOUtils;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author domi
+ * CLI to Infolis to make it easy to run an execution and store its results in a JSON file.
+ * 
  */
 public class CommandLineExecuter {
-	
-	private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
-    static protected DataStoreClient dataStoreClient;
-    static protected FileResolver fileResolver;
+    private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
-    public static void parseJson(Path jsonPath, Path outputDir) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
-        JsonReader reader = Json.createReader(Files.newBufferedReader(jsonPath, Charset.forName("UTF-8")));
-        JsonObject o = reader.readObject();
+    private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
+    private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
 
-        String wrongParameter = checkJsonFile(o);
-        if(!wrongParameter.isEmpty()) {
-            System.out.println(String.format("ERROR: %s is no parameter name", wrongParameter));
-        }
+    @Option(name = "--text-dir", usage = "Directory containing *.txt", metaVar = "TEXTDIR", required = true)
+    private Path textDir;
 
-        Execution e = new Execution();
-        //TODO: any better solution? e.g. to indicate the strategy as method parameter?
-        dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
-        fileResolver = FileResolverFactory.create(DataStoreStrategy.TEMPORARY);
+    @Option(name = "--pdf-dir", usage = "Directory containing *.pdf", metaVar = "PDFDIR")
+    private Path pdfDir;
 
-        //iterate through the entries in the JSON file
-        for (Entry<String, JsonValue> values : o.entrySet()) {
-            switch (values.getValue().getValueType()) {
+    @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
+    private Path dbDir;
+
+    @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON", required = true)
+    private Path json;
+
+    @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
+    private String tag;
+
+    @SuppressWarnings("unchecked")
+    private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
+        try {
+            // iterate through the entries in the JSON file
+            for (Entry<String, JsonValue> values : jsonObject.entrySet()) {
+                switch (values.getValue().getValueType()) {
                 case STRING:
                 case NUMBER:
                 case TRUE:
                 case FALSE:
-                    //algorithm has to be handled as a special case since we need to find the class
+                    // algorithm has to be handled as a special case since we need
+                    // to find the class
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
                         algorithmName = algorithmName.replace("\"", "");
                         if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
                             algorithmName += "io.github.infolis.algorithm." + algorithmName;
                         }
-                        Class<? extends Algorithm> algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
-                        e.setAlgorithm(algoClass);
+                        try {
+                            Class<? extends Algorithm> algoClass;
+                            algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
+                            exec.setAlgorithm(algoClass);
+                        } catch (ClassNotFoundException |ClassCastException e1) {
+                            throwCLI("No such algorithm: " + algorithmName);
+                        }
                         break;
                     }
+                    // TODO generic solution for enums?
                     if (values.getKey().equals("bootstrapStrategy")) {
                         BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString().replace("\"", ""));
-                        e.setBootstrapStrategy(b);
+                        exec.setBootstrapStrategy(b);
                         break;
                     }
                     if (values.getKey().equals("metaDataExtractingStrategy")) {
                         MetaDataExtractingStrategy mde = MetaDataExtractingStrategy.valueOf(values.getValue().toString().replace("\"", ""));
-                        e.setMetaDataExtractingStrategy(mde);
+                        exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
-                    //inputFiles need to be handled as a special case since we need to create the 
-                    //files first and post them and convert them if necessary
-                    if (values.getKey().equals("inputFiles")) {
-                        String dir = values.getValue().toString().replace("\"", "");
-                        List<String> fileUris = postFiles(dir, dataStoreClient, fileResolver);
-                        e.setInputFiles(convertPDF(fileUris));
-                        break;
-                    }
-                    //all other fields are just set
-                    e.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
+                    // all other fields are just set
+                    exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
-                //for arrays we first have to create a list    
+                    // for arrays we first have to create a list
                 case ARRAY:
                     JsonArray array = (JsonArray) values.getValue();
                     List<String> listEntries = new ArrayList<>();
@@ -112,139 +117,189 @@ public class CommandLineExecuter {
                         JsonString stringEntry = array.getJsonString(i);
                         listEntries.add(stringEntry.getString());
                     }
-                    e.setProperty(values.getKey(), listEntries);
+                    exec.setProperty(values.getKey(), listEntries);
                     break;
                 default:
-                    System.err.println("WARNING: Unhandled value type " + values.getValue().getValueType());
+                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key " + values.getKey());
                     break;
+                }
             }
+        } catch (NoSuchFieldException|IllegalAccessException e) {
+            throwCLI("No such field", e);
         }
-        if (e.getAlgorithm().equals(SearchTermPosition.class)) {
+    }
+
+    private void doExecute(Execution exec) {
+    	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
         	Execution indexerExecution = new Execution();
         	indexerExecution.setAlgorithm(Indexer.class);
-        	indexerExecution.setInputFiles(e.getInputFiles());
+        	indexerExecution.setInputFiles(exec.getInputFiles());
         	indexerExecution.setPhraseSlop(0);
         	dataStoreClient.post(Execution.class, indexerExecution);
         	indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        	e.setInputDirectory(indexerExecution.getOutputDirectory());
+        	exec.setInputDirectory(indexerExecution.getOutputDirectory());
         }
-        dataStoreClient.post(Execution.class, e);
-        e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        dataStoreClient.dump(outputDir);
+        dataStoreClient.post(Execution.class, exec);
+        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        dataStoreClient.dump(dbDir, tag);
+    }
+
+    private void setExecutionInputFiles(Execution exec) throws IOException {
+        if (null == pdfDir || ! Files.exists(pdfDir)) {
+            if (null == textDir || ! Files.exists(textDir)) {
+                throwCLI("Neither PDFDIR nor TEXTDIR exist");
+            } else {
+                if (! Files.newDirectoryStream(textDir).iterator().hasNext()) {
+                    throwCLI("No PDFDIR specified, TEXTDIR specified, but empty.");
+                }
+                exec.setInputFiles(postFiles(textDir, "text/plain"));
+            }
+        } else {
+            if (null == textDir || ! Files.exists(textDir)) {
+                Files.createDirectories(textDir);
+                exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+            } else {
+                System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir + "' exist. Convert from PDF anyway?\n\t<Ctrl-C> to quit, <Enter> to continue");
+                try {
+                    System.in.read();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+            }
+        }
     }
 
     /**
-     * checks whether all the variables in the Json file
-     * are indeed variables which can be set in the execution.
+     * checks whether all the variables in the Json file are indeed variables
+     * which can be set in the execution.
      * 
      * @param o
-     * @return 
+     * @return
      */
-    private static String checkJsonFile(JsonObject o) {
+    private void checkJsonFile(JsonObject o) {
+        List<String> badFields = new ArrayList<>();
+        Execution testExecution = new Execution();
         for (Entry<String, JsonValue> values : o.entrySet()) {
+            if (values.getKey().equals("inputFiles")) {
+                throwCLI("Do not specify inputFiles in JSON, it will be overridden [in " + json + "]");
+            }
             try {
-                Execution e = new Execution();
-                e.getClass().getDeclaredField(values.getKey());
-            }catch(NoSuchFieldException ex) {
-                return values.getKey();
+                testExecution.getClass().getDeclaredField(values.getKey());
+            } catch (NoSuchFieldException ex) {
+                badFields.add(values.getKey());
             }
         }
-        return "";
+        if (!badFields.isEmpty()) {
+            throwCLI("Unknown fields: " + badFields);
+        }
     }
 
-    private static List<String> convertPDF(List<String> uris) {
+    private List<String> convertPDF(List<String> uris) {
         List<String> txtUris = new ArrayList<>();
         for (String inputFileURI : uris) {
             InfolisFile inputFile = dataStoreClient.get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
-                throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
+                throwCLI("File was not registered with the data store: " + inputFileURI);
             }
             if (null == inputFile.getMediaType()) {
-                throw new RuntimeException("File has no mediaType: " + inputFileURI);
+                throwCLI("File has no mediaType: " + inputFileURI);
             }
-            // if the input file is not a text file
-            if (!inputFile.getMediaType().startsWith("text/plain")) {
-                // if the input file is a PDF file, convert it
-                if (inputFile.getMediaType().startsWith("application/pdf")) {
-                    Execution convertExec = new Execution();
-                    convertExec.setAlgorithm(TextExtractorAlgorithm.class);
-                    convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
-                    // TODO wire this more efficiently so files are stored temporarily
-                    Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
-                    algo.run();
-                    // Set the inputFile to the file we just created
-                    InfolisFile convertedInputFile = dataStoreClient.get(InfolisFile.class, convertExec.getOutputFiles().get(0));
-                    txtUris.add(convertedInputFile.getUri());
-                }
-            } else {
+            if (inputFile.getMediaType().startsWith("text/plain")) {
                 txtUris.add(inputFileURI);
+                continue;
+            }
+            // if the input file is a PDF file, convert it
+            if (inputFile.getMediaType().startsWith("application/pdf")) {
+                Execution convertExec = new Execution();
+                convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+                convertExec.setOutputDirectory(textDir.toString());
+                convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
+                Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
+                algo.run();
+                txtUris.add(convertExec.getOutputFiles().get(0));
             }
         }
         return txtUris;
     }
 
-    public static List<String> postFiles(String dirStr, DataStoreClient dsc, FileResolver rs) throws IOException {
-        List<String> uris = new ArrayList<>();
-        Path dir = Paths.get(dirStr);
-        Iterator<Path> dirIter = Files.newDirectoryStream(dir).iterator();
-		while (dirIter.hasNext()) {
-			Path f = dirIter.next();
-			Path tempFile = Files.createTempFile("infolis-", ".pdf");
-            InfolisFile inFile = new InfolisFile();
+    public List<String> postFiles(Path dir, String mimetype) {
+        List<InfolisFile> infolisFiles = new ArrayList<>();
+        DirectoryStream<Path> dirStream = null;
+        try {
+            dirStream = Files.newDirectoryStream(dir);
+        } catch (IOException e) {
+            throwCLI("Couldn't list directory contents of " + dir, e);
+        }
+        for (Path file : dirStream) {
+            InfolisFile infolisFile = new InfolisFile();
 
-            InputStream inputStream = Files.newInputStream(f);
-
-            int numberBytes = inputStream.available();
-            byte pdfBytes[] = new byte[numberBytes];
-            inputStream.read(pdfBytes);
-
-            IOUtils.write(pdfBytes, Files.newOutputStream(tempFile));
-
-            inFile.setFileName(tempFile.toString());
-            inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));
-            inFile.setMediaType("application/pdf");
-            inFile.setFileStatus("AVAILABLE");
-
-            try {
-                OutputStream os = rs.openOutputStream(inFile);
-                IOUtils.write(pdfBytes, os);
-                os.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+            try (InputStream inputStream = Files.newInputStream(file)) {
+                byte[] bytes = IOUtils.toByteArray(inputStream);
+                infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
+            } catch (IOException e) {
+                throwCLI("Could not read file " + file, e);
             }
-            dsc.post(InfolisFile.class, inFile);
-            uris.add(inFile.getUri());
-            inputStream.close();
+
+            infolisFile.setFileName(file.toString());
+            infolisFile.setMediaType(mimetype);
+            infolisFile.setFileStatus("AVAILABLE");
+            infolisFiles.add(infolisFile);
         }
-        return uris;
+        return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
 
-    public static void usage(String problem) {
-        System.out.println(String.format("%s <json-path> <output-dir>", CommandLineExecuter.class.getSimpleName()));
-        if (null != problem) {
-            System.out.println(String.format("ERROR: %s", problem));
-        }
-        System.exit(1);
+    private static void throwCLI(String msg) {
+        throwCLI(msg, null);
     }
 
-    public static void main(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
-        if (args.length < 2) {
-            usage("Not enough arguments");
+    private static void throwCLI(String msg, Exception e)
+    {
+        if (null != msg)
+            System.err.println("**ERROR** " + msg);
+        if (null != e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace(System.err);
         }
+        if (System.getProperty("testing") == null)
+            System.exit(1);
+    }
 
-        Path jsonPath = Paths.get(args[0]);
-        if (!Files.exists(jsonPath)) {
-            usage("JSON doesn't exist");
+    public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException, IOException {
+        CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
+        try {
+            parser.parseArgument(args);
+        } catch (CmdLineException e) {
+            System.err.println("java " + getClass().getSimpleName() + " [options...]");
+            parser.printUsage(System.err);
+            throwCLI("", e);
+            return;
         }
+            
 
-        Path outputDir = Paths.get(args[1]);
-        if (Files.exists(outputDir)) {
-            System.err.println("WARNING: Output directory already exists, make sure it is empty.\nPress enter to continue or CTRL-C to exit");
-            System.in.read();
-        } else {
-            Files.createDirectories(outputDir);
+        Files.createDirectories(dbDir);
+
+        Execution exec = new Execution();
+        try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
+            JsonObject jsonObject = Json.createReader(reader).readObject();
+            checkJsonFile(jsonObject);
+            try {
+                setExecutionInputFiles(exec);
+            } catch (IOException e) {
+                throwCLI("Problem setting input files", e);
+            }
+            setExecutionFromJSON(jsonObject, exec);
+        } catch (IOException e) {
+            throwCLI("Problem reading JSON " + json, e);
         }
+        doExecute(exec);
+    }
 
-        parseJson(jsonPath, outputDir);
+    public static void main(String args[]) {
+        try {
+            new CommandLineExecuter().doMain(args);
+        } catch (Exception e) {
+            throwCLI("doMain", e);
+        }
     }
 }

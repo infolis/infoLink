@@ -48,7 +48,7 @@ public class LocalClientTest {
 		
 		Path dumpPath = Paths.get("/tmp/infolis-test");
 		Files.createDirectories(dumpPath);
-		client.dump(dumpPath);
+		client.dump(dumpPath, "test");
 		
 	}
 }

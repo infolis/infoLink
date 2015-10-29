@@ -85,7 +85,8 @@ public class LocalClient extends AbstractClient {
 	}
 
 	@Override
-	public void dump(Path directory) {
+	public void dump(Path directory, String basename) {
+	    
 		/*
 		 * {
 		 *   "file": {
@@ -136,7 +137,8 @@ public class LocalClient extends AbstractClient {
 		sb.append(StringUtils.join(entries, ",\n"));
 		sb.append("\n}");
 		try {
-			Path outputFile = directory.resolve(storeId + ".json");
+		    Files.createDirectories(directory);
+			Path outputFile = directory.resolve(basename + ".json");
 			OutputStream os = Files.newOutputStream(outputFile);
 			IOUtils.write(sb.toString(), os);
 			os.close();

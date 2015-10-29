@@ -167,7 +167,7 @@ class CentralClient extends AbstractClient {
 	}
 
 	@Override
-	public void dump(Path directory) {
+	public void dump(Path directory, String basename) {
 		log.error("dump not supported");
 		return;
 	}

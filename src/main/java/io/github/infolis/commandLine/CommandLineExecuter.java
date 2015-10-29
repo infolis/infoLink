@@ -2,6 +2,7 @@ package io.github.infolis.commandLine;
 
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -152,7 +153,7 @@ public class CommandLineExecuter {
         indexerExecution.setOutputDirectory(indexDir.toString());
         dataStoreClient.post(Execution.class, indexerExecution);
         indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        exec.setInputDirectory(indexerExecution.getOutputDirectory()); 
+        exec.setIndexDirectory(indexerExecution.getOutputDirectory()); 
     }
 
     

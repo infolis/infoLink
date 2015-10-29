@@ -153,7 +153,7 @@ public class Execution extends BaseModel {
 	 * Input directory of SearchTermPosition = output directory of indexer. 
 	 * {@link SearchTermPosition}
 	 */
-	private String inputDirectory = "";
+	private String indexDirectory = "";
 	
 	/**
 	 * {@link SearchTermPosition}
@@ -341,12 +341,12 @@ public class Execution extends BaseModel {
 		this.outputDirectory = outputDirectory;
 	}
 	
-	public String getInputDirectory() {
-		return inputDirectory;
+	public String getIndexDirectory() {
+		return indexDirectory;
 	}
 
-	public void setInputDirectory(String inputDirectory) {
-		this.inputDirectory = inputDirectory;
+	public void setIndexDirectory(String indexDirectory) {
+		this.indexDirectory = indexDirectory;
 	}
 
 	public Class<? extends Algorithm> getAlgorithm() {

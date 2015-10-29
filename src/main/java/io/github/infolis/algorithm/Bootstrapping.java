@@ -50,7 +50,7 @@ public abstract class Bootstrapping extends BaseAlgorithm {
         // use lucene index to search for term in corpus
         Execution execution = new Execution();
         execution.setAlgorithm(SearchTermPosition.class);
-        execution.setInputDirectory(this.indexerExecution.getOutputDirectory());
+        execution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
         execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
         execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
         execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
@@ -74,7 +74,7 @@ public abstract class Bootstrapping extends BaseAlgorithm {
 
         	Execution stpExecution = new Execution();
             stpExecution.setAlgorithm(SearchTermPosition.class);
-            stpExecution.setInputDirectory(this.indexerExecution.getOutputDirectory());
+            stpExecution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
             stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
             stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
             stpExecution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());

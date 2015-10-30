@@ -27,8 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -38,8 +42,8 @@ import javax.json.JsonValue;
 import javax.ws.rs.BadRequestException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.ParserProperties;
@@ -70,7 +74,7 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
-    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = { "--json", "--tag" })
+    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = { "--tag" })
     private Path indexDir;
 
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
@@ -85,8 +89,14 @@ public class CommandLineExecuter {
     @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
     private boolean shouldConvertToText = false;
     
-    @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE")
+    @Option(name = "--search-candidates", usage = "look for files that match a set of queries", depends = {"--queries-file"})
+    private boolean searchCandidatesMode = false;
+    
+    @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE", depends = {"--search-candidates"})
     private String queriesFile;
+    
+    // This is set so we can accept --convert-to-text without JSON and not try to execute anything
+    private boolean convertToTextMode = false;
 
     @SuppressWarnings("unchecked")
     private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
@@ -156,41 +166,84 @@ public class CommandLineExecuter {
     	return FileUtils.readLines(new File(filename), "UTF-8");
     }
     
-    private void executeStp(Execution exec) throws BadRequestException, IOException {
-    	// TODO: check whether index was specified
-    	// TODO: check: 1. searchQuery specified in json?
-		// 				2. queries-file given as argument?
-    	//				3. both?
-    	// currently: overwrite searchQuery with entries in query-file if specified
-		if (null != queriesFile) {
-			for (String query : getQueryTermsFromFile(queriesFile)) {
-				// normalize to treat phrase query properly
-				exec.setSearchQuery(RegexUtils.normalizeQuery(query.trim(), true));
-				dataStoreClient.post(Execution.class, exec);
-				exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-				dataStoreClient.dump(dbDir, tag);
-				exec.setMatchingFiles(new ArrayList<String>());
-			}
+    /**
+     * Executes the 'candidate search' mode which fires a SearchTermPosition execution for every searchQuery provided./
+     * @param exec2 
+     * 
+     * @param exec
+     * @throws BadRequestException
+     * @throws IOException
+     */
+    private void executeCandidateSearch(Execution parentExec) throws BadRequestException, IOException {
+		if (null == queriesFile) {
+		    throwCLI("Inconsistency: --search-candidates but queries>File is null.");
 		}
-		else { 
-			exec.setSearchQuery(RegexUtils.normalizeQuery(exec.getSearchQuery().trim(), true));
-			dataStoreClient.post(Execution.class, exec); 
-			exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-			dataStoreClient.dump(dbDir, tag);
+		if (null == indexDir) {
+		    throwCLI("Inconsistency: --search-candidates but no --index-dir given.");
 		}
+		Set<String> allMatchingFiles = new HashSet<>();
+		Map<String,List<String>> matchingFilesByQuery = new HashMap<>();
+		for (String query : getQueryTermsFromFile(queriesFile)) {
+		    String normalizeQuery = RegexUtils.normalizeQuery(query.trim(), true);
+		    matchingFilesByQuery.put(normalizeQuery, new ArrayList<String>());
+
+		    Execution exec = new Execution();
+		    exec.setAlgorithm(SearchTermPosition.class);
+		    exec.setPhraseSlop(0);
+		    exec.setIndexDirectory(parentExec.getIndexDirectory());
+		    // normalize to treat phrase query properly
+            exec.setSearchQuery(normalizeQuery);
+		    dataStoreClient.post(Execution.class, exec);
+		    exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		    for (InfolisFile f: dataStoreClient.get(InfolisFile.class, exec.getMatchingFiles())) {
+		        String filename = FilenameUtils.getBaseName(f.getFileName());
+		        allMatchingFiles.add(filename);
+		        matchingFilesByQuery.get(normalizeQuery).add(filename);
+		    }
+		}
+		log.warn("ALL MATCHES: {}", allMatchingFiles);
+		log.warn("MATCHES BY QUERY: {}", matchingFilesByQuery);
     }
 
+    /**
+     * Run the execution
+     * 
+     * @param exec
+     * @throws BadRequestException
+     * @throws IOException
+     */
     private void doExecute(Execution exec) throws BadRequestException, IOException {
-    	if (exec.getAlgorithm().equals(SearchTermPosition.class)) {
-		executeStp(exec);
+        // Set the input files, convert if necessary
+        try {
+            setExecutionInputFiles(exec);
+        } catch (IOException e) {
+            throwCLI("Problem setting input files", e);
         }
-    	else {
-	        dataStoreClient.post(Execution.class, exec);
-	        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-	        dataStoreClient.dump(dbDir, tag);
-    	}
+        // Create index if necessary
+        if (indexDir != null) {
+            Files.createDirectories(indexDir);
+            setExecutionIndexDir(exec);
+        }
+
+        try {
+            dataStoreClient.post(Execution.class, exec);
+            if (convertToTextMode) {
+                log.debug("Yay nothing to do. woop dee doo.");
+            } else if (searchCandidatesMode) {
+                executeCandidateSearch(exec);
+            } else {
+                exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+            }
+        } catch (Exception e) {
+            throwCLI("Execution threw an excepion", e);
+        }
+        dataStoreClient.dump(dbDir, tag);
     }
 
+    /**
+     * Indexes the input files in Lucene and sets the indexDirectory of the execution.
+     * @param exec
+     */
     private void setExecutionIndexDir(Execution exec) {
         Execution indexerExecution = new Execution();
         indexerExecution.setAlgorithm(Indexer.class);
@@ -203,6 +256,12 @@ public class CommandLineExecuter {
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());
     }
 
+    /**
+     * Sets the input files for an execution and converts depending on command line arguments.
+     * 
+     * @param exec
+     * @throws IOException
+     */
     private void setExecutionInputFiles(Execution exec) throws IOException {
         if (null == pdfDir || !Files.exists(pdfDir)) {
             if (shouldConvertToText) {
@@ -266,6 +325,12 @@ public class CommandLineExecuter {
         }
     }
 
+    /**
+     * Converts a list of InfolisFile to text
+     * 
+     * @param uris URIs of the InfolisFiles
+     * @return URIs of the InfolisFiles of the text versions
+     */
     private List<String> convertPDF(List<String> uris) {
         List<String> txtUris = new ArrayList<>();
         for (String inputFileURI : uris) {
@@ -333,6 +398,7 @@ public class CommandLineExecuter {
         if (System.getProperty("testing") == null)
             System.exit(1);
         else
+            log.error("ERROR: {}", e);
             throw new RuntimeException(e);
     }
 
@@ -341,8 +407,11 @@ public class CommandLineExecuter {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
-            if (null == json && false == shouldConvertToText) {
-                throwCLI("Must specify JSON if not --convert-to-text");
+            if (null == json && !(shouldConvertToText || searchCandidatesMode)) {
+                throwCLI("Must specify JSON if not --convert-to-text|--search-candidates");
+            }
+            if (null == json && shouldConvertToText && ! searchCandidatesMode) {
+                convertToTextMode = true;
             }
             ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             root.setLevel(Level.toLevel(logLevel));
@@ -356,47 +425,22 @@ public class CommandLineExecuter {
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
-        if (null == json) {
-            try {
-                setExecutionInputFiles(exec);
-            } catch (IOException e) {
-                throwCLI("Problem setting input files", e);
-            }
-        } else {
+        
+        // if no JSON was provided, only convert files and exit
+        if (null != json) {
             try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {
                 JsonObject jsonObject = Json.createReader(reader).readObject();
 
-                // Check the JSOn
+                // Check the JSON
                 checkJsonFile(jsonObject);
-
-                // Set the input files, convert if necessary
-                try {
-                    setExecutionInputFiles(exec);
-                } catch (IOException e) {
-                    throwCLI("Problem setting input files", e);
-                }
-
-                // Create index if necessary
-                if (indexDir != null) {
-                    Files.createDirectories(indexDir);
-                    setExecutionIndexDir(exec);
-                }
 
                 // Set the other options from JSON
                 setExecutionFromJSON(jsonObject, exec);
             } catch (IOException e) {
                 throwCLI("Problem reading JSON " + json, e);
             }
-
-            //dataStoreClient.post(Execution.class, exec);
-            try {
-                //exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-            	doExecute(exec);
-            } catch (Exception e) {
-                throwCLI("Execution threw an excepion", e);
-            }
         }
-        dataStoreClient.dump(dbDir, tag);
+        doExecute(exec);
     }
 
     public static void main(String args[]) throws Exception {

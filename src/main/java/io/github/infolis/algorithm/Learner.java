@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.algorithm.bootstrapping.FrequencyBasedBootstrapping;
+import io.github.infolis.algorithm.bootstrapping.ReliabilityBasedBootstrapping;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;

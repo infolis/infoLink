@@ -104,9 +104,12 @@ public class CommandLineExecuter {
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
                         algorithmName = algorithmName.replace("\"", "");
+                        // bolandka: if we really want this feature, I can change it 
+                        // to adding io.github.infolis.algorithm.bootstrapping when applicable.
+                        /*
                         if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
                             algorithmName += "io.github.infolis.algorithm." + algorithmName;
-                        }
+                        }*/
                         try {
                             Class<? extends Algorithm> algoClass;
                             algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);

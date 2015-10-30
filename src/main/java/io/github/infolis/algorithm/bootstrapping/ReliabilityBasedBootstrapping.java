@@ -1,10 +1,8 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.algorithm.bootstrapping;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.luceneIndexing.PatternInducer;
-import io.github.infolis.infolink.patternLearner.Reliability;
-import io.github.infolis.model.Execution;
+import io.github.infolis.algorithm.bootstrapping.Reliability;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
@@ -39,11 +37,21 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 
     private static final Logger log = LoggerFactory.getLogger(ReliabilityBasedBootstrapping.class);
     private Reliability r = new Reliability();
+    
+    public PatternInducer getPatternInducer() {
+    	return new StandardPatternInducer();
+    }
 
-    List<TextualReference> bootstrap() throws IOException, ParseException {
+    public PatternRanker getPatternRanker() {
+    	return new ReliabilityPatternRanker();
+    }
+    
+    public List<TextualReference> bootstrap() throws IOException, ParseException {
         Set<Entity> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns = new HashSet<>();
-        PatternRanker patternRanker = new PatternRanker();
+        ReliabilityPatternRanker patternRanker = new ReliabilityPatternRanker();
+        //TODO define and use generic PatternRanker
+        //PatternRanker patternRanker = getPatternRanker();
         int numIter = 1;
         Set<Entity> seeds = new HashSet<>();
         Set<String> seedTerms = new HashSet<>();
@@ -207,7 +215,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         List<List<InfolisPattern>> candidateList = new ArrayList<>();
         for (Entity i : instances) { 
         	for (TextualReference context : i.getTextualReferences()) {
-        		candidateList.add(new PatternInducer(context, thresholds).candidates);
+        		candidateList.add(getPatternInducer().induce(context, thresholds));
         	}
         }
         return candidateList;
@@ -219,7 +227,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
      * @author kata
      *
      */
-    private class PatternRanker {
+    private class ReliabilityPatternRanker extends Bootstrapping.PatternRanker {
     	//TODO custom comparator for entities..
     	private Map<String,InfolisPattern> knownPatterns = new HashMap<>();
         private Map<Double, Collection<String>> reliableMinimals = new HashMap<>();

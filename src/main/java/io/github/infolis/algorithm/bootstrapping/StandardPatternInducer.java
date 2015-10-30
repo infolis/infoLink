@@ -1,5 +1,5 @@
 
-package io.github.infolis.infolink.luceneIndexing;
+package io.github.infolis.algorithm.bootstrapping;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -18,12 +18,14 @@ import java.util.List;
  * 
  * @author kata
  */
-public class PatternInducer {
+public class StandardPatternInducer extends Bootstrapping.PatternInducer {
     
 	//private static final org.slf4j.Logger log = LoggerFactory.getLogger(PatternInducer.class);
-	public List<InfolisPattern> candidates = new ArrayList<>();
 	
-	public PatternInducer(TextualReference context, Double[] thresholds) {
+	public StandardPatternInducer() {}
+	
+	protected List<InfolisPattern> induce(TextualReference context, Double[] thresholds) {
+
 		List<String> leftWords = context.getLeftWords();
         List<String> rightWords = context.getRightWords();
 
@@ -127,7 +129,7 @@ public class PatternInducer {
         		thresholds[8]);
         // order is important here: patterns are listed in ascending order with regard to their generality
         // type2 and typeB, type3 and typeC etc. have equal generality
-        this.candidates.addAll(Arrays.asList(type_general, type2, typeB, type3, typeC, type4, typeD, type5, typeE));
+        return (Arrays.asList(type_general, type2, typeB, type3, typeC, type4, typeD, type5, typeE));
 	}
 	    
 }

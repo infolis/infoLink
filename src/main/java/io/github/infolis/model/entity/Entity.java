@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.infolis.infolink.patternLearner.Reliability;
+import io.github.infolis.algorithm.bootstrapping.Reliability;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.TextualReference;
 import java.io.IOException;

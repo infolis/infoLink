@@ -1,8 +1,7 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.algorithm.bootstrapping;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.luceneIndexing.PatternInducer;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -32,6 +31,14 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	}
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
+	
+	public PatternInducer getPatternInducer() {
+	   	return new StandardPatternInducer();
+	}
+	   
+	public PatternRanker getPatternRanker() {
+    	return new FrequencyPatternRanker();
+    }
 
     /**
      * Generates extraction patterns using an iterative bootstrapping approach.
@@ -55,7 +62,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
      * @throws InstantiationException 
      *
      */
-    List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException {
+    public List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException {
         int numIter = 1;
         List<TextualReference> extractedContextsFromSeeds = new ArrayList<>();
         List<TextualReference> extractedContextsFromPatterns = new ArrayList<>();
@@ -64,7 +71,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         Set<Entity> seeds = new HashSet<>();
         Set<Entity> newSeedsIteration = new HashSet<>();
         Set<String> newSeedTermsIteration = new HashSet<>();
-        PatternRanker ranker = new PatternRanker();
+        FrequencyPatternRanker ranker = new FrequencyPatternRanker();
+        //TODO define and use generic PatternRanker
+        //PatternRanker ranker = getPatternRanker();
         for (String term : getExecution().getSeeds()) newSeedsIteration.add(new Entity(term)); 
 
         while (numIter < getExecution().getMaxIterations()) {
@@ -108,7 +117,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 	List<List<InfolisPattern>> candidates = inducePatterns(detectedContexts);
                 	log.info("Pattern Induction completed.");
                     log.info("--- Entering Pattern Selection phase ---");
-                    newPatterns.addAll(ranker.getRelevantPatterns(candidates, detectedContexts, processedPatterns));
+                    newPatterns.addAll(ranker.getBestPatterns(candidates, detectedContexts, processedPatterns, new HashSet<Entity>()));
                 }
             }
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
@@ -118,7 +127,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	List<List<InfolisPattern>> candidates = inducePatterns(contexts_currentIteration);
             	log.info("Pattern Induction completed.");
                 log.info("--- Entering Pattern Selection phase ---");
-                newPatterns.addAll(ranker.getRelevantPatterns(candidates, contexts_currentIteration, processedPatterns));        
+                newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));        
             }
             
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeAll) {
@@ -126,7 +135,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	List<List<InfolisPattern>> candidates = inducePatterns(extractedContextsFromSeeds);
             	log.info("Pattern Induction completed.");
                 log.info("--- Entering Pattern Selection phase ---");
-                newPatterns.addAll(ranker.getRelevantPatterns(candidates, extractedContextsFromSeeds, processedPatterns));
+                newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
             }
             
             // POST the patterns
@@ -180,15 +189,14 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		n++;
     		log.debug("Inducing relevant patterns for context " + n + " of " + contexts.size());
     		Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};
-    		PatternInducer inducer = new PatternInducer(context, thresholds);
-    		patterns.add(inducer.candidates);
+    		patterns.add(getPatternInducer().induce(context, thresholds));
     	}
     	return patterns;
     }
     
-    class PatternRanker {
+    class FrequencyPatternRanker extends Bootstrapping.PatternRanker {
     	
-    	private Set<InfolisPattern> getRelevantPatterns(List<List<InfolisPattern>> candidates, List<TextualReference> contexts, List<String> processedMinimals) {
+    	protected Set<InfolisPattern> getBestPatterns(List<List<InfolisPattern>> candidates, List<TextualReference> contexts, List<String> processedMinimals, Set<Entity> reliableSeeds) {
 	        Set<InfolisPattern> patterns = new HashSet<>();
 	        Set<String> processedMinimals_iteration = new HashSet<>();
 	        List<String> allContextStrings_iteration = TextualReference.getContextStrings(contexts);

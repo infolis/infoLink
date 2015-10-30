@@ -1,7 +1,9 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.algorithm.bootstrapping;
 
+import io.github.infolis.algorithm.*;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
@@ -23,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public abstract class Bootstrapping extends BaseAlgorithm {
+public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLearner {
 
     public Bootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -31,7 +33,13 @@ public abstract class Bootstrapping extends BaseAlgorithm {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Bootstrapping.class);
     Execution indexerExecution = new Execution();
     
-    abstract List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException;
+    public abstract List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException;
+    
+    public abstract static class PatternInducer {
+    	protected abstract List<InfolisPattern> induce(TextualReference context, Double[] thresholds);
+    };
+    // TODO define getBestPatterns - method
+    public abstract class PatternRanker {};
     
     Execution createIndex() throws IOException {
 		Execution execution = new Execution();
@@ -105,7 +113,7 @@ public abstract class Bootstrapping extends BaseAlgorithm {
         applierExecution.instantiateAlgorithm(this).run();
         return applierExecution.getTextualReferences();
     }
-    
+
     @Override
     public void validate() {
         if (null == this.getExecution().getSeeds()

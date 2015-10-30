@@ -1,4 +1,4 @@
-package io.github.infolis.util;
+package io.github.infolis.util.weka;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,9 +7,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -115,42 +113,6 @@ public class WekaUtils {
         resList.add(sentences_pos);
         resList.add(sentences_neg);
         return resList;
-    }
-
-    /**
-     * Analyse given Instances and return relevant patterns.
-     *
-     * @param filename	location of the arff file containing the Instances to
-     * analyse
-     * @return	set of relevant patterns (each pattern consists of x elements:
-     * ... ...)
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    @SuppressWarnings("unused")
-	private Set<String[]> induceRelevantPatternsFromArff(String filename, double threshold) throws FileNotFoundException, IOException {
-        Instances data = getInstances(filename);
-        Instances data_positive = WekaUtils.getInstances(data, "True");
-        // TODO
-//        this.contextsAsStrings = WekaUtils.getStrings(data);
-        data_positive.setClassIndex(data_positive.numAttributes() - 1);
-        System.out.println(data_positive.toSummaryString());
-
-        @SuppressWarnings("unchecked")
-        Enumeration<Instance> posInstanceEnum = data_positive.enumerateInstances();
-        Set<String[]> patterns = new HashSet<String[]>();
-        int n = 0;
-        int m = data_positive.numInstances();
-        while (posInstanceEnum.hasMoreElements()) {
-            Instance curInstance = posInstanceEnum.nextElement();
-            n++;
-            //save patterns and output...
-            System.out.println("Inducing relevant patterns for instance " + n + " of " + m + " for " + " \"" + filename + "\"");
-            // TODO
-//            patterns.addAll(getRelevantNgramPatterns(curInstance, data, threshold));
-            System.out.println("Added all ngram-patterns for instance " + n + " of " + m + " to pattern set");
-        }
-        return patterns;
     }
 
     private static Instances getInstances(String arffFilename) throws FileNotFoundException, IOException {

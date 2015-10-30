@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.util.weka;
 
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;

@@ -13,6 +13,7 @@ import io.github.infolis.util.RegexUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UnknownFormatConversionException;
 
@@ -92,7 +93,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		stpExecution.instantiateAlgorithm(this).run();
     		filenames.addAll(stpExecution.getMatchingFiles());
         }
-        return filenames;
+        // remove duplicates
+        return new ArrayList<>(new HashSet<>(filenames));
     }
     		
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {

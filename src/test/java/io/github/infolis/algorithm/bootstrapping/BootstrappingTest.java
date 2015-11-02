@@ -89,14 +89,17 @@ public class BootstrappingTest extends InfolisBaseTest {
      * @throws IOException
      */
     public void testGetContextsForPatterns() throws IOException {
-    	Set<String> references1 = new HashSet<>(getReferenceStrings(getContextsForPattern(pat)));
+    	List<String> references1 = getReferenceStrings(getContextsForPattern(pat));
     	references1.addAll(getReferenceStrings(getContextsForPattern(pat2)));
+    	Set<String> references1set= new HashSet<>(references1);
     	Execution e = new Execution();
     	e.setInputFiles(uris);
     	Bootstrapping b = new FrequencyBasedBootstrapping(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
-    	Set<String> references2 = new HashSet<>(getReferenceStrings(b.getContextsForPatterns(Arrays.asList(pat, pat2))));
-    	assertEquals(references1, references2);
+    	List<String> references2 = getReferenceStrings(b.getContextsForPatterns(Arrays.asList(pat, pat2)));
+    	Set<String> references2set = new HashSet<>(references2);
+    	assertEquals(references1set, references2set);
+    	assertEquals(references1.size(), references2.size());
     }
 }

@@ -45,7 +45,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--convert-to-text",
-                "--log-level", "INFO",
+                "--log-level", "DEBUG",
                 "--tag", tag,
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");

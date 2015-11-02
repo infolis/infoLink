@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
@@ -44,6 +45,7 @@ import javax.ws.rs.BadRequestException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.ParserProperties;
@@ -89,7 +91,7 @@ public class CommandLineExecuter {
     @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
     private boolean shouldConvertToText = false;
     
-    @Option(name = "--search-candidates", usage = "look for files that match a set of queries", depends = {"--queries-file"})
+    @Option(name = "--search-candidates", usage = "look for files that match a set of queries", depends = {"--queries-file", "--tag"})
     private boolean searchCandidatesMode = false;
     
     @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE", depends = {"--search-candidates"})
@@ -180,10 +182,7 @@ public class CommandLineExecuter {
 		}
 		if (null == indexDir) {
 		    throwCLI("Inconsistency: --search-candidates but no --index-dir given.");
-		}
-		Set<String> allMatchingFiles = new HashSet<>();
-		Map<String,List<String>> matchingFilesByQuery = new HashMap<>();
-		for (String query : getQueryTermsFromFile(queriesFile)) {
+		} Set<String> allMatchingFiles = new HashSet<>(); Map<String,List<String>> matchingFilesByQuery = new HashMap<>(); for (String query : getQueryTermsFromFile(queriesFile)) {
 		    String normalizeQuery = RegexUtils.normalizeQuery(query.trim(), true);
 		    matchingFilesByQuery.put(normalizeQuery, new ArrayList<String>());
 
@@ -201,6 +200,10 @@ public class CommandLineExecuter {
 		        matchingFilesByQuery.get(normalizeQuery).add(filename);
 		    }
 		}
+		Path outFile = dbDir.resolve(FilenameUtils.getBaseName(queriesFile));
+		try (OutputStream os = Files.newOutputStream(outFile)) {
+		    IOUtils.write(StringUtils.join(allMatchingFiles, "\n"), os);
+		};
 		log.warn("ALL MATCHES: {}", allMatchingFiles);
 		log.warn("MATCHES BY QUERY: {}", matchingFilesByQuery);
     }

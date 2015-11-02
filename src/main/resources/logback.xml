@@ -17,6 +17,7 @@
   </appender>
   
   <logger name="io.github.infolis.algorithm.TextExtractorAlgorithm" level="debug"/>
+  <logger name="io.github.infolis.algorithm.BaseAlgorithm" level="info"/>
 
   <root level="debug">
     <appender-ref ref="FILE" />

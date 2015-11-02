@@ -45,7 +45,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--convert-to-text",
-                "--log-level", "INFO",
+                "--log-level", "DEBUG",
                 "--tag", tag,
         });
         Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
@@ -70,42 +70,21 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     }
     
     @Test
-    public void testSearchTermPosition_queryJson() throws Exception {
+    public void testSearchCandidates() throws Exception {
         Path outputBaseDir = mktempdir();
         Path emptyInputDir = outputBaseDir.resolve("dummy-input");
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
-        		"--json", getResourcePath("/commandLine/searchTermPositionCall.json"),
                 "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
                 "--index-dir", outputBaseDir.resolve("index").toString(),
-                "--convert-to-text",
-                "--tag", "foo-bar"
-        });
-        log.debug("OutputBase exists at " + outputBaseDir.toFile());
-        log.debug("OutputBase exists at (toFile) " + outputBaseDir);
-
-        FileUtils.deleteDirectory(outputBaseDir.toFile());
-    }
-    
-    @Test
-    public void testSearchTermPosition_queryList() throws Exception {
-        Path outputBaseDir = mktempdir();
-        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
-        Files.createDirectories(emptyInputDir);
-        CommandLineExecuter.main(new String[] {
-                "--json", getResourcePath("/commandLine/stpCall.json"),
-                "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
-                "--text-dir", outputBaseDir.resolve("text").toString(),
-                "--db-dir", outputBaseDir.resolve("db").toString(),
-                "--index-dir", outputBaseDir.resolve("index").toString(),
+                "--search-candidates",
                 "--convert-to-text",
                 "--tag", "foo-bar",
                 "--queries-file", getResourcePath("/commandLine/queryTerms.csv")
         });
         log.debug("OutputBase exists at " + outputBaseDir.toFile());
-        log.debug("OutputBase exists at (toFile) " + outputBaseDir);
 
         FileUtils.deleteDirectory(outputBaseDir.toFile());
     }

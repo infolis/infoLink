@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.patternLearner;
+package io.github.infolis.util.weka;
 
 import java.io.File;
 import java.io.FileNotFoundException;

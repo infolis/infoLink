@@ -49,6 +49,7 @@ public class PatternApplier extends BaseAlgorithm {
         return input.replaceAll("\\s+", " ");
     }
 
+    // TODO: use second lucene index here... (case-insensitive whitespaceAnalyzer)
     private List<TextualReference> searchForPatterns(InfolisFile file)
             throws IOException {
         String inputClean = getFileAsString(file);

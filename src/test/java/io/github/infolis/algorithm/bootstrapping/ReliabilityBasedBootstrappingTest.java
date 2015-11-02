@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.infolis.algorithm;
+package io.github.infolis.algorithm.bootstrapping;
 
+import io.github.infolis.algorithm.*;
 import static org.junit.Assert.*;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;

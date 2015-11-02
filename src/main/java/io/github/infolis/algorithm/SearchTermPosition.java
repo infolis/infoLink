@@ -66,45 +66,10 @@ public class SearchTermPosition extends BaseAlgorithm
 	private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
 	private static final String DEFAULT_FIELD_NAME = "contents";
 	private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
-
-//	/**
-//	 * Main method calling complexSearch method for given arguments
-//	 * 
-//	 * @param args	args[0]: path to lucene index; args[1]: path to output file; args[2]: search term; args[3]: lucene query
-//	 * @throws IOException
-//	 * @throws ParseException
-//	 * @throws org.apache.lucene.queryParser.ParseException
-//	 */
-//	public static void main(String[] args) throws IOException, ParseException
-//	{
-//		if (args.length < 4) {
-//			System.out.println("Usage: SearchTermPosition <indexPath> <filename> <term> <query>");
-//			System.out.println("<indexPath>	location of the Lucene index");
-//			System.out.println("<filename>	path to the output file");
-//			System.out.println("<term>	the term to retrieve");
-//			System.out.println("<query>	the lucene query to search for term");
-//			System.exit(1);
-//		}
-//		Execution execution = new Execution();
-//		execution.setAlgorithm(SearchTermPosition.class);
-//
-//		execution.getInputFiles().add(args[0]);
-////		execution.getOutputFiles().add(args[1]);
-//		execution.setSearchTerm(args[2]);
-//		execution.setSearchQuery(args[3]);
-//		
-//		SearchTermPosition algo = new SearchTermPosition();
-//		algo.setFileResolver(FileResolverFactory.create(DataStoreStrategy.LOCAL));
-//		algo.setDataStoreClient(DataStoreClientFactory.create(DataStoreStrategy.LOCAL));
-//		algo.setExecution(execution);
-//
-//		algo.run();
-//
-//	} 
 	
 	/**
-	 * Searches for this query in this index using a ComplexPhraseQueryParser and writes the extracted  
-	 * contexts to outputFile.
+	 * Searches for this query in this index using a ComplexPhraseQueryParser. 
+	 * Stores matching
 	 * 
 	 * @param outputFile	path of the output file
 	 * @param append		if set, contexts will be appended to file, else file will be overwritten
@@ -113,7 +78,6 @@ public class SearchTermPosition extends BaseAlgorithm
 	@Override
 	public void execute() throws IOException
 	{        
-		//input directory = indexer's output directory
 		IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))));
 		QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
 		// set phrase slop because dataset titles may consist of more than one word
@@ -142,21 +106,18 @@ public class SearchTermPosition extends BaseAlgorithm
 		for (int i = 0; i < scoreDocs.length; i++)
 		{
 			Document doc = searcher.doc(scoreDocs[i].doc);
-//			log.debug(doc.get("path"));
 			InfolisFile file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
-//			log.debug("{}", file);
 			
 			InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
 			String text = IOUtils.toString(openInputStream);
 			openInputStream.close();
 			
-			// note: this class is meant for searching for terms, not for patterns
-			// used to generate contexts for inducing new patterns, not for creating output
-			// output contexts are those created by pattern-based search
-			// Add contexts
+			// note: this class is meant for searching for terms, not for patterns:
+			// used to generate contexts for inducing new patterns, not for creating output.
+			// Output contexts are those created by pattern-based search. Thus: do not post
+			// these contexts
 			if (this.getExecution().getSearchTerm() != null) {
 				for (TextualReference sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
-					
 					// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
 					getOutputDataStoreClient().post(TextualReference.class, sC);
 					getExecution().getTextualReferences().add(sC.getUri());                                       
@@ -172,6 +133,7 @@ public class SearchTermPosition extends BaseAlgorithm
 		log.debug("Finished SearchTermPosition#execute");
 	}
 
+	//TODO: use a second lucene index keeping all special chars...
 	public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException
 	{
 	    // search for phrase using regex
@@ -185,17 +147,17 @@ public class SearchTermPosition extends BaseAlgorithm
 	    Pattern pat = Pattern.compile(RegexUtils.leftContextPat_ + Pattern.quote(term) + RegexUtils.rightContextPat_);
 	    String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
 		LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
-//	    log.debug(text);
 	    List<TextualReference> contextList = new ArrayList<>();
 	    ltm.run();
-//	    log.debug("Pattern: " + pat + " found " + ltm.matched());
+
 	    if (ltm.finished() && !ltm.matched()) {
 	    	pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + removeSpecialCharsFromTerm(term) + RegexUtils.rightContextPat_);
 	    	ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
 	    	ltm.run();
 	    }
 
-	    // these patterns are used for extracting contexts of known study titles, do not confuse with patterns to detect study references
+	    // these patterns are used for extracting contexts of known study titles, 
+	    // do not confuse with patterns to detect study references -> do not post
 	    if (! ltm.finished()) {
 	    	throw new IOException("Matcher timed out!");
 	    } 
@@ -206,7 +168,6 @@ public class SearchTermPosition extends BaseAlgorithm
 	    }
 	    while (ltm.matched()) {
                 
-//	    	log.debug("Pattern: " + pat + " found " + ltm.matched());
             Entity p = new Entity();
             p.setInfolisFile(fileName);
             outputDataStoreClient.post(Entity.class, p);                
@@ -217,6 +178,7 @@ public class SearchTermPosition extends BaseAlgorithm
 	    return contextList;
 	}
 
+	
 	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
 	// refer to normalizeQuery for a better way to do this
 	private static String removeSpecialCharsFromTerm(String term) {

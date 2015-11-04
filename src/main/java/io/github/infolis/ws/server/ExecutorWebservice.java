@@ -8,6 +8,9 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.scheduler.ExecutionExecutor;
+import io.github.infolis.scheduler.RunnableItem;
+import java.util.concurrent.Executor;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.POST;
@@ -77,7 +80,8 @@ public class ExecutorWebservice {
 			resp.status(400);
 		} else {
 			dataStoreClient.put(Execution.class, execution);
-			new Thread(algo).start();
+                        Executor exe = ExecutionExecutor.getInstance().getExecutor(); 
+                        exe.execute(algo);
 		}
 		return resp.build();
 	}

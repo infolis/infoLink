@@ -201,6 +201,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
     @Override
     public void execute() {
+        System.out.println("started");
         for (String inputFileURI : getExecution().getInputFiles()) {
             log.debug(inputFileURI);
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, (inputFileURI));
@@ -241,6 +242,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
         }
         debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
+        System.out.println("ended");
         persistExecution();
     }
 

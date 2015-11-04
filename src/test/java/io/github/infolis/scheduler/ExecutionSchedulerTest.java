@@ -2,14 +2,8 @@ package io.github.infolis.scheduler;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.ApplyPatternAndResolve;
 import io.github.infolis.algorithm.PatternApplier;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
@@ -25,7 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,8 +55,6 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         dataStoreClient.post(Execution.class, e);
         ExecutionScheduler exe = ExecutionScheduler.getInstance();
         exe.execute(e.instantiateAlgorithm(dataStoreClient, fileResolver));
-
-        System.out.println("open first: " +exe.getOpenExecutions().size());
         
         InfolisFile inFile = new InfolisFile();
         Execution execution = new Execution();
@@ -75,15 +67,14 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         execution.getInputFiles().add(inFile.getUri());
         execution.setAlgorithm(TextExtractorAlgorithm.class);
         dataStoreClient.post(Execution.class, execution);
-        //ExecutionScheduler exe= ExecutionScheduler.getInstance();
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         exe.execute(algo);
         
         exe.shutDown();
         
-        System.out.println("open second: " +exe.getOpenExecutions().size());
-        System.out.println("complete first: " +exe.getCompletedExecutions().size());
-        System.out.println("failed: " +exe.getFailedExecutions().size());
+        Assert.assertEquals(0, exe.getOpenExecutions().size());
+        Assert.assertEquals(2, exe.getCompletedExecutions().size());
+        Assert.assertEquals(0, exe.getFailedExecutions().size());
     }
 
     public List<String> postTxtFiles(File dir) throws IOException {

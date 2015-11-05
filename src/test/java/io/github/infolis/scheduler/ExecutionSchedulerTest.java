@@ -5,6 +5,8 @@ import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.PatternApplier;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.model.Execution;
+import static io.github.infolis.model.ExecutionStatus.FAILED;
+import static io.github.infolis.model.ExecutionStatus.FINISHED;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
@@ -70,6 +72,13 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         exe.execute(algo);
         
+        if(exe.getStatus(e)!=FINISHED && exe.getStatus(e)!=FAILED ) {
+            System.out.println(e.getAlgorithm().toString() +" not finished.");
+        }
+        if(exe.getStatus(execution)!=FINISHED && exe.getStatus(e)!=FAILED) {
+            System.out.println(execution.getAlgorithm().toString() +" not finished.");
+        }
+        
         exe.shutDown();
         
         Assert.assertEquals(0, exe.getOpenExecutions().size());
@@ -118,14 +127,14 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
     }
     
     private void writeFile(InfolisFile inFile) {
-		dataStoreClient.post(InfolisFile.class, inFile);
-		try {
-			OutputStream os = fileResolver.openOutputStream(inFile);
-			IOUtils.write(pdfBytes, os);
-			os.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        dataStoreClient.post(InfolisFile.class, inFile);
+        try {
+            OutputStream os = fileResolver.openOutputStream(inFile);
+            IOUtils.write(pdfBytes, os);
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -11,6 +11,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.scheduler.ExecutionScheduler;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.ProcessingException;
@@ -34,6 +35,13 @@ public class ExecutorWebservice {
 	private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 	private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);
 	
+        @GET
+        public String getExecutionStatus(@QueryParam("id") String executionUri) {
+            ExecutionScheduler exe = ExecutionScheduler.getInstance();
+            ExecutionStatus stat =exe.getStatus(dataStoreClient.get(Execution.class, executionUri));            
+            return stat.toString();
+        }
+        
 	@POST
 	public Response startExecution(@QueryParam("id") String executionUri) {
 		ResponseBuilder resp = Response.ok();

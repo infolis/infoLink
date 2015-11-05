@@ -3,6 +3,8 @@ package io.github.infolis.scheduler;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -10,6 +12,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 
+ * Class to run executions over a thredpool to allow .
+ * 
  *
  * @author domi
  */
@@ -17,6 +22,7 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
+    private static SocketServer socket;
     private final List<Execution> failedExecutions = new ArrayList();
     private final List<Execution> completedExecutions = new ArrayList();
     private final List<Execution> runningExecutions = new ArrayList();
@@ -48,15 +54,24 @@ private ExecutionScheduler() {}
                 } else {
                     getFailedExecutions().add(r.getExecution());
                 }
+//                try {
+//                socket.write(r.getExecution().getUri());
+//                } catch(IOException io) {
+//                    //TODO: log
+//                }
             }
         });
+    }
+    
+    public ExecutionStatus getStatus(Execution e) {
+        return e.getStatus();
     }
 
     public static ExecutionScheduler getInstance() {
         if (instance == null) {
             instance = new ExecutionScheduler();
-            System.out.println("new TP");
             executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+            //socket = new SocketServer(1234);
         }
         return instance;
     }
@@ -92,6 +107,7 @@ private ExecutionScheduler() {}
     public void shutDown() throws InterruptedException {        
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
+        //socket.shutDown();
     }
     
 }

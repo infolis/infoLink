@@ -119,6 +119,11 @@ public class Execution extends BaseModel {
 	 */
 	private Date endTime;
 
+	/**
+	 * Progress of the execution in percent, a value between [0..1]
+	 */
+	private long progress;
+
 	//
 	//
 	//
@@ -524,6 +529,14 @@ public class Execution extends BaseModel {
     public void setTags(List<String> tags) {
 		this.tags = tags;
 	}
+    
+    public long getProgress() {
+        return progress;
+    }
+    
+    public void setProgress(long progress) {
+        this.progress = progress;
+    }
     
     public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field field = this.getClass().getDeclaredField(fieldName);

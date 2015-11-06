@@ -60,7 +60,7 @@ test {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',  
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
                    'Implementation-Version': version,
                    'Main-Class': 'io.github.infolis.commandLine.CommandLineExecuter'
     }

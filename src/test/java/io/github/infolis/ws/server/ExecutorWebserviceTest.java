@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,17 +3,26 @@ package io.github.infolis.scheduler;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import java.io.IOException;
-import java.net.ServerSocket;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static io.github.infolis.model.ExecutionStatus.PENDING;
+import static io.github.infolis.model.ExecutionStatus.STARTED;
+import static io.github.infolis.model.ExecutionStatus.FINISHED;
+import static io.github.infolis.model.ExecutionStatus.FAILED;
 /**
  * 
- * Class to run executions over a thredpool to allow .
+ * Class to pool threads of {@link Execution Executions}s.
  * 
  *
  * @author domi
@@ -22,43 +31,40 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
-    private final List<Execution> failedExecutions = new ArrayList();
-    private final List<Execution> completedExecutions = new ArrayList();
-    private final List<Execution> runningExecutions = new ArrayList();
-    private final List<Execution> openExecutions = new ArrayList();
+    private final Map<String, ExecutionStatus> statusForExecution = new HashMap<>();
 
-private ExecutionScheduler() {}
+    private ExecutionScheduler() { }
+    
+    private String getUriFor(final Algorithm r) {
+        return r.getExecution().getUri();
+    }
+    
+    private void setStatus(String uri, ExecutionStatus status)
+    {
+        synchronized (statusForExecution) {
+            statusForExecution.put(uri, status);
+        }
+    }
 
     public void execute(final Algorithm r) {
-        synchronized (openExecutions) {
-            getOpenExecutions().add(r.getExecution());
-        }
+        final String uri = getUriFor(r);
+        setStatus(uri, PENDING);
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                getOpenExecutions().remove(r.getExecution());
-                getRunningExecutions().add(r.getExecution());
-                
+                setStatus(uri, STARTED);
                 try {
                     r.run();
-                } catch(Exception e) { 
-                    getRunningExecutions().remove(r.getExecution());
-                    getFailedExecutions().add(r.getExecution());
-                }
-                
-                getRunningExecutions().remove(r.getExecution());
-                
-                if(r.getExecution().getStatus()==ExecutionStatus.FINISHED) {
-                    getCompletedExecutions().add(r.getExecution());
-                } else {
-                    getFailedExecutions().add(r.getExecution());
+                    setStatus(uri, r.getExecution().getStatus());
+                } catch (Exception e) {
+                    setStatus(uri, FAILED);
                 }
             }
         });
     }
-    
+
     public ExecutionStatus getStatus(Execution e) {
-        return e.getStatus();
+        return statusForExecution.get(e.getUri());
     }
 
     public static ExecutionScheduler getInstance() {
@@ -69,37 +75,23 @@ private ExecutionScheduler() {}
         return instance;
     }
 
-    /**
-     * @return the failedExecutions
-     */
-    public List<Execution> getFailedExecutions() {
-        return failedExecutions;
+    public Collection<String> getByStatus(ExecutionStatus status)
+    {
+        List<String> ret = new ArrayList<>();
+        for (Entry<String, ExecutionStatus> entry : statusForExecution.entrySet()) {
+            if (status == null || entry.getValue() == status)
+                ret.add(entry.getKey());
+        }
+        return ret;
     }
 
-    /**
-     * @return the completedExecutions
-     */
-    public List<Execution> getCompletedExecutions() {
-        return completedExecutions;
+    public Collection<String> getAllExcecutions() {
+        return getByStatus(null);
     }
 
-    /**
-     * @return the runningExecutions
-     */
-    public List<Execution> getRunningExecutions() {
-        return runningExecutions;
-    }
-
-    /**
-     * @return the openExecutions
-     */
-    public List<Execution> getOpenExecutions() {
-        return openExecutions;
-    }
-
-    public void shutDown() throws InterruptedException {        
+    public void shutDown() throws InterruptedException {
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
     }
-    
+
 }

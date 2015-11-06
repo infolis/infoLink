@@ -5,25 +5,31 @@ import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.PatternApplier;
 import io.github.infolis.algorithm.TextExtractorAlgorithm;
 import io.github.infolis.model.Execution;
-import static io.github.infolis.model.ExecutionStatus.FAILED;
-import static io.github.infolis.model.ExecutionStatus.FINISHED;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.SerializationUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static io.github.infolis.model.ExecutionStatus.PENDING;
+import static io.github.infolis.model.ExecutionStatus.STARTED;
+import static io.github.infolis.model.ExecutionStatus.FINISHED;
+import static io.github.infolis.model.ExecutionStatus.FAILED;
 
 /**
  *
@@ -37,7 +43,9 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
     @Before
     public void setUp() throws IOException {
         dataStoreClient.clear();
-        pdfBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/trivial.pdf"));
+        InputStream in = getClass().getResourceAsStream("/trivial.pdf");
+        pdfBytes = IOUtils.toByteArray(in);
+        in.close();
         tempFile = Files.createTempFile("infolis-", ".pdf");
     }
 
@@ -46,7 +54,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         File txtDir = new File(getClass().getResource("/examples/txts").getFile());
         File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
 
-        //post all improtant stuff
+        //post all important stuff
         List<String> pattern = postPattern(patternFile);
         List<String> txt = postTxtFiles(txtDir);
 
@@ -81,9 +89,10 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         
         exe.shutDown();
         
-        Assert.assertEquals(0, exe.getOpenExecutions().size());
-        Assert.assertEquals(2, exe.getCompletedExecutions().size());
-        Assert.assertEquals(0, exe.getFailedExecutions().size());
+        Assert.assertEquals(0, exe.getByStatus(STARTED).size());
+        Assert.assertEquals(0, exe.getByStatus(PENDING).size());
+        Assert.assertEquals(2, exe.getByStatus(FINISHED).size());
+        Assert.assertEquals(0, exe.getByStatus(FAILED).size());
     }
 
     public List<String> postTxtFiles(File dir) throws IOException {
@@ -95,6 +104,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
             int numberBytes = inputStream.available();
             byte pdfBytes[] = new byte[numberBytes];
             inputStream.read(pdfBytes);
+            inputStream.close();
             IOUtils.write(pdfBytes, Files.newOutputStream(tempFile));
             inFile.setFileName(tempFile.toString());
             inFile.setMd5(SerializationUtils.getHexMd5(pdfBytes));
@@ -123,6 +133,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
             postedPattern.add(p.getUri());
             line = read.readLine();
         }
+        read.close();
         return postedPattern;
     }
     

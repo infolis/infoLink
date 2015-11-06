@@ -9,6 +9,8 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.scheduler.ExecutionScheduler;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
@@ -36,10 +38,28 @@ public class ExecutorWebservice {
 	private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);
 	
         @GET
-        public String getExecutionStatus(@QueryParam("id") String executionUri) {
+        public List<String> getExecutionStatus(@QueryParam("type") String type) {            
             ExecutionScheduler exe = ExecutionScheduler.getInstance();
-            ExecutionStatus stat =exe.getStatus(dataStoreClient.get(Execution.class, executionUri));            
-            return stat.toString();
+            List<String> executionURIs = new ArrayList<>();
+            List<Execution> executionsList = null;
+            switch(type) {
+                case "finished":
+                    executionsList = exe.getCompletedExecutions();
+                    break;
+                case "running":
+                    executionsList = exe.getRunningExecutions();
+                    break;
+                case "pending":
+                    executionsList = exe.getOpenExecutions();
+                    break;
+                case "failed":
+                    executionsList = exe.getFailedExecutions();
+                    break;    
+            }   
+            for(Execution e : executionsList) {
+                executionURIs.add(e.getUri());
+            }
+            return executionURIs;
         }
         
 	@POST

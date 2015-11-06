@@ -22,7 +22,6 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
-    private static SocketServer socket;
     private final List<Execution> failedExecutions = new ArrayList();
     private final List<Execution> completedExecutions = new ArrayList();
     private final List<Execution> runningExecutions = new ArrayList();
@@ -71,7 +70,6 @@ private ExecutionScheduler() {}
         if (instance == null) {
             instance = new ExecutionScheduler();
             executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-            //socket = new SocketServer(1234);
         }
         return instance;
     }
@@ -107,7 +105,6 @@ private ExecutionScheduler() {}
     public void shutDown() throws InterruptedException {        
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
-        //socket.shutDown();
     }
     
 }

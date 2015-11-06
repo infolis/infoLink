@@ -2,6 +2,7 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -59,6 +60,7 @@ public class LocalResolver extends BaseAlgorithm {
         }
         //set the detected entities in the execution
         getExecution().setLinkedEntities(toEntities);
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     @Override

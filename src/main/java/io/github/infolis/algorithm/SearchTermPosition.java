@@ -130,6 +130,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         FSDirectory.open(new File(getExecution().getIndexDirectory())).close();
         log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
         log.debug("Finished SearchTermPosition#execute");
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     //TODO: use a second lucene index keeping all special chars...

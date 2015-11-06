@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 
@@ -39,6 +40,7 @@ public class FederatedSearcher extends BaseAlgorithm {
             searchResultUris.add(sr.getUri());
         }
         getExecution().setSearchResults(searchResultUris);
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +47,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         }
         //the output of the whole algorithm is again a list with links 
         getExecution().setLinks(createdLinks);
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     private List<String> searchPattern(List<String> pattern, List<String> input) {

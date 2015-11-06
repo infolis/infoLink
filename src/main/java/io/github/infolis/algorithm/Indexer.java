@@ -21,6 +21,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.BufferedReader;
@@ -116,6 +117,7 @@ public class Indexer extends BaseAlgorithm {
             writer.forceMerge(1);
             writer.close();
         }
+        getExecution().setStatus(ExecutionStatus.FINISHED);
         fsIndexDir.close();
         log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
     }

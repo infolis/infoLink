@@ -52,8 +52,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
             ltm.run();
             // if thread was aborted due to long processing time, matchFound should be false
             if (! ltm.finished()) {
-                //TODO: what to do if search was aborted?
                 log.error("Search was aborted. TODO");
+                getExecution().setStatus(ExecutionStatus.FAILED);
             }
             while (ltm.finished() && ltm.matched()) {
                 String studyName = ltm.group(1).trim();
@@ -67,6 +67,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
                 updateProgress(counter/getExecution().getPatterns().size());
             }
         }
+        getExecution().setStatus(ExecutionStatus.FINISHED);
         return foundStudies;
     }
 

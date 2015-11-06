@@ -208,11 +208,13 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, (inputFileURI));
             if (null == inputFile) {
                 fatal(log, "File was not registered with the data store: " + inputFileURI);
+                getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals(MediaType.PDF.toString())) {
                 fatal(log, "File is not a PDF: " + inputFileURI);
+                getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
@@ -222,6 +224,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 outputFile = extract(inputFile);
             } catch (IOException e) {
                 fatal(log, "Extraction caused exception: %s\n%s", e, ExceptionUtils.getStackTrace(e));
+                getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
@@ -257,10 +260,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
         } else if (0 == getExecution().getInputFiles().size()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
                     "No values for parameter 'inputFiles'!");
-        }
-        // if (null == getExecution().getOutputFiles()) {
-        // getExecution().setOutputFiles(new ArrayList<String>());
-        // }
+        }        
     }
 
     /**

@@ -130,7 +130,9 @@ public class PatternApplier extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
         List<TextualReference> detectedContexts = new ArrayList<>();
+        int counter =0;
         for (String inputFileURI : getExecution().getInputFiles()) {
+            counter++;
             log.trace("Input file URI: '{}'", inputFileURI);
             InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             if (null == inputFile) {
@@ -160,6 +162,9 @@ public class PatternApplier extends BaseAlgorithm {
                 }
             }
             log.trace("Start extracting from '{}'.", inputFile);
+            if(counter%10==0) {
+                updateProgress(counter/getExecution().getInputFiles().size());
+            }
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
 

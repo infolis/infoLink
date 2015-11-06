@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
@@ -44,8 +40,9 @@ public class VersionPatternApplier extends BaseAlgorithm {
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
+        int counter =0;
         for (String patternURI : this.getExecution().getPatterns()) {
-
+            counter++;
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
             log.debug("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
@@ -65,6 +62,9 @@ public class VersionPatternApplier extends BaseAlgorithm {
                 study.setName(studyName);
                 study.setNumber(version);
                 foundStudies.add(study);
+            }
+            if(counter%10==0) {
+                updateProgress(counter/getExecution().getPatterns().size());
             }
         }
         return foundStudies;

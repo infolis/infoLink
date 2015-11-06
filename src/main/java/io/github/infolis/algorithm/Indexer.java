@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Indexer extends BaseAlgorithm {
 //
+
     private final static String INDEX_DIR_PREFIX = "infolis-index-";
 
     public Indexer(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
@@ -74,7 +75,7 @@ public class Indexer extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
         File indexDir;
-        if (null != getExecution().getIndexDirectory() && ! getExecution().getIndexDirectory().isEmpty()) {
+        if (null != getExecution().getIndexDirectory() && !getExecution().getIndexDirectory().isEmpty()) {
             indexDir = new File(getExecution().getIndexDirectory());
         } else {
             indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
@@ -89,19 +90,24 @@ public class Indexer extends BaseAlgorithm {
         IndexWriter writer = new IndexWriter(fsIndexDir, indexWriterConfig);
 
         List<InfolisFile> files = new ArrayList<>();
-        for (String fileUri : getExecution().getInputFiles()) {   
+        for (String fileUri : getExecution().getInputFiles()) {
             files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
         }
 
         Date start = new Date();
         log.debug("Starting to index");
         try {
+            int counter = 0;
             for (InfolisFile file : files) {
+                counter++;
                 log.trace("Indexing file " + file);
                 writer.addDocument(toLuceneDocument(getInputFileResolver(), file));
+                if (counter % 10 == 0) {
+                    updateProgress(counter / files.size());
+                }
             }
         } catch (FileNotFoundException fnfe) {
-			// NOTE: at least on windows, some temporary files raise this
+            // NOTE: at least on windows, some temporary files raise this
             // exception with an "access denied" message checking if the
             // file can be read doesn't help
             throw new RuntimeException("Could not write index entry: " + fnfe);
@@ -144,7 +150,7 @@ public class Indexer extends BaseAlgorithm {
      * @throws IOException
      */
     public static Document toLuceneDocument(FileResolver fileResolver, InfolisFile f) throws IOException {
-	  //use code below to process pdfs instead of text (requires pdfBox)
+        //use code below to process pdfs instead of text (requires pdfBox)
 	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));   
          PDFParser parser = new PDFParser(fi);   
          parser.parse();   
@@ -165,7 +171,7 @@ public class Indexer extends BaseAlgorithm {
         // make a new, empty document
         Document doc = new Document();
 
-      // Add the path of the file as a field named "path".  Use a field that is 
+        // Add the path of the file as a field named "path".  Use a field that is 
         // indexed (i.e. searchable), but don't tokenize the field into words.
         doc.add(new Field("path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED));
         doc.add(new Field("fileName", f.getFileName(), Field.Store.YES, Field.Index.ANALYZED));
@@ -177,7 +183,7 @@ public class Indexer extends BaseAlgorithm {
 //      doc.add( new Field( "modified", 
 //    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
 //    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
-	  // save the content (text files) in the index
+        // save the content (text files) in the index
         // Add the contents of the file to a field named "contents".  Specify a Reader,
         // so that the text of the file is tokenized and indexed, but not stored.
         // Note that FileReader expects the file to be in the system's default encoding.
@@ -187,7 +193,7 @@ public class Indexer extends BaseAlgorithm {
         doc.add(new Field("contents", text, Field.Store.YES, Field.Index.ANALYZED,
                 Field.TermVector.WITH_POSITIONS_OFFSETS));
 
-      // return the document
+        // return the document
         //cd.close();
         return doc;
     }

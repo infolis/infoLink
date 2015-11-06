@@ -120,9 +120,9 @@ public class Execution extends BaseModel {
 	private Date endTime;
 
 	/**
-	 * Progress of the execution in percent, a value between [0..1]
+	 * Progress of the execution in percent, a value between [0..100]
 	 */
-	private long progress;
+	private long progress =0;
 
 	//
 	//

@@ -53,11 +53,6 @@ private ExecutionScheduler() {}
                 } else {
                     getFailedExecutions().add(r.getExecution());
                 }
-//                try {
-//                socket.write(r.getExecution().getUri());
-//                } catch(IOException io) {
-//                    //TODO: log
-//                }
             }
         });
     }

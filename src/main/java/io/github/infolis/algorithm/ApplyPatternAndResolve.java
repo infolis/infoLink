@@ -31,10 +31,11 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
                
-        List<String> textualRefs = searchPattern(pattern, inputFiles);
+        List<String> textualRefs = searchPattern(pattern, inputFiles);        
         
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
+        
         for (String s : textualRefs) {
             String searchQuery = extractMetaData(s);
             List<String> searchRes = searchInRepositories(searchQuery, queryServices);
@@ -54,6 +55,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         search.setInputFiles(input);
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
+        updateProgress(25);
         return search.getTextualReferences();
     }
 
@@ -64,6 +66,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
         extract.instantiateAlgorithm(this).run();
+        updateProgress(50);
         return extract.getSearchQuery();
     }
 
@@ -74,6 +77,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
+        updateProgress(75);
         return searchRepo.getSearchResults();
     }
 
@@ -85,6 +89,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         resolve.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, resolve);
         resolve.instantiateAlgorithm(this).run();
+        updateProgress(100);
         return resolve.getLinks();
     }
 

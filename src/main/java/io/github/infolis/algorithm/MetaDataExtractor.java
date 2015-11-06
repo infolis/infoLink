@@ -62,7 +62,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
      */
     public String extractQuery(TextualReference ref, MetaDataExtractingStrategy strat) {
         String finalQuery = "?q=";
-        String name = "";
+        String name;
         if (RegexUtils.ignoreStudy(ref.getTerm())) {
             return null;
         }

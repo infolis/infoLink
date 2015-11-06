@@ -25,10 +25,15 @@ public interface Algorithm extends Runnable {
 	/**
 	 * Validate the execution object linking this algorithm with its
 	 * input/output parameters
+         * 
+         * @throws io.github.infolis.algorithm.IllegalAlgorithmArgumentException
 	 */
 	void validate()
 			throws IllegalAlgorithmArgumentException;
 
+        
+        void updateProgress(int percentage);
+        
 	/**
 	 * Get the execution context of this algorithm instance.
 	 * 

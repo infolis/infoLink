@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -352,13 +353,14 @@ public class Resolver extends BaseAlgorithm {
     public void execute() throws IOException {
         List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> results = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
-        System.out.println(results.size());
         
         String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
         //check which search results fit 
         Map<SearchResult,Double> resultValues = new HashMap<>();
+        int counter =0;
         for(SearchResult r : results) {    
+            counter++;
             double confidenceValue=0.0;
             //a fitting number counts twice than for example the list index
             confidenceValue += 2*computeScorebasedOnNumbers(textRef, r);
@@ -366,6 +368,9 @@ public class Resolver extends BaseAlgorithm {
             confidenceValue+=getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
             confidenceValue+=1-((double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex());
             resultValues.put(r, confidenceValue);
+            if(counter%10==0) {
+                updateProgress(counter/results.size());
+            }
         }
         //determine the best search result for the textual reference
         SearchResult bestSearchResult = null;
@@ -393,6 +398,7 @@ public class Resolver extends BaseAlgorithm {
         allLinks.add(el.getUri());
         //set the final link as output of this algorithm
         getExecution().setLinks(allLinks);
+        getExecution().setStatus(ExecutionStatus.FINISHED);
     }
     
     @Override

@@ -9,6 +9,7 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.scheduler.ExecutionScheduler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,26 +39,15 @@ public class ExecutorWebservice {
 	private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);
 	
         @GET
-        public List<String> getExecutionStatus(@QueryParam("type") String type) {            
-            ExecutionScheduler exe = ExecutionScheduler.getInstance();
+        public List<String> getExecutionStatus(@QueryParam("status") String statusParam) {            
+            ExecutionScheduler executionPool = ExecutionScheduler.getInstance();
             List<String> executionURIs = new ArrayList<>();
-            List<Execution> executionsList = null;
-            switch(type) {
-                case "finished":
-                    executionsList = exe.getCompletedExecutions();
-                    break;
-                case "running":
-                    executionsList = exe.getRunningExecutions();
-                    break;
-                case "pending":
-                    executionsList = exe.getOpenExecutions();
-                    break;
-                case "failed":
-                    executionsList = exe.getFailedExecutions();
-                    break;    
-            }   
-            for(Execution e : executionsList) {
-                executionURIs.add(e.getUri());
+            ExecutionStatus status = null;
+            try {
+                status = ExecutionStatus.valueOf(statusParam);
+                executionURIs.addAll(executionPool.getByStatus(status));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                executionURIs.addAll(executionPool.getAllExcecutions());
             }
             return executionURIs;
         }

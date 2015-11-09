@@ -66,7 +66,7 @@ public class ExecutorWebservice {
 			e1.printStackTrace();
 			String msg = "Could not retrieve execution " + executionUri;
 			resp.status(404);
-			resp.entity(msg);
+			resp.entity(msg + "\n" + e1.getMessage());
 			return resp.build();
 		}
 		Class<? extends Algorithm> algoClass = execution.getAlgorithm();

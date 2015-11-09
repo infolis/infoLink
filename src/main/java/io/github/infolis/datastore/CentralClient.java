@@ -43,13 +43,13 @@ class CentralClient extends AbstractClient {
 	/*
 	 * <pre>
 	 * Add mappings from class name to uri fragment here, e.g.
-	 * http://infolis-frontend/api/file/124 
+	 * http://infolis-frontend/api/infolisFile/124 
 	 *                             \__/
 	 *                            map this
 	 * </pre>
 	 */
 	private static Map<Class<?>, String> uriForClass = new ImmutableMap.Builder<Class<?>, String>()
-		.put(InfolisFile.class, "file")
+//		.put(InfolisFile.class, "file")
 		.build();
 	public static String getEndpointForClass(Class<?> clazz) {
 		// if explicitly mapped

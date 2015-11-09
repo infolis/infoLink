@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +79,15 @@ public class VersionPatternApplier extends BaseAlgorithm {
         List<Entity> detectedStudies = new ArrayList<>();
         for (String inputFileURI : getExecution().getInputFiles()) {
             log.debug("Input file URI: '{}'", inputFileURI);
-            InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
+            InfolisFile inputFile;
+            try {
+                inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
+            } catch (Exception e) {
+                fatal(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
+                getExecution().setStatus(ExecutionStatus.FAILED);
+                persistExecution();
+                return;
+            }
             if (null == inputFile) {
                 throw new RuntimeException("File was not registered with the data store: " + inputFileURI);
             }

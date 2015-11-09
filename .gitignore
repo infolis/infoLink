@@ -14,3 +14,4 @@ logFile.txt
 .nb-gradle-properties
 
 src/test/resources/out
+/bin/

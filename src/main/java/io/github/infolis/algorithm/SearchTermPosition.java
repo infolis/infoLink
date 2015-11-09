@@ -4,10 +4,10 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -102,7 +102,16 @@ public class SearchTermPosition extends BaseAlgorithm {
 
         for (int i = 0; i < scoreDocs.length; i++) {
             Document doc = searcher.doc(scoreDocs[i].doc);
-            InfolisFile file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
+            InfolisFile file;
+            try {
+                file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
+            } catch (Exception e) {
+                fatal(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
+                getExecution().setStatus(ExecutionStatus.FAILED);
+                persistExecution();
+                searcher.close();
+                return;
+            }
 
             InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
             String text = IOUtils.toString(openInputStream);

@@ -56,7 +56,7 @@ public class RegexUtilsTest {
 		assertFalse(RegexUtils.isStopword("theterm"));
 		assertFalse(RegexUtils.isStopword("B142"));
 		assertFalse(RegexUtils.isStopword("Daten"));
-		assertTrue(RegexUtils.isStopword("für"));
+		assertTrue(RegexUtils.isStopword("fÃ¼r"));
 	}
 	
 	@Test

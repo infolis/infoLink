@@ -205,7 +205,15 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
         for (String inputFileURI : getExecution().getInputFiles()) {
             counter++;
             log.debug(inputFileURI);
-            InfolisFile inputFile = getInputDataStoreClient().get(InfolisFile.class, (inputFileURI));
+            InfolisFile inputFile;
+            try {
+                inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
+            } catch (Exception e) {
+                fatal(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
+                getExecution().setStatus(ExecutionStatus.FAILED);
+                persistExecution();
+                return;
+            }
             if (null == inputFile) {
                 fatal(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);

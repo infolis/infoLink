@@ -88,15 +88,22 @@ public class Indexer extends BaseAlgorithm {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
         FSDirectory fsIndexDir = FSDirectory.open(indexDir);
-        IndexWriter writer = new IndexWriter(fsIndexDir, indexWriterConfig);
 
         List<InfolisFile> files = new ArrayList<>();
         for (String fileUri : getExecution().getInputFiles()) {
-            files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
+            try {
+                files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
+            } catch (Exception e) {
+                fatal(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
+                getExecution().setStatus(ExecutionStatus.FAILED);
+                persistExecution();
+                return;
+            }
         }
 
         Date start = new Date();
         log.debug("Starting to index");
+        IndexWriter writer = new IndexWriter(fsIndexDir, indexWriterConfig);
         try {
             int counter = 0;
             for (InfolisFile file : files) {

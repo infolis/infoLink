@@ -53,6 +53,10 @@ dependencies {
 
 test {
     systemProperties = System.properties
+    testLogging {
+        events "failed"
+        exceptionFormat "short"
+    }
 }
 
 jar {

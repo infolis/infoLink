@@ -52,6 +52,24 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
         FileUtils.deleteDirectory(outputBaseDir.toFile());
     }
+    
+    @Test
+    public void testAbbreviatedAlgo() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        CommandLineExecuter.main(new String[] {
+                "--json", getResourcePath("/commandLine/algoDesc2.json"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf/"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
+                "--log-level", "DEBUG",
+                "--tag", tag,
+        });
+        Path expectedDump = outputBaseDir.resolve("db").resolve(tag + ".json");
+        assertTrue("dump exists at " + expectedDump, Files.exists(expectedDump));
+        FileUtils.deleteDirectory(outputBaseDir.toFile());
+    }
 
     @Test
     public void testDouble() throws Exception {

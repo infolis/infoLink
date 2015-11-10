@@ -61,7 +61,6 @@ import ch.qos.logback.classic.Level;
  */
 public class CommandLineExecuter {
 
-    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
@@ -100,7 +99,6 @@ public class CommandLineExecuter {
     // This is set so we can accept --convert-to-text without JSON and not try to execute anything
     private boolean convertToTextMode = false;
 
-    @SuppressWarnings("unchecked")
     private void setExecutionFromJSON(JsonObject jsonObject, Execution exec) {
         try {
             // iterate through the entries in the JSON file
@@ -111,19 +109,13 @@ public class CommandLineExecuter {
                 case TRUE:
                 case FALSE:
                     // algorithm has to be handled as a special case since we
-                    // need
-                    // to find the class
+                    // need to find the class
                     if (values.getKey().equals("algorithm")) {
                         String algorithmName = values.getValue().toString();
                         algorithmName = algorithmName.replace("\"", "");
-                        if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
-                            algorithmName += "io.github.infolis.algorithm." + algorithmName;
-                        }
-                        try {
-                            Class<? extends Algorithm> algoClass;
-                            algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
-                            exec.setAlgorithm(algoClass);
-                        } catch (ClassNotFoundException | ClassCastException e1) {
+                        try { 
+                        	exec.setAlgorithm(algorithmName);
+                        } catch (ClassNotFoundException e1) {
                             throwCLI("No such algorithm: " + algorithmName);
                         }
                         break;

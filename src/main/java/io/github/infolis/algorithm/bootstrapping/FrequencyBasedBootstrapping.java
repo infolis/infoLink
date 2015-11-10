@@ -98,14 +98,18 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
-                List<String> seedContexts = this.getContextsForSeed(seed.getName());
+                List<TextualReference> detectedContexts = this.getContextsForSeed(seed.getName());
 
-                List<TextualReference> detectedContexts = new ArrayList<>();
+                /*List<String> detectedContexts = this.getContextsForSeed(seed.getName());
+                 * List<TextualReference> detectedContexts = new ArrayList<>();
                 for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, seedContexts)) {
 					detectedContexts.add(studyContext);
 					contexts_currentIteration.add(studyContext);
 					extractedContextsFromSeeds.add(studyContext);
-                }
+                }*/
+                contexts_currentIteration.addAll(detectedContexts);
+				extractedContextsFromSeeds.addAll(detectedContexts);
+                
                 seed.setTextualReferences(detectedContexts);
                 processedSeeds.put(seed.getName(), seed);
                 addedSeeds.add(seed.getName());

@@ -65,7 +65,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         for (String seed : seedTerms) {
             log.info("Bootstrapping with seed \"" + seed + "\"");
             Entity newSeed = new Entity(seed);
-            newSeed.setTextualReferences(getStudyContexts(this.getContextsForSeed(seed)));
+            newSeed.setTextualReferences(this.getContextsForSeed(seed));
             newSeed.setIsSeed();
             seeds.add(newSeed);
         }
@@ -129,7 +129,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             for (String newInstanceName : newInstanceNames) {
                 Entity newInstance = new Entity(newInstanceName);
                 // counts of instances are required for computation of pmi
-                newInstance.setTextualReferences(getStudyContexts(this.getContextsForSeed(newInstanceName)));
+                newInstance.setTextualReferences(this.getContextsForSeed(newInstanceName));
                 log.debug("new Instance stored contexts: " + newInstance.getTextualReferences());
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 

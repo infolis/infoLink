@@ -81,6 +81,19 @@ public class BootstrappingTest extends InfolisBaseTest {
         return contexts;
     }
     
+    @Test 
+    public void testGetContextsForSeed() throws IOException {
+    	Execution e = new Execution();
+    	e.setInputFiles(uris);
+    	Bootstrapping b = new FrequencyBasedBootstrapping(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+    	b.indexerExecution = indexerExecution;
+    	b.setExecution(e);
+    	List<TextualReference> refs = b.getContextsForSeed("term");
+    	assertEquals(new HashSet<String>(Arrays.asList("please try to find the term in this short text snippet.",
+    			"please try to find .the term . in this short text")), 
+    			new HashSet<String>(TextualReference.getContextStrings(refs)));
+    }
+   
     @Test
     /**
      * Tests whether optimized search using lucene yields the same result as 

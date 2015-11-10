@@ -1,5 +1,7 @@
 # infoLink
 
+[![Build Status](https://travis-ci.org/infolis/infoLink.svg?branch=master)](https://travis-ci.org/infolis/infoLink)
+
 ## Testing
 
 `gradle test` will run all the unit tests.

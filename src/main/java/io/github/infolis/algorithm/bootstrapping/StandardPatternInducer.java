@@ -21,8 +21,13 @@ import java.util.List;
 public class StandardPatternInducer extends Bootstrapping.PatternInducer {
     
 	//private static final org.slf4j.Logger log = LoggerFactory.getLogger(PatternInducer.class);
+	public final static int patternsPerContext = 9;
 	
 	public StandardPatternInducer() {}
+	
+	public final int getPatternsPerContext() {
+		return patternsPerContext;
+	}
 	
 	protected List<InfolisPattern> induce(TextualReference context, Double[] thresholds) {
 

@@ -2,8 +2,6 @@ package io.github.infolis.model;
 
 import io.github.infolis.model.entity.InfolisPattern;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,7 +40,8 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		log.debug(pat.getUri());
 	}
 	
-	@Test
+	/*
+	 * @Test
 	public void testIsRelevant() throws Exception {
 		pat.setThreshold(0.0);
 		assertTrue(pat.isRelevant(contextStrings));
@@ -50,7 +49,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		assertTrue(pat.isRelevant(contextStrings));
 		pat.setThreshold(1.0);
 		assertFalse(pat.isRelevant(contextStrings));
-	}
+	}*/
 
 	@Test
 	public void testIsReliable() throws Exception {

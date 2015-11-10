@@ -13,12 +13,13 @@ import io.github.infolis.util.RegexUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.commons.collections4.map.DefaultedMap;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -38,6 +39,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     
     public abstract static class PatternInducer {
     	protected abstract List<InfolisPattern> induce(TextualReference context, Double[] thresholds);
+    	public abstract int getPatternsPerContext();
     };
     // TODO define getBestPatterns - method
     public abstract class PatternRanker {};
@@ -74,8 +76,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         return execution.getTextualReferences();
     } 
     
-    private List<String> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
-    	List<String> filenames = new ArrayList<>();
+    private Map<String, ArrayList<InfolisPattern>> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
+    	Map<String, ArrayList<InfolisPattern>> filenamesForPatterns = new DefaultedMap<>(new ArrayList<InfolisPattern>());
         for (InfolisPattern curPat : patterns) {
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
 			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
@@ -87,33 +89,47 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
             stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
             stpExecution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
-            stpExecution.setSearchTerm("");
     		stpExecution.setSearchQuery(curPat.getLuceneQuery());
     		stpExecution.setInputFiles(getExecution().getInputFiles());
     		stpExecution.instantiateAlgorithm(this).run();
-    		filenames.addAll(stpExecution.getMatchingFiles());
+    		for (String fileUri : stpExecution.getMatchingFiles()) {
+    			ArrayList<InfolisPattern> foundPatterns = new ArrayList<>(filenamesForPatterns.get(fileUri));
+    			foundPatterns.add(curPat);
+    			filenamesForPatterns.put(fileUri, foundPatterns);
+    		}
         }
-        // remove duplicates
-        return new ArrayList<>(new HashSet<>(filenames));
+        return filenamesForPatterns;
+    }
+    
+    private List<String> getPatternUris(List<InfolisPattern> patternList) {
+    	List<String> patternUris = new ArrayList<String>();
+    	for (InfolisPattern curPat : patternList) {
+	    	if (curPat.getUri() == null)
+	    		throw new RuntimeException("Pattern does not have a URI!");
+	    	patternUris.add(curPat.getUri());
+    	}
+    	return patternUris;
     }
     		
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
     	// for all patterns, retrieve documents in which they occur (using lucene)
-    	List<String> fileURIs = getFilenamesForPatterns(patterns);
-    	List<String> patternURIs = new ArrayList<String>();
-    	for (InfolisPattern curPat : patterns) {
-	    	if (curPat.getUri() == null)
-	    		throw new RuntimeException("Pattern does not have a URI!");
-	    	patternURIs.add(curPat.getUri());
+    	Map<String, ArrayList<InfolisPattern>> filenamesForPatterns = getFilenamesForPatterns(patterns);
+    	List<String> textualReferences = new ArrayList<>();
+    	// open each file once and search for all regex for which a corresponding (but more general)
+    	// lucene pattern has been found in it
+    	for (Map.Entry<String, ArrayList<InfolisPattern>> filenamePatternPair : filenamesForPatterns.entrySet()) {
+    		ArrayList<InfolisPattern> patternList = filenamePatternPair.getValue();
+    		String fileUri = filenamePatternPair.getKey();
+    		List<String> patternURIs = getPatternUris(patternList);
+    		Execution applierExecution = new Execution();
+            applierExecution.setPatternUris(patternURIs);
+            applierExecution.setAlgorithm(PatternApplier.class);  
+            applierExecution.getInputFiles().add(fileUri);
+            applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
+            applierExecution.instantiateAlgorithm(this).run();
+            textualReferences.addAll(applierExecution.getTextualReferences());
     	}
-        Execution applierExecution = new Execution();
-        applierExecution.setPatternUris(patternURIs);
-        applierExecution.setAlgorithm(PatternApplier.class);  
-        // search for regex in filenames with lucene pattern only
-        applierExecution.getInputFiles().addAll(fileURIs);
-        applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-        applierExecution.instantiateAlgorithm(this).run();
-        return applierExecution.getTextualReferences();
+        return textualReferences;
     }
 
     @Override

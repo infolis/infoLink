@@ -114,28 +114,31 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 // 2. generate patterns
                 if (getExecution().getBootstrapStrategy() == BootstrapStrategy.separate) {
                 	log.info("--- Entering Pattern Induction phase ---");
-                	List<List<InfolisPattern>> candidates = inducePatterns(detectedContexts);
+                	List<InfolisPattern> candidates = inducePatterns(detectedContexts);
                 	log.info("Pattern Induction completed.");
                     log.info("--- Entering Pattern Selection phase ---");
-                    newPatterns.addAll(ranker.getBestPatterns(candidates, detectedContexts, processedPatterns, new HashSet<Entity>()));
+                    //newPatterns.addAll(ranker.getBestPatterns(candidates, detectedContexts, processedPatterns, new HashSet<Entity>()));
+                    newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
                 }
             }
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent 
             		|| getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeNew) {
             	log.info("--- Entering Pattern Induction phase ---");
-            	List<List<InfolisPattern>> candidates = inducePatterns(contexts_currentIteration);
+            	List<InfolisPattern> candidates = inducePatterns(contexts_currentIteration);
             	log.info("Pattern Induction completed.");
                 log.info("--- Entering Pattern Selection phase ---");
-                newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));        
+                //newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));
+                newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
             
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeAll) {
             	log.info("--- Entering Pattern Induction phase ---");
-            	List<List<InfolisPattern>> candidates = inducePatterns(extractedContextsFromSeeds);
+            	List<InfolisPattern> candidates = inducePatterns(extractedContextsFromSeeds);
             	log.info("Pattern Induction completed.");
                 log.info("--- Entering Pattern Selection phase ---");
-                newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
+                //newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
+                newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
             
             // POST the patterns
@@ -181,57 +184,78 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         return extractedContextsFromPatterns;
     }
     
-    private List<List<InfolisPattern>> inducePatterns(Collection<TextualReference> contexts) {
-    	List<List<InfolisPattern>> patterns = new ArrayList<>();
+    private List<InfolisPattern> inducePatterns(Collection<TextualReference> contexts) {
+    	List<InfolisPattern> patterns = new ArrayList<>();
     	int n = 0;
     	double threshold = getExecution().getReliabilityThreshold();
     	for (TextualReference context : contexts) {
     		n++;
     		log.debug("Inducing relevant patterns for context " + n + " of " + contexts.size());
     		Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};
-    		patterns.add(getPatternInducer().induce(context, thresholds));
+    		patterns.addAll(getPatternInducer().induce(context, thresholds));
     	}
     	return patterns;
     }
     
     class FrequencyPatternRanker extends Bootstrapping.PatternRanker {
     	
-    	protected Set<InfolisPattern> getBestPatterns(List<List<InfolisPattern>> candidates, List<TextualReference> contexts, List<String> processedMinimals, Set<Entity> reliableSeeds) {
+    	protected Set<InfolisPattern> getBestPatterns(List<InfolisPattern> candidates, List<String> processedMinimals, Set<Entity> reliableSeeds) {
 	        Set<InfolisPattern> patterns = new HashSet<>();
 	        Set<String> processedMinimals_iteration = new HashSet<>();
-	        List<String> allContextStrings_iteration = TextualReference.getContextStrings(contexts);
 	        // constraint for patterns: at least one component not be a stopword
 	        // prevent induction of patterns less general than already known patterns:
 	        // check whether pattern is known before continuing
-	        for (List<InfolisPattern> candidatesForContext : candidates) {
-		        for (InfolisPattern candidate : candidatesForContext) {
-		           	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
-		           	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {
-		            	// no need to induce less general patterns, continue with next context
-		            	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-		            	//TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
-		            	log.debug("Pattern already known, returning.");
-		                   break;
-		            }
-		            boolean nonStopwordPresent = false;
-		            for (String word : candidate.getWords()) {
-		            	if (!RegexUtils.isStopword(word)) { 
-		            		nonStopwordPresent = true;
-		            		continue;
-		            	}
-		            }
-		            if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
-		            if (nonStopwordPresent & candidate.isRelevant(allContextStrings_iteration)) {
-		            	patterns.add(candidate);
-		            	processedMinimals_iteration.add(candidate.getMinimal());
-		            	log.debug("Pattern accepted");
-		            	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-		            	break;
-		            } 
+		    for (int contextNo = 0; contextNo < candidates.size(); contextNo++) {
+		    	InfolisPattern candidate = candidates.get(contextNo);
+		    	log.debug("Processing context no. " + String.valueOf(contextNo));
+		      	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
+		       	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {
+		       		// no need to induce less general patterns, continue with next context
+		            //TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
+		            //TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
+		            log.debug("Pattern already known, continuing with candidates for next context.");
+		            log.debug(String.valueOf(contextNo % getPatternInducer().getPatternsPerContext()));
+		            // skip candidates of the same context
+		            contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
+		            continue;
 		        }
+		        boolean nonStopwordPresent = false;
+		        for (String word : candidate.getWords()) {
+		         	if (!RegexUtils.isStopword(word)) { 
+		          		nonStopwordPresent = true;
+		           		continue;
+		           	}
+		        }
+		        if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
+		        if (nonStopwordPresent & isRelevant(candidate, candidates)) {
+		          	patterns.add(candidate);
+		           	processedMinimals_iteration.add(candidate.getMinimal());
+		           	log.debug("Pattern accepted");
+		           	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
+		           	contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
+		           	continue;
+		        } 
     		}
 	        return patterns;
 	    }
+    	
+    	private double computeRelevance(int count, int size) {
+    		int norm = 1;
+    		double score = ((double) count / size) * norm;
+    		log.debug("Relevance score: " + score);
+    		log.debug("Occurrences: " + count);
+    		log.debug("Size: " + size);
+    		return score;
+    	}
+    	
+    	private boolean isRelevant(InfolisPattern pattern, List<InfolisPattern> candidateList) {
+    		int count = 0;
+    		for (InfolisPattern candidateP : candidateList) {
+    			if (pattern.getMinimal().equals(candidateP.getMinimal())) count++;
+    		}
+    		double relevance = computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext());
+    		return (relevance >= pattern.getThreshold()  & (count > 0));
+    	}
     }//end of class
     
 }

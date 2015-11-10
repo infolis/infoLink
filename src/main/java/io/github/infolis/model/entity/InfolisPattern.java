@@ -18,8 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
@@ -128,69 +126,6 @@ public class InfolisPattern extends BaseModel {
         this.words = words;
     }
 
-    /**
-     * Determines whether this pattern is suitable for extracting dataset
-     * references using a frequency-based measure. As threshold, this pattern's
-     * threshold is used.
-     *
-     * @param contextStrings	set of extracted contexts as strings
-     * @return				<emph>true</emph>, if regex is found to be relevant,
-     * <emph>false</emph> otherwise
-     */
-    public boolean isRelevant(List<String> contextStrings) {
-        // compute score for similar to tf-idf...
-        // count occurrences of regex in positive vs negative contexts...
-        int count_pos = 0;
-        //int count_neg = 0;
-        //List<String> contexts_neg = new ArrayList<>();
-        for (String context : contextStrings) {
-            count_pos += patternFound(this.minimal, context);
-        }
-        /*
-         for (String context : contexts_neg) {
-         count_neg += patternFound(regex, context);
-         }*/
-
-        //TODO: rename - this is not really tf-idf ;)
-        // compute relevance...
-        /*
-         double idf = 0;
-         if (count_neg + count_pos > 0) {
-         idf = MathUtils.log2((double) (contextStrings.size() + contexts_neg.size()) / (count_neg + count_pos));
-         }*/
-        int idf = 1;
-
-        double tf_idf = ((double) count_pos / contextStrings.size()) * idf;
-        log.debug("Relevance score: " + tf_idf);
-        log.debug("Occurrences: " + count_pos);
-        if ((tf_idf >= this.getThreshold()) & (count_pos > 0)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    // TODO return boolean
-    //TODO: use safeMatching instead of m.find()!
-    /**
-     * Returns whether regular expression <emph>pattern</emph> can be found in
-     * string <emph>text</emph>.
-     *
-     * @param pattern	regular expression to be searched in <emph>text</emph>
-     * @param text	input string sequence to search <emph>pattern</emph> in
-     * @return	true, if <emph>pattern</emph> is found in <emph>text</emph>,
-     * false otherwise
-     */
-    private static int patternFound(String pattern, String text) {
-        Pattern pat = Pattern.compile(pattern);
-        Matcher m = pat.matcher(text);
-        boolean patFound = m.find();
-        if (patFound) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
 
     /**
      * Generates a regular expression to capture given <emph>title</emph> as

@@ -113,15 +113,14 @@ public class SearchTermPosition extends BaseAlgorithm {
                 return;
             }
 
-            InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
-            String text = IOUtils.toString(openInputStream);
-            openInputStream.close();
-
 			// note: this class is meant for searching for terms, not for patterns:
             // used to generate contexts for inducing new patterns, not for creating output.
             // Output contexts are those created by pattern-based search. Thus: do not post
             // these contexts
             if (this.getExecution().getSearchTerm() != null) {
+            	InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
+                String text = IOUtils.toString(openInputStream);
+                openInputStream.close();
                 for (TextualReference sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
                     // note that the URI changes if inputDataStoreClient != outputDataStoreClient!
                     getOutputDataStoreClient().post(TextualReference.class, sC);
@@ -142,7 +141,6 @@ public class SearchTermPosition extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
-    //TODO: use a second lucene index keeping all special chars...
     public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException {
 	    // search for phrase using regex
         // first group: left context (consisting of 5 words)

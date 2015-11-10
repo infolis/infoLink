@@ -85,7 +85,7 @@ public class Execution extends BaseModel {
 		logger.debug("Created instance for algorithm '{}'", this.getAlgorithm());
 		return algo;
 	}
-	
+
 	//
 	//
 	//
@@ -358,19 +358,8 @@ public class Execution extends BaseModel {
 		return algorithm;
 	}
 
-	@JsonIgnore
 	public void setAlgorithm(Class<? extends Algorithm> algorithm) {
 		this.algorithm = algorithm;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public void setAlgorithm(String algoName) throws ClassNotFoundException {
-		if (!algoName.startsWith("io.github.infolis.algorithm.")) { 
-			algoName = "io.github.infolis.algorithm." + algoName;
-		}
-		Class<? extends Algorithm> algoClass;
-		algoClass = (Class<? extends Algorithm>) Class.forName(algoName);
-		setAlgorithm(algoClass);
 	}
 
 	public Date getStartTime() {

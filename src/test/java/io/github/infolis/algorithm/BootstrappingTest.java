@@ -1,6 +1,5 @@
-package io.github.infolis.algorithm.bootstrapping;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

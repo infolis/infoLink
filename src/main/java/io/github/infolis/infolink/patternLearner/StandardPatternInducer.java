@@ -1,9 +1,10 @@
 
-package io.github.infolis.algorithm.bootstrapping;
+package io.github.infolis.infolink.patternLearner;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
+import io.github.infolis.algorithm.Bootstrapping;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.RegexUtils;

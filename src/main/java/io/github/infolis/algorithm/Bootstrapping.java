@@ -1,11 +1,9 @@
-package io.github.infolis.algorithm.bootstrapping;
+package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.*;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;

@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.bootstrapping.*;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;

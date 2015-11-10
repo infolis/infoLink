@@ -1,6 +1,6 @@
 package io.github.infolis.infolink.patternLearner;
 
-import io.github.infolis.algorithm.bootstrapping.Bootstrapping;
+import io.github.infolis.algorithm.Bootstrapping;
 import io.github.infolis.model.TextualReference;
 
 import java.io.IOException;

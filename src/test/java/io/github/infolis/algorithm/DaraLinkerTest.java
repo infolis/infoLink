@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.algorithm.bootstrapping.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;

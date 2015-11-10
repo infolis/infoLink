@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.algorithm.bootstrapping.Reliability;
+import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.MathUtils;
 

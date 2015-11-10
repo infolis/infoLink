@@ -1,5 +1,5 @@
 {
-"algorithm":"io.github.infolis.algorithm.bootstrapping.FrequencyBasedBootstrapping",
+"algorithm":"io.github.infolis.algorithm.FrequencyBasedBootstrapping",
 "seeds":["ALLBUS"],
 "searchTerm":"ALLBUS",
 "bootstrapStrategy":"mergeAll"

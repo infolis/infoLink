@@ -1,4 +1,4 @@
-package io.github.infolis.algorithm.bootstrapping;
+package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;

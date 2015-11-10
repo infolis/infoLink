@@ -3,7 +3,6 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.bootstrapping.FrequencyBasedBootstrapping;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;

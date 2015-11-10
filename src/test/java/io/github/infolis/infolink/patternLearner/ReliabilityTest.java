@@ -1,4 +1,4 @@
-package io.github.infolis.algorithm.bootstrapping;
+package io.github.infolis.infolink.patternLearner;
 
 import io.github.infolis.model.entity.Entity;
 import static org.junit.Assert.assertEquals;
@@ -13,12 +13,12 @@ import java.util.Set;
 import io.github.infolis.model.entity.InfolisPattern;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 public class ReliabilityTest {
 	
-	private static final Logger log = LoggerFactory.getLogger(ReliabilityTest.class);
+	//private static final Logger log = LoggerFactory.getLogger(ReliabilityTest.class);
 	private Reliability r = new Reliability();
 	InfolisPattern pattern = new InfolisPattern();
 	InfolisPattern newPattern = new InfolisPattern();

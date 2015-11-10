@@ -113,10 +113,6 @@ public class SearchTermPosition extends BaseAlgorithm {
                 return;
             }
 
-			// note: this class is meant for searching for terms, not for patterns:
-            // used to generate contexts for inducing new patterns, not for creating output.
-            // Output contexts are those created by pattern-based search. Thus: do not post
-            // these contexts
             if (this.getExecution().getSearchTerm() != null) {
             	InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
                 String text = IOUtils.toString(openInputStream);
@@ -136,7 +132,9 @@ public class SearchTermPosition extends BaseAlgorithm {
         Indexer.createAnalyzer().close();
         IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))).close();
         FSDirectory.open(new File(getExecution().getIndexDirectory())).close();
-        log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
+        if (this.getExecution().getSearchTerm() != null) { 
+        	log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
+        }
         log.debug("Finished SearchTermPosition#execute");
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }

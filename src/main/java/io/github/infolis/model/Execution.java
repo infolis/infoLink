@@ -1,6 +1,7 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.algorithm.Learner;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -22,6 +23,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.lang.reflect.Field;
+
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -85,6 +88,7 @@ public class Execution extends BaseModel {
 		logger.debug("Created instance for algorithm '{}'", this.getAlgorithm());
 		return algo;
 	}
+	
 
 	//
 	//
@@ -360,6 +364,17 @@ public class Execution extends BaseModel {
 
 	public void setAlgorithm(Class<? extends Algorithm> algorithm) {
 		this.algorithm = algorithm;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@JsonIgnore
+	public void setAlgorithm(String algoName) throws ClassNotFoundException {
+		if (!algoName.startsWith("io.github.infolis.algorithm.")) { 
+			algoName = "io.github.infolis.algorithm." + algoName;
+		}
+		Class<? extends Algorithm> algoClass;
+		algoClass = (Class<? extends Algorithm>) Class.forName(algoName);
+		setAlgorithm(algoClass);
 	}
 
 	public Date getStartTime() {

@@ -1,0 +1,6 @@
+{
+"algorithm":"FrequencyBasedBootstrapping",
+"seeds":["ALLBUS"],
+"searchTerm":"ALLBUS",
+"bootstrapStrategy":"mergeAll"
+}

@@ -1,7 +1,6 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.algorithm.Learner;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -23,8 +22,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import java.lang.reflect.Field;
-
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -89,7 +86,6 @@ public class Execution extends BaseModel {
 		return algo;
 	}
 	
-
 	//
 	//
 	//

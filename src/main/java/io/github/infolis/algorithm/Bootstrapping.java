@@ -15,13 +15,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.commons.collections4.map.DefaultedMap;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * 
@@ -86,8 +87,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         return textualReferences;
     } 
     
-    private Map<String, ArrayList<InfolisPattern>> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
-    	Map<String, ArrayList<InfolisPattern>> filenamesForPatterns = new DefaultedMap<>(new ArrayList<InfolisPattern>());
+    private Multimap<String, InfolisPattern> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
+        HashMultimap<String, InfolisPattern> patternToFilename = HashMultimap.create();
         for (InfolisPattern curPat : patterns) {
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
 			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
@@ -105,15 +106,13 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		// thus, no need to create temporary file resolver / data store client here
     		stpExecution.instantiateAlgorithm(this).run();
     		for (String fileUri : stpExecution.getMatchingFiles()) {
-    			ArrayList<InfolisPattern> foundPatterns = new ArrayList<>(filenamesForPatterns.get(fileUri));
-    			foundPatterns.add(curPat);
-    			filenamesForPatterns.put(fileUri, foundPatterns);
+    		    patternToFilename.put(fileUri, curPat);
     		}
         }
-        return filenamesForPatterns;
+        return patternToFilename;
     }
     
-    private List<String> getPatternUris(List<InfolisPattern> patternList) {
+    private List<String> getPatternUris(Collection<InfolisPattern> patternList) {
     	List<String> patternUris = new ArrayList<String>();
     	for (InfolisPattern curPat : patternList) {
 	    	if (curPat.getUri() == null)
@@ -125,13 +124,12 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
     	// for all patterns, retrieve documents in which they occur (using lucene)
-    	Map<String, ArrayList<InfolisPattern>> filenamesForPatterns = getFilenamesForPatterns(patterns);
+    	Multimap<String, InfolisPattern> filenamesForPatterns = getFilenamesForPatterns(patterns);
     	List<String> textualReferences = new ArrayList<>();
     	// open each file once and search for all regex for which a corresponding (but more general)
     	// lucene pattern has been found in it
-    	for (Map.Entry<String, ArrayList<InfolisPattern>> filenamePatternPair : filenamesForPatterns.entrySet()) {
-    		ArrayList<InfolisPattern> patternList = filenamePatternPair.getValue();
-    		String fileUri = filenamePatternPair.getKey();
+    	for (String fileUri : filenamesForPatterns.keySet()) {
+    	    Collection<InfolisPattern> patternList = filenamesForPatterns.get(fileUri);
     		List<String> patternURIs = getPatternUris(patternList);
     		Execution applierExecution = new Execution();
             applierExecution.setPatternUris(patternURIs);

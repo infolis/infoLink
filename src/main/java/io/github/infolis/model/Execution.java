@@ -358,12 +358,12 @@ public class Execution extends BaseModel {
 		return algorithm;
 	}
 
+	@JsonIgnore
 	public void setAlgorithm(Class<? extends Algorithm> algorithm) {
 		this.algorithm = algorithm;
 	}
 	
 	@SuppressWarnings("unchecked")
-	@JsonIgnore
 	public void setAlgorithm(String algoName) throws ClassNotFoundException {
 		if (!algoName.startsWith("io.github.infolis.algorithm.")) { 
 			algoName = "io.github.infolis.algorithm." + algoName;

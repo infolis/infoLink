@@ -27,7 +27,7 @@ public class ProgressUpdates extends InfolisBaseTest {
         int done = 0;
         for (int i=0; i<4; i++) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1100);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ProgressUpdates.class.getName()).log(Level.SEVERE, null, ex);
             }

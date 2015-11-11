@@ -335,31 +335,13 @@ public class CommandLineExecuter {
      * @return URIs of the InfolisFiles of the text versions
      */
     private List<String> convertPDF(List<String> uris) {
-        List<String> txtUris = new ArrayList<>();
-        for (String inputFileURI : uris) {
-            InfolisFile inputFile = dataStoreClient.get(InfolisFile.class, inputFileURI);
-            if (null == inputFile) {
-                throwCLI("File was not registered with the data store: " + inputFileURI);
-            }
-            if (null == inputFile.getMediaType()) {
-                throwCLI("File has no mediaType: " + inputFileURI);
-            }
-            if (inputFile.getMediaType().startsWith("text/plain")) {
-                txtUris.add(inputFileURI);
-                continue;
-            }
-            // if the input file is a PDF file, convert it
-            if (inputFile.getMediaType().startsWith("application/pdf")) {
-                Execution convertExec = new Execution();
-                convertExec.setAlgorithm(TextExtractorAlgorithm.class);
-                convertExec.setOutputDirectory(textDir.toString());
-                convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
-                Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
-                algo.run();
-                txtUris.add(convertExec.getOutputFiles().get(0));
-            }
-        }
-        return txtUris;
+        Execution convertExec = new Execution();
+        convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+        convertExec.setOutputDirectory(textDir.toString());
+        convertExec.setInputFiles(uris);
+        Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
+        algo.run();
+        return convertExec.getOutputFiles();
     }
 
     public List<String> postFiles(Path dir, String mimetype) {

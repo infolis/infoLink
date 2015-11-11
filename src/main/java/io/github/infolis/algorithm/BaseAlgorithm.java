@@ -171,7 +171,12 @@ public abstract class BaseAlgorithm implements Algorithm {
 
     @Override
     public void updateProgress(int percentage) {
+        System.out.println("update: "+percentage);
         getExecution().setProgress(percentage);
-        getOutputDataStoreClient().post(Execution.class, getExecution());
+        if (null != getExecution().getUri()) {
+            getOutputDataStoreClient().put(Execution.class, getExecution());
+        } else {
+            getOutputDataStoreClient().post(Execution.class, getExecution());
+        }
     }
 }

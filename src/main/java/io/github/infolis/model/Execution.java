@@ -95,12 +95,17 @@ public class Execution extends BaseModel {
 	//
 
 	/**
-	 * {@link Algorithm to execute}
+         * The algorthim which is supposed to be executed within this
+         * execution.
+         * 
+	 * {@link Algorithm}
 	 */
 	private Class<? extends Algorithm> algorithm;
 
 	/**
-	 * {@link ExecutionStatus} of the execution.
+	 * Status of the execution (PENDING, STARTED, FINISHED, FAILED).
+         * Default: PENDING
+         * {@link ExecutionStatus} 
 	 */
 	private ExecutionStatus status = ExecutionStatus.PENDING;
 
@@ -120,7 +125,7 @@ public class Execution extends BaseModel {
 	private Date endTime;
 
 	/**
-	 * Progress of the execution in percent, a value between [0..100]
+	 * Progress of the execution in percent, a value between [0..100].
 	 */
 	private long progress =0;
 
@@ -133,24 +138,35 @@ public class Execution extends BaseModel {
 	//
 
 	/**
-	 * Input files {@link Learner} ...
+	 * Input files can either be pdfs or text files.
+         * They are for example used to search patterns within the
+         * Pattern Applier algorithm.
+         * 
+         * {@link Learner} {@link TextExtractor} 
 	 */
 	private List<String> inputFiles = new ArrayList<>();
 
 	/**
-	 * Output files {@link SearchTermPosition}
+	 * Output files to save the output files (txt files) of algorithms. 
+         * These files can serve as input for following algorimths.
+         * For example, the TextExtraction algorithm extracts texts of pdfs
+         * and stores these texts as output files.
+         * 
+         * {@link SearchTermPosition}
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
 	/**
-	 * Whether to remove bibliographies from text/plain articles.
+	 * Whether to remove bibliographies from text/plain articles.   
+         * Default: false
+         * 
 	 * {@link TextExtractor}
 	 */
 	private boolean removeBib = false;
 
 	/**
-	 * Output directory of Indexer and TextExtractor. {@link Indexer}
-	 * {@link TextExtractorAlgorithm}
+	 * Output directory of Indexer and TextExtractor. 
+	 * {@link TextExtractorAlgorithm} {@link Indexer}
 	 */
 	private String outputDirectory = "";
 
@@ -161,98 +177,200 @@ public class Execution extends BaseModel {
 	private String indexDirectory = "";
 	
 	/**
+         * The slop for phrases used by the Lucene query parser. 
+         * It determines how similar two phrases must be to be matched.
+         * If zero, then only exact phrase matches, if 10 up to 10 edit
+         * operations may be carried out.
+         * Default: 10 
+         * 
 	 * {@link SearchTermPosition}
 	 */
 	private int phraseSlop = 10;
 
 	/**
+         * Determines whether the Lucene query parser is allowed to
+         * use leading wildcard characters.
+         * Default: true       
+         * 
 	 * {@link SearchTermPosition}
 	 */
 	private boolean allowLeadingWildcards = true;
 
 	/**
+         * The  maximum number of clauses permitted per BooleanQuery (Lucence search).
+         * A boolean query represents a query that matches documents
+         * matching boolean combinations of other queries.
+         * Default: Integer max value
+         * 
 	 * {@link SearchTermPosition}
 	 */
 	private int maxClauseCount = Integer.MAX_VALUE;
 
 	/**
+         * A search term that can be used in different algorithms 
+         * whenever something a certain term needs to be searched in a text. 
+         * For example, the bootstrapping algorithms need a seed in the 
+         * beginning to start the whole process. The search term represents 
+         * such a seed, e.g. the study name "ALLBUS".
+         * 
 	 * {@link SearchTermPosition}
 	 */
 	private String searchTerm;
 
 	/**
+         * Any kind of search query that can be used within the algorithms.
+         * For example, it represtens the search query which is used
+         * to perform a search in different repositories to find
+         * fitting research data.
+         * 
 	 * {@link SearchTermPosition} {@link FederatedSearcher}
 	 */
 	private String searchQuery;
 
 	/**
+         * A textual reference represents any kind of reference that
+         * can be find in a text, e.g. a term like a study name has been found in a publication.
+         * Besides the text and the term that has been found in the text,
+         * it also contains the context, i.e. where the term has been detected.
+         * 
 	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataResolver}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
 
+        //TODO: necessary? can't we used the outputFiles?
 	/**
+         * 
 	 * {@link SearchTermPosition}
 	 */
 	private List<String> matchingFiles = new ArrayList<>();
 
 	/**
+         * A list of patterns (internally expressed as regular expression) 
+         * that can be applied on texts, e.g. to find links to research data. 
+         * 
 	 * {@link PatternApplier}
 	 */
 	private List<String> patterns = new ArrayList<>();
 
 	// TODO @bolandka not used now, is it worth the computation?
 	// @kba it is used in PatternApplier <- used in both bootstrapping methods, is very important
+        
+        /**
+         * Inicates whether we require a term needs to contain
+         * at least one upper case character.
+         * The idea behind is that especially a study name is supposed to be a 
+         * named entity and thus should contain at least one upper-case character.
+         * Default: false
+         * 
+         * {@link PatternApplier} {@link Bootstrapping}
+         */
 	private boolean upperCaseConstraint = false;
 
 	/**
-	 * Seeds used for bootstrapping.
+	 * Seeds used for bootstrapping, e.g. study names to start
+         * with like "ALLBUS".
+         * 
+         * {@link Bootstrapping}
 	 */
 	private List<String> seeds = new ArrayList<>();
 
 	/**
-	 * Maximum number of iterations.
+	 * Maximum number of iterations during the bootstrapping process.
+         * A high number of iterations can lead to a increased run time.       
+         * Default: 10
+         * 
+         * {@link Bootstrapping}
 	 */
 	private int maxIterations = 10;
 
+        
+        //TODO: also used for frequencyBasedBootstrapping, should we just name 
+        //it bootstrapping threshold?
 	/**
-	 * reliablityThreshold (perIteration)?
+	 * Determines which patterns (and entities for reliability based bootstrapping)
+         * are the relevant ones. For the frequency based bootstrapping
+         * this means how often a pattern need to occur and for the
+         * reliability based bootstrapping how reliable the pattern and the entities
+         * used to generate this pattern are.         * 
+         * Default: 0.8
+         * 
+         * {@link Bootstrapping}
 	 */
 	private double reliabilityThreshold = 0.8;
 
 	/**
-	 * Strategy to use for bootstrapping.
+	 * Strategy to use for bootstrapping. Can either be: 
+         * mergeCurrent, mergeNew, mergeAll, separate, reliability.
+         * The first four strategies are different kinds of
+         * strategies for the frequency based bootstrapping. They mainly differ 
+         * in the way how to handle patterns that have been generated in previous
+         * iterations. The strategy reliability referes to the reliability
+         * based bootstrapping.       
+         * Default: mergeAll
+         * 
+         * {@link BootstrapStrategy} {@link Bootstrapping} 
 	 */
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
 	/**
-	 * {@link MetaDataResolver}
+         * When resolving the detected meta data by searching in repositories,
+         * we need to knwo what we search for. The different strategies are:         
+         * title, doi, urn, bibliography.
+         * If we chose for example title, we search the meta data within the 
+         * title field in a repository.
+         * Default: MetaDataExtractingStrategy.title
+         * 
+	 * {@link MetaDataExtractingStrategy} {@link MetaDataResolver}
 	 */
 	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
         
-	/*
+	/**
+         * As a final step, links between the texts and the discovered
+         * named entities (research data) are established and saved in this list.
+         * 
 	 * {@link Resolver}
 	 */
 	private List<String> links;
 
 	/**
+         * We can search different repositories for named entities.
+         * One query service represents one specific type of search, e.g.
+         * a SOLR-based search or a search within a portal returning HTML.
+         * This list contains all query services that should be used.
+         * 
 	 * {@link FederatedSearcher}
 	 */
 	private List<String> queryServices;
 
 	/**
+         * After a search in one or more repositories, a list 
+         * of search results is returned. These results not only contain
+         * the repository which was searched but also information like
+         * the relevance score.
+         * 
 	 * {@link FederatedSearcher}
 	 */
 	private List<String> searchResults;
         
+        //TODO: include local search
 	/**
-	 * 
+	 * Beside the search in external repositories, we can also
+         * search in our own database. As use case, we get a URN for a publication
+         * from a user and want to show all named entities that are linked to 
+         * this publication. With an interal search using the generated links,
+         * we can find this entities which are returned in this list.
+         * 
+         * 
 	 * {@link LocalResolver}
 	 */
 	private List<String> linkedEntities;
         
+        //TODO: include tags
 	/**
-	 * 
-	 * TODO
+	 * A tag indicates which corpus of documents and/or patterns should be used.
+         * For example, a user likes to apply patterns learnt on
+         * documents of a specific topic like social science.
+         * 
 	 */
 	private List<String> tags;
 

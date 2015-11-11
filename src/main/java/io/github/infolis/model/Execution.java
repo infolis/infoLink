@@ -104,7 +104,8 @@ public class Execution extends BaseModel {
 
 	/**
 	 * Status of the execution (PENDING, STARTED, FINISHED, FAILED).
-         * Default: PENDING
+         * Default (when starting): ExecutionStatus.PENDING
+         * 
          * {@link ExecutionStatus} 
 	 */
 	private ExecutionStatus status = ExecutionStatus.PENDING;
@@ -142,8 +143,10 @@ public class Execution extends BaseModel {
          * They are for example used to search patterns within the
          * Pattern Applier algorithm.
          * 
-         * {@link Learner} {@link TextExtractor} 
-	 */
+         * {@link Learner} {@link TextExtractor} {@link Bootstrapping}
+         * {@link PatternApplier} {@link ApplyPatternAndResolve} 
+         * {@link Indexer} 
+	 */ 
 	private List<String> inputFiles = new ArrayList<>();
 
 	/**
@@ -152,7 +155,7 @@ public class Execution extends BaseModel {
          * For example, the TextExtraction algorithm extracts texts of pdfs
          * and stores these texts as output files.
          * 
-         * {@link SearchTermPosition}
+         * {@link Learner} {@link SearchTermPosition} {@link TextExtractor} 
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
@@ -166,13 +169,15 @@ public class Execution extends BaseModel {
 
 	/**
 	 * Output directory of Indexer and TextExtractor. 
-	 * {@link TextExtractorAlgorithm} {@link Indexer}
+         * 
+	 * {@link TextExtractorAlgorithm} {@link Indexer} {@link Bootstrapping} 
 	 */
 	private String outputDirectory = "";
 
 	/**
 	 * Input directory of SearchTermPosition = output directory of indexer. 
-	 * {@link SearchTermPosition}
+         * 
+	 * {@link Indexer} {@link SearchTermPosition}
 	 */
 	private String indexDirectory = "";
 	
@@ -183,7 +188,7 @@ public class Execution extends BaseModel {
          * operations may be carried out.
          * Default: 10 
          * 
-	 * {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link SearchTermPosition}
 	 */
 	private int phraseSlop = 10;
 
@@ -192,7 +197,7 @@ public class Execution extends BaseModel {
          * use leading wildcard characters.
          * Default: true       
          * 
-	 * {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link SearchTermPosition}
 	 */
 	private boolean allowLeadingWildcards = true;
 
@@ -202,7 +207,7 @@ public class Execution extends BaseModel {
          * matching boolean combinations of other queries.
          * Default: Integer max value
          * 
-	 * {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link SearchTermPosition}
 	 */
 	private int maxClauseCount = Integer.MAX_VALUE;
 
@@ -223,7 +228,7 @@ public class Execution extends BaseModel {
          * to perform a search in different repositories to find
          * fitting research data.
          * 
-	 * {@link SearchTermPosition} {@link FederatedSearcher}
+	 * {@link SearchTermPosition} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private String searchQuery;
 
@@ -233,7 +238,9 @@ public class Execution extends BaseModel {
          * Besides the text and the term that has been found in the text,
          * it also contains the context, i.e. where the term has been detected.
          * 
-	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataResolver}
+	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataExtractor}
+         * {@link Resolver} {@link SearchTermPosition} {@link ApplyPatternAndResolve}
+         * {@link PatternApplier} {@link Bootstrapping}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
 
@@ -248,13 +255,10 @@ public class Execution extends BaseModel {
          * A list of patterns (internally expressed as regular expression) 
          * that can be applied on texts, e.g. to find links to research data. 
          * 
-	 * {@link PatternApplier}
+	 * {@link PatternApplier} {@link ApplyPatternAndResolve} {@link Bootstrapping}
 	 */
 	private List<String> patterns = new ArrayList<>();
-
-	// TODO @bolandka not used now, is it worth the computation?
-	// @kba it is used in PatternApplier <- used in both bootstrapping methods, is very important
-        
+ 
         /**
          * Inicates whether we require a term needs to contain
          * at least one upper case character.
@@ -262,7 +266,7 @@ public class Execution extends BaseModel {
          * named entity and thus should contain at least one upper-case character.
          * Default: false
          * 
-         * {@link PatternApplier} {@link Bootstrapping}
+         * {@link PatternApplier} {@link Bootstrapping} {@link Learner}
          */
 	private boolean upperCaseConstraint = false;
 
@@ -270,7 +274,7 @@ public class Execution extends BaseModel {
 	 * Seeds used for bootstrapping, e.g. study names to start
          * with like "ALLBUS".
          * 
-         * {@link Bootstrapping}
+         * {@link Bootstrapping} {@link Learner}
 	 */
 	private List<String> seeds = new ArrayList<>();
 
@@ -279,7 +283,7 @@ public class Execution extends BaseModel {
          * A high number of iterations can lead to a increased run time.       
          * Default: 10
          * 
-         * {@link Bootstrapping}
+         * {@link Bootstrapping} {@link Learner}
 	 */
 	private int maxIterations = 10;
 
@@ -328,7 +332,7 @@ public class Execution extends BaseModel {
          * As a final step, links between the texts and the discovered
          * named entities (research data) are established and saved in this list.
          * 
-	 * {@link Resolver}
+	 * {@link Resolver} {@link ApplyPatternAndResolve}
 	 */
 	private List<String> links;
 
@@ -338,7 +342,7 @@ public class Execution extends BaseModel {
          * a SOLR-based search or a search within a portal returning HTML.
          * This list contains all query services that should be used.
          * 
-	 * {@link FederatedSearcher}
+	 * {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private List<String> queryServices;
 
@@ -348,7 +352,7 @@ public class Execution extends BaseModel {
          * the repository which was searched but also information like
          * the relevance score.
          * 
-	 * {@link FederatedSearcher}
+	 * {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private List<String> searchResults;
         

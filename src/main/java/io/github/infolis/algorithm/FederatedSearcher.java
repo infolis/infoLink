@@ -26,13 +26,12 @@ public class FederatedSearcher extends BaseAlgorithm {
         List<SearchResult> allResults = new ArrayList<>();
         
         SearchQuery query = getInputDataStoreClient().get(SearchQuery.class, getExecution().getSearchQuery());
-        int counter =0;
+        int counter =0, size = getExecution().getQueryServices().size();
         for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
             List<SearchResult> results = queryService.executeQuery(query);
             allResults.addAll(results);
-            if(counter%10==0) {
-                updateProgress(counter/getExecution().getQueryServices().size());
-            }
+            updateProgress(counter,size);
+            
         }
         getOutputDataStoreClient().post(SearchResult.class, allResults);
         List<String> searchResultUris = new ArrayList<>();

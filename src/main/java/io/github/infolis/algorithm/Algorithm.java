@@ -32,7 +32,7 @@ public interface Algorithm extends Runnable {
 			throws IllegalAlgorithmArgumentException;
 
         
-        void updateProgress(int percentage);
+        void updateProgress(int done, int total);
         
 	/**
 	 * Get the execution context of this algorithm instance.

@@ -1,4 +1,3 @@
-
 package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
@@ -30,8 +29,8 @@ import org.slf4j.LoggerFactory;
 public class VersionPatternApplier extends BaseAlgorithm {
 
     public VersionPatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
-		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
-	}
+        super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
+    }
 
     private static final Logger log = LoggerFactory.getLogger(VersionPatternApplier.class);
 
@@ -43,7 +42,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
         System.out.println("input: " + input);
         // makes regex matching a bit easier
         String inputClean = input.replaceAll("\\s+", " ");
-        int counter =0;
+        int counter = 0;
         for (String patternURI : this.getExecution().getPatterns()) {
             counter++;
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
@@ -54,7 +53,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
             LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis, file.getFileName() + "\n" + pattern.getPatternRegex());
             ltm.run();
             // if thread was aborted due to long processing time, matchFound should be false
-            if (! ltm.finished()) {
+            if (!ltm.finished()) {
                 log.error("Search was aborted. TODO");
                 getExecution().setStatus(ExecutionStatus.FAILED);
             }
@@ -66,9 +65,8 @@ public class VersionPatternApplier extends BaseAlgorithm {
                 study.setNumber(version);
                 foundStudies.add(study);
             }
-            if(counter%10==0) {
-                updateProgress(counter/getExecution().getPatterns().size());
-            }
+            updateProgress(counter,getExecution().getPatterns().size());
+
         }
         getExecution().setStatus(ExecutionStatus.FINISHED);
         return foundStudies;

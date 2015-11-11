@@ -110,9 +110,8 @@ public class Indexer extends BaseAlgorithm {
                 counter++;
                 log.trace("Indexing file " + file);
                 writer.addDocument(toLuceneDocument(getInputFileResolver(), file));
-                if (counter % 10 == 0) {
-                    updateProgress(counter / files.size());
-                }
+                updateProgress(counter, files.size());
+
             }
         } catch (FileNotFoundException fnfe) {
             // NOTE: at least on windows, some temporary files raise this
@@ -185,7 +184,7 @@ public class Indexer extends BaseAlgorithm {
         doc.add(new Field("path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED));
         doc.add(new Field("fileName", f.getFileName(), Field.Store.YES, Field.Index.ANALYZED));
 
-      // Add the last modified date of the file a field named "modified".  Use 
+        // Add the last modified date of the file a field named "modified".  Use 
         // a field that is indexed (i.e. searchable), but don't tokenize the field
         // into words.
         // TODO kba: Add modified to InfolisFile

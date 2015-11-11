@@ -8,6 +8,7 @@ import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
+import java.text.DateFormat;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public abstract class BaseAlgorithm implements Algorithm {
     public void fatal(Logger log, String fmt, Object... args) {
         log(log, fmt, "FATAL", args);
     }
-    
+
     @Override
     public void error(Logger log, String fmt, Object... args) {
         log(log, fmt, "ERROR", args);
@@ -124,18 +125,24 @@ public abstract class BaseAlgorithm implements Algorithm {
     private String log(Logger log, String fmt, String level, Object... args) {
         final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
         switch (level.toLowerCase()) {
-	        case "trace":	log.trace(str);
-	        				break;
-	        case "debug":	log.debug(str);
-	        			  	break;
-	        case "info":	log.info(str);
-	        				break;
-	        case "warn":	log.warn(str);
-	        				break;
-	        case "error":	log.error(str);
-	        				break;
-	        case "fatal":	log.error(str);
-	        				break;
+            case "trace":
+                log.trace(str);
+                break;
+            case "debug":
+                log.debug(str);
+                break;
+            case "info":
+                log.info(str);
+                break;
+            case "warn":
+                log.warn(str);
+                break;
+            case "error":
+                log.error(str);
+                break;
+            case "fatal":
+                log.error(str);
+                break;
         }
         getExecution().getLog().add(String.format("%s [%s -- %s] %s", level, new Date(), getClass().getSimpleName(), str));
         return str;
@@ -187,14 +194,23 @@ public abstract class BaseAlgorithm implements Algorithm {
         this.execution = execution;
     }
 
+    /**
+     * Update the current process of the execution each second.
+     * 
+     * @param done
+     * @param total 
+     */
     @Override
-    public void updateProgress(int percentage) {
-        System.out.println("update: "+percentage);
-        getExecution().setProgress(percentage);
-        if (null != getExecution().getUri()) {
-            getOutputDataStoreClient().put(Execution.class, getExecution());
-        } else {
-            getOutputDataStoreClient().post(Execution.class, getExecution());
+    public void updateProgress(int done, int total) {
+        Date now = new Date(System.currentTimeMillis());
+        if ((now.getTime() - getExecution().getStartTime().getTime()) > 1000) {            
+            int percentage = new Double(100*((double)done/(double)total)).intValue();
+            getExecution().setProgress(percentage);
+            if (null != getExecution().getUri()) {
+                getOutputDataStoreClient().put(Execution.class, getExecution());
+            } else {
+                getOutputDataStoreClient().post(Execution.class, getExecution());
+            }
         }
     }
 }

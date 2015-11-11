@@ -57,7 +57,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         search.setInputFiles(input);
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
-        updateProgress(25);
+        updateProgress(1,4);
         return search.getTextualReferences();
     }
 
@@ -68,7 +68,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
         extract.instantiateAlgorithm(this).run();
-        updateProgress(50);
+        updateProgress(2,4);
         return extract.getSearchQuery();
     }
 
@@ -79,7 +79,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
-        updateProgress(75);
+        updateProgress(3,4);
         return searchRepo.getSearchResults();
     }
 
@@ -91,7 +91,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         resolve.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, resolve);
         resolve.instantiateAlgorithm(this).run();
-        updateProgress(100);
+        updateProgress(4,4);
         return resolve.getLinks();
     }
 

@@ -34,20 +34,20 @@ public class Resolver extends BaseAlgorithm {
     }
 
     /**
-     * Computes whether the numbers mentioned in the textual reference fit
-     * to the numbers found in a search result. Considers ranges, abbreviated
-     * years etc.
-     * 
+     * Computes whether the numbers mentioned in the textual reference fit to
+     * the numbers found in a search result. Considers ranges, abbreviated years
+     * etc.
+     *
      * @param textRef
      * @param result
-     * @return 
+     * @return
      */
     public double computeScorebasedOnNumbers(TextualReference textRef, SearchResult result) {
         List<String> numericInfosRef = NumericInformationExtractor.extractNumericInfoFromTextRef(textRef);
         List<String> numericInfoSearch = result.getNumericInformation();
         for (String ref : numericInfosRef) {
             for (String search : numericInfoSearch) {
-                if(numericInfoMatches(ref, search)) {
+                if (numericInfoMatches(ref, search)) {
                     return 1.0;
                 }
             }
@@ -232,7 +232,7 @@ public class Resolver extends BaseAlgorithm {
     }
 
     // call method for every enumerated value, one match is sufficient
-    private  boolean enumMatches(List<String> enumInfo, String info2) {
+    private boolean enumMatches(List<String> enumInfo, String info2) {
         for (String enumeratedNumber : enumInfo) {
             if (numericInfoMatches(enumeratedNumber, info2)) {
                 return true;
@@ -353,30 +353,29 @@ public class Resolver extends BaseAlgorithm {
     public void execute() throws IOException {
         List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> results = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
-        
+
         String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
         //check which search results fit 
-        Map<SearchResult,Double> resultValues = new HashMap<>();
-        int counter =0;
-        for(SearchResult r : results) {    
+        Map<SearchResult, Double> resultValues = new HashMap<>();
+        int counter = 0;
+        for (SearchResult r : results) {
             counter++;
-            double confidenceValue=0.0;
+            double confidenceValue = 0.0;
             //a fitting number counts twice than for example the list index
-            confidenceValue += 2*computeScorebasedOnNumbers(textRef, r);
+            confidenceValue += 2 * computeScorebasedOnNumbers(textRef, r);
             //reliability of the used query service
-            confidenceValue+=getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
-            confidenceValue+=1-((double)r.getListIndex()/(double)results.get(results.size()-1).getListIndex());
+            confidenceValue += getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            confidenceValue += 1 - ((double) r.getListIndex() / (double) results.get(results.size() - 1).getListIndex());
             resultValues.put(r, confidenceValue);
-            if(counter%10==0) {
-                updateProgress(counter/results.size());
-            }
+            updateProgress(counter, results.size());
+
         }
         //determine the best search result for the textual reference
         SearchResult bestSearchResult = null;
         double bestConfidence = -1.0;
-        for(SearchResult sr : resultValues.keySet()) {
-            if(resultValues.get(sr)> bestConfidence) {
+        for (SearchResult sr : resultValues.keySet()) {
+            if (resultValues.get(sr) > bestConfidence) {
                 bestConfidence = resultValues.get(sr);
                 bestSearchResult = sr;
             }
@@ -391,8 +390,8 @@ public class Resolver extends BaseAlgorithm {
         String linkReason = textRefURI;
         //genretate the link
         System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
-        System.out.println("file: " +getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()).getInfolisFile());
-        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class,textRef.getMentionsReference()), bestConfidence, linkReason);
+        System.out.println("file: " + getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference()).getInfolisFile());
+        EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference()), bestConfidence, linkReason);
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();
         allLinks.add(el.getUri());
@@ -400,7 +399,7 @@ public class Resolver extends BaseAlgorithm {
         getExecution().setLinks(allLinks);
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
-    
+
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         if (null == getExecution().getSearchResults()) {

@@ -57,13 +57,13 @@ public class PatternApplier extends BaseAlgorithm {
         List<TextualReference> res = new ArrayList<>();
         for (String patternURI : this.getExecution().getPatterns()) {
             //debug(log, patternURI);
-        	log.trace(patternURI);
+            log.trace(patternURI);
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
             //debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
             log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
-			// set upper limit for processing time - prevents stack overflow
+            // set upper limit for processing time - prevents stack overflow
             // caused by monitoring process
             // (LimitedTimeMatcher)
             // 750000 suitable for -Xmx2g -Xms2g
@@ -73,7 +73,7 @@ public class PatternApplier extends BaseAlgorithm {
             long maxTimeMillis = Math.min(75_000, openInputStream.available());
             openInputStream.close();
 
-			// call m.find() as a thread: catastrophic backtracking may occur
+            // call m.find() as a thread: catastrophic backtracking may occur
             // which causes application to hang
             // thus monitor runtime of threat and terminate if processing takes
             // too long
@@ -84,7 +84,7 @@ public class PatternApplier extends BaseAlgorithm {
             if (!ltm.finished()) {
                 // TODO: what to do if search was aborted?
                 log.error("Search was aborted. TODO");
-				// InfolisFileUtils.writeToFile(new
+                // InfolisFileUtils.writeToFile(new
                 // File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" +
                 // curPat + "\n", true);
             }
@@ -93,14 +93,14 @@ public class PatternApplier extends BaseAlgorithm {
                 String studyName = ltm.group(1).trim();
                 log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
                 log.debug("referenced study name: " + studyName);
-				// if studyname contains no characters: ignore
+                // if studyname contains no characters: ignore
                 // TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
                     log.debug("Invalid study name \"" + studyName + "\". Searching for next match of pattern " + pattern.getPatternRegex());
                     ltm.run();
                     continue;
                 }
-				// a study name is supposed to be a named entity and thus should
+                // a study name is supposed to be a named entity and thus should
                 // contain at least one upper-case character
                 if (this.getExecution().isUpperCaseConstraint()) {
                     if (studyName.toLowerCase().equals(studyName)) {
@@ -113,7 +113,7 @@ public class PatternApplier extends BaseAlgorithm {
 
                 List<TextualReference> references = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
                 for (TextualReference ref : references) {
-                	ref.setPattern(pattern.getUri());
+                    ref.setPattern(pattern.getUri());
                     log.debug("added reference: " + ref);
                 }
                 res.addAll(references);
@@ -130,7 +130,8 @@ public class PatternApplier extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
         List<TextualReference> detectedContexts = new ArrayList<>();
-        int counter =0;
+        int counter = 0, size = getExecution().getInputFiles().size();
+        System.out.println("size: " + size);
         for (String inputFileURI : getExecution().getInputFiles()) {
             counter++;
             log.trace("Input file URI: '{}'", inputFileURI);
@@ -170,9 +171,8 @@ public class PatternApplier extends BaseAlgorithm {
                 }
             }
             log.trace("Start extracting from '{}'.", inputFile);
-            if(counter%10==0) {
-                updateProgress(counter/getExecution().getInputFiles().size());
-            }
+            updateProgress(counter, size);
+
             detectedContexts.addAll(searchForPatterns(inputFile));
         }
 

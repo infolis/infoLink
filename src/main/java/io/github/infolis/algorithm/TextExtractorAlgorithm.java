@@ -230,24 +230,19 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             }
             debug(log, "Start extracting from %s", inputFile);
             InfolisFile outputFile = null;
-            try {
+            try {                
                 outputFile = extract(inputFile);
+                updateProgress(counter, getExecution().getInputFiles().size());
             } catch (IOException e) {
             	// invalid pdf file cannot be read by pdfBox
             	// log error, skip file and continue with next file
             	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
-            	if(counter%10==0) {
-                    updateProgress(counter/getExecution().getInputFiles().size());
-                }
             	continue;
             } catch (RuntimeException e) {
             	// error but not fatal: do not terminate execution but continue with next file.
             	// RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
             	// pdfBox cannot handle a (valid) pdf file due to its encoding
             	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
-            	if(counter%10==0) {
-                    updateProgress(counter/getExecution().getInputFiles().size());
-                }
             	continue;
             }
             debug(log, "Converted to file %s", outputFile);
@@ -256,9 +251,6 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             	error(log, "Conversion failed for input file %s", inputFileURI);
             } else {
                 getExecution().getOutputFiles().add(outputFile.getUri());
-            }
-            if(counter%10==0) {
-                updateProgress(counter/getExecution().getInputFiles().size());
             }
         }
         debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());

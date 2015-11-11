@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * like "Eurobarometer-Datensatz" shall be found as well but only
  * "Eurobarometer" shall be listed as search term in the output file.
  *
- * Parameters:  {@link Execution#getMaxClauseCount()}
+ * Parameters: null {@link Execution#getMaxClauseCount()}
  * {@link Execution#getPhraseSlop()}
  * {@link Execution#getSearchQuery()}
  * {@link Execution#getSearchTerm())}
@@ -82,7 +82,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         qp.setPhraseSlop(getExecution().getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
         qp.setAllowLeadingWildcard(getExecution().isAllowLeadingWildcards());
         BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
-		// throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+        // throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
         // if quotes are present in absence of any whitespace inside of query
         // however, queries should be passed in correct form instead of being changed here
         Query q;
@@ -114,7 +114,7 @@ public class SearchTermPosition extends BaseAlgorithm {
             }
 
             if (this.getExecution().getSearchTerm() != null) {
-            	InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
+                InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
                 String text = IOUtils.toString(openInputStream);
                 openInputStream.close();
                 for (TextualReference sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
@@ -124,23 +124,22 @@ public class SearchTermPosition extends BaseAlgorithm {
                 }
             }
             getExecution().getMatchingFiles().add(file.getUri());
-            if (i % 10 == 0) {
-                updateProgress(i / scoreDocs.length);
-            }
+            updateProgress(i, scoreDocs.length);
+
         }
         searcher.close();
         Indexer.createAnalyzer().close();
         IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))).close();
         FSDirectory.open(new File(getExecution().getIndexDirectory())).close();
-        if (this.getExecution().getSearchTerm() != null) { 
-        	log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
+        if (this.getExecution().getSearchTerm() != null) {
+            log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
         }
         log.debug("Finished SearchTermPosition#execute");
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException {
-	    // search for phrase using regex
+        // search for phrase using regex
         // first group: left context (consisting of 5 words)
         // second group: right context (consisting of 5 words)
         // contexts may or may not be separated from the query by whitespace!
@@ -160,7 +159,7 @@ public class SearchTermPosition extends BaseAlgorithm {
             ltm.run();
         }
 
-	    // these patterns are used for extracting contexts of known study titles, 
+        // these patterns are used for extracting contexts of known study titles, 
         // do not confuse with patterns to detect study references -> do not post
         if (!ltm.finished()) {
             throw new IOException("Matcher timed out!");
@@ -182,7 +181,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         return contextList;
     }
 
-	//TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+    //TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
     // refer to normalizeQuery for a better way to do this
     private static String removeSpecialCharsFromTerm(String term) {
         String[] termParts = term.split("\\s+");

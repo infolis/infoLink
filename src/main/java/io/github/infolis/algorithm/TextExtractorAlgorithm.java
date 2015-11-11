@@ -37,6 +37,7 @@ import com.google.common.net.MediaType;
 /**
  *
  * @author kba
+ * @author kata
  */
 public class TextExtractorAlgorithm extends BaseAlgorithm {
 
@@ -148,7 +149,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             stripper.setEndPage(i);
             String pageText = stripper.getText(pdfIn);
             if (null == pageText) {
-                throw new RuntimeException("Couldn't extract page text");
+            	error(log, "Extraction failed for page %s in file %s", i, pdfIn);
+            	continue;
             }
             // clean the page
             pageText = TextCleaningUtils.removeControlSequences(pageText);
@@ -231,23 +233,27 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             try {
                 outputFile = extract(inputFile);
             } catch (IOException e) {
-                fatal(log, "Extraction caused exception: %s\n%s", e, ExceptionUtils.getStackTrace(e));
-                getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
-                return;
+            	// invalid pdf file cannot be read by pdfBox
+            	// log error, skip file and continue with next file
+            	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
+            	if(counter%10==0) {
+                    updateProgress(counter/getExecution().getInputFiles().size());
+                }
+            	continue;
+            } catch (RuntimeException e) {
+            	// error but not fatal: do not terminate execution but continue with next file.
+            	// RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
+            	// pdfBox cannot handle a (valid) pdf file due to its encoding
+            	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
+            	if(counter%10==0) {
+                    updateProgress(counter/getExecution().getInputFiles().size());
+                }
+            	continue;
             }
             debug(log, "Converted to file %s", outputFile);
-            // log.debug("LOG {}", getExecution().getLog());
-            // FrontendClient.post(InfolisFile.class, outputFile);
             getOutputDataStoreClient().post(InfolisFile.class, outputFile);
             if (null == outputFile) {
-                fatal(log, "Conversion failed for input file %s", inputFileURI);
-                fatal(log, "Log of this execution: " + getExecution().getLog());
-                getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
-                return;
-                // throw new RuntimeException("Conversion failed for input file
-                // " + inputFileURI);
+            	error(log, "Conversion failed for input file %s", inputFileURI);
             } else {
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }
@@ -274,7 +280,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     /**
      * Class for processing command line options using args4j.
      *
-     * @author katarina.boland@gesis.org
+     * @author kata
      * @author kba
      */
     static class OptionHandler {
@@ -300,9 +306,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             }
 
             Execution execution = new Execution();
-            // Algorithm algo = new TextExtractorAlgorithm();
             execution.setAlgorithm(TextExtractorAlgorithm.class);
-            // algo.setExecution(execution);
             FileResolver ifr = FileResolverFactory.create(DataStoreStrategy.LOCAL);
             DataStoreClient idsc = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
             Algorithm algo = execution.instantiateAlgorithm(idsc, idsc, ifr, ifr);

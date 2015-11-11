@@ -75,6 +75,11 @@ public abstract class BaseAlgorithm implements Algorithm {
     public void fatal(Logger log, String fmt, Object... args) {
         log(log, fmt, "FATAL", args);
     }
+    
+    @Override
+    public void error(Logger log, String fmt, Object... args) {
+        log(log, fmt, "ERROR", args);
+    }
 
     @Override
     public DataStoreClient getOutputDataStoreClient() {
@@ -118,7 +123,20 @@ public abstract class BaseAlgorithm implements Algorithm {
 
     private String log(Logger log, String fmt, String level, Object... args) {
         final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
-        log.debug(str);
+        switch (level.toLowerCase()) {
+	        case "trace":	log.trace(str);
+	        				break;
+	        case "debug":	log.debug(str);
+	        			  	break;
+	        case "info":	log.info(str);
+	        				break;
+	        case "warn":	log.warn(str);
+	        				break;
+	        case "error":	log.error(str);
+	        				break;
+	        case "fatal":	log.error(str);
+	        				break;
+        }
         getExecution().getLog().add(String.format("%s [%s -- %s] %s", level, new Date(), getClass().getSimpleName(), str));
         return str;
     }

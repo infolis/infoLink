@@ -120,5 +120,17 @@ public interface Algorithm extends Runnable {
 	 *            Objects for {@link String#format(String, Object...)}
 	 */
 	void fatal(Logger log, String fmt, Object... args);
+	
+	/**
+	 * Log an ERROR message to both the system logger and the execution.
+	 * 
+	 * @param log
+	 *            {@link Logger} to log to
+	 * @param fmt
+	 *            Format string for {@link String#format(String, Object...)}
+	 * @param args
+	 *            Objects for {@link String#format(String, Object...)}
+	 */
+	void error(Logger log, String fmt, Object... args);
 
 }

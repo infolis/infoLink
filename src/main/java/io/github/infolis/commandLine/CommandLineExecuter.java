@@ -27,7 +27,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,7 +60,6 @@ import ch.qos.logback.classic.Level;
  */
 public class CommandLineExecuter {
 
-    @SuppressWarnings("unused")
     private static final Logger log = LoggerFactory.getLogger(CommandLineExecuter.class);
 
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
@@ -117,7 +115,7 @@ public class CommandLineExecuter {
                         String algorithmName = values.getValue().toString();
                         algorithmName = algorithmName.replace("\"", "");
                         if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
-                            algorithmName += "io.github.infolis.algorithm." + algorithmName;
+                            algorithmName = "io.github.infolis.algorithm." + algorithmName;
                         }
                         try {
                             Class<? extends Algorithm> algoClass;

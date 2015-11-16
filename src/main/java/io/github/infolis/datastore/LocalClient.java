@@ -26,15 +26,14 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 
 public class LocalClient extends AbstractClient {
 
-    private static final Logger log = LoggerFactory.getLogger(LocalClient.class);
-    public static final Map<UUID, Map<String, String>> _jsonDB = new HashMap<>();
-    private final static Object lock = new Object();
-    private final AtomicInteger counter = new AtomicInteger();
+    private static final Map<UUID, Map<String, String>> _jsonDB = new HashMap<>();
+    private static final Object lock = new Object();
 
+    private final Logger log = LoggerFactory.getLogger(LocalClient.class);
+    private final AtomicInteger counter = new AtomicInteger();
     public final Multimap<String, String> endpointForId = HashMultimap.<String,String> create();
 
     private final UUID _storeId;
@@ -83,15 +82,15 @@ public class LocalClient extends AbstractClient {
     }
 
     @Override
-    public <T extends BaseModel> void put(Class<T> clazz, T thing)
-            throws BadRequestException {
+    public <T extends BaseModel> void put(Class<T> clazz, T thing) throws BadRequestException {
+        log.debug("PUT {}", thing.getUri());
         store(clazz, thing);
     }
 
     @Override
     public <T extends BaseModel> void post(Class<T> clazz, T thing) {
-        String id = String.format("thing_%s", counter.getAndIncrement());
-        log.debug(id);
+        String id = String.format("%s_%s", CentralClient.getEndpointForClass(clazz), counter.getAndIncrement());
+        log.debug("POST {}", id);
         thing.setUri(id);
         store(clazz, thing);
     }

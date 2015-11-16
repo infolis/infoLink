@@ -3,13 +3,13 @@ package io.github.infolis.datastore;
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
-import io.github.infolis.model.entity.InfolisFile;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
@@ -18,6 +18,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 
 /**
  * Client to access the Linked Data frontend web services.
@@ -155,12 +157,6 @@ class CentralClient extends AbstractClient {
 	}
 
 	@Override
-	public <T extends BaseModel> List<T> get(Class<T> clazz, Iterable<String> uriStrList) throws BadRequestException, ProcessingException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void clear() {
 		log.error("clear not supported");
 		return;
@@ -171,5 +167,28 @@ class CentralClient extends AbstractClient {
 		log.error("dump not supported");
 		return;
 	}
+
+    @Override
+    public <T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query) {
+        String uri = getUriForClass(clazz);
+        WebTarget target = jerseyClient.target(uri);
+        for (Entry<String, String> entry : query.entries()) {
+            target = target.queryParam(entry.getKey(), entry.getValue());
+        }
+		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+		log.debug("-> HTTP {}", resp.getStatus());
+		if (resp.getStatus() == 404) {
+			throw new RuntimeException(String.format("No such '%s': '%s'", clazz.getSimpleName(), target.getUri()));
+		} else if (resp.getStatus() >= 400) {
+			throw new WebApplicationException(resp);
+		}
+		try {
+		    GenericType<List<T>> arrayOfTType = new GenericType<>(clazz);
+			return resp.readEntity(arrayOfTType);
+		} catch (Exception e) {
+			throw new ProcessingException(e);
+		}
+
+    }
 
 }

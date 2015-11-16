@@ -5,26 +5,14 @@ import io.github.infolis.model.BaseModel;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
 
-public interface DataStoreClient {
+import com.google.common.collect.Multimap;
 
-//	/**
-//	 * GET a thing with a textual ID.
-//	 * 
-//	 * Uses the {@link CentralClient#uriForClass} mapping.
-//	 * 
-//	 * @param clazz
-//	 *            the class of the thing to retrieve
-//	 * @param id
-//	 *            the ID part of the URI of the thing to retrieve
-//	 * @return the server representation of the thing
-//	 * @throws BadRequestException
-//	 * @throws ProcessingException
-//	 */
-//	<T extends BaseModel> T getById(Class<T> clazz, String id) throws BadRequestException, ProcessingException;
+public interface DataStoreClient {
 
 	/**
 	 * PUT an resource
@@ -97,6 +85,17 @@ public interface DataStoreClient {
 	 * 
 	 */
 	void clear();
+
+	/**
+	 * GET all things that have any of the key-value pairs (boolean OR).
+	 * 
+	 * @param clazz
+	 *             class of the things to get
+	 * @param query
+	 *             a {@link Multimap}Map of key-value pairs to query for (exact)
+	 * @return
+	 */
+	<T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query);
 	
 	/**
 	 * Dump the whole datastore in JSON format.

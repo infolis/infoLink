@@ -1,10 +1,12 @@
 package io.github.infolis.model.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import io.github.infolis.model.BaseModel;
 
 /**
@@ -19,7 +21,7 @@ public class InfolisFile extends BaseModel {
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
-	private Set<String> tags;
+	private Set<String> tags = new HashSet<>();
         
         public InfolisFile() {
         }

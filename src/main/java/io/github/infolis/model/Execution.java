@@ -377,6 +377,16 @@ public class Execution extends BaseModel {
          * 
 	 */
 	private List<String> tags;
+	
+	/**
+	 * Flag used by TextExtractorAlgorithm: if set to false, pdfs for which corresponding text 
+	 * files already exist in the specified text directory will not be converted again, instead 
+	 * the existing text files will be returned as InfolisFile instances. If set to true, all 
+	 * pdfs will be converted regardless of any existing files in the text directory. 
+	 * Default: true.
+	 * {@link TextExtractorAlgorithm}
+	 */
+	private boolean overwriteTextfiles = true;
 
 	//
 	//
@@ -658,6 +668,14 @@ public class Execution extends BaseModel {
     
     public void setProgress(long progress) {
         this.progress = progress;
+    }
+    
+    public void setOverwriteTextfiles(boolean overwriteTextfiles) {
+    	this.overwriteTextfiles = overwriteTextfiles;
+    }
+    
+    public boolean getOverwriteTextfiles() {
+    	return this.overwriteTextfiles;
     }
     
     public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {

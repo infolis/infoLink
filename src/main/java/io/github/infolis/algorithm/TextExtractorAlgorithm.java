@@ -13,6 +13,7 @@ import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -60,8 +62,29 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
     }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {
-        String asText = null;
+    	String asText = null;
+    	
+    	// TODO make configurable
+        String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
+        if (null != getExecution().getOutputDirectory()) {
+            outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
+        }
 
+        InfolisFile outFile = new InfolisFile();
+        outFile.setFileName(outFileName);
+        outFile.setMediaType("text/plain");
+        
+        if (getExecution().getOverwriteTextfiles()) {
+	        File _outFile = new File(outFileName);
+	        if (_outFile.exists()) { 
+	        	debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
+	        	asText = FileUtils.readFileToString(_outFile, "utf-8"); 
+	        	outFile.setMd5(SerializationUtils.getHexMd5(asText));
+	            outFile.setFileStatus("AVAILABLE");
+	            return outFile;
+	        }
+        }
+        
         try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
                 // check whether the bibliography should be removed
@@ -74,14 +97,6 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                     throw new IOException("extractText/extractTextAndRemoveBibliography Returned null!");
                 }
 
-                // TODO make configurable
-                String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-                if (null != getExecution().getOutputDirectory()) {
-                    outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
-                }
-                InfolisFile outFile = new InfolisFile();
-                outFile.setFileName(outFileName);
-                outFile.setMediaType("text/plain");
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
@@ -285,6 +300,9 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
         @Option(name = "-p", usage = "remove bibliography", metaVar = "REMOVE_BIB")
         private boolean removeBib = false;
+        
+        @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
+        private boolean overwriteTextfiles = true;
 
         public void parse(String[] args) {
             CmdLineParser parser = new CmdLineParser(this);
@@ -337,6 +355,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             execution.setOutputDirectory(outputPath.toString());
 
             execution.setRemoveBib(removeBib);
+            execution.setOverwriteTextfiles(overwriteTextfiles);
 
             algo.run();
         }

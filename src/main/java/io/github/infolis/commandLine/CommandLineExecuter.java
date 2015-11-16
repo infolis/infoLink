@@ -289,10 +289,12 @@ public class CommandLineExecuter {
                 }
             } else {
                 if (shouldConvertToText) {
-                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
-                            + "' were specified. Will possibly clobber text files in conversion!");
-                    System.err.println("<Ctrl-C> to stop, <Enter> to continue");
-                    System.in.read();
+                    //System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
+                    //        + "' were specified. Will possibly clobber text files in conversion!");
+                	System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
+                            + "' were specified. Will ignore pdfs of existing text files.");
+                    //System.err.println("<Ctrl-C> to stop, <Enter> to continue");
+                    //System.in.read();
                     exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
@@ -337,6 +339,8 @@ public class CommandLineExecuter {
         convertExec.setAlgorithm(TextExtractorAlgorithm.class);
         convertExec.setOutputDirectory(textDir.toString());
         convertExec.setInputFiles(uris);
+        //TODO make configurable
+        convertExec.setOverwriteTextfiles(false);
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return convertExec.getOutputFiles();

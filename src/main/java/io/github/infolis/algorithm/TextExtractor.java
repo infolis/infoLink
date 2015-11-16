@@ -41,14 +41,14 @@ import com.google.common.net.MediaType;
  * @author kba
  * @author kata
  */
-public class TextExtractorAlgorithm extends BaseAlgorithm {
+public class TextExtractor extends BaseAlgorithm {
 
-    public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+    public TextExtractor(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
+    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
 
     private static final PDFTextStripper stripper;
 
@@ -316,7 +316,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             }
 
             Execution execution = new Execution();
-            execution.setAlgorithm(TextExtractorAlgorithm.class);
+            execution.setAlgorithm(TextExtractor.class);
             FileResolver ifr = FileResolverFactory.create(DataStoreStrategy.LOCAL);
             DataStoreClient idsc = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
             Algorithm algo = execution.instantiateAlgorithm(idsc, idsc, ifr, ifr);

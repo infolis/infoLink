@@ -22,9 +22,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TextExtractorAlgorithmTest extends InfolisBaseTest {
+public class TextExtractorTest extends InfolisBaseTest {
 
-	Logger log = LoggerFactory.getLogger(TextExtractorAlgorithmTest.class);
+	Logger log = LoggerFactory.getLogger(TextExtractorTest.class);
 	private byte[] pdfBytes;
 	Path tempFile;
 
@@ -47,7 +47,7 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 
 		Execution execution = new Execution();
 		execution.getInputFiles().add(inFile.getUri());
-		execution.setAlgorithm(TextExtractorAlgorithm.class);
+		execution.setAlgorithm(TextExtractor.class);
 		dataStoreClient.post(Execution.class, execution);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
@@ -75,7 +75,7 @@ public class TextExtractorAlgorithmTest extends InfolisBaseTest {
 		assertNotNull(inFile.getUri());
 
 		execution.getInputFiles().add(inFile.getUri());
-		execution.setAlgorithm(TextExtractorAlgorithm.class);
+		execution.setAlgorithm(TextExtractor.class);
 
 		assertEquals(1, execution.getInputFiles().size());
 		dataStoreClient.post(Execution.class, execution);

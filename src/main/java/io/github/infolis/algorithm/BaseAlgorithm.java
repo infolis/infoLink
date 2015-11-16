@@ -8,7 +8,6 @@ import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
-import java.text.DateFormat;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -34,7 +33,7 @@ public abstract class BaseAlgorithm implements Algorithm {
     public static Map<String, Class<? extends BaseAlgorithm>> algorithms = new HashMap<>();
 
     static {
-        algorithms.put(TextExtractorAlgorithm.class.getSimpleName(), TextExtractorAlgorithm.class);
+        algorithms.put(TextExtractor.class.getSimpleName(), TextExtractor.class);
     }
 
     public BaseAlgorithm(

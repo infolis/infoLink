@@ -254,7 +254,7 @@ public class ExampleChecker extends InfolisBaseTest {
             execution.getInputFiles().add(inFile.getUri());
 
         }
-        execution.setAlgorithm(TextExtractorAlgorithm.class);
+        execution.setAlgorithm(TextExtractor.class);
 
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();

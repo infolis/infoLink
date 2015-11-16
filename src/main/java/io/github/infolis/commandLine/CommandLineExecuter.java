@@ -3,7 +3,7 @@ package io.github.infolis.commandLine;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchTermPosition;
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -336,7 +336,7 @@ public class CommandLineExecuter {
      */
     private List<String> convertPDF(List<String> uris) {
         Execution convertExec = new Execution();
-        convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+        convertExec.setAlgorithm(TextExtractor.class);
         convertExec.setOutputDirectory(textDir.toString());
         convertExec.setInputFiles(uris);
         //TODO make configurable

@@ -3,7 +3,7 @@ package io.github.infolis.ws.server;
 import static org.junit.Assert.assertNotNull;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.InfolisConfig;
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -30,7 +30,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
         Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
 		
 		FormDataMultiPart fdm = new FormDataMultiPart();
-		fdm.field("algorithm", TextExtractorAlgorithm.class.getName());
+		fdm.field("algorithm", TextExtractor.class.getName());
 		WebTarget target = jerseyClient
 				.target(InfolisConfig.getFrontendURI())
 				.path("/execute");
@@ -53,7 +53,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 
 		DataStoreClient centralClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 		Execution e = new Execution();
-		e.setAlgorithm(TextExtractorAlgorithm.class);
+		e.setAlgorithm(TextExtractor.class);
 		centralClient.post(Execution.class, e);
 		assertNotNull(e.getUri());
 		

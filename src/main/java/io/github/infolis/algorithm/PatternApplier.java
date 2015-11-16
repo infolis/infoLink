@@ -155,7 +155,7 @@ public class PatternApplier extends BaseAlgorithm {
                 // if the input file is a PDF file, convert it
                 if (inputFile.getMediaType().startsWith("application/pdf")) {
                     Execution convertExec = new Execution();
-                    convertExec.setAlgorithm(TextExtractorAlgorithm.class);
+                    convertExec.setAlgorithm(TextExtractor.class);
                     convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
                     // TODO wire this more efficiently so files are stored temporarily
                     Algorithm algo = convertExec.instantiateAlgorithm(this);

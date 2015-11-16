@@ -74,7 +74,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
         outFile.setFileName(outFileName);
         outFile.setMediaType("text/plain");
         
-        if (getExecution().getOverwriteTextfiles()) {
+        if (getExecution().getOverwriteTextfiles() == false) {
 	        File _outFile = new File(outFileName);
 	        if (_outFile.exists()) { 
 	        	debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);

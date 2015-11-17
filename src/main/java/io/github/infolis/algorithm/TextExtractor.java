@@ -61,7 +61,8 @@ public class TextExtractor extends BaseAlgorithm {
     private String removeBibSection(String text) {
     	BibliographyExtractor bibExtractor = new BibliographyExtractor(
     			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-    	return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text));
+    	//TODO: Test optimal section size
+    	return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {

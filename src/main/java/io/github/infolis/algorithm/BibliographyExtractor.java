@@ -22,8 +22,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.net.MediaType;
-
 /**
  * 
  * @author kata
@@ -72,6 +70,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             }
             
             // use hasBibNumberRatio_d method from python scripts
+            // TODO learn thresholds
             if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1)
                     && ((numDecimals / numChars) <= 0.004)) {
                 startedBib = true;
@@ -79,13 +78,13 @@ public class BibliographyExtractor extends BaseAlgorithm {
             }
 
             if (startedBib) {
-                if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1)
+            	if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1)
                         && ((numDecimals / numChars) <= 0.004)) {
                 } else {
                     textWithoutBib += section;
                 }
             } else {
-                if (((numNumbers / numChars) >= 0.008) && ((numNumbers / numChars) <= 0.1)
+            	if (((numNumbers / numChars) >= 0.08) && ((numNumbers / numChars) <= 0.1)
                         && ((numDecimals / numChars) <= 0.004)) {
                 } else {
                     textWithoutBib += section;
@@ -95,25 +94,22 @@ public class BibliographyExtractor extends BaseAlgorithm {
         return textWithoutBib;
     }
     
-    protected List<String> tokenizeSections(String text) {
+    protected List<String> tokenizeSections(String text, int sentencesPerSection) {
     	List<String> sections = new ArrayList<String>();
-    	//TODO: Test optimal section size
-    	int sentencesPerSection = 10;
     	int n = 0;
     	String section = "";
-    	sentenceIterator.setText(text);
-    	int start = sentenceIterator.first();
-        for (int end = sentenceIterator.next();	end != BreakIterator.DONE; start = end, end = sentenceIterator.next()) {
-        	n++;
-        	if (n <= sentencesPerSection) section += System.getProperty("line.separator") + text.substring(start,end);
-        	else { 
+
+    	String[] lines = text.split(System.getProperty("line.separator"));
+    	for (int i = 0; i < lines.length; i++) {
+    		n++;
+    		section += lines[i] + System.getProperty("line.separator");
+    		if (n >= sentencesPerSection) { 
         		sections.add(section);
         		section = "";
         		n = 0;
         	}
-        }
-        if (n != sentencesPerSection) sections.add(section);
-        for (String sec : sections) log.debug("----" + sec);
+    	}
+        if (n < sentencesPerSection) sections.add(section);
         return sections;
     }
     
@@ -126,6 +122,10 @@ public class BibliographyExtractor extends BaseAlgorithm {
             throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
                     "No values for parameter 'inputFiles'!");
         }        
+    }
+    
+    public String transformFilename(String filename) {
+    	return filename.replace(".txt", "_bibless.txt");
     }
     
     
@@ -150,8 +150,8 @@ public class BibliographyExtractor extends BaseAlgorithm {
                 persistExecution();
                 return;
             }
-            if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals(MediaType.PLAIN_TEXT_UTF_8.toString())) {
-                fatal(log, "File is not PLAIN_TEXT_UTF_8: " + inputFileURI);
+            if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals("text/plain")) {
+                fatal(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
@@ -166,12 +166,12 @@ public class BibliographyExtractor extends BaseAlgorithm {
             	persistExecution();
                 return;
             }
-            
-            List<String> inputSections = tokenizeSections(text);
+            //TODO: Test optimal section size
+            List<String> inputSections = tokenizeSections(text, 10);
             text = removeBibliography(inputSections);
             InfolisFile outFile = new InfolisFile();
-            //TODO: really overwrite file?
-            outFile.setFileName(inputFile.getFileName());
+            // creates a new file for each text document
+            outFile.setFileName(transformFilename(inputFile.getFileName()));
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");

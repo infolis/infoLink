@@ -161,6 +161,8 @@ public abstract class BaseAlgorithm implements Algorithm {
     public final void run() {
         log.debug("{}", SerializationUtils.toJSON(getExecution()));
         try {
+            getExecution().setStartTime(new Date());
+            getExecution().setStatus(ExecutionStatus.STARTED);
             baseValidate();
             validate();
         } catch (IllegalAlgorithmArgumentException | RuntimeException e) {
@@ -171,10 +173,9 @@ public abstract class BaseAlgorithm implements Algorithm {
         } finally {
             persistExecution();
         }
-        getExecution().setStatus(ExecutionStatus.STARTED);
-        getExecution().setStartTime(new Date());
         try {
             execute();
+            getExecution().setEndTime(new Date());
         } catch (Exception e) {
             log.error("Execution threw an Exception: {}", e);
             getExecution().setStatus(ExecutionStatus.FAILED);

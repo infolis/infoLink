@@ -14,7 +14,6 @@ import org.junit.Test;
  */
 public class BibliographyExtractor extends InfolisBaseTest {
 
-    @Test
     public void test() {
 
         String reference = "Udvarhelyi, I.S., Gatsonis, C.A., Epstein, A.M., Pashos, C.L., Newhouse, J.P. and McNeil, B.J. Acute Myocardial Infarction in the Medicare population: process of care and clinical outcomes. Journal of the American Medical Association, 1992; 18:2530-2536. ";

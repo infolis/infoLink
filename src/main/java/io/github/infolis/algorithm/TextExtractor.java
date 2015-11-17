@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -9,7 +8,6 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
 
@@ -21,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.regex.Matcher;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -60,6 +57,12 @@ public class TextExtractor extends BaseAlgorithm {
             throw new RuntimeException(e);
         }
     }
+    
+    private String removeBibSection(String text) {
+    	BibliographyExtractor bibExtractor = new BibliographyExtractor(
+    			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+    	return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text));
+    }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {
     	String asText = null;
@@ -87,16 +90,12 @@ public class TextExtractor extends BaseAlgorithm {
         
         try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
-                // check whether the bibliography should be removed
-                if (getExecution().isRemoveBib()) {
-                    asText = extractTextAndRemoveBibliography(pdfIn);
-                } else {
-                    asText = extractText(pdfIn);
-                }
+                asText = extractText(pdfIn);
                 if (null == asText) {
-                    throw new IOException("extractText/extractTextAndRemoveBibliography Returned null!");
+                    throw new IOException("extractText returned null!");
                 }
-
+                if (getExecution().isRemoveBib()) asText = removeBibSection(asText);
+                
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
@@ -145,76 +144,7 @@ public class TextExtractor extends BaseAlgorithm {
         return asText;
     }
 
-    /**
-     * Compute the ratio of numbers on page: a high number of numbers is assumed
-     * to be typical for bibliographies as they contain many years, page numbers
-     * and dates.
-     *
-     * @param pdfIn
-     *            {@link PDDocument} to extract text from
-     * @return text of the PDF sans the bibliography
-     * @throws IOException
-     */
-    private String extractTextAndRemoveBibliography(PDDocument pdfIn) throws IOException {
-        String textWithoutBib = "";
-        boolean startedBib = false;
-        // convert PDF pagewise and remove pages belonging to the bibliography
-        for (int i = 1; i <= pdfIn.getNumberOfPages(); i++) {
-            stripper.setStartPage(i);
-            stripper.setEndPage(i);
-            String pageText = stripper.getText(pdfIn);
-            if (null == pageText) {
-            	error(log, "Extraction failed for page %s in file %s", i, pdfIn);
-            	continue;
-            }
-            // clean the page
-            pageText = TextCleaningUtils.removeControlSequences(pageText);
-            pageText = TextCleaningUtils.removeLineBreaks(pageText);
-
-            double numNumbers = 0.0;
-            double numDecimals = 0.0;
-            double numChars = pageText.length();
-            if (numChars == 0.0) {
-                continue;
-            }
-            // determine the amount of numbers (numeric and decimal)
-            Matcher matcherNumeric = RegexUtils.patternNumeric.matcher(pageText);
-            Matcher matcherDecimal = RegexUtils.patternDecimal.matcher(pageText);
-            while (matcherNumeric.find()) {
-                numNumbers++;
-            }
-            while (matcherDecimal.find()) {
-                numDecimals++;
-            }
-            boolean containsCueWord = false;
-            for (String s : InfolisConfig.getBibliographyCues()) {
-                if (pageText.contains(s)) {
-                    containsCueWord = true;
-                    break;
-                }
-            }
-            // use hasBibNumberRatio_d method from python scripts
-            if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1)
-                    && ((numDecimals / numChars) <= 0.004)) {
-                startedBib = true;
-                continue;
-            }
-            if (startedBib) {
-                if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1)
-                        && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            } else {
-                if (((numNumbers / numChars) >= 0.008) && ((numNumbers / numChars) <= 0.1)
-                        && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            }
-        }
-        return textWithoutBib;
-    }
+    
 
     @Override
     public void execute() {
@@ -297,8 +227,8 @@ public class TextExtractor extends BaseAlgorithm {
 
         @Option(name = "-o", usage = "directory to save converted documents to", metaVar = "OUTPUT_PATH")
         private String outputPathOption = System.getProperty("user.dir");
-
-        @Option(name = "-p", usage = "remove bibliography", metaVar = "REMOVE_BIB")
+        
+        @Option(name = "-b", usage = "remove bibliographies", metaVar = "REMOVE_BIBLIOGRAPHIES")
         private boolean removeBib = false;
         
         @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
@@ -353,7 +283,6 @@ public class TextExtractor extends BaseAlgorithm {
                 System.exit(1);
             }
             execution.setOutputDirectory(outputPath.toString());
-
             execution.setRemoveBib(removeBib);
             execution.setOverwriteTextfiles(overwriteTextfiles);
 

@@ -8,7 +8,6 @@ import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
-import java.text.DateFormat;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -123,7 +122,7 @@ public abstract class BaseAlgorithm implements Algorithm {
     }
 
     private String log(Logger log, String fmt, String level, Object... args) {
-        final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
+    	final String str = String.format(fmt.replaceAll("%", "\\%").replaceAll("\\{\\}", "%s"), args);
         switch (level.toLowerCase()) {
             case "trace":
                 log.trace(str);

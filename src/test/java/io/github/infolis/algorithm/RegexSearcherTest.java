@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
  * @author kata
  * @author domi
  */
-public class PatternApplierTest extends InfolisBaseTest {
+public class RegexSearcherTest extends InfolisBaseTest {
 
 	private static final int NUMBER_OF_FILES = 7;
-	private static final Logger log = LoggerFactory.getLogger(PatternApplierTest.class);
+	private static final Logger log = LoggerFactory.getLogger(RegexSearcherTest.class);
 	private List<String> textUris;
 	private List<String> pdfUris;
 	// left context: <word> <word> to find the
@@ -66,11 +66,11 @@ public class PatternApplierTest extends InfolisBaseTest {
 	}
 
 	@Test
-	public void testPatternApplierWithPdf() throws Exception {
+	public void testRegexSearcherWithPdf() throws Exception {
 
 		Execution execution = new Execution();
 		execution.getPatterns().add(testPattern.getUri());
-		execution.setAlgorithm(PatternApplier.class);
+		execution.setAlgorithm(RegexSearcher.class);
 		execution.getInputFiles().addAll(pdfUris);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();             
@@ -84,11 +84,11 @@ public class PatternApplierTest extends InfolisBaseTest {
 	}
 
 	@Test
-	public void testPatternApplier() throws Exception {
+	public void testRegexSearcher() throws Exception {
 
 		Execution execution = new Execution();
 		execution.getPatterns().add(testPattern.getUri());
-		execution.setAlgorithm(PatternApplier.class);
+		execution.setAlgorithm(RegexSearcher.class);
 		execution.getInputFiles().addAll(textUris);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();

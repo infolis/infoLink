@@ -65,7 +65,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     public List<String> getContextsForPattern(InfolisPattern pattern) {
         Execution execution = new Execution();
         execution.getPatterns().add(pattern.getUri());
-        execution.setAlgorithm(PatternApplier.class);
+        execution.setAlgorithm(RegexSearcher.class);
         execution.getInputFiles().addAll(uris);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();

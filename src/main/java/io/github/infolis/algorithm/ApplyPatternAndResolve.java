@@ -43,12 +43,12 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        List<String> pattern = getExecution().getPatterns();
+        List<String> patterns = getExecution().getPatterns();
         if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
         	for (InfolisPattern infolisPattern : resolveTags(InfolisPattern.class, getExecution().getTags())) {
-        		pattern.add(infolisPattern.getUri());
+        		patterns.add(infolisPattern.getUri());
         	}	
-        	getExecution().setPatternUris(pattern);
+        	getExecution().setPatternUris(patterns);
         }
         List<String> inputFiles = getExecution().getInputFiles();
         if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
@@ -60,7 +60,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
                
-        List<String> textualRefs = searchPattern(pattern, inputFiles);        
+        List<String> textualRefs = searchPatterns(patterns, inputFiles);        
         
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
@@ -78,11 +78,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
-    private List<String> searchPattern(List<String> pattern, List<String> input) {
+    private List<String> searchPatterns(List<String> patterns, List<String> input) {
         Execution search = new Execution();
-        search.setAlgorithm(PatternApplier.class);
-        search.setPatternUris(pattern);
+        //search.setAlgorithm(PatternApplier.class);
+        search.setAlgorithm(RegexSearcher.class);
+        search.setPatternUris(patterns);
         search.setInputFiles(input);
+        search.setIndexDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
         updateProgress(1,4);

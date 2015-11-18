@@ -135,7 +135,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		List<String> patternURIs = getPatternUris(patternList);
     		Execution applierExecution = new Execution();
             applierExecution.setPatternUris(patternURIs);
-            applierExecution.setAlgorithm(PatternApplier.class);  
+            applierExecution.setAlgorithm(RegexSearcher.class);  
             applierExecution.getInputFiles().add(fileUri);
             applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
             applierExecution.instantiateAlgorithm(this).run();

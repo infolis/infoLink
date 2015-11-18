@@ -162,7 +162,7 @@ public class ExampleChecker extends InfolisBaseTest {
 
     public List<String> searchPattern(List<String> pattern, List<String> input) {
         Execution search = new Execution();
-        search.setAlgorithm(PatternApplier.class);
+        search.setAlgorithm(RegexSearcher.class);
         search.setPatternUris(pattern);
         search.setInputFiles(input);
         dataStoreClient.post(Execution.class, search);

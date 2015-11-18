@@ -31,13 +31,13 @@ import org.slf4j.LoggerFactory;
  * @author kata
  * @author kba
  */
-public class PatternApplier extends BaseAlgorithm {
+public class RegexSearcher extends BaseAlgorithm {
 
-    public PatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public RegexSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
+    private static final Logger log = LoggerFactory.getLogger(RegexSearcher.class);
 
     private String getFileAsString(InfolisFile file)
             throws IOException {

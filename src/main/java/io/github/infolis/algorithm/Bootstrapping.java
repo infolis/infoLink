@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.MissingFormatArgumentException;
 import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
@@ -93,6 +94,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
 			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
+			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
         	Execution stpExecution = new Execution();
             stpExecution.setAlgorithm(SearchTermPosition.class);

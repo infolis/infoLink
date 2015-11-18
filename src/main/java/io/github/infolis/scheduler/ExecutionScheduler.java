@@ -31,14 +31,17 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
+
+    /**
+     * @param aExecutor the executor to set
+     */
+    public static void setExecutor(ThreadPoolExecutor aExecutor) {
+        executor = aExecutor;
+    }
     private final Map<String, ExecutionStatus> statusForExecution = new HashMap<>();
 
     private ExecutionScheduler() { }
-    
-    private String getUriFor(final Algorithm r) {
-        return r.getExecution().getUri();
-    }
-    
+     
     private void setStatus(String uri, ExecutionStatus status)
     {
         synchronized (statusForExecution) {
@@ -47,7 +50,7 @@ public class ExecutionScheduler {
     }
 
     public void execute(final Algorithm r) {
-        final String uri = getUriFor(r);
+        final String uri = r.getExecution().getUri();
         setStatus(uri, PENDING);
         executor.execute(new Runnable() {
             @Override

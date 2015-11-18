@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 
-public interface Algorithm extends Runnable {
+public interface Algorithm  {
 
 	/**
 	 * Execute the algorithm.
@@ -22,6 +22,13 @@ public interface Algorithm extends Runnable {
 	void execute()
 			throws IOException;
 
+        /**
+	 * Run the algorithm.
+	 * 
+	 * 
+	 */
+	public void run();
+        
 	/**
 	 * Validate the execution object linking this algorithm with its
 	 * input/output parameters

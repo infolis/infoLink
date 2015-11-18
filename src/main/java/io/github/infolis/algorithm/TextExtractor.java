@@ -43,13 +43,6 @@ public class TextExtractor extends BaseAlgorithm {
     public TextExtractor(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
-    }
-
-    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
-
-    private static final PDFTextStripper stripper;
-
-    static {
         try {
             stripper = new PDFTextStripper();
         } catch (IOException e) {
@@ -57,18 +50,23 @@ public class TextExtractor extends BaseAlgorithm {
             throw new RuntimeException(e);
         }
     }
-    
+
+    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class
+    );
+
+    private final PDFTextStripper stripper;
+
     private String removeBibSection(String text) {
-    	BibliographyExtractor bibExtractor = new BibliographyExtractor(
-    			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
-    	//TODO: Test optimal section size
-    	return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
+        BibliographyExtractor bibExtractor = new BibliographyExtractor(
+                getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+        //TODO: Test optimal section size
+        return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {
-    	String asText = null;
-    	
-    	// TODO make configurable
+        String asText = null;
+
+        // TODO make configurable
         String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
         if (null != getExecution().getOutputDirectory()) {
             outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
@@ -77,26 +75,28 @@ public class TextExtractor extends BaseAlgorithm {
         InfolisFile outFile = new InfolisFile();
         outFile.setFileName(outFileName);
         outFile.setMediaType("text/plain");
-        
+
         if (getExecution().getOverwriteTextfiles() == false) {
-	        File _outFile = new File(outFileName);
-	        if (_outFile.exists()) { 
-	        	debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
-	        	asText = FileUtils.readFileToString(_outFile, "utf-8"); 
-	        	outFile.setMd5(SerializationUtils.getHexMd5(asText));
-	            outFile.setFileStatus("AVAILABLE");
-	            return outFile;
-	        }
+            File _outFile = new File(outFileName);
+            if (_outFile.exists()) {
+                debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
+                asText = FileUtils.readFileToString(_outFile, "utf-8");
+                outFile.setMd5(SerializationUtils.getHexMd5(asText));
+                outFile.setFileStatus("AVAILABLE");
+                return outFile;
+            }
         }
-        
+
         try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
                 asText = extractText(pdfIn);
                 if (null == asText) {
                     throw new IOException("extractText returned null!");
                 }
-                if (getExecution().isRemoveBib()) asText = removeBibSection(asText);
-                
+                if (getExecution().isRemoveBib()) {
+                    asText = removeBibSection(asText);
+                }
+
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
@@ -128,8 +128,7 @@ public class TextExtractor extends BaseAlgorithm {
     /**
      * Extract the text of a PDF and remove control sequences and line breaks.
      *
-     * @param pdfIn
-     *            {@link PDDocument} to extract text from
+     * @param pdfIn {@link PDDocument} to extract text from
      * @return text of the PDF
      * @throws IOException
      */
@@ -145,11 +144,9 @@ public class TextExtractor extends BaseAlgorithm {
         return asText;
     }
 
-    
-
     @Override
     public void execute() {
-        int counter =0;
+        int counter = 0;
         for (String inputFileURI : getExecution().getInputFiles()) {
             counter++;
             log.debug(inputFileURI);
@@ -176,25 +173,25 @@ public class TextExtractor extends BaseAlgorithm {
             }
             debug(log, "Start extracting from %s", inputFile);
             InfolisFile outputFile = null;
-            try {                
+            try {
                 outputFile = extract(inputFile);
                 updateProgress(counter, getExecution().getInputFiles().size());
             } catch (IOException e) {
-            	// invalid pdf file cannot be read by pdfBox
-            	// log error, skip file and continue with next file
-            	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
-            	continue;
+                // invalid pdf file cannot be read by pdfBox
+                // log error, skip file and continue with next file
+                error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
+                continue;
             } catch (RuntimeException e) {
-            	// error but not fatal: do not terminate execution but continue with next file.
-            	// RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
-            	// pdfBox cannot handle a (valid) pdf file due to its encoding
-            	error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
-            	continue;
+                // error but not fatal: do not terminate execution but continue with next file.
+                // RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
+                // pdfBox cannot handle a (valid) pdf file due to its encoding
+                error(log, "Extraction caused exception in file %s: %s\n%s", inputFile, e, ExceptionUtils.getStackTrace(e));
+                continue;
             }
             debug(log, "Converted to file %s", outputFile);
             getOutputDataStoreClient().post(InfolisFile.class, outputFile);
             if (null == outputFile) {
-            	error(log, "Conversion failed for input file %s", inputFileURI);
+                error(log, "Conversion failed for input file %s", inputFileURI);
             } else {
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }
@@ -212,7 +209,7 @@ public class TextExtractor extends BaseAlgorithm {
         } else if (0 == getExecution().getInputFiles().size()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
                     "No values for parameter 'inputFiles'!");
-        }        
+        }
     }
 
     /**
@@ -228,10 +225,10 @@ public class TextExtractor extends BaseAlgorithm {
 
         @Option(name = "-o", usage = "directory to save converted documents to", metaVar = "OUTPUT_PATH")
         private String outputPathOption = System.getProperty("user.dir");
-        
+
         @Option(name = "-b", usage = "remove bibliographies", metaVar = "REMOVE_BIBLIOGRAPHIES")
         private boolean removeBib = false;
-        
+
         @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
         private boolean overwriteTextfiles = true;
 

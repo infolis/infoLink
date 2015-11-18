@@ -168,6 +168,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             getExecution().setStatus(ExecutionStatus.FAILED);
             getExecution().getLog().add(e.getMessage());
             getExecution().setEndTime(new Date());
+            getExecution().setProgress(100);
             return;
         } finally {
             persistExecution();
@@ -175,10 +176,12 @@ public abstract class BaseAlgorithm implements Algorithm {
         try {
             execute();
             getExecution().setEndTime(new Date());
+            getExecution().setProgress(100);
         } catch (Exception e) {
             log.error("Execution threw an Exception: {}", e);
             getExecution().setStatus(ExecutionStatus.FAILED);
             getExecution().setEndTime(new Date());
+            getExecution().setProgress(100);
         } finally {
             persistExecution();
         }

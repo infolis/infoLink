@@ -12,7 +12,7 @@ import org.junit.Test;
  *
  * @author domi
  */
-public class BibliographyExtractor extends InfolisBaseTest {
+public class CitationMinerTest extends InfolisBaseTest {
 
     public void test() {
 

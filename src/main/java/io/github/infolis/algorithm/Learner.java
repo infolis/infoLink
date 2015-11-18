@@ -91,7 +91,7 @@ public class Learner extends BaseAlgorithm {
     private List<String> getTextDocuments(List<String> uris) {
     	Execution execution = new Execution();
     	execution.setInputFiles(uris);
-		execution.setAlgorithm(TextExtractorAlgorithm.class);
+		execution.setAlgorithm(TextExtractor.class);
 		this.getInputDataStoreClient().post(Execution.class, execution);
 		Algorithm algo = execution.instantiateAlgorithm(this.getInputDataStoreClient(), this.getOutputDataStoreClient(), this.getInputFileResolver(), this.getOutputFileResolver());
 		algo.run();

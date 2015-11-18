@@ -3,7 +3,7 @@ package io.github.infolis.model;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.util.SerializationUtils;
 
 import java.util.Date;
@@ -23,7 +23,7 @@ public class ExecutionTest extends InfolisBaseTest {
 		// "false"));
 
 		Execution execution = new Execution();
-		execution.setAlgorithm(TextExtractorAlgorithm.class);
+		execution.setAlgorithm(TextExtractor.class);
 		execution.getInputFiles().add("urn:foo");
 		execution.getOutputFiles().add("urn:bar");
 		execution.setRemoveBib(true);

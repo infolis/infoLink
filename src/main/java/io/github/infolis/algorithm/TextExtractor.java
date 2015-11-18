@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -9,10 +8,10 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 import io.github.infolis.util.TextCleaningUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,8 +19,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.regex.Matcher;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -39,14 +38,14 @@ import com.google.common.net.MediaType;
  * @author kba
  * @author kata
  */
-public class TextExtractorAlgorithm extends BaseAlgorithm {
+public class TextExtractor extends BaseAlgorithm {
 
-    public TextExtractorAlgorithm(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+    public TextExtractor(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(TextExtractorAlgorithm.class);
+    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
 
     private static final PDFTextStripper stripper;
 
@@ -58,30 +57,46 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             throw new RuntimeException(e);
         }
     }
+    
+    private String removeBibSection(String text) {
+    	BibliographyExtractor bibExtractor = new BibliographyExtractor(
+    			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+    	//TODO: Test optimal section size
+    	return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
+    }
 
     public InfolisFile extract(InfolisFile inFile) throws IOException {
-        String asText = null;
+    	String asText = null;
+    	
+    	// TODO make configurable
+        String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
+        if (null != getExecution().getOutputDirectory()) {
+            outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
+        }
 
+        InfolisFile outFile = new InfolisFile();
+        outFile.setFileName(outFileName);
+        outFile.setMediaType("text/plain");
+        
+        if (getExecution().getOverwriteTextfiles() == false) {
+	        File _outFile = new File(outFileName);
+	        if (_outFile.exists()) { 
+	        	debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
+	        	asText = FileUtils.readFileToString(_outFile, "utf-8"); 
+	        	outFile.setMd5(SerializationUtils.getHexMd5(asText));
+	            outFile.setFileStatus("AVAILABLE");
+	            return outFile;
+	        }
+        }
+        
         try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
-                // check whether the bibliography should be removed
-                if (getExecution().isRemoveBib()) {
-                    asText = extractTextAndRemoveBibliography(pdfIn);
-                } else {
-                    asText = extractText(pdfIn);
-                }
+                asText = extractText(pdfIn);
                 if (null == asText) {
-                    throw new IOException("extractText/extractTextAndRemoveBibliography Returned null!");
+                    throw new IOException("extractText returned null!");
                 }
-
-                // TODO make configurable
-                String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-                if (null != getExecution().getOutputDirectory()) {
-                    outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
-                }
-                InfolisFile outFile = new InfolisFile();
-                outFile.setFileName(outFileName);
-                outFile.setMediaType("text/plain");
+                if (getExecution().isRemoveBib()) asText = removeBibSection(asText);
+                
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
@@ -130,76 +145,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
         return asText;
     }
 
-    /**
-     * Compute the ratio of numbers on page: a high number of numbers is assumed
-     * to be typical for bibliographies as they contain many years, page numbers
-     * and dates.
-     *
-     * @param pdfIn
-     *            {@link PDDocument} to extract text from
-     * @return text of the PDF sans the bibliography
-     * @throws IOException
-     */
-    private String extractTextAndRemoveBibliography(PDDocument pdfIn) throws IOException {
-        String textWithoutBib = "";
-        boolean startedBib = false;
-        // convert PDF pagewise and remove pages belonging to the bibliography
-        for (int i = 1; i <= pdfIn.getNumberOfPages(); i++) {
-            stripper.setStartPage(i);
-            stripper.setEndPage(i);
-            String pageText = stripper.getText(pdfIn);
-            if (null == pageText) {
-            	error(log, "Extraction failed for page %s in file %s", i, pdfIn);
-            	continue;
-            }
-            // clean the page
-            pageText = TextCleaningUtils.removeControlSequences(pageText);
-            pageText = TextCleaningUtils.removeLineBreaks(pageText);
-
-            double numNumbers = 0.0;
-            double numDecimals = 0.0;
-            double numChars = pageText.length();
-            if (numChars == 0.0) {
-                continue;
-            }
-            // determine the amount of numbers (numeric and decimal)
-            Matcher matcherNumeric = RegexUtils.patternNumeric.matcher(pageText);
-            Matcher matcherDecimal = RegexUtils.patternDecimal.matcher(pageText);
-            while (matcherNumeric.find()) {
-                numNumbers++;
-            }
-            while (matcherDecimal.find()) {
-                numDecimals++;
-            }
-            boolean containsCueWord = false;
-            for (String s : InfolisConfig.getBibliographyCues()) {
-                if (pageText.contains(s)) {
-                    containsCueWord = true;
-                    break;
-                }
-            }
-            // use hasBibNumberRatio_d method from python scripts
-            if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1)
-                    && ((numDecimals / numChars) <= 0.004)) {
-                startedBib = true;
-                continue;
-            }
-            if (startedBib) {
-                if (((numNumbers / numChars) >= 0.01) && ((numNumbers / numChars) <= 0.1)
-                        && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            } else {
-                if (((numNumbers / numChars) >= 0.008) && ((numNumbers / numChars) <= 0.1)
-                        && ((numDecimals / numChars) <= 0.004)) {
-                } else {
-                    textWithoutBib += pageText;
-                }
-            }
-        }
-        return textWithoutBib;
-    }
+    
 
     @Override
     public void execute() {
@@ -282,9 +228,12 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
 
         @Option(name = "-o", usage = "directory to save converted documents to", metaVar = "OUTPUT_PATH")
         private String outputPathOption = System.getProperty("user.dir");
-
-        @Option(name = "-p", usage = "remove bibliography", metaVar = "REMOVE_BIB")
+        
+        @Option(name = "-b", usage = "remove bibliographies", metaVar = "REMOVE_BIBLIOGRAPHIES")
         private boolean removeBib = false;
+        
+        @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
+        private boolean overwriteTextfiles = true;
 
         public void parse(String[] args) {
             CmdLineParser parser = new CmdLineParser(this);
@@ -298,7 +247,7 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
             }
 
             Execution execution = new Execution();
-            execution.setAlgorithm(TextExtractorAlgorithm.class);
+            execution.setAlgorithm(TextExtractor.class);
             FileResolver ifr = FileResolverFactory.create(DataStoreStrategy.LOCAL);
             DataStoreClient idsc = DataStoreClientFactory.create(DataStoreStrategy.LOCAL);
             Algorithm algo = execution.instantiateAlgorithm(idsc, idsc, ifr, ifr);
@@ -335,8 +284,8 @@ public class TextExtractorAlgorithm extends BaseAlgorithm {
                 System.exit(1);
             }
             execution.setOutputDirectory(outputPath.toString());
-
             execution.setRemoveBib(removeBib);
+            execution.setOverwriteTextfiles(overwriteTextfiles);
 
             algo.run();
         }

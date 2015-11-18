@@ -3,7 +3,7 @@ package io.github.infolis.scheduler;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.PatternApplier;
-import io.github.infolis.algorithm.TextExtractorAlgorithm;
+import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
@@ -75,7 +75,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         writeFile(inFile);
 
         execution.getInputFiles().add(inFile.getUri());
-        execution.setAlgorithm(TextExtractorAlgorithm.class);
+        execution.setAlgorithm(TextExtractor.class);
         dataStoreClient.post(Execution.class, execution);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         exe.execute(algo);

@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -376,7 +377,7 @@ public class Execution extends BaseModel {
          * documents of a specific topic like social science.
          * 
 	 */
-	private List<String> tags;
+	private Set<String> tags;
 	
 	/**
 	 * Flag used by TextExtractor: if set to false, pdfs for which corresponding text 
@@ -654,11 +655,11 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public List<String> getTags() {
+    public Set<String> getTags() {
 		return tags;
 	}
     
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
 		this.tags = tags;
 	}
     

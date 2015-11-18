@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -77,6 +78,8 @@ public class TextExtractor extends BaseAlgorithm {
         InfolisFile outFile = new InfolisFile();
         outFile.setFileName(outFileName);
         outFile.setMediaType("text/plain");
+        //TODO either set or list for all tags
+        outFile.setTags(new HashSet<>(getExecution().getTags()));
         
         if (getExecution().getOverwriteTextfiles() == false) {
 	        File _outFile = new File(outFileName);

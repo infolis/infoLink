@@ -2,7 +2,9 @@ package io.github.infolis.model.entity;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -38,7 +40,7 @@ public class Entity extends BaseModel {
     @XmlAttribute
     private String name;
     private String identifier;
-    private List<String> tags;  
+    private Set<String> tags;  
   //TODO use uris instead of TextualReference objects (hard to change it)
     //private Collection<String> textualReferences;
     private Collection<TextualReference> textualReferences;
@@ -84,14 +86,14 @@ public class Entity extends BaseModel {
     /**
      * @return the tags
      */
-    public List<String> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
     /**
      * @param tags the tags to set
      */
-    public void setTags(List<String> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 
@@ -100,7 +102,7 @@ public class Entity extends BaseModel {
      */
     public void addTag(String tag) {
         if (tags == null) {
-            tags = new ArrayList<>();
+            tags = new HashSet<>();
         }
         tags.add(tag);
     }

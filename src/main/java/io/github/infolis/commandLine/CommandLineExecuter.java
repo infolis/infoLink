@@ -27,6 +27,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,6 +81,7 @@ public class CommandLineExecuter {
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
+    //TODO: support multiple tags (e.g. domain, journal, langage)
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
 
@@ -341,6 +343,7 @@ public class CommandLineExecuter {
         convertExec.setInputFiles(uris);
         convertExec.setRemoveBib(removeBib);
         convertExec.setOverwriteTextfiles(overwriteTextfiles);
+        convertExec.setTags(new HashSet<>(Arrays.asList(tag)));
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return convertExec.getOutputFiles();
@@ -361,6 +364,8 @@ public class CommandLineExecuter {
 
                 infolisFile.setFileName(file.toString());
                 infolisFile.setMediaType(mimetype);
+                //TODO: use either set or list for tags
+                infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
                 infolisFiles.add(infolisFile);
             }
@@ -412,6 +417,7 @@ public class CommandLineExecuter {
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
+        exec.setTags(new HashSet<String>(Arrays.asList(tag)));
         
         // if no JSON was provided, only convert files and exit
         if (null != json) {

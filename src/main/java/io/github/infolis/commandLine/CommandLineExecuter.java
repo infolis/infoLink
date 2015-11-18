@@ -283,7 +283,7 @@ public class CommandLineExecuter {
             if (null == textDir || !Files.exists(textDir)) {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
-                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles()));
                 } else {
                     throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
                 }
@@ -292,10 +292,10 @@ public class CommandLineExecuter {
                     //System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
                     //        + "' were specified. Will possibly clobber text files in conversion!");
                 	System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
-                            + "' were specified. Will ignore pdfs of existing text files.");
-                    //System.err.println("<Ctrl-C> to stop, <Enter> to continue");
-                    //System.in.read();
-                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf")));
+                            + "' were specified. Overwriting text files: " + exec.getOverwriteTextfiles());
+                    System.err.println("<Ctrl-C> to stop, <Enter> to continue");
+                    System.in.read();
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles()));
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }
@@ -334,13 +334,13 @@ public class CommandLineExecuter {
      * @param uris URIs of the InfolisFiles
      * @return URIs of the InfolisFiles of the text versions
      */
-    private List<String> convertPDF(List<String> uris) {
+    private List<String> convertPDF(List<String> uris, boolean removeBib, boolean overwriteTextfiles) {
         Execution convertExec = new Execution();
         convertExec.setAlgorithm(TextExtractor.class);
         convertExec.setOutputDirectory(textDir.toString());
         convertExec.setInputFiles(uris);
-        //TODO make configurable
-        convertExec.setOverwriteTextfiles(false);
+        convertExec.setRemoveBib(removeBib);
+        convertExec.setOverwriteTextfiles(overwriteTextfiles);
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return convertExec.getOutputFiles();

@@ -2,12 +2,20 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  *
@@ -18,17 +26,37 @@ import java.util.List;
  * Used alogrithms: PatternApplier - MetaDataExtractor - FederatedSearcher - Resolver
  * 
  * @author domi
+ * @author kata
+ * 
  */
 public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     public ApplyPatternAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
+    
+    private <T extends BaseModel> List<T> resolveTags(Class<T> clazz, Set<String> tags) {
+    	Multimap<String, String> query = HashMultimap.create();
+    	for (String tag : tags) query.put("tags", tag);
+    	return getInputDataStoreClient().search(clazz, query);
+    }
 
     @Override
     public void execute() throws IOException {
         List<String> pattern = getExecution().getPatterns();
+        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+        	for (InfolisPattern infolisPattern : resolveTags(InfolisPattern.class, getExecution().getTags())) {
+        		pattern.add(infolisPattern.getUri());
+        	}	
+        	getExecution().setPatternUris(pattern);
+        }
         List<String> inputFiles = getExecution().getInputFiles();
+        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+        	for (InfolisFile infolisFile : resolveTags(InfolisFile.class, getExecution().getTags())) {
+        		inputFiles.add(infolisFile.getUri());
+        	}	
+        	getExecution().setInputFiles(inputFiles);
+        }
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
                
@@ -97,11 +125,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
+        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        		(null == this.getExecution().getTags() || this.getExecution().getTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+        if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
+        		(null == this.getExecution().getTags() || this.getExecution().getTags().isEmpty()))
+        {
             throw new IllegalArgumentException("No patterns given.");
         }
         if (null == this.getExecution().getQueryServices() || this.getExecution().getQueryServices().isEmpty()) {

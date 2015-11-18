@@ -12,6 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -377,7 +378,7 @@ public class Execution extends BaseModel {
          * documents of a specific topic like social science.
          * 
 	 */
-	private Set<String> tags;
+	private Set<String> tags = new HashSet<>();
 	
 	/**
 	 * Flag used by TextExtractor: if set to false, pdfs for which corresponding text 

@@ -106,6 +106,13 @@ public class PatternApplier extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
         //int counter = 0, size = getExecution().getInputFiles().size();
         //log.debug("number of input files: " + size);
         //updateProgress(counter, size);
@@ -117,11 +124,12 @@ public class PatternApplier extends BaseAlgorithm {
 
     @Override
     public void validate() {
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
+    	if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        	(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+        if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
+        	(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty())) {
             throw new IllegalArgumentException("No patterns given.");
         }
         if (null == this.getExecution().getIndexDirectory() || this.getExecution().getIndexDirectory().isEmpty()) {

@@ -152,6 +152,14 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void execute() {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
         int counter =0;
         for (String inputFileURI : getExecution().getInputFiles()) {
             counter++;
@@ -211,13 +219,10 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == getExecution().getInputFiles()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
-                    "Required parameter 'inputFiles' is missing!");
-        } else if (0 == getExecution().getInputFiles().size()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
-                    "No values for parameter 'inputFiles'!");
-        }        
+    	if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+            throw new IllegalArgumentException("Must set at least one inputFile!");
+        }
     }
 
     /**

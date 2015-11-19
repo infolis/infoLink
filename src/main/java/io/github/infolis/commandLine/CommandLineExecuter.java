@@ -52,6 +52,9 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import ch.qos.logback.classic.Level;
 
 /**
@@ -140,6 +143,7 @@ public class CommandLineExecuter {
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
+                    
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
@@ -153,6 +157,17 @@ public class CommandLineExecuter {
                     }
                     exec.setProperty(values.getKey(), listEntries);
                     break;
+                case OBJECT:
+                	if (values.getKey().equals("tagMap")) {
+                		JsonObject obj = (JsonObject) values.getValue();
+                		Multimap<String, String> tagMap = HashMultimap.create();
+                		for (String key : obj.keySet()) {
+                			JsonArray val = obj.getJsonArray(key);
+                			for (JsonValue tag : val) tagMap.put(key, tag.toString());
+                		}
+                        exec.setTagMap(tagMap);
+                        break;
+                    }
                 default:
                     throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
                             + values.getKey());

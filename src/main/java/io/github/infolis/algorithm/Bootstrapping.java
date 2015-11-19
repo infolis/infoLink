@@ -150,9 +150,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
                 || this.getExecution().getSeeds().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one term as seed!");
         }
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
-            throw new IllegalArgumentException("Must set at least one input file!");
+        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+            throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if (null == this.getExecution().getBootstrapStrategy()) {
             throw new IllegalArgumentException("Must set the bootstrap strategy");
@@ -161,6 +161,14 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     
     @Override
     public void execute() throws IOException {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
     	this.indexerExecution = createIndex();
     	List<TextualReference> detectedContexts = new ArrayList<>();
         try {

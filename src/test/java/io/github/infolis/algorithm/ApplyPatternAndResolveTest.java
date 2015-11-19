@@ -28,6 +28,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * Tests for the ApplyPatternAndResolve algorithm.
  * 
@@ -51,7 +54,10 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         InfolisPattern infolisPattern = new InfolisPattern();
         infolisPattern.setPatternRegex(".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
         infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
-        HashSet<String> tags = new HashSet<>(Arrays.asList("test"));
+        Multimap<String, String> tagMap = HashMultimap.create();
+        tagMap.put("InfolisPattern","test");
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("test");
         infolisPattern.setTags(tags);
 
         //post all important stuff
@@ -61,7 +67,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.setAlgorithm(ApplyPatternAndResolve.class);
-        e.setTags(tags);
+        e.setTagMap(tagMap);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
         dataStoreClient.post(Execution.class, e);

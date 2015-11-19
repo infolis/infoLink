@@ -23,6 +23,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 import java.lang.reflect.Field;
 
 /**
@@ -371,11 +374,24 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> linkedEntities;
         
-        //TODO: include tags
 	/**
 	 * A tag indicates which corpus of documents and/or patterns should be used.
          * For example, a user likes to apply patterns learnt on
          * documents of a specific topic like social science.
+         * This map contains names of classes extending the BaseModel as keys 
+         * and a list of tags as values. This parameter is for using tags 
+         * inside the application.
+         * 
+	 */
+	// TODO don't ignore this, make jackson serialize this properly!
+	@JsonIgnore
+	private Multimap<String, String> tagMap = HashMultimap.create();
+	
+	/**
+	 * A tag indicates which corpus of documents and/or patterns should be used.
+         * For example, a user likes to apply patterns learnt on
+         * documents of a specific topic like social science.
+         * These tags describe the execution to make it searchable via its tags.
          * 
 	 */
 	private Set<String> tags = new HashSet<>();
@@ -656,8 +672,16 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
+    public Multimap<String, String> getTagMap() {
+		return this.tagMap;
+	}
+    
     public Set<String> getTags() {
-		return tags;
+		return this.tags;
+	}
+    
+    public void setTagMap(Multimap<String, String> tagMap) {
+		this.tagMap = tagMap;
 	}
     
     public void setTags(Set<String> tags) {

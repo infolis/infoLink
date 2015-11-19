@@ -34,33 +34,21 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     public ApplyPatternAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-    
-    private <T extends BaseModel> List<T> resolveTags(Class<T> clazz, Set<String> tags) {
-    	Multimap<String, String> query = HashMultimap.create();
-    	for (String tag : tags) query.put("tags", tag);
-    	return getInputDataStoreClient().search(clazz, query);
-    }
 
     @Override
     public void execute() throws IOException {
-        List<String> patterns = getExecution().getPatterns();
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
-        	for (InfolisPattern infolisPattern : resolveTags(InfolisPattern.class, getExecution().getTags())) {
-        		patterns.add(infolisPattern.getUri());
-        	}	
-        	getExecution().setPatternUris(patterns);
-        }
-        List<String> inputFiles = getExecution().getInputFiles();
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
-        	for (InfolisFile infolisFile : resolveTags(InfolisFile.class, getExecution().getTags())) {
-        		inputFiles.add(infolisFile.getUri());
-        	}	
-        	getExecution().setInputFiles(inputFiles);
-        }
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+        
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
                
-        List<String> textualRefs = searchPatterns(patterns, inputFiles);        
+        List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());        
         
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
@@ -128,11 +116,11 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTags() || this.getExecution().getTags().isEmpty())){
+        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
-        		(null == this.getExecution().getTags() || this.getExecution().getTags().isEmpty()))
+        		(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty()))
         {
             throw new IllegalArgumentException("No patterns given.");
         }

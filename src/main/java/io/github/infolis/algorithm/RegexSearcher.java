@@ -129,6 +129,14 @@ public class RegexSearcher extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
         List<TextualReference> detectedContexts = new ArrayList<>();
         int counter = 0, size = getExecution().getInputFiles().size();
         System.out.println("size: " + size);
@@ -187,11 +195,12 @@ public class RegexSearcher extends BaseAlgorithm {
 
     @Override
     public void validate() {
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
+    	if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        	(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
-        }
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+    	}
+        if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
+        		(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty())){
             throw new IllegalArgumentException("No patterns given.");
         }
     }

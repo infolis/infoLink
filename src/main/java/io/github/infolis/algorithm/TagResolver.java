@@ -32,7 +32,7 @@ public class TagResolver extends BaseAlgorithm {
 	}
 	
 	private void parseTags() {
-		Multimap<String, String> tagMap = getExecution().getTagMap(); 
+		Multimap<String, String> tagMap = getExecution().getTagMap().asMultimap(); 
 		for (String className : tagMap.keys()) {
 			log.debug("Resolving class name \"" + className + "\"");
 			Collection<String> tags = tagMap.get(className);

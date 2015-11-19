@@ -383,9 +383,8 @@ public class Execution extends BaseModel {
          * inside the application.
          * 
 	 */
-	// TODO don't ignore this, make jackson serialize this properly!
-	@JsonIgnore
-	private Multimap<String, String> tagMap = HashMultimap.create();
+
+	private TagMap tagMap = new TagMap();
 	
 	/**
 	 * A tag indicates which corpus of documents and/or patterns should be used.
@@ -672,7 +671,7 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public Multimap<String, String> getTagMap() {
+    public TagMap getTagMap() {
 		return this.tagMap;
 	}
     
@@ -680,7 +679,12 @@ public class Execution extends BaseModel {
 		return this.tags;
 	}
     
-    public void setTagMap(Multimap<String, String> tagMap) {
+    // jackson does not like overloading setters
+    public void useTagMap(Multimap<String, String> tagMap) {
+		this.tagMap.setTagMap(tagMap);
+	}
+    
+    public void setTagMap(TagMap tagMap) {
 		this.tagMap = tagMap;
 	}
     

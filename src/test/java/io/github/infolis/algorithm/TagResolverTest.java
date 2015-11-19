@@ -34,7 +34,7 @@ public class TagResolverTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.setAlgorithm(TagResolver.class);
-        e.setTagMap(tagMap);
+        e.useTagMap(tagMap);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         assertEquals(infolisPattern.getUri(), e.getPatterns().get(0));
 	}

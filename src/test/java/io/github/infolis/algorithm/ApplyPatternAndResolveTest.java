@@ -67,7 +67,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.setAlgorithm(ApplyPatternAndResolve.class);
-        e.setTagMap(tagMap);
+        e.useTagMap(tagMap);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
         dataStoreClient.post(Execution.class, e);

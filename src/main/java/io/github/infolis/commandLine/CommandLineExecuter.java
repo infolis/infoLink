@@ -165,7 +165,7 @@ public class CommandLineExecuter {
                 			JsonArray val = obj.getJsonArray(key);
                 			for (JsonValue tag : val) tagMap.put(key, tag.toString());
                 		}
-                        exec.setTagMap(tagMap);
+                        exec.useTagMap(tagMap);
                         break;
                     }
                 default:

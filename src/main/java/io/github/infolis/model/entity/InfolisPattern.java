@@ -47,6 +47,7 @@ public class InfolisPattern extends BaseModel {
     private List<String> words = new ArrayList<>();
     private double threshold;
     private double reliability;
+    private Set<String> tags = new HashSet<>();
     // TODO @bolandka Make this a class so it can be persisted
     private Map<String, Double> associations = new HashMap<>();
     //TODO: change to URI -> string
@@ -125,6 +126,14 @@ public class InfolisPattern extends BaseModel {
     public void setWords(List<String> words) {
         this.words = words;
     }
+    
+    public Set<String> getTags() {
+		return tags;
+	}
+    
+	public void setTags(Set<String> tags) {
+		this.tags = tags;
+	}
 
 
     /**

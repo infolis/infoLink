@@ -4,33 +4,42 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Tests for the ApplyPatternAndResolve algorithm.
  * 
+ * @author kata
  * @author domi
  */
 public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
+	private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
     /**
      * Applies a given set of pattern (loaded from a file) and resolves the
      * references.
@@ -41,20 +50,31 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
     public void applyPatternAndResolveRefs() throws IOException {
 
         File txtDir = new File(getClass().getResource("/examples/minimal-txt").getFile());
-        File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
+        
+        InfolisPattern infolisPattern = new InfolisPattern();
+        infolisPattern.setPatternRegex(".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
+        infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
+        Multimap<String, String> tagMap = HashMultimap.create();
+        tagMap.put("InfolisPattern","test");
+        HashSet<String> tags = new HashSet<String>();
+        tags.add("test");
+        infolisPattern.setTags(tags);
 
         //post all important stuff
-        List<String> pattern = postPattern(patternFile);
+        dataStoreClient.post(InfolisPattern.class, infolisPattern);
         List<String> txt = postTxtFiles(txtDir);
         List<String> qServices = postQueryServices();
 
         Execution e = new Execution();
         e.setAlgorithm(ApplyPatternAndResolve.class);
-        e.setPatternUris(pattern);
+        e.useTagMap(tagMap);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        for (String ref : e.getTextualReferences()) {
+        	log.debug(ref);
+        }
 
         List<EntityLink> createdLinks = dataStoreClient.get(EntityLink.class, e.getLinks());
         //check the amount of created links
@@ -95,20 +115,6 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
             txtFiles.add(inFile.getUri());
         }
         return txtFiles;
-    }
-
-    public List<String> postPattern(File pattern) throws IOException {
-        BufferedReader read = new BufferedReader(new FileReader(pattern));
-        String line = read.readLine();
-        List<String> postedPattern = new ArrayList<>();
-        while (line != null) {
-            InfolisPattern p = new InfolisPattern(line);
-            dataStoreClient.post(InfolisPattern.class, p);
-            postedPattern.add(p.getUri());
-            line = read.readLine();
-        }
-        read.close();
-        return postedPattern;
     }
 
     public List<String> postQueryServices() throws IOException {

@@ -2,7 +2,7 @@ package io.github.infolis.scheduler;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.PatternApplier;
+import io.github.infolis.algorithm.RegexSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
@@ -59,7 +59,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         List<String> txt = postTxtFiles(txtDir);
 
         Execution e = new Execution();
-        e.setAlgorithm(PatternApplier.class);
+        e.setAlgorithm(RegexSearcher.class);
         e.setPatternUris(pattern);
         e.setInputFiles(txt);
         dataStoreClient.post(Execution.class, e);

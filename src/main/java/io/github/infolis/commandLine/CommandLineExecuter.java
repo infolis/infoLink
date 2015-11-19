@@ -27,6 +27,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +51,9 @@ import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 import ch.qos.logback.classic.Level;
 
@@ -80,6 +84,7 @@ public class CommandLineExecuter {
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
+    //TODO: support multiple tags (e.g. domain, journal, langage)
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
 
@@ -138,6 +143,7 @@ public class CommandLineExecuter {
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
+                    
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
@@ -151,7 +157,19 @@ public class CommandLineExecuter {
                     }
                     exec.setProperty(values.getKey(), listEntries);
                     break;
-                default:
+                case OBJECT:
+                	if (values.getKey().equals("tagMap")) {
+                		JsonObject obj = (JsonObject) values.getValue();
+                		Multimap<String, String> tagMap = HashMultimap.create();
+                		for (String key : obj.keySet()) {
+                			JsonArray val = obj.getJsonArray(key);
+                			for (JsonValue tag : val) tagMap.put(key, tag.toString());
+                		}
+                        exec.useTagMap(tagMap);
+                        break;
+                    }
+                	//$FALL-THROUGH$
+					default:
                     throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
                             + values.getKey());
                     break;
@@ -341,6 +359,7 @@ public class CommandLineExecuter {
         convertExec.setInputFiles(uris);
         convertExec.setRemoveBib(removeBib);
         convertExec.setOverwriteTextfiles(overwriteTextfiles);
+        convertExec.setTags(new HashSet<>(Arrays.asList(tag)));
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return convertExec.getOutputFiles();
@@ -361,6 +380,8 @@ public class CommandLineExecuter {
 
                 infolisFile.setFileName(file.toString());
                 infolisFile.setMediaType(mimetype);
+                //TODO: use either set or list for tags
+                infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
                 infolisFiles.add(infolisFile);
             }
@@ -412,6 +433,7 @@ public class CommandLineExecuter {
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
+        exec.setTags(new HashSet<String>(Arrays.asList(tag)));
         
         // if no JSON was provided, only convert files and exit
         if (null != json) {

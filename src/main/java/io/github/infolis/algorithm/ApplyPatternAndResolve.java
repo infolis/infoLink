@@ -2,12 +2,20 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  *
@@ -18,6 +26,8 @@ import java.util.List;
  * Used alogrithms: PatternApplier - MetaDataExtractor - FederatedSearcher - Resolver
  * 
  * @author domi
+ * @author kata
+ * 
  */
 public class ApplyPatternAndResolve extends BaseAlgorithm {
 
@@ -27,12 +37,18 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-        List<String> pattern = getExecution().getPatterns();
-        List<String> inputFiles = getExecution().getInputFiles();
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.instantiateAlgorithm(this).run();
+    	
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+        
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
                
-        List<String> textualRefs = searchPattern(pattern, inputFiles);        
+        List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());        
         
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
@@ -50,11 +66,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
-    private List<String> searchPattern(List<String> pattern, List<String> input) {
+    private List<String> searchPatterns(List<String> patterns, List<String> input) {
         Execution search = new Execution();
-        search.setAlgorithm(PatternApplier.class);
-        search.setPatternUris(pattern);
+        //search.setAlgorithm(PatternApplier.class);
+        search.setAlgorithm(RegexSearcher.class);
+        search.setPatternUris(patterns);
         search.setInputFiles(input);
+        search.setIndexDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
         updateProgress(1,4);
@@ -97,11 +115,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == this.getExecution().getInputFiles()
-                || this.getExecution().getInputFiles().isEmpty()) {
+        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
+        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if (null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) {
+        if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
+        		(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty()))
+        {
             throw new IllegalArgumentException("No patterns given.");
         }
         if (null == this.getExecution().getQueryServices() || this.getExecution().getQueryServices().isEmpty()) {

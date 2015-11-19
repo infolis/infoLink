@@ -679,11 +679,6 @@ public class Execution extends BaseModel {
 		return this.tags;
 	}
     
-    // jackson does not like overloading setters
-    public void useTagMap(Multimap<String, String> tagMap) {
-		this.tagMap.setTagMap(tagMap);
-	}
-    
     public void setTagMap(TagMap tagMap) {
 		this.tagMap = tagMap;
 	}

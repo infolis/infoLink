@@ -196,11 +196,11 @@ public class RegexSearcher extends BaseAlgorithm {
     @Override
     public void validate() {
     	if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        	(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+        	(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
     	}
         if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
-        		(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty())){
+        	(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisPatternTags().isEmpty())) {
             throw new IllegalArgumentException("No patterns given.");
         }
     }

@@ -3,7 +3,9 @@ package io.github.infolis.algorithm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +13,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import io.github.infolis.Registry;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.TagMap;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
@@ -27,26 +29,24 @@ public class TagResolver extends BaseAlgorithm {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 	
-	private <T extends BaseModel> List<T> resolve(Class<T> clazz, Multimap<String, String> query) {
-		return getInputDataStoreClient().search(clazz, query);
-	}
-	
 	private void parseTags() {
-		Multimap<String, String> tagMap = getExecution().getTagMap().asMultimap(); 
-		for (String className : tagMap.keys()) {
-			log.debug("Resolving class name \"" + className + "\"");
-			Collection<String> tags = tagMap.get(className);
-			Class<? extends BaseModel> clazz = Registry.getClass(className);
-			
+		TagMap tagMap = getExecution().getTagMap();
+		
+		Map<Class<?extends BaseModel>, Collection<String>> toResolve = new HashMap<>();
+
+		toResolve.put(InfolisFile.class, tagMap.getInfolisFileTags());
+		toResolve.put(InfolisPattern.class, tagMap.getInfolisPatternTags());
+
+		for (Class<? extends BaseModel> clazz : toResolve.keySet()) {
 			Multimap<String, String> query = HashMultimap.create();
-	    	for (String tag : tags) query.put("tags", tag);
-	    	
-	    	List<? extends BaseModel> matchingItemsInDb;
-	    	matchingItemsInDb = resolve(clazz, query);
-	    	
-	    	setExecutionParameters(clazz, matchingItemsInDb);
+			query.putAll("tags", toResolve.get(clazz));
+			List<? extends BaseModel> matchingItemsInDb;
+			matchingItemsInDb = getInputDataStoreClient().search(clazz, query);
+			setExecutionParameters(clazz, matchingItemsInDb);
 		}
+		
 	}
+
 	
 	private List<String> getUris(List<? extends BaseModel> itemList) {
     	List<String> uris = new ArrayList<String>();

@@ -1,21 +1,5 @@
 package io.github.infolis.commandLine;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchTermPosition;
-import io.github.infolis.algorithm.TextExtractor;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.model.BootstrapStrategy;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.RegexUtils;
-import io.github.infolis.util.SerializationUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,10 +36,23 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 import ch.qos.logback.classic.Level;
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.TextExtractor;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.MetaDataExtractingStrategy;
+import io.github.infolis.model.TagMap;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.RegexUtils;
+import io.github.infolis.util.SerializationUtils;
 
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
@@ -160,12 +157,18 @@ public class CommandLineExecuter {
                 case OBJECT:
                 	if (values.getKey().equals("tagMap")) {
                 		JsonObject obj = (JsonObject) values.getValue();
-                		Multimap<String, String> tagMap = HashMultimap.create();
+                		TagMap tagMap = new TagMap();
                 		for (String key : obj.keySet()) {
                 			JsonArray val = obj.getJsonArray(key);
-                			for (JsonValue tag : val) tagMap.put(key, tag.toString());
+                			if(key.equals("infolisPatternTags")) {
+                				tagMap.getInfolisPatternTags().add(val.toString());
+                			} else if (key.equals("infolisFileTags")) {
+                				tagMap.getInfolisFileTags().add(val.toString());
+                			} else {
+                				throw new RuntimeException("Unknown key for tagMap: " + key);
+                			}
                 		}
-                        exec.useTagMap(tagMap);
+                        exec.setTagMap(tagMap);
                         break;
                     }
                 	//$FALL-THROUGH$

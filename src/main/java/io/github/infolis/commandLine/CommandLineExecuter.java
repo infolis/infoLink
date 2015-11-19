@@ -168,7 +168,8 @@ public class CommandLineExecuter {
                         exec.useTagMap(tagMap);
                         break;
                     }
-                default:
+                	//$FALL-THROUGH$
+					default:
                     throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
                             + values.getKey());
                     break;

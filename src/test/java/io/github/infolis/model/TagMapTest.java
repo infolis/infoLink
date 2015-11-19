@@ -1,5 +1,6 @@
 package io.github.infolis.model;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,10 @@ public class TagMapTest
 	public void testTagMap() throws Exception
 	{
 		TagMap tm = new TagMap();
-		log.debug("{}", SerializationUtils.toJSON(tm));
+		tm.getInfolisFileTags().add("test");
+		String tmSer = SerializationUtils.toJSON(tm);
+		Assert.assertTrue(tmSer.contains("infolisPattern"));
+		Assert.assertTrue(tmSer.contains("[\"test\"]"));
 
 	}
 

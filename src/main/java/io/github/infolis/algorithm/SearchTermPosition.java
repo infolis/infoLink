@@ -149,13 +149,13 @@ public class SearchTermPosition extends BaseAlgorithm {
         InfolisPattern infolisPat = null;
         Pattern pat = Pattern.compile(RegexUtils.leftContextPat_ + Pattern.quote(term) + RegexUtils.rightContextPat_);
         String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
+        LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
         List<TextualReference> contextList = new ArrayList<>();
         ltm.run();
 
         if (ltm.finished() && !ltm.matched()) {
             pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + removeSpecialCharsFromTerm(term) + RegexUtils.rightContextPat_);
-            ltm = new LimitedTimeMatcher(pat, text, 10_000, threadName);
+            ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
             ltm.run();
         }
 

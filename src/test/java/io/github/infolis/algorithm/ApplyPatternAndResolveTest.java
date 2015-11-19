@@ -1,16 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.EntityLink;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.util.RegexUtils;
-import io.github.infolis.util.SerializationUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,18 +7,23 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.TagMap;
+import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.util.SerializationUtils;
 
 /**
  * Tests for the ApplyPatternAndResolve algorithm.
@@ -54,8 +48,8 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         InfolisPattern infolisPattern = new InfolisPattern();
         infolisPattern.setPatternRegex(".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
         infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
-        Multimap<String, String> tagMap = HashMultimap.create();
-        tagMap.put("InfolisPattern","test");
+        TagMap tagMap = new TagMap();
+        tagMap.getInfolisPatternTags().add("test");
         HashSet<String> tags = new HashSet<String>();
         tags.add("test");
         infolisPattern.setTags(tags);
@@ -67,7 +61,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.setAlgorithm(ApplyPatternAndResolve.class);
-        e.useTagMap(tagMap);
+        e.setTagMap(tagMap);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
         dataStoreClient.post(Execution.class, e);

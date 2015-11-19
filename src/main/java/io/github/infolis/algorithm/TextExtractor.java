@@ -220,7 +220,7 @@ public class TextExtractor extends BaseAlgorithm {
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
     	if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
     }

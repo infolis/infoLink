@@ -1,21 +1,14 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.model.BaseModel;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.InfolisPattern;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 
 /**
  *
@@ -116,11 +109,11 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
-        		(null == this.getExecution().getTagMap().get("InfolisPattern") || this.getExecution().getTagMap().get("InfolisPattern").isEmpty()))
+        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisPatternTags().isEmpty()))
         {
             throw new IllegalArgumentException("No patterns given.");
         }

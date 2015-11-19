@@ -151,7 +151,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             throw new IllegalArgumentException("Must set at least one term as seed!");
         }
         if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTagMap().get("InfolisFile") || this.getExecution().getTagMap().get("InfolisFile").isEmpty())){
+        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
         if (null == this.getExecution().getBootstrapStrategy()) {

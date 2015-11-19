@@ -27,9 +27,10 @@ public class FederatedSearcher extends BaseAlgorithm {
         List<SearchResult> allResults = new ArrayList<>();
 
         SearchQuery query = getInputDataStoreClient().get(SearchQuery.class, getExecution().getSearchQuery());
-        int counter = 0, size = getExecution().getQueryServices().size();
+        int counter = 0, size =0;
 
         if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+            size = getExecution().getQueryServiceClasses().size();
             for (Class<? extends QueryService> qs : getExecution().getQueryServiceClasses()) {
                 QueryService queryService;
                 try {
@@ -45,7 +46,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                 }
             }
         } else if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
-
+            size = getExecution().getQueryServices().size();
             for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
 
                 List<SearchResult> results = queryService.executeQuery(query);

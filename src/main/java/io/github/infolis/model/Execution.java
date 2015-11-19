@@ -691,8 +691,39 @@ public class Execution extends BaseModel {
     }
     
     public void setQueryServiceClasses(List<Class<? extends QueryService>> queryServiceClasses) {
-        this.queryServiceClasses = queryServiceClasses;
+        for(Class<? extends QueryService> qs : queryServiceClasses) {
+            instantiateQueryService(qs);
+            if(this.queryServiceClasses==null) {
+                this.queryServiceClasses = new ArrayList<>();
+            }
+            this.queryServiceClasses.add(qs);
+        }        
     }
+    
+    public void addQueryServiceClasses(Class<? extends QueryService> queryServiceClasses) {
+        instantiateQueryService(queryServiceClasses);
+        if(this.queryServiceClasses==null) {
+            this.queryServiceClasses = new ArrayList<>();
+            }
+        this.queryServiceClasses.add(queryServiceClasses);
+    }
+    
+    private QueryService instantiateQueryService(Class<? extends QueryService> qs) {
+		if (null == qs) {
+			throw new IllegalArgumentException(
+					"Must set 'queryServiceClass' of execution before calling.");
+		}
+		QueryService queryService;
+		try {
+			Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
+			queryService = constructor.newInstance();
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+		logger.debug("Created instance for queryService '{}'", qs);
+		return queryService;
+	}
+    
     
     public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field field = this.getClass().getDeclaredField(fieldName);

@@ -29,10 +29,11 @@ public class TagResolverTest extends InfolisBaseTest {
         infolisPattern.setTags(tags);
 
         dataStoreClient.post(InfolisPattern.class, infolisPattern);
+        dataStoreClient.post(TagMap.class, tagMap);
 
         Execution e = new Execution();
         e.setAlgorithm(TagResolver.class);
-        e.setTagMap(tagMap);
+        e.setTagMap(tagMap.getUri());
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         assertEquals(infolisPattern.getUri(), e.getPatterns().get(0));
 	}

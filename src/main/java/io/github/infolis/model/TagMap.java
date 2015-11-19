@@ -8,7 +8,7 @@ import java.util.Set;
  * @author kata
  *
  */
-public class TagMap {
+public class TagMap extends BaseModel {
 	
 	private Set<String> infolisPatternTags = new HashSet<>();
 	private Set<String> infolisFileTags = new HashSet<>();

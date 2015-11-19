@@ -389,7 +389,7 @@ public class Execution extends BaseModel {
          * 
 	 */
 
-	private TagMap tagMap = new TagMap();
+	private String tagMap;
 	
 	/**
 	 * A tag indicates which corpus of documents and/or patterns should be used.
@@ -676,7 +676,7 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public TagMap getTagMap() {
+    public String getTagMap() {
 		return this.tagMap;
 	}
     
@@ -684,7 +684,7 @@ public class Execution extends BaseModel {
 		return this.tags;
 	}
     
-    public void setTagMap(TagMap tagMap) {
+    public void setTagMap(String tagMap) {
 		this.tagMap = tagMap;
 	}
     

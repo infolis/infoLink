@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -125,6 +126,27 @@ public class CommandLineExecuter {
                             exec.setAlgorithm(algoClass);
                         } catch (ClassNotFoundException | ClassCastException e1) {
                             throwCLI("No such algorithm: " + algorithmName);
+                        }
+                        break;
+                    }
+                    if (values.getKey().equals("queryServices")) {
+                        JsonArray array = (JsonArray) values.getValue();
+                        for (int i = 0; i < array.size(); i++) {
+                            JsonString stringEntry = array.getJsonString(i);
+                            
+                            String queryServiceName = stringEntry.getString();
+                            queryServiceName = queryServiceName.replace("\"", "");
+                            if (!queryServiceName.startsWith("io.github.infolis.datasetMatcher")) {
+                                queryServiceName = "io.github.infolis.datasetMatcher." + queryServiceName;
+                            }
+                            try {
+                                Class<? extends QueryService> queryServiceClass;
+                                queryServiceClass = (Class<? extends QueryService>) Class.forName(queryServiceName);
+                                exec.addQueryServiceClasses(queryServiceClass);
+                            } catch (ClassNotFoundException | ClassCastException e1) {
+                                throwCLI("No such queryService: " + queryServiceName);
+                            }
+                            
                         }
                         break;
                     }

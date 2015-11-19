@@ -8,6 +8,7 @@ import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,22 +21,43 @@ public class FederatedSearcher extends BaseAlgorithm {
     public FederatedSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-    
+
     @Override
     public void execute() throws IOException {
         List<SearchResult> allResults = new ArrayList<>();
-        
+
         SearchQuery query = getInputDataStoreClient().get(SearchQuery.class, getExecution().getSearchQuery());
-        int counter =0, size = getExecution().getQueryServices().size();
-        for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
-            List<SearchResult> results = queryService.executeQuery(query);
-            allResults.addAll(results);
-            updateProgress(counter,size);
-            
+        int counter = 0, size =0;
+
+        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+            size = getExecution().getQueryServiceClasses().size();
+            for (Class<? extends QueryService> qs : getExecution().getQueryServiceClasses()) {
+                QueryService queryService;
+                try {
+                    Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
+                    queryService = constructor.newInstance();
+
+                    List<SearchResult> results = queryService.executeQuery(query);
+                    allResults.addAll(results);
+                    updateProgress(counter, size);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
+            size = getExecution().getQueryServices().size();
+            for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
+
+                List<SearchResult> results = queryService.executeQuery(query);
+                allResults.addAll(results);
+                updateProgress(counter, size);
+
+            }
         }
         getOutputDataStoreClient().post(SearchResult.class, allResults);
         List<String> searchResultUris = new ArrayList<>();
-        for(SearchResult sr : allResults) {
+        for (SearchResult sr : allResults) {
             searchResultUris.add(sr.getUri());
         }
         getExecution().setSearchResults(searchResultUris);
@@ -47,7 +69,14 @@ public class FederatedSearcher extends BaseAlgorithm {
         if (null == getExecution().getSearchQuery()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "Required parameter 'query for query service' is missing!");
         }
-        if (null == getExecution().getQueryServices() || getExecution().getQueryServices().isEmpty()) {
+        boolean queryServiceSet = false;
+        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+            queryServiceSet = true;
+        }
+        if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
+            queryServiceSet = true;
+        }
+        if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
     }

@@ -44,7 +44,7 @@ public class Entity extends BaseModel {
   //TODO use uris instead of TextualReference objects (hard to change it)
     //private Collection<String> textualReferences;
     private Collection<TextualReference> textualReferences;
-    private String infolisFile;
+    private String file;
     
     @XmlAttribute
     private String number;
@@ -122,17 +122,17 @@ public class Entity extends BaseModel {
     }
     
     /**
-     * @return the infolisFile
+     * @return the file
      */
-    public String getInfolisFile() {
-        return infolisFile;
+    public String getFile() {
+        return file;
     }
 
     /**
-     * @param infolisFile the infolisFile to set
+     * @param file the file to set
      */
-    public void setInfolisFile(String infolisFile) {
-        this.infolisFile = infolisFile;
+    public void setFile(String file) {
+        this.file = file;
     }
     
     /**

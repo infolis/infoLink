@@ -1,0 +1,4 @@
+{
+"algorithm":"io.github.infolis.algorithm.FederatedSearcher",
+"queryServices":["DaraHTMLQueryService","DaraSolrQueryService"]
+}

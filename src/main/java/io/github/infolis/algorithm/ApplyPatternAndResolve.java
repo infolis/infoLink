@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,12 +13,13 @@ import io.github.infolis.model.ExecutionStatus;
 
 /**
  *
- * This algorithm first searches for a set of given patterns, then extracts the 
- * metadata from the detected textual references. Afterwards, this metadata
- * is queried an resolved to get the resulting links.
- * 
- * Used alogrithms: PatternApplier - MetaDataExtractor - FederatedSearcher - Resolver
- * 
+ * This algorithm first searches for a set of given patterns, then extracts the
+ * metadata from the detected textual references. Afterwards, this metadata is
+ * queried an resolved to get the resulting links.
+ *
+ * Used alogrithms: PatternApplier - MetaDataExtractor - FederatedSearcher -
+ * Resolver
+ *
  * @author domi
  * @author kata
  * 
@@ -30,6 +32,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
+
     	Execution tagExec = new Execution();
     	tagExec.setAlgorithm(TagResolver.class);
     	tagExec.setTagMap(getExecution().getTagMap());
@@ -40,15 +43,21 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         
         List<String> queryServices = getExecution().getQueryServices();        
         List<String> createdLinks = new ArrayList<>();
+        List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
                
         List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());        
-        
+
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
-        
         for (String s : textualRefs) {
             String searchQuery = extractMetaData(s);
-            List<String> searchRes = searchInRepositories(searchQuery, queryServices);
+            List<String> searchRes = new ArrayList<>();
+            if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+                searchRes = searchClassInRepositories(searchQuery, queryServiceClasses);
+            }
+            if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
+                searchRes = searchInRepositories(searchQuery, queryServices);
+            }
 
             if (searchRes.size() > 0) {
                 createdLinks.addAll(resolve(searchRes, s));
@@ -68,7 +77,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         search.setIndexDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
-        updateProgress(1,4);
+        updateProgress(1, 4);
         return search.getTextualReferences();
     }
 
@@ -79,7 +88,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
         extract.instantiateAlgorithm(this).run();
-        updateProgress(2,4);
+        updateProgress(2, 4);
         return extract.getSearchQuery();
     }
 
@@ -90,7 +99,18 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
-        updateProgress(3,4);
+        updateProgress(3, 4);
+        return searchRepo.getSearchResults();
+    }
+    
+    public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
+        Execution searchRepo = new Execution();
+        searchRepo.setAlgorithm(FederatedSearcher.class);
+        searchRepo.setSearchQuery(query);
+        searchRepo.setQueryServiceClasses(queryServices);
+        getOutputDataStoreClient().post(Execution.class, searchRepo);
+        searchRepo.instantiateAlgorithm(this).run();
+        updateProgress(3, 4);
         return searchRepo.getSearchResults();
     }
 
@@ -102,7 +122,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         resolve.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, resolve);
         resolve.instantiateAlgorithm(this).run();
-        updateProgress(4,4);
+        updateProgress(4, 4);
         return resolve.getLinks();
     }
 
@@ -117,8 +137,15 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         {
             throw new IllegalArgumentException("No patterns given.");
         }
-        if (null == this.getExecution().getQueryServices() || this.getExecution().getQueryServices().isEmpty()) {
-            throw new IllegalArgumentException("No query services specified.");
+        boolean queryServiceSet = false;
+        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+            queryServiceSet = true;
+        }
+        if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
+            queryServiceSet = true;
+        }
+        if (!queryServiceSet) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
     }
 }

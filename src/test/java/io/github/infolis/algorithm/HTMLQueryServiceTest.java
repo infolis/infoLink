@@ -1,6 +1,7 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.infolink.datasetMatcher.DaraHTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
@@ -100,8 +101,27 @@ public class HTMLQueryServiceTest extends InfolisBaseTest {
         List<SearchResult> sr = qs.executeQuery(sq);
         
         //be careful, could change from time to time
-        Assert.assertEquals("Arbeitsorientierung (ALLBUS)", sr.get(0).getTitles().get(0));
-        Assert.assertEquals("10.6102/zis13", sr.get(0).getIdentifier());
+        Assert.assertEquals("Anomie (ALLBUS)", sr.get(0).getTitles().get(0));
+        Assert.assertEquals("10.6102/zis58", sr.get(0).getIdentifier());
+        Assert.assertEquals(0, sr.get(0).getListIndex());
+
+        Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));
+        Assert.assertEquals("10.3886/ICPSR02779.v1", sr.get(6).getIdentifier());
+        Assert.assertEquals(6, sr.get(6).getListIndex());
+        Assert.assertEquals("1998", sr.get(6).getNumericInformation().get(0));
+    }
+    
+    @Ignore
+    @Test
+    public void testDaraHTMLQueryService() throws IOException {
+        DaraHTMLQueryService qs = new DaraHTMLQueryService();
+        qs.setMaxNumber(10);
+        SearchQuery sq = postTitelQuery("?q=title:ALLBUS");
+        List<SearchResult> sr = qs.executeQuery(sq);
+        
+        //be careful, could change from time to time
+        Assert.assertEquals("Anomie (ALLBUS)", sr.get(0).getTitles().get(0));
+        Assert.assertEquals("10.6102/zis58", sr.get(0).getIdentifier());
         Assert.assertEquals(0, sr.get(0).getListIndex());
 
         Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));

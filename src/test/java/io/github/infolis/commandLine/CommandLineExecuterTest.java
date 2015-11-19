@@ -108,4 +108,21 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         FileUtils.deleteDirectory(outputBaseDir.toFile());
     }
 
+    @Test
+    public void testQueryServiceClass() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
+        CommandLineExecuter.main(new String[] {
+        	"--json", getResourcePath("/commandLine/algoQueryServiceClasses.json"),
+                "--pdf-dir", emptyInputDir.toString(),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
+                "--tag", tag
+        });
+        FileUtils.forceDelete(outputBaseDir.toFile());
+    }
+    
 }

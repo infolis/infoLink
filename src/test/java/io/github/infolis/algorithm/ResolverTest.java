@@ -44,7 +44,7 @@ public class ResolverTest extends InfolisBaseTest {
         Entity p = new Entity();
         p.setIdentifier("xyz");
         p.setName("abc");
-        p.setInfolisFile(p.getUri());
+        p.setFile(p.getUri());
         dataStoreClient.post(Entity.class, p);
         //instantiate the textual reference which is later used to
         //compare against the search results

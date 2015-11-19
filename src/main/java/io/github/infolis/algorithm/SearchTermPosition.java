@@ -172,7 +172,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         while (ltm.matched()) {
 
             Entity p = new Entity();
-            p.setInfolisFile(fileName);
+            p.setFile(fileName);
             outputDataStoreClient.post(Entity.class, p);
             TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
             contextList.add(sC);

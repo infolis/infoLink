@@ -12,7 +12,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -377,14 +379,26 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> linkedEntities;
         
-        //TODO: include tags
 	/**
 	 * A tag indicates which corpus of documents and/or patterns should be used.
          * For example, a user likes to apply patterns learnt on
          * documents of a specific topic like social science.
+         * This map contains names of classes extending the BaseModel as keys 
+         * and a list of tags as values. This parameter is for using tags 
+         * inside the application.
          * 
 	 */
-	private List<String> tags;
+
+	private TagMap tagMap = new TagMap();
+	
+	/**
+	 * A tag indicates which corpus of documents and/or patterns should be used.
+         * For example, a user likes to apply patterns learnt on
+         * documents of a specific topic like social science.
+         * These tags describe the execution to make it searchable via its tags.
+         * 
+	 */
+	private Set<String> tags = new HashSet<>();
 	
 	/**
 	 * Flag used by TextExtractor: if set to false, pdfs for which corresponding text 
@@ -662,11 +676,19 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public List<String> getTags() {
-		return tags;
+    public TagMap getTagMap() {
+		return this.tagMap;
 	}
     
-    public void setTags(List<String> tags) {
+    public Set<String> getTags() {
+		return this.tags;
+	}
+    
+    public void setTagMap(TagMap tagMap) {
+		this.tagMap = tagMap;
+	}
+    
+    public void setTags(Set<String> tags) {
 		this.tags = tags;
 	}
     

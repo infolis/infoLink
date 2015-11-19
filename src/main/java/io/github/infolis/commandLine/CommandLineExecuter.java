@@ -1,21 +1,5 @@
 package io.github.infolis.commandLine;
 
-import io.github.infolis.algorithm.Algorithm;
-import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchTermPosition;
-import io.github.infolis.algorithm.TextExtractor;
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.model.BootstrapStrategy;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.RegexUtils;
-import io.github.infolis.util.SerializationUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,6 +11,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +38,22 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
+import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.Indexer;
+import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.TextExtractor;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.MetaDataExtractingStrategy;
+import io.github.infolis.model.TagMap;
+import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.RegexUtils;
+import io.github.infolis.util.SerializationUtils;
 
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
@@ -81,6 +82,7 @@ public class CommandLineExecuter {
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
+    //TODO: support multiple tags (e.g. domain, journal, langage)
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
 
@@ -160,6 +162,7 @@ public class CommandLineExecuter {
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
+                    
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
@@ -173,7 +176,25 @@ public class CommandLineExecuter {
                     }
                     exec.setProperty(values.getKey(), listEntries);
                     break;
-                default:
+                case OBJECT:
+                	if (values.getKey().equals("tagMap")) {
+                		JsonObject obj = (JsonObject) values.getValue();
+                		TagMap tagMap = new TagMap();
+                		for (String key : obj.keySet()) {
+                			JsonArray val = obj.getJsonArray(key);
+                			if(key.equals("infolisPatternTags")) {
+                				tagMap.getInfolisPatternTags().add(val.toString());
+                			} else if (key.equals("infolisFileTags")) {
+                				tagMap.getInfolisFileTags().add(val.toString());
+                			} else {
+                				throw new RuntimeException("Unknown key for tagMap: " + key);
+                			}
+                		}
+                        exec.setTagMap(tagMap);
+                        break;
+                    }
+                	//$FALL-THROUGH$
+					default:
                     throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
                             + values.getKey());
                     break;
@@ -363,6 +384,7 @@ public class CommandLineExecuter {
         convertExec.setInputFiles(uris);
         convertExec.setRemoveBib(removeBib);
         convertExec.setOverwriteTextfiles(overwriteTextfiles);
+        convertExec.setTags(new HashSet<>(Arrays.asList(tag)));
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();
         return convertExec.getOutputFiles();
@@ -383,6 +405,8 @@ public class CommandLineExecuter {
 
                 infolisFile.setFileName(file.toString());
                 infolisFile.setMediaType(mimetype);
+                //TODO: use either set or list for tags
+                infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
                 infolisFiles.add(infolisFile);
             }
@@ -434,6 +458,7 @@ public class CommandLineExecuter {
         Files.createDirectories(dbDir);
 
         Execution exec = new Execution();
+        exec.setTags(new HashSet<String>(Arrays.asList(tag)));
         
         // if no JSON was provided, only convert files and exit
         if (null != json) {

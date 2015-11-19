@@ -382,6 +382,7 @@ public class Resolver extends BaseAlgorithm {
         }
         //create and post the instance representing the search result
         Entity referencedInstance = new Entity();
+        referencedInstance.setTags(getExecution().getTags());
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
         referencedInstance.setName(bestSearchResult.getTitles().get(0));
         referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
@@ -392,6 +393,7 @@ public class Resolver extends BaseAlgorithm {
         System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
         System.out.println("file: " + getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference()).getFile());
         EntityLink el = new EntityLink(referencedInstance, getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference()), bestConfidence, linkReason);
+        //TODO should EntityLink have tags?
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();
         allLinks.add(el.getUri());

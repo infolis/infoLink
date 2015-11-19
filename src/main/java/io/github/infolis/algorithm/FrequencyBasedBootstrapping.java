@@ -75,7 +75,11 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         FrequencyPatternRanker ranker = new FrequencyPatternRanker();
         //TODO define and use generic PatternRanker
         //PatternRanker ranker = getPatternRanker();
-        for (String term : getExecution().getSeeds()) newSeedsIteration.add(new Entity(term)); 
+        for (String term : getExecution().getSeeds()) {
+        	Entity entity = new Entity(term);
+        	entity.setTags(getExecution().getTags());
+        	newSeedsIteration.add(entity); 
+        }
 
         while (numIter < getExecution().getMaxIterations()) {
         	seeds = newSeedsIteration;
@@ -101,13 +105,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 // 1. use lucene index to search for term in corpus
                 List<TextualReference> detectedContexts = this.getContextsForSeed(seed.getName());
 
-                /*List<String> detectedContexts = this.getContextsForSeed(seed.getName());
-                 * List<TextualReference> detectedContexts = new ArrayList<>();
-                for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, seedContexts)) {
-					detectedContexts.add(studyContext);
-					contexts_currentIteration.add(studyContext);
-					extractedContextsFromSeeds.add(studyContext);
-                }*/
                 contexts_currentIteration.addAll(detectedContexts);
 				extractedContextsFromSeeds.addAll(detectedContexts);
                 
@@ -159,7 +156,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             List<String> res = this.getContextsForPatterns(newPatterns);
             for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
             	extractedContextsFromPatterns.add(studyContext);
-            	newSeedsIteration.add(new Entity(studyContext.getTerm()));
+            	Entity entity = new Entity(studyContext.getTerm());
+            	entity.setTags(getExecution().getTags());
+            	newSeedsIteration.add(entity);
             	newSeedTermsIteration.add(studyContext.getTerm());
             }
             
@@ -233,6 +232,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		        }
 		        if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
 		        if (nonStopwordPresent & isRelevant(candidate, candidates)) {
+		        	candidate.setTags(getExecution().getTags());
 		          	patterns.add(candidate);
 		           	processedMinimals_iteration.add(candidate.getMinimal());
 		           	log.debug("Pattern accepted");

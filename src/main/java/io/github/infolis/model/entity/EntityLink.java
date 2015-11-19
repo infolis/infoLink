@@ -23,6 +23,14 @@ public class EntityLink extends BaseModel {
     public EntityLink() {
     }
 
+	public EntityLink(String fromEntity, String toEntity, double confidence, String linkReason)
+	{
+		this.fromEntity = fromEntity;
+		this.toEntity = toEntity;
+		this.confidence = confidence;
+		this.linkReason = linkReason;
+	}
+
 	public String getToEntity()
 	{
 		return toEntity;

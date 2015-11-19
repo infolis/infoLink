@@ -11,6 +11,7 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
@@ -158,13 +159,14 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		Map<String, Set<String>> generatedLinks = new HashMap<>();
 		for (EntityLink link : links) {
 			// log.debug(link.toString());
-                        String key = link.getToEntity().getName();
+			Entity toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
+			String key = toEntity.getName();
 			//String key = link.getAltName() + " " + link.getVersion();
 			Set<String> dois = new HashSet<>();
 			if (generatedLinks.containsKey(key)) {
 				dois = generatedLinks.get(key);
 			}
-			dois.add(link.getToEntity().getUri());
+			dois.add(link.getToEntity());
 			generatedLinks.put(key, dois);
 		}
 		assertEquals(expectedLinks, generatedLinks);

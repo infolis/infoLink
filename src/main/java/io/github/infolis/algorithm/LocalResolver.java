@@ -1,16 +1,19 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.Entity;
-import io.github.infolis.model.entity.EntityLink;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 
 /**
  *
@@ -21,6 +24,8 @@ import java.util.Map;
  * @author domi
  */
 public class LocalResolver extends BaseAlgorithm {
+	
+	Logger log = LoggerFactory.getLogger(LocalResolver.class);
 
     public LocalResolver(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -51,16 +56,17 @@ public class LocalResolver extends BaseAlgorithm {
         }
         //TODO: not implemented yet
         //List<EntityLink> links = getInputDataStoreClient().search(EntityLink.class, query);
-        List<EntityLink> links= new ArrayList<>();;
-        
-        //dereference the toEntities
-        List<String> toEntities = new ArrayList<>();
-        for(EntityLink link : links) {
-            toEntities.add(link.getToEntity().getIdentifier());
-        }
+//        List<EntityLink> links= new ArrayList<>();;
+//        
+//        //dereference the toEntities
+//        List<String> toEntities = new ArrayList<>();
+//        for(EntityLink link : links) {
+//            toEntities.add(link.getToEntity().getIdentifier());
+//        }
         //set the detected entities in the execution
-        getExecution().setLinkedEntities(toEntities);
-        getExecution().setStatus(ExecutionStatus.FINISHED);
+//        getExecution().setLinkedEntities(toEntities);
+        error(log, "LocalResolver not implemented");
+        getExecution().setStatus(ExecutionStatus.FAILED);
     }
 
     @Override

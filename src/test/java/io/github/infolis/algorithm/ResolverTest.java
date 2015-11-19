@@ -65,7 +65,8 @@ public class ResolverTest extends InfolisBaseTest {
         //should be the study with the highest confidence
         //titel: Studiensituation und studentische Orientierungen 2000/01 (Studierenden-Survey)
         //which is the only study where a numerical overlap can be found
-        assertEquals(ents.get(0).getToEntity().getIdentifier(), "10.4232/1.4208");    
+        Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
+		assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");    
     }
     
     /**
@@ -96,7 +97,8 @@ public class ResolverTest extends InfolisBaseTest {
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();        
         List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());     
         
-        assertEquals(ents.get(0).getToEntity().getIdentifier(), "10.4232/1.4208");    
+        Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
+        assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");    
         
     }
     

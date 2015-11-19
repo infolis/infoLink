@@ -77,9 +77,9 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         for (EntityLink el : createdLinks) {
             //TODO any nice tests?
-            if (el.getToEntity().getName().equals("Flash Eurobarometer 35")) {
-                
-            }
+//            if (el.getToEntity().getName().equals("Flash Eurobarometer 35")) {
+//                
+//            }
         }
     }
 

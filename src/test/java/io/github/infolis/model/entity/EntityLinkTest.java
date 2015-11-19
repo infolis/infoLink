@@ -20,8 +20,8 @@ public class EntityLinkTest
 		e1.setName("foo");
 		Entity e2 = new Entity();
 		e1.setName("bar");
-		link.setFromEntity(e1);
-		link.setToEntity(e2);
+		link.setFromEntity(e1.getUri());
+		link.setToEntity(e2.getUri());
 		
 		log.debug(SerializationUtils.toJSON(link));
 

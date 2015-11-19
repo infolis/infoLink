@@ -150,7 +150,8 @@ public class TextExtractor extends BaseAlgorithm {
     public void execute() {
         Execution tagExec = new Execution();
         tagExec.setAlgorithm(TagResolver.class);
-        tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+    	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
         tagExec.instantiateAlgorithm(this).run();
         
         getExecution().getPatterns().addAll(tagExec.getPatterns());
@@ -215,8 +216,9 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-                (null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
+        Execution exec = this.getExecution();
+		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+    		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
     }

@@ -146,15 +146,15 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     @Override
     public void validate() {
-        if (null == this.getExecution().getSeeds()
-                || this.getExecution().getSeeds().isEmpty()) {
+        Execution exec = this.getExecution();
+		if (null == exec.getSeeds() || exec.getSeeds().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one term as seed!");
         }
-        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
+        if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+    		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if (null == this.getExecution().getBootstrapStrategy()) {
+        if (null == exec.getBootstrapStrategy()) {
             throw new IllegalArgumentException("Must set the bootstrap strategy");
         }
     }
@@ -163,7 +163,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     public void execute() throws IOException {
     	Execution tagExec = new Execution();
     	tagExec.setAlgorithm(TagResolver.class);
-    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+    	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
     	
     	getExecution().getPatterns().addAll(tagExec.getPatterns());

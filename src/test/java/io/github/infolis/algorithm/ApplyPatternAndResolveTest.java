@@ -19,7 +19,6 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
 import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.TagMap;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
@@ -48,8 +47,6 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         InfolisPattern infolisPattern = new InfolisPattern();
         infolisPattern.setPatternRegex(".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
         infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
-        TagMap tagMap = new TagMap();
-        tagMap.getInfolisPatternTags().add("test");
         HashSet<String> tags = new HashSet<String>();
         tags.add("test");
         infolisPattern.setTags(tags);
@@ -60,8 +57,8 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         List<String> qServices = postQueryServices();
 
         Execution e = new Execution();
+        e.getInfolisPatternTags().add("test");
         e.setAlgorithm(ApplyPatternAndResolve.class);
-        e.setTagMap(tagMap);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
         dataStoreClient.post(Execution.class, e);

@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -47,10 +46,10 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.TagMap;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
@@ -177,22 +176,6 @@ public class CommandLineExecuter {
                     exec.setProperty(values.getKey(), listEntries);
                     break;
                 case OBJECT:
-                	if (values.getKey().equals("tagMap")) {
-                		JsonObject obj = (JsonObject) values.getValue();
-                		TagMap tagMap = new TagMap();
-                		for (String key : obj.keySet()) {
-                			JsonArray val = obj.getJsonArray(key);
-                			if(key.equals("infolisPatternTags")) {
-                				tagMap.getInfolisPatternTags().add(val.toString());
-                			} else if (key.equals("infolisFileTags")) {
-                				tagMap.getInfolisFileTags().add(val.toString());
-                			} else {
-                				throw new RuntimeException("Unknown key for tagMap: " + key);
-                			}
-                		}
-                        exec.setTagMap(tagMap);
-                        break;
-                    }
                 	//$FALL-THROUGH$
 					default:
                     throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "

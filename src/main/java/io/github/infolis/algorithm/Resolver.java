@@ -391,9 +391,9 @@ public class Resolver extends BaseAlgorithm {
         String linkReason = textRefURI;
         //genretate the link
         System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
-        Entity toEntity = getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference());
-		System.out.println("file: " + toEntity.getInfolisFile());
-        EntityLink el = new EntityLink(referencedInstance.getUri(), toEntity.getUri(), bestConfidence, linkReason);
+        Entity fromEntity = getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference());
+		System.out.println("file: " + fromEntity.getInfolisFile());
+        EntityLink el = new EntityLink(fromEntity.getUri(), referencedInstance.getUri(), bestConfidence, linkReason);
         //TODO should EntityLink have tags?
         getOutputDataStoreClient().post(EntityLink.class, el);
         List<String> allLinks = new ArrayList<>();

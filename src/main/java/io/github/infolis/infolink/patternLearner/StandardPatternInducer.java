@@ -140,7 +140,7 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
         } catch (IndexOutOfBoundsException e) {
         	log.error("Error: missing words in context: " + context);
         	log.error("trace: " + e); 
-        	return new ArrayList();
+        	return new ArrayList<InfolisPattern>();
         }
 	}
 	    

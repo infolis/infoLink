@@ -85,6 +85,12 @@ public class MetaDataExtractor extends BaseAlgorithm {
                 name = ref.getTerm();
                 finalQuery += "doi:" + name;
                 break;
+			case bibliography:
+				break;
+			case urn:
+				break;
+			default:
+				break;
         }
         //TODO: author of publications? other information?
         return finalQuery;

@@ -153,10 +153,10 @@ public class ResolverTest extends InfolisBaseTest {
                 SearchResult r = new SearchResult();
                 r.setIdentifier(doi);
                 r.setListIndex(i);
-                List allTitles = Arrays.asList(title1,title2);
+                List<String> allTitles = Arrays.asList(title1,title2);
                 r.setTitles(allTitles);
                 r.setDate(Long.toString(System.currentTimeMillis()));
-                List allTags = Arrays.asList("http://www.da-ra.de/solr/dara/");
+                List<String> allTags = Arrays.asList("http://www.da-ra.de/solr/dara/");
                 QueryService solr = new SolrQueryService("http://www.da-ra.de/solr/dara/", 1.0);             
                 dataStoreClient.post(QueryService.class, solr);
                 r.setQueryService(solr.getUri());

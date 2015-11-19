@@ -89,7 +89,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         try {
             q = qp.parse(getExecution().getSearchQuery().trim());
         } catch (ParseException e) {
-            fatal(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
+            error(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
             getExecution().setStatus(ExecutionStatus.FAILED);
             searcher.close();
             throw new RuntimeException();
@@ -106,7 +106,7 @@ public class SearchTermPosition extends BaseAlgorithm {
             try {
                 file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
             } catch (Exception e) {
-                fatal(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
+                error(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 searcher.close();

@@ -147,19 +147,19 @@ public class BibliographyExtractor extends BaseAlgorithm {
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             } catch (Exception e) {
-                fatal(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
+                error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
             if (null == inputFile) {
-                fatal(log, "File was not registered with the data store: " + inputFileURI);
+                error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals("text/plain")) {
-                fatal(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
+                error(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
@@ -169,7 +169,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             String text = "";
             try { text = FileUtils.readFileToString(new File(inputFile.getFileName()), "utf-8"); 
             } catch (IOException e) { 
-            	fatal(log, "Error reading text file: " + e); 
+            	error(log, "Error reading text file: " + e); 
             	getExecution().setStatus(ExecutionStatus.FAILED);
             	persistExecution();
                 return;
@@ -188,7 +188,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             	OutputStream outStream = getOutputFileResolver().openOutputStream(outFile);
             	IOUtils.write(text, outStream);
             } catch (IOException e) {
-            	fatal(log, "Error copying text to output stream: " + e);
+            	error(log, "Error copying text to output stream: " + e);
             	getExecution().setStatus(ExecutionStatus.FAILED);
             	persistExecution();
             	return;

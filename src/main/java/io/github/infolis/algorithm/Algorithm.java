@@ -115,6 +115,18 @@ public interface Algorithm  {
 	 *            Objects for {@link String#format(String, Object...)}
 	 */
 	void info(Logger log, String fmt, Object... args);
+	
+	/**
+	 * Log a WARN message to both the system logger and the execution.
+	 * 
+	 * @param log
+	 *            {@link Logger} to log to
+	 * @param fmt
+	 *            Format string for {@link String#format(String, Object...)}
+	 * @param args
+	 *            Objects for {@link String#format(String, Object...)}
+	 */
+	void warn(Logger log, String fmt, Object... args);
 
 	/**
 	 * Log a FATAL message to both the system logger and the execution.

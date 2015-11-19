@@ -23,9 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
+import io.github.infolis.infolink.datasetMatcher.QueryService;
 import java.lang.reflect.Field;
 
 /**
@@ -265,7 +263,7 @@ public class Execution extends BaseModel {
 	private List<String> patterns = new ArrayList<>();
  
         /**
-         * Inicates whether we require a term needs to contain
+         * Indicates whether we require a term to contain
          * at least one upper case character.
          * The idea behind is that especially a study name is supposed to be a 
          * named entity and thus should contain at least one upper-case character.
@@ -351,6 +349,13 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> queryServices;
 
+        
+        /**
+         * We can search different repositories for named entities.
+         * TODO
+	 */
+	private List<Class<? extends QueryService>> queryServiceClasses;
+        
 	/**
          * After a search in one or more repositories, a list 
          * of search results is returned. These results not only contain
@@ -702,6 +707,45 @@ public class Execution extends BaseModel {
     public boolean getOverwriteTextfiles() {
     	return this.overwriteTextfiles;
     }
+    
+    public List<Class<? extends QueryService>> getQueryServiceClasses() {
+        return queryServiceClasses;
+    }
+    
+    public void setQueryServiceClasses(List<Class<? extends QueryService>> queryServiceClasses) {
+        for(Class<? extends QueryService> qs : queryServiceClasses) {
+            instantiateQueryService(qs);
+            if(this.queryServiceClasses==null) {
+                this.queryServiceClasses = new ArrayList<>();
+            }
+            this.queryServiceClasses.add(qs);
+        }        
+    }
+    
+    public void addQueryServiceClasses(Class<? extends QueryService> queryServiceClasses) {
+        instantiateQueryService(queryServiceClasses);
+        if(this.queryServiceClasses==null) {
+            this.queryServiceClasses = new ArrayList<>();
+            }
+        this.queryServiceClasses.add(queryServiceClasses);
+    }
+    
+    private QueryService instantiateQueryService(Class<? extends QueryService> qs) {
+		if (null == qs) {
+			throw new IllegalArgumentException(
+					"Must set 'queryServiceClass' of execution before calling.");
+		}
+		QueryService queryService;
+		try {
+			Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
+			queryService = constructor.newInstance();
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+		logger.debug("Created instance for queryService '{}'", qs);
+		return queryService;
+	}
+    
     
     public void setProperty(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field field = this.getClass().getDeclaredField(fieldName);

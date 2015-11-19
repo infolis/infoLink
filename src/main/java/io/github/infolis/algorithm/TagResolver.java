@@ -17,7 +17,6 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.TagMap;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
@@ -30,12 +29,10 @@ public class TagResolver extends BaseAlgorithm {
     }
 	
 	private void parseTags() {
-		TagMap tagMap = getExecution().getTagMap();
-		
 		Map<Class<?extends BaseModel>, Collection<String>> toResolve = new HashMap<>();
 
-		toResolve.put(InfolisFile.class, tagMap.getInfolisFileTags());
-		toResolve.put(InfolisPattern.class, tagMap.getInfolisPatternTags());
+		toResolve.put(InfolisFile.class, getExecution().getInfolisFileTags());
+		toResolve.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
 
 		for (Class<? extends BaseModel> clazz : toResolve.keySet()) {
 			Multimap<String, String> query = HashMultimap.create();

@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.TagMap;
 import io.github.infolis.model.entity.InfolisPattern;
 
 /**
@@ -22,18 +21,13 @@ public class TagResolverTest extends InfolisBaseTest {
 	@Test
 	public void testParseTags() throws IOException {
 		InfolisPattern infolisPattern = new InfolisPattern();
-		TagMap tagMap = new TagMap();
-		tagMap.getInfolisPatternTags().add("test");
-        HashSet<String> tags = new HashSet<String>();
-        tags.add("test");
-        infolisPattern.setTags(tags);
+        infolisPattern.getTags().add("test");
 
         dataStoreClient.post(InfolisPattern.class, infolisPattern);
-        dataStoreClient.post(TagMap.class, tagMap);
 
         Execution e = new Execution();
+		e.getInfolisPatternTags().add("test");
         e.setAlgorithm(TagResolver.class);
-        e.setTagMap(tagMap.getUri());
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         assertEquals(infolisPattern.getUri(), e.getPatterns().get(0));
 	}

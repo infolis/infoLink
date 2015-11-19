@@ -389,7 +389,8 @@ public class Execution extends BaseModel {
          * 
 	 */
 
-	private String tagMap;
+	private Set<String> infolisPatternTags = new HashSet<>();
+	private Set<String> infolisFileTags = new HashSet<>();
 	
 	/**
 	 * A tag indicates which corpus of documents and/or patterns should be used.
@@ -676,16 +677,8 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public String getTagMap() {
-		return this.tagMap;
-	}
-    
     public Set<String> getTags() {
 		return this.tags;
-	}
-    
-    public void setTagMap(String tagMap) {
-		this.tagMap = tagMap;
 	}
     
     public void setTags(Set<String> tags) {
@@ -695,6 +688,26 @@ public class Execution extends BaseModel {
     public long getProgress() {
         return progress;
     }
+
+	public Set<String> getInfolisPatternTags()
+	{
+		return infolisPatternTags;
+	}
+
+	public void setInfolisPatternTags(Set<String> infolisPatternTags)
+	{
+		this.infolisPatternTags = infolisPatternTags;
+	}
+
+	public Set<String> getInfolisFileTags()
+	{
+		return infolisFileTags;
+	}
+
+	public void setInfolisFileTags(Set<String> infolisFileTags)
+	{
+		this.infolisFileTags = infolisFileTags;
+	}
     
     public void setProgress(long progress) {
         this.progress = progress;

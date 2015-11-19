@@ -35,7 +35,8 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     	Execution tagExec = new Execution();
     	tagExec.setAlgorithm(TagResolver.class);
-    	tagExec.setTagMap(getExecution().getTagMap());
+    	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+    	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
     	
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
@@ -128,12 +129,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if ((null == this.getExecution().getInputFiles() || this.getExecution().getInputFiles().isEmpty()) && 
-        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisFileTags().isEmpty())){
+        Execution exec = this.getExecution();
+		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+        		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if ((null == this.getExecution().getPatterns() || this.getExecution().getPatterns().isEmpty()) && 
-        		(null == this.getExecution().getTagMap() || this.getExecution().getTagMap().getInfolisPatternTags().isEmpty()))
+        if ((null == exec.getPatterns() || exec.getPatterns().isEmpty()) && 
+        		(null == exec.getInfolisPatternTags() || exec.getInfolisPatternTags().isEmpty()))
         {
             throw new IllegalArgumentException("No patterns given.");
         }

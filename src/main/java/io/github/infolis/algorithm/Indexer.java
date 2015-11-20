@@ -94,7 +94,7 @@ public class Indexer extends BaseAlgorithm {
             try {
                 files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
             } catch (Exception e) {
-                fatal(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
+                error(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;

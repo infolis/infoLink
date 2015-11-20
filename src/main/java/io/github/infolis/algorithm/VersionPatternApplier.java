@@ -81,7 +81,7 @@ public class VersionPatternApplier extends BaseAlgorithm {
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             } catch (Exception e) {
-                fatal(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
+                error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;

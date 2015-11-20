@@ -106,23 +106,23 @@ public class TextExtractor extends BaseAlgorithm {
                     try {
                         IOUtils.write(asText, outStream);
                     } catch (IOException e) {
-                        error(log, "Error copying text to output stream: " + e);
+                        warn(log, "Error copying text to output stream: " + e);
                         throw e;
                     }
                 } catch (IOException e) {
-                    error(log, "Error opening output stream to text file: " + e);
+                    warn(log, "Error opening output stream to text file: " + e);
                     throw e;
                 }
                 return outFile;
             } catch (Exception e) {
-                error(log, "Error reading PDF from stream: " + e);
+                warn(log, "Error reading PDF from stream: " + e);
                 throw e;
             }
         } catch (IOException e) {
-            error(log, "Error opening input stream: " + e);
+            warn(log, "Error opening input stream: " + e);
             throw e;
         } catch (Exception e) {
-            error(log, "Error converting PDF to text: " + e);
+            warn(log, "Error converting PDF to text: " + e);
             throw e;
         }
     }
@@ -165,19 +165,19 @@ public class TextExtractor extends BaseAlgorithm {
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
             } catch (Exception e) {
-                fatal(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
+                error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
             if (null == inputFile) {
-                fatal(log, "File was not registered with the data store: " + inputFileURI);
+                error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals(MediaType.PDF.toString())) {
-                fatal(log, "File is not a PDF: " + inputFileURI);
+                error(log, "File is not a PDF: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
@@ -189,21 +189,21 @@ public class TextExtractor extends BaseAlgorithm {
                 debug(log, "Converted to file %s", outputFile);
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox
-                // log error, skip file and continue with next file
-                error(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                // log warning, skip file and continue with next file
+                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             } catch (RuntimeException e) {
-                // error but not fatal: do not terminate execution but continue with next file.
+                // warn but not error: do not terminate execution but continue with next file.
                 // RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
                 // pdfBox cannot handle a (valid) pdf file due to its encoding
-                error(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file due to its encoding or similar issues: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file due to its encoding or similar issues: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             }
             updateProgress(counter, getExecution().getInputFiles().size());
             if (null == outputFile) {
-                error(log, "Conversion failed for input file %s", inputFileURI);
+                warn(log, "Conversion failed for input file %s", inputFileURI);
             } else {
                 getOutputDataStoreClient().post(InfolisFile.class, outputFile);
                 getExecution().getOutputFiles().add(outputFile.getUri());

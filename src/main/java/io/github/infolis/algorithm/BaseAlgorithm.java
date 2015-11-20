@@ -80,6 +80,11 @@ public abstract class BaseAlgorithm implements Algorithm {
     public void error(Logger log, String fmt, Object... args) {
         log(log, fmt, "ERROR", args);
     }
+    
+    @Override
+    public void warn(Logger log, String fmt, Object... args) {
+        log(log, fmt, "WARN", args);
+    }
 
     @Override
     public DataStoreClient getOutputDataStoreClient() {

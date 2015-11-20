@@ -93,7 +93,7 @@ public class PatternApplier extends BaseAlgorithm {
     		
     		Execution regexExec = new Execution();
         	regexExec.getInputFiles().add(fileUri);
-        	regexExec.setPatternUris(patternURIs);
+        	regexExec.setPatterns(patternURIs);
         	regexExec.setTags(getExecution().getTags());
         	regexExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
         	regexExec.setAlgorithm(RegexSearcher.class);

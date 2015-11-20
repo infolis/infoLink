@@ -163,7 +163,7 @@ public class ExampleChecker extends InfolisBaseTest {
     public List<String> searchPattern(List<String> pattern, List<String> input) {
         Execution search = new Execution();
         search.setAlgorithm(RegexSearcher.class);
-        search.setPatternUris(pattern);
+        search.setPatterns(pattern);
         search.setInputFiles(input);
         dataStoreClient.post(Execution.class, search);
         Algorithm algo = search.instantiateAlgorithm(dataStoreClient, fileResolver);

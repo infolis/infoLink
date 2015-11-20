@@ -81,7 +81,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         Execution search = new Execution();
         //search.setAlgorithm(PatternApplier.class);
         search.setAlgorithm(RegexSearcher.class);
-        search.setPatternUris(patterns);
+        search.setPatterns(patterns);
         search.setInputFiles(input);
         search.setIndexDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, search);

@@ -60,7 +60,7 @@ public class TagResolver extends BaseAlgorithm {
 	// TODO more generic way to do this?
 	private void setExecutionParameters(Class<? extends BaseModel> clazz, List<? extends BaseModel> instances) {
 		List<String> uris = getUris(instances);
-		if (clazz.equals(InfolisPattern.class)) { getExecution().setPatternUris(uris); }
+		if (clazz.equals(InfolisPattern.class)) { getExecution().setPatterns(uris); }
 		if (clazz.equals(InfolisFile.class)) { getExecution().setInputFiles(uris); }
 		//if (clazz.equals(Entity.class)) { getExecution().set?(uris); }
 	}

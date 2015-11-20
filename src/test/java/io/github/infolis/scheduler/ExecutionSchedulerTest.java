@@ -60,7 +60,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.setAlgorithm(RegexSearcher.class);
-        e.setPatternUris(pattern);
+        e.setPatterns(pattern);
         e.setInputFiles(txt);
         dataStoreClient.post(Execution.class, e);
         ExecutionScheduler exe = ExecutionScheduler.getInstance();

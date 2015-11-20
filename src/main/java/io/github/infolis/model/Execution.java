@@ -594,8 +594,8 @@ public class Execution extends BaseModel {
 		return patterns;
 	}
 
-	public void setPatternUris(List<String> patternUris) {
-		this.patterns = patternUris;
+	public void setPatterns(List<String> patterns) {
+		this.patterns = patterns;
 	}
 
 	public boolean isUpperCaseConstraint() {

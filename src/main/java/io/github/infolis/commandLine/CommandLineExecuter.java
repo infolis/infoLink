@@ -49,7 +49,9 @@ import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.MetaDataExtractingStrategy;
+import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
@@ -96,6 +98,9 @@ public class CommandLineExecuter {
     
     @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE", depends = {"--search-candidates"})
     private String queriesFile;
+    
+    @Option(name = "--search-query", usage = "search query for the query service", metaVar = "SEARCHQUERY")
+    private String searchQuery;
     
     // This is set so we can accept --convert-to-text without JSON and not try to execute anything
     private boolean convertToTextMode = false;
@@ -328,6 +333,9 @@ public class CommandLineExecuter {
                 }
             }
         }
+        if(searchQuery!=null){
+            exec.setSearchQuery(postQuery(searchQuery));
+        }
     }
 
     /**
@@ -399,6 +407,13 @@ public class CommandLineExecuter {
         }
 
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
+    }
+    
+    public String postQuery(String query) {
+        SearchQuery sq = new SearchQuery();
+        sq.setQuery(query);
+        dataStoreClient.post(SearchQuery.class, sq);
+        return sq.getUri();
     }
 
     private static void throwCLI(String msg) {

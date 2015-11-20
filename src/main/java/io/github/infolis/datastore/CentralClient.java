@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -206,12 +207,18 @@ class CentralClient extends AbstractClient {
 		}
 		try {
 			ObjectMapper mapper = SerializationUtils.jacksonMapper;
-			CollectionType listType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
+			CollectionType listOfTType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
+			CollectionType listOfMapType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, HashMap.class);
 			String readEntity = resp.readEntity(String.class);
-			log.debug("JSON before: {}", readEntity);
-			readEntity = readEntity.replaceAll("\"_id\":\"", "\"uri\":\""+baseURI+"/");
-			log.debug("JSON after: {}", readEntity);
-			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listType);
+//			log.debug("JSON before: {}", readEntity);
+//			readEntity = readEntity.replaceAll("\"_id\":\"", "\"uri\":\""+baseURI+"/");
+//			log.debug("JSON after: {}", readEntity);
+			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listOfMapType);
+			List<Map> flatList = mapper.readValue(readEntity, listOfMapType);
+			for (int i = 0; i < flatList.size(); i++)
+			{
+				listOfTs.get(i).setUri(baseURI + "/" + flatList.get(i).get("_id"));
+			}
 			return listOfTs;
 		} catch (Exception e) {
 			throw new ProcessingException(e);

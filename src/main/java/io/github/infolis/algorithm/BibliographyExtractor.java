@@ -2,6 +2,7 @@ package io.github.infolis.algorithm;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.BreakIterator;
 import java.util.ArrayList;
@@ -166,14 +167,15 @@ public class BibliographyExtractor extends BaseAlgorithm {
             }
             
             debug(log, "Start removing bib from %s", inputFile);
-            String text = "";
-            try { text = FileUtils.readFileToString(new File(inputFile.getFileName()), "utf-8"); 
-            } catch (IOException e) { 
-            	fatal(log, "Error reading text file: " + e); 
-            	getExecution().setStatus(ExecutionStatus.FAILED);
-            	persistExecution();
-                return;
-            }
+            String text;
+			try ( InputStream is =  getInputFileResolver().openInputStream(inputFile)) {
+				text = IOUtils.toString(is);
+			} catch (IOException e) {
+				fatal(log, "Error reading text file: " + e);
+				getExecution().setStatus(ExecutionStatus.FAILED);
+				persistExecution();
+				return;
+			}
             //TODO: Test optimal section size
             List<String> inputSections = tokenizeSections(text, 10);
             text = removeBibliography(inputSections);

@@ -1,7 +1,8 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.resolve;
 
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.resolve.DaraWebMatcher;
 
 import java.util.HashMap;
 import java.util.Map;

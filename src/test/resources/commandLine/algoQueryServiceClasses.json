@@ -1,4 +1,5 @@
 {
 "algorithm":"io.github.infolis.algorithm.FederatedSearcher",
-"queryServices":["DaraHTMLQueryService","DaraSolrQueryService"]
+"searchQuery": "foo",
+"queryServiceClasses":["DaraHTMLQueryService","io.github.infolis.resolve.DaraSolrQueryService"]
 }

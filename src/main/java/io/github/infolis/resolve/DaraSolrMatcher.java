@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.resolve;
 
 import io.github.infolis.util.URLParamEncoder;
 

@@ -1,15 +1,15 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
-import io.github.infolis.infolink.datasetMatcher.SolrQueryService;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.resolve.HTMLQueryService;
+import io.github.infolis.resolve.QueryService;
+import io.github.infolis.resolve.SolrQueryService;
 import io.github.infolis.util.NumericInformationExtractor;
 import java.io.File;
 import java.io.FileInputStream;

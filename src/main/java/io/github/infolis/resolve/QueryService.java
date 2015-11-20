@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.resolve;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

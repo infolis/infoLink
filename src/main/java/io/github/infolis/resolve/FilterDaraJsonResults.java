@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.resolve;
 
 import java.util.ArrayList;
 import java.util.Arrays;

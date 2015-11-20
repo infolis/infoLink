@@ -46,11 +46,11 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.MetaDataExtractingStrategy;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
@@ -128,27 +128,6 @@ public class CommandLineExecuter {
                         }
                         break;
                     }
-                    if (values.getKey().equals("queryServices")) {
-                        JsonArray array = (JsonArray) values.getValue();
-                        for (int i = 0; i < array.size(); i++) {
-                            JsonString stringEntry = array.getJsonString(i);
-                            
-                            String queryServiceName = stringEntry.getString();
-                            queryServiceName = queryServiceName.replace("\"", "");
-                            if (!queryServiceName.startsWith("io.github.infolis.datasetMatcher")) {
-                                queryServiceName = "io.github.infolis.datasetMatcher." + queryServiceName;
-                            }
-                            try {
-                                Class<? extends QueryService> queryServiceClass;
-                                queryServiceClass = (Class<? extends QueryService>) Class.forName(queryServiceName);
-                                exec.addQueryServiceClasses(queryServiceClass);
-                            } catch (ClassNotFoundException | ClassCastException e1) {
-                                throwCLI("No such queryService: " + queryServiceName);
-                            }
-                            
-                        }
-                        break;
-                    }
                     // TODO generic solution for enums?
                     if (values.getKey().equals("bootstrapStrategy")) {
                         BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString().replace("\"", ""));
@@ -167,6 +146,28 @@ public class CommandLineExecuter {
                     break;
                 // for arrays we first have to create a list
                 case ARRAY:
+                    if (values.getKey().equals("queryServiceClasses")) {
+                        JsonArray array = (JsonArray) values.getValue();
+                        for (int i = 0; i < array.size(); i++) {
+                            JsonString stringEntry = array.getJsonString(i);
+                            
+                            String queryServiceName = stringEntry.getString();
+                            queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
+                            if (!queryServiceName.startsWith("io.github.infolis.resolve")) {
+                                queryServiceName = "io.github.infolis.resolve." + queryServiceName;
+                            }
+                            log.debug("queryServiceClass item: " + queryServiceName);
+                            try {
+                                Class<? extends QueryService> queryServiceClass;
+                                queryServiceClass = (Class<? extends QueryService>) Class.forName(queryServiceName);
+                                exec.addQueryServiceClasses(queryServiceClass);
+                            } catch (ClassNotFoundException | ClassCastException e1) {
+                                throwCLI("No such queryService: " + queryServiceName);
+                            }
+                            
+                        }
+                        break;
+                    }
                     JsonArray array = (JsonArray) values.getValue();
                     List<String> listEntries = new ArrayList<>();
                     for (int i = 0; i < array.size(); i++) {

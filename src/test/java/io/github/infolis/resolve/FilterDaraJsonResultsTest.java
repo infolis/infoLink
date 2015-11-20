@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.datasetMatcher;
+package io.github.infolis.resolve;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
+import io.github.infolis.resolve.FilterDaraJsonResults;
 
 public class FilterDaraJsonResultsTest {
 

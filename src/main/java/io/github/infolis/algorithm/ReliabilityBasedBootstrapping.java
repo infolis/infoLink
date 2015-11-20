@@ -119,7 +119,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             for (InfolisPattern reliablePattern : reliablePatterns_iteration) reliableContexts_iteration.addAll(reliablePattern.getTextualReferences());
             Set<String> newInstanceNames = new HashSet<>();
             for (TextualReference sC : reliableContexts_iteration) {
-                String newInstanceName = sC.getTerm();
+                String newInstanceName = sC.getReference();
                 Collection<String> reliableInstanceTerms = new HashSet<>();
                 for (Entity i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
                 if (!reliableInstanceTerms.contains(newInstanceName)) {
@@ -180,7 +180,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
     	for (Entity i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
         List<TextualReference> res = new ArrayList<>();
         for (TextualReference context : contexts) {
-            if (reliableInstanceTerms.contains(context.getTerm())) {
+            if (reliableInstanceTerms.contains(context.getReference())) {
                 res.add(context);
             }
         }

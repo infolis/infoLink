@@ -36,7 +36,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 
-        debug(log, "Start to build query from texteual reference %s", ref);
+        debug(log, "Start to build query from textual reference %s", ref);
 
         String query = extractQuery(ref,strat);
         if (query == null || query.isEmpty()) {
@@ -63,13 +63,13 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public String extractQuery(TextualReference ref, MetaDataExtractingStrategy strat) {
         String finalQuery = "?q=";
         String name;
-        if (RegexUtils.ignoreStudy(ref.getTerm())) {
+        if (RegexUtils.ignoreStudy(ref.getReference())) {
             return null;
         }
         switch (strat) {
             case title:
                 List<String> numericInfo = NumericInformationExtractor.extractNumericInfoFromTextRef(ref);
-                name = ref.getTerm().replaceAll("[^a-zA-Z]", "");
+                name = ref.getReference().replaceAll("[^a-zA-Z]", "");
 
                 if (name != null && !name.isEmpty()) {
                     finalQuery += "title:" + name + "&";
@@ -82,7 +82,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
                 finalQuery = finalQuery.substring(0, finalQuery.lastIndexOf("&"));
                 break;
             case doi:
-                name = ref.getTerm();
+                name = ref.getReference();
                 finalQuery += "doi:" + name;
                 break;
 			case bibliography:

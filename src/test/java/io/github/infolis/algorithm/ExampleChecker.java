@@ -103,7 +103,7 @@ public class ExampleChecker extends InfolisBaseTest {
         for (TextualReference sc : contextList) {
             System.out.println("context: " + sc.toString());
             printFileNameOfContext(sc);
-            System.out.println("study: " + sc.getTerm());
+            System.out.println("study: " + sc.getReference());
         }
 
     }

@@ -41,7 +41,7 @@ public class NumericInformationExtractor {
 
     public static List<String> extractNumericInfoFromTextRef(TextualReference context) {
         List<String> numericInfo = new ArrayList<>();
-        for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
+        for (String string : Arrays.asList(context.getReference(), context.getRightText(), context.getLeftText())) {
             String year = NumericInformationExtractor.getNumericInfo(string);
             if (year != null) {
                 numericInfo.add(year);

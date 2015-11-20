@@ -21,5 +21,6 @@ public class TextualReferenceTest extends InfolisBaseTest {
 		assertEquals(SerializationUtils.toXML(ctx).replaceAll("\\s", ""), ctx.toXML().replaceAll("\\s", ""));
 		String x = SerializationUtils.jacksonMapper.writeValueAsString(ctx);
 		log.debug(x);
+		log.debug(SerializationUtils.toJSON(ctx));
 	}
 }

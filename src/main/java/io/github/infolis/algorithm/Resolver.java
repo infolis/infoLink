@@ -390,7 +390,7 @@ public class Resolver extends BaseAlgorithm {
         //TODO: how to define the link reason?
         String linkReason = textRefURI;
         //genretate the link
-        System.out.println("textref: " + textRef.getTerm() + " -- " + textRef.getMentionsReference());
+        System.out.println("textref: " + textRef.getReference() + " -- " + textRef.getMentionsReference());
         Entity fromEntity = getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference());
 	System.out.println("file: " + fromEntity.getFile());
         EntityLink el = new EntityLink(fromEntity.getUri(), referencedInstance.getUri(), bestConfidence, linkReason);

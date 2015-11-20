@@ -137,7 +137,7 @@ public class DaraLinker extends BaseAlgorithm {
 
 	private List<String> extractNumericInfo(TextualReference context) {
 		List<String> numericInfo = new ArrayList<>();
-		for (String string : Arrays.asList(context.getTerm(), context.getRightText(), context.getLeftText())) {
+		for (String string : Arrays.asList(context.getReference(), context.getRightText(), context.getLeftText())) {
 			String year = searchComplexNumericInfo(string);
 			if (year != null) {
 				numericInfo.add(year);
@@ -149,11 +149,11 @@ public class DaraLinker extends BaseAlgorithm {
 	Entity extractStudy(TextualReference context) {
 		List<String> numericInfo = extractNumericInfo(context);
 		Entity study = new Entity();
-		if (RegexUtils.ignoreStudy(context.getTerm())) {
+		if (RegexUtils.ignoreStudy(context.getReference())) {
 			return study;
 		}
 		// remove numeric info from study name
-		String studyName = context.getTerm().replaceAll("[^a-zA-Z]", "");
+		String studyName = context.getReference().replaceAll("[^a-zA-Z]", "");
 		study.setName(studyName);
 		// 1. prefer mentions found inside of term
 		// 2. prefer mentions found in right context

@@ -157,7 +157,7 @@ public class Reliability {
     	// or search for term in contexts of pattern
     	// Most efficient solution: search for term in contexts of pattern
     	for (TextualReference context : pattern.getTextualReferences()) {
-            if (context.getTerm().equals(instance.getName())) jointOccurrences++;
+            if (context.getReference().equals(instance.getName())) jointOccurrences++;
         }
     	return jointOccurrences;
     }
@@ -211,8 +211,8 @@ public class Reliability {
         // compute pmi for every known instance referenced using pattern
     	for (TextualReference ref : pattern.getTextualReferences()) {
     		// do not try to compute reliability of unknown instances at this step
-    		if (!reliableInstanceNames.containsKey(ref.getTerm()))  continue; 
-    		Entity instance = reliableInstanceNames.get(ref.getTerm());
+    		if (!reliableInstanceNames.containsKey(ref.getReference()))  continue; 
+    		Entity instance = reliableInstanceNames.get(ref.getReference());
         	double pmi = this.computePmi(dataSize, instance, pattern);
         	// instance and pattern do not occur together in the data and are thus not associated
         	// should not happen here because instance is found as term in the textual references of pattern

@@ -79,7 +79,7 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> contextSet = new HashSet<String>();
     	for (String uri : contextURIs) {
     		TextualReference infolisContext = dataStoreClient.get(TextualReference.class, uri);
-    		contextSet.add(infolisContext.getLeftText() + " " + infolisContext.getTerm() + " " + infolisContext.getRightText());
+    		contextSet.add(infolisContext.getLeftText() + " " + infolisContext.getReference() + " " + infolisContext.getRightText());
     	}
     	return contextSet;
     }

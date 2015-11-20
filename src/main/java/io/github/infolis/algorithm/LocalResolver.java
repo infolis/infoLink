@@ -39,7 +39,7 @@ public class LocalResolver extends BaseAlgorithm {
         
         //query the internal data to find the entity with this identifier
         Map<String, String> query = new HashMap<>();
-        String identifier = textRef.getTerm();
+        String identifier = textRef.getReference();
         //TODO: correct propertyURI
         String propertyURI = "identifier";
         query.put(propertyURI, identifier);

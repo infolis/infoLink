@@ -61,13 +61,13 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         assertEquals(testString1, contextList1.get(0).toString());
         assertEquals(1, contextList3.size());
         assertEquals(Arrays.asList("try", "to", "find", "the", "."), contextList3.get(0).getLeftWords());
-        assertEquals("term", contextList3.get(0).getTerm());
+        assertEquals("term", contextList3.get(0).getReference());
         assertEquals(Arrays.asList(".", "in", "this", "short", "text"), contextList3.get(0).getRightWords());
         assertEquals("document", contextList1.get(0).getFile());
         assertEquals("document", contextList3.get(0).getFile());
-        assertEquals("term", contextList1.get(0).getTerm());
-        assertEquals("term", contextList3.get(0).getTerm());
-        assertEquals("term", contextList3.get(0).getTerm());
+        assertEquals("term", contextList1.get(0).getReference());
+        assertEquals("term", contextList3.get(0).getReference());
+        assertEquals("term", contextList3.get(0).getReference());
     }
 
     @Test

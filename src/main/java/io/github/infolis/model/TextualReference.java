@@ -71,7 +71,7 @@ public class TextualReference extends BaseModel {
     }    
         
 	public String toXML() {
-		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getTerm()) + "\" textFile=\""
+		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getReference()) + "\" textFile=\""
 				+ this.getFile() + "\">" + System.getProperty("line.separator") + "\t\t"
 				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
@@ -81,7 +81,7 @@ public class TextualReference extends BaseModel {
 
 	@Override
 	public String toString() {
-		return this.getLeftText() + " " + this.getTerm() + " " + this.getRightText();
+		return this.getLeftText() + " " + this.getReference() + " " + this.getRightText();
 	}
 
 	@JsonIgnore
@@ -123,12 +123,12 @@ public class TextualReference extends BaseModel {
                 setRightWords(Arrays.asList(rightText.split("\\s+")));
 	}
 
-	public String getTerm() {
+	public String getReference() {
 		return reference;
 	}
 
-	public void setTerm(String term) {
-		this.reference = term;
+	public void setReference(String reference) {
+		this.reference = reference;
 	}
 
 	public String getFile() {

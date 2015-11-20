@@ -1,10 +1,13 @@
 
 package io.github.infolis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  *
  * @author domi
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchQuery extends BaseModel{
     
     private String query;

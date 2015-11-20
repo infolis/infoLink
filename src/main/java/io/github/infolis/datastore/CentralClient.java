@@ -191,7 +191,8 @@ class CentralClient extends AbstractClient {
 				throw new RuntimeException(e);
 			}
         }
-        String uri = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
+        String baseURI = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
+        String uri = baseURI;
         if (qParamSB.length() > 0)
         	uri += "?q=" + qParamSB.toString();
         log.debug("Search for {}", uri);
@@ -206,7 +207,12 @@ class CentralClient extends AbstractClient {
 		try {
 			ObjectMapper mapper = SerializationUtils.jacksonMapper;
 			CollectionType listType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
-			return mapper.<List<T>>readValue(resp.readEntity(InputStream.class), listType);
+			String readEntity = resp.readEntity(String.class);
+			log.debug("JSON before: {}", readEntity);
+			readEntity = readEntity.replaceAll("\"_id\":\"", "\"uri\":\""+baseURI+"/");
+			log.debug("JSON after: {}", readEntity);
+			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listType);
+			return listOfTs;
 		} catch (Exception e) {
 			throw new ProcessingException(e);
 		}

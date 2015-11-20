@@ -594,7 +594,7 @@ public class Execution extends BaseModel {
 		return patterns;
 	}
 
-	public void setPatternUris(List<String> patternUris) {
+	public void setPatterns(List<String> patternUris) {
 		this.patterns = patternUris;
 	}
 

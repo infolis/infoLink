@@ -3,11 +3,14 @@ package io.github.infolis.datastore;
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
+import io.github.infolis.util.SerializationUtils;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,9 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionLikeType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -197,8 +203,9 @@ class CentralClient extends AbstractClient {
 			throw new WebApplicationException(resp);
 		}
 		try {
-		    GenericType<List<T>> arrayOfTType = new GenericType<>(clazz);
-			return resp.readEntity(arrayOfTType);
+			ObjectMapper mapper = SerializationUtils.jacksonMapper;
+			CollectionLikeType listType = mapper.getTypeFactory().constructCollectionLikeType(ArrayList.class, clazz);
+			return mapper.<List<T>>readValue(resp.readEntity(InputStream.class), listType);
 		} catch (Exception e) {
 			throw new ProcessingException(e);
 		}

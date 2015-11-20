@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * to detect the search results.
  */
 public class HTMLQueryService extends QueryService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
 
     private int maxNumber = 10;
@@ -85,12 +85,13 @@ public class HTMLQueryService extends QueryService {
                 resultBuff = tbuff; // call the temp buffer as your result buff
             }
             String htmlPage = new String(resultBuff);
+            log.debug("parsing html page content...");
             return parseHTML(htmlPage);
 
         } catch (MalformedURLException ex) {
-            log.error("{}", ex);
+            log.error("Execution threw an Exception: {}", ex);
         } catch (IOException ex) {
-            log.error("{}", ex);
+        	log.error("Execution threw an Exception: {}", ex);
         }
         return null;
     }
@@ -126,6 +127,7 @@ public class HTMLQueryService extends QueryService {
                 continue;
             }
             //create the search result
+            log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
             String num = NumericInformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
             sr.setIdentifier(identifier);

@@ -174,7 +174,7 @@ class CentralClient extends AbstractClient {
     public <T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query) {
         StringBuilder qParamSB = new StringBuilder();
         for (Entry<String, String> entry : query.entries()) {
-        	qParamSB.append(entry.getValue());
+        	qParamSB.append(entry.getKey());
         	qParamSB.append(":");
         	try
 			{
@@ -184,7 +184,7 @@ class CentralClient extends AbstractClient {
 				throw new RuntimeException(e);
 			}
         }
-        String uri = getUriForClass(clazz);
+        String uri = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
         if (qParamSB.length() > 0)
         	uri += "?q=" + qParamSB.toString();
         log.debug("Search for {}", uri);

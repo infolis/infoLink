@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableMap;
@@ -204,7 +205,7 @@ class CentralClient extends AbstractClient {
 		}
 		try {
 			ObjectMapper mapper = SerializationUtils.jacksonMapper;
-			CollectionLikeType listType = mapper.getTypeFactory().constructCollectionLikeType(ArrayList.class, clazz);
+			CollectionType listType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
 			return mapper.<List<T>>readValue(resp.readEntity(InputStream.class), listType);
 		} catch (Exception e) {
 			throw new ProcessingException(e);

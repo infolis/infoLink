@@ -2,12 +2,12 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.NumericInformationExtractor;
 
 import java.io.IOException;

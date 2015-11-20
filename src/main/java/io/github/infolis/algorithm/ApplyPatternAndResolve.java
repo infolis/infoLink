@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +9,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.resolve.QueryService;
 
 /**
  *

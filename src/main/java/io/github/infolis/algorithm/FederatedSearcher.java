@@ -2,10 +2,10 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.resolve.QueryService;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;

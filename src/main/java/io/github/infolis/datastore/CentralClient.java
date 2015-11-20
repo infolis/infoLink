@@ -4,7 +4,9 @@ import io.github.infolis.InfolisConfig;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -170,11 +172,22 @@ class CentralClient extends AbstractClient {
 
     @Override
     public <T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query) {
-        String uri = getUriForClass(clazz);
-        WebTarget target = jerseyClient.target(uri);
+        StringBuilder qParamSB = new StringBuilder();
         for (Entry<String, String> entry : query.entries()) {
-            target = target.queryParam(entry.getKey(), entry.getValue());
+        	qParamSB.append(entry.getValue());
+        	qParamSB.append(":");
+        	try
+			{
+				qParamSB.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+			} catch (UnsupportedEncodingException e)
+			{
+				throw new RuntimeException(e);
+			}
         }
+        String uri = getUriForClass(clazz);
+        if (qParamSB.length() > 0)
+        	uri += "?q=" + qParamSB.toString();
+        WebTarget target = jerseyClient.target(uri);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		log.debug("-> HTTP {}", resp.getStatus());
 		if (resp.getStatus() == 404) {

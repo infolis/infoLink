@@ -213,7 +213,7 @@ class CentralClient extends AbstractClient {
 //			log.debug("JSON before: {}", readEntity);
 //			readEntity = readEntity.replaceAll("\"_id\":\"", "\"uri\":\""+baseURI+"/");
 //			log.debug("JSON after: {}", readEntity);
-			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listOfMapType);
+			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listOfTType);
 			List<Map> flatList = mapper.readValue(readEntity, listOfMapType);
 			for (int i = 0; i < flatList.size(); i++)
 			{

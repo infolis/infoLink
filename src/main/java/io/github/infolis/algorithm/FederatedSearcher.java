@@ -12,6 +12,9 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author domi
@@ -21,6 +24,8 @@ public class FederatedSearcher extends BaseAlgorithm {
     public FederatedSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
+    
+    private static final Logger log = LoggerFactory.getLogger(FederatedSearcher.class);
 
     @Override
     public void execute() throws IOException {
@@ -36,7 +41,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                 try {
                     Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
                     queryService = constructor.newInstance();
-
+                    debug(log, "Calling QueryService %s to execute query %s", queryService, query);
                     List<SearchResult> results = queryService.executeQuery(query);
                     allResults.addAll(results);
                     updateProgress(counter, size);
@@ -59,6 +64,7 @@ public class FederatedSearcher extends BaseAlgorithm {
         List<String> searchResultUris = new ArrayList<>();
         for (SearchResult sr : allResults) {
             searchResultUris.add(sr.getUri());
+            log.debug("Found search result " + sr.getUri());
         }
         getExecution().setSearchResults(searchResultUris);
         getExecution().setStatus(ExecutionStatus.FINISHED);

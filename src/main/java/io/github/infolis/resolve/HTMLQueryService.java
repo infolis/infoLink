@@ -1,7 +1,6 @@
 package io.github.infolis.resolve;
 
 import io.github.infolis.model.SearchQuery;
-import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -14,16 +13,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -34,6 +31,8 @@ import org.jsoup.select.Elements;
  */
 public class HTMLQueryService extends QueryService {
 
+	private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
+	
     private int maxNumber = 10;
 
     public HTMLQueryService() {
@@ -86,12 +85,13 @@ public class HTMLQueryService extends QueryService {
                 resultBuff = tbuff; // call the temp buffer as your result buff
             }
             String htmlPage = new String(resultBuff);
+            log.debug("parsing html page content...");
             return parseHTML(htmlPage);
 
         } catch (MalformedURLException ex) {
-            Logger.getLogger(HTMLQueryService.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("Execution threw an Exception: %s", ex);
         } catch (IOException ex) {
-            Logger.getLogger(HTMLQueryService.class.getName()).log(Level.SEVERE, null, ex);
+        	log.error("Execution threw an Exception: %s", ex);
         }
         return null;
     }
@@ -127,6 +127,7 @@ public class HTMLQueryService extends QueryService {
                 continue;
             }
             //create the search result
+            log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
             String num = NumericInformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
             sr.setIdentifier(identifier);

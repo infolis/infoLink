@@ -187,6 +187,7 @@ class CentralClient extends AbstractClient {
         String uri = getUriForClass(clazz);
         if (qParamSB.length() > 0)
         	uri += "?q=" + qParamSB.toString();
+        log.debug("Search for {}", uri);
         WebTarget target = jerseyClient.target(uri);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		log.debug("-> HTTP {}", resp.getStatus());

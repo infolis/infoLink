@@ -1,7 +1,6 @@
 package io.github.infolis.resolve;
 
 import io.github.infolis.model.SearchQuery;
-import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
 
@@ -14,16 +13,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -33,6 +30,8 @@ import org.jsoup.select.Elements;
  * to detect the search results.
  */
 public class HTMLQueryService extends QueryService {
+    
+    private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
 
     private int maxNumber = 10;
 
@@ -89,9 +88,9 @@ public class HTMLQueryService extends QueryService {
             return parseHTML(htmlPage);
 
         } catch (MalformedURLException ex) {
-            Logger.getLogger(HTMLQueryService.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("{}", ex);
         } catch (IOException ex) {
-            Logger.getLogger(HTMLQueryService.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("{}", ex);
         }
         return null;
     }

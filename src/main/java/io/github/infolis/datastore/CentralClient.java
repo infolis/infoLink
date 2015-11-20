@@ -104,11 +104,9 @@ class CentralClient extends AbstractClient {
 		log.debug("-> {}", target);
 		log.debug("<- HTTP {}", resp.getStatus());
 		if (resp.getStatus() >= 400) {
-			// TODO check whether resp actually succeeded
-			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-			log.error(err.getMessage());
-			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
-			throw new BadRequestException(resp + err.getMessage());
+			String err = resp.readEntity(String.class);
+			log.error(err);
+			throw new RuntimeException(err);
 		} else {
 			thing.setUri(resp.getHeaderString("Location"));
 			log.debug("URI of Posted {}: {}", clazz.getSimpleName(), thing.getUri());

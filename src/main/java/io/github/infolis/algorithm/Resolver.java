@@ -363,9 +363,13 @@ public class Resolver extends BaseAlgorithm {
             counter++;
             double confidenceValue = 0.0;
             //a fitting number counts twice than for example the list index
+            log.debug("Computing score based on numbers");
             confidenceValue += 2 * computeScorebasedOnNumbers(textRef, r);
             //reliability of the used query service
-            confidenceValue += getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            log.debug("Computing score based on query service reliablility");
+            //TODO FIX
+            //confidenceValue += getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            log.debug("Combining scores");
             confidenceValue += 1 - ((double) r.getListIndex() / (double) results.get(results.size() - 1).getListIndex());
             resultValues.put(r, confidenceValue);
             updateProgress(counter, results.size());
@@ -374,6 +378,7 @@ public class Resolver extends BaseAlgorithm {
         //determine the best search result for the textual reference
         SearchResult bestSearchResult = null;
         double bestConfidence = -1.0;
+        log.debug("Selecting the best search results");
         for (SearchResult sr : resultValues.keySet()) {
             if (resultValues.get(sr) > bestConfidence) {
                 bestConfidence = resultValues.get(sr);
@@ -389,7 +394,7 @@ public class Resolver extends BaseAlgorithm {
         getOutputDataStoreClient().post(Entity.class, referencedInstance);
         //TODO: how to define the link reason?
         String linkReason = textRefURI;
-        //genretate the link
+        //generate the link
         System.out.println("textref: " + textRef.getReference() + " -- " + textRef.getMentionsReference());
         Entity fromEntity = getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference());
 	System.out.println("file: " + fromEntity.getFile());

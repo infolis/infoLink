@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -29,6 +32,8 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     public ApplyPatternAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
+    
+    private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
 
     @Override
     public void execute() throws IOException {
@@ -51,7 +56,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
         for (String s : textualRefs) {
+        	log.debug("Resolving textualReference " + s);
             String searchQuery = extractMetaData(s);
+            log.debug("Extracted metadata. SearchQuery: " + searchQuery);
             List<String> searchRes = new ArrayList<>();
             if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
                 searchRes = searchClassInRepositories(searchQuery, queryServiceClasses);
@@ -65,6 +72,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
             }
         }
         //the output of the whole algorithm is again a list with links 
+        log.debug("Created links: " + createdLinks);
         getExecution().setLinks(createdLinks);
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
@@ -101,10 +109,12 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
+        log.debug("FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
     
     public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
+    	log.debug("Searching in repository for query: " + query);
         Execution searchRepo = new Execution();
         searchRepo.setAlgorithm(FederatedSearcher.class);
         searchRepo.setSearchQuery(query);
@@ -112,6 +122,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
+        log.debug("FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
 
@@ -122,8 +133,10 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         List<String> textRefs = Arrays.asList(textRef);
         resolve.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, resolve);
+        log.debug("Resolving " + searchResults.size() + " search results for textual references: " + textRef);
         resolve.instantiateAlgorithm(this).run();
         updateProgress(4, 4);
+        log.debug("Returning links: " + resolve.getLinks());
         return resolve.getLinks();
     }
 

@@ -2,10 +2,11 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Test whether the progress of an execution is corretly set (also in the datastore).
@@ -13,6 +14,8 @@ import org.junit.Test;
  * @author domi
  */
 public class ProgressUpdates extends InfolisBaseTest {
+    
+    private static final Logger log = LoggerFactory.getLogger(ProgressUpdates.class);
 
     @Test
     public void testProgress() throws InterruptedException {
@@ -29,7 +32,7 @@ public class ProgressUpdates extends InfolisBaseTest {
             try {
                 Thread.sleep(1100);
             } catch (InterruptedException ex) {
-                Logger.getLogger(ProgressUpdates.class.getName()).log(Level.SEVERE, null, ex);
+                log.error("{}", ex);
             }
             done++;
             da.updateProgress(done, 4);

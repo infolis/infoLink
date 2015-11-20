@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
  */
 public class HTMLQueryService extends QueryService {
 
-	private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
-	
+    private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
+
     private int maxNumber = 10;
 
     public HTMLQueryService() {
@@ -89,9 +89,9 @@ public class HTMLQueryService extends QueryService {
             return parseHTML(htmlPage);
 
         } catch (MalformedURLException ex) {
-            log.error("Execution threw an Exception: %s", ex);
+            log.error("Execution threw an Exception: {}", ex);
         } catch (IOException ex) {
-        	log.error("Execution threw an Exception: %s", ex);
+        	log.error("Execution threw an Exception: {}", ex);
         }
         return null;
     }

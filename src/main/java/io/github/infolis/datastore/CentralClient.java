@@ -3,10 +3,16 @@ package io.github.infolis.datastore;
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ErrorResponse;
+import io.github.infolis.util.SerializationUtils;
 
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +34,10 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionLikeType;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -170,11 +180,24 @@ class CentralClient extends AbstractClient {
 
     @Override
     public <T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query) {
-        String uri = getUriForClass(clazz);
-        WebTarget target = jerseyClient.target(uri);
+        StringBuilder qParamSB = new StringBuilder();
         for (Entry<String, String> entry : query.entries()) {
-            target = target.queryParam(entry.getKey(), entry.getValue());
+        	qParamSB.append(entry.getKey());
+        	qParamSB.append(":");
+        	try
+			{
+				qParamSB.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+			} catch (UnsupportedEncodingException e)
+			{
+				throw new RuntimeException(e);
+			}
         }
+        String baseURI = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
+        String uri = baseURI;
+        if (qParamSB.length() > 0)
+        	uri += "?q=" + qParamSB.toString();
+        log.debug("Search for {}", uri);
+        WebTarget target = jerseyClient.target(uri);
 		Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
 		log.debug("-> HTTP {}", resp.getStatus());
 		if (resp.getStatus() == 404) {
@@ -183,8 +206,20 @@ class CentralClient extends AbstractClient {
 			throw new WebApplicationException(resp);
 		}
 		try {
-		    GenericType<List<T>> arrayOfTType = new GenericType<>(clazz);
-			return resp.readEntity(arrayOfTType);
+			ObjectMapper mapper = SerializationUtils.jacksonMapper;
+			CollectionType listOfTType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clazz);
+			CollectionType listOfMapType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, HashMap.class);
+			String readEntity = resp.readEntity(String.class);
+//			log.debug("JSON before: {}", readEntity);
+//			readEntity = readEntity.replaceAll("\"_id\":\"", "\"uri\":\""+baseURI+"/");
+//			log.debug("JSON after: {}", readEntity);
+			List<T> listOfTs = mapper.<List<T>>readValue(readEntity, listOfTType);
+			List<Map> flatList = mapper.readValue(readEntity, listOfMapType);
+			for (int i = 0; i < flatList.size(); i++)
+			{
+				listOfTs.get(i).setUri(baseURI + "/" + flatList.get(i).get("_id"));
+			}
+			return listOfTs;
 		} catch (Exception e) {
 			throw new ProcessingException(e);
 		}

@@ -35,6 +35,8 @@ public class TagResolver extends BaseAlgorithm {
 		toResolve.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
 
 		for (Class<? extends BaseModel> clazz : toResolve.keySet()) {
+			if (toResolve.get(clazz).isEmpty()) 
+				continue;
 			Multimap<String, String> query = HashMultimap.create();
 			query.putAll("tags", toResolve.get(clazz));
 			List<? extends BaseModel> matchingItemsInDb;

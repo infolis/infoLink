@@ -71,10 +71,6 @@ public class TagResolver extends BaseAlgorithm {
 	 
 	@Override
 	public void validate() throws IllegalAlgorithmArgumentException {
-		if ((null == getExecution().getInfolisFileTags() || getExecution().getInfolisFileTags().isEmpty()) && 
-		(null == getExecution().getInfolisPatternTags() || getExecution().getInfolisPatternTags().isEmpty())) 
-		{
-			throw new IllegalAlgorithmArgumentException(getClass(), "tags", "Required parameter 'tags' is missing!");
-		}
+		// no validation needed, if no tags are specified, TagResolver simply won't do anything
 	}
 }

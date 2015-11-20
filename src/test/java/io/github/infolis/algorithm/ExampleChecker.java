@@ -1,8 +1,6 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.infolink.datasetMatcher.HTMLQueryService;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.SearchQuery;
@@ -11,6 +9,8 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.resolve.HTMLQueryService;
+import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;

@@ -46,11 +46,11 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
-import io.github.infolis.infolink.datasetMatcher.QueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.MetaDataExtractingStrategy;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 

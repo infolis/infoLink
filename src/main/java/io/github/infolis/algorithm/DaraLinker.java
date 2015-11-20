@@ -2,13 +2,13 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.datasetMatcher.FilterDaraJsonResults;
-import io.github.infolis.infolink.datasetMatcher.DaraSolrMatcher;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.ExtractionMethod;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.resolve.DaraSolrMatcher;
+import io.github.infolis.resolve.FilterDaraJsonResults;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 

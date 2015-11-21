@@ -32,11 +32,11 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	}
 
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
-	
+
 	public PatternInducer getPatternInducer() {
 	   	return new StandardPatternInducer();
 	}
-	   
+
 	public PatternRanker getPatternRanker() {
     	return new FrequencyPatternRanker();
     }
@@ -59,8 +59,8 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
      * iteration
      * @param threshold		threshold for accepting patterns
      * @param maxIterations		maximum number of iterations for algorithm
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
+     * @throws IllegalAccessException
+     * @throws InstantiationException
      *
      */
     public List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException {
@@ -78,7 +78,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         for (String term : getExecution().getSeeds()) {
         	Entity entity = new Entity(term);
         	entity.setTags(getExecution().getTags());
-        	newSeedsIteration.add(entity); 
+        	newSeedsIteration.add(entity);
         }
 
         while (numIter < getExecution().getMaxIterations()) {
@@ -107,7 +107,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 
                 contexts_currentIteration.addAll(detectedContexts);
 				extractedContextsFromSeeds.addAll(detectedContexts);
-                
+
                 seed.setTextualReferences(detectedContexts);
                 processedSeeds.put(seed.getName(), seed);
                 addedSeeds.add(seed.getName());
@@ -124,7 +124,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 }
             }
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
-            if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent 
+            if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent
             		|| getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeNew) {
             	log.info("--- Entering Pattern Induction phase ---");
             	List<InfolisPattern> candidates = inducePatterns(contexts_currentIteration);
@@ -133,7 +133,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
-            
+
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeAll) {
             	log.info("--- Entering Pattern Induction phase ---");
             	List<InfolisPattern> candidates = inducePatterns(extractedContextsFromSeeds);
@@ -142,16 +142,16 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
-            
+
             // POST the patterns
             getOutputDataStoreClient().post(InfolisPattern.class, newPatterns);
             for (InfolisPattern pattern : newPatterns) {
             	processedPatterns.add(pattern.getMinimal());
             }
-            
+
             log.info("Pattern Selection completed.");
             log.info("--- Entering Instance Extraction phase ---");
-            
+
             // 3. search for patterns in corpus
             List<String> res = this.getContextsForPatterns(newPatterns);
             for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
@@ -161,12 +161,12 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	newSeedsIteration.add(entity);
             	newSeedTermsIteration.add(studyContext.getReference());
             }
-            
+
             debug(log, "Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration);
             numIter++;
-            
+
             persistExecution();
-            if (newSeedTermsIteration.isEmpty() | processedSeeds.keySet().containsAll(newSeedTermsIteration)) {
+            if (newSeedTermsIteration.isEmpty() || processedSeeds.keySet().containsAll(newSeedTermsIteration)) {
             	debug(log, "No new seeds found in iteration, returning.");
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
@@ -180,14 +180,14 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         }
         debug(log, "Maximum number of iterations reached, returning.");
         // TODO now delete all the contexts that were only temporary
-        
+
         log.info("Final iteration: " + numIter);
         log.debug("Final list of instances:  ");
         for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final list of patterns: " + processedPatterns);
         return extractedContextsFromPatterns;
     }
-    
+
     private List<InfolisPattern> inducePatterns(Collection<TextualReference> contexts) {
     	List<InfolisPattern> patterns = new ArrayList<>();
     	int n = 0;
@@ -200,9 +200,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     	}
     	return patterns;
     }
-    
+
     class FrequencyPatternRanker extends Bootstrapping.PatternRanker {
-    	
+
     	protected Set<InfolisPattern> getBestPatterns(List<InfolisPattern> candidates, List<String> processedMinimals, Set<Entity> reliableSeeds) {
 	        Set<InfolisPattern> patterns = new HashSet<>();
 	        Set<String> processedMinimals_iteration = new HashSet<>();
@@ -213,7 +213,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		    	InfolisPattern candidate = candidates.get(contextNo);
 		    	log.debug("Processing context no. " + String.valueOf(contextNo));
 		      	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
-		       	if (processedMinimals.contains(candidate.getMinimal()) | processedMinimals_iteration.contains(candidate.getMinimal())) {
+			if (processedMinimals.contains(candidate.getMinimal()) || processedMinimals_iteration.contains(candidate.getMinimal())) {
 		       		// no need to induce less general patterns, continue with next context
 		            //TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		            //TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
@@ -225,7 +225,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		        }
 		        boolean nonStopwordPresent = false;
 		        for (String word : candidate.getWords()) {
-		         	if (!RegexUtils.isStopword(word)) { 
+		         	if (!RegexUtils.isStopword(word)) {
 		          		nonStopwordPresent = true;
 		           		continue;
 		           	}
@@ -239,11 +239,11 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		           	contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
 		           	continue;
-		        } 
+		        }
     		}
 	        return patterns;
 	    }
-    	
+
     	private double computeRelevance(int count, int size) {
     		int norm = 1;
     		double score = ((double) count / size) * norm;
@@ -252,7 +252,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		log.debug("Size: " + size);
     		return score;
     	}
-    	
+
     	private boolean isRelevant(InfolisPattern pattern, List<InfolisPattern> candidateList) {
     		int count = 0;
     		for (InfolisPattern candidateP : candidateList) {
@@ -262,5 +262,5 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		return (relevance >= pattern.getThreshold()  & (count > 0));
     	}
     }//end of class
-    
+
 }

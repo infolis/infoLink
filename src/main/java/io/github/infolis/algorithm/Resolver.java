@@ -388,10 +388,10 @@ public class Resolver extends BaseAlgorithm {
         Entity referencedInstance = new Entity();
         referencedInstance.setTags(getExecution().getTags());
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
-        if(bestSearchResult.getTitles().size()>0) {
+        if(bestSearchResult.getTitles() != null && bestSearchResult.getTitles().size()>0) {
             referencedInstance.setName(bestSearchResult.getTitles().get(0));
         }
-        if(bestSearchResult.getNumericInformation().size()>0) {
+        if(bestSearchResult.getNumericInformation() != null && bestSearchResult.getNumericInformation().size()>0) {
             referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
         }
         getOutputDataStoreClient().post(Entity.class, referencedInstance);

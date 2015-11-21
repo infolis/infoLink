@@ -39,6 +39,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     public void execute() throws IOException {
 
     	Execution tagExec = new Execution();
+    	tagExec.setLog(getExecution().getLog());
     	tagExec.setAlgorithm(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
@@ -56,9 +57,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
         for (String s : textualRefs) {
-        	log.debug("Resolving textualReference " + s);
+        	debug(log, "Resolving textualReference " + s);
             String searchQuery = extractMetaData(s);
-            log.debug("Extracted metadata. SearchQuery: " + searchQuery);
+            debug(log, "Extracted metadata. SearchQuery: " + searchQuery);
             List<String> searchRes = new ArrayList<>();
             if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
                 searchRes = searchClassInRepositories(searchQuery, queryServiceClasses);
@@ -72,14 +73,16 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
             }
         }
         //the output of the whole algorithm is again a list with links 
-        log.debug("Created links: " + createdLinks);
+        debug(log, "Created links: " + createdLinks);
         getExecution().setLinks(createdLinks);
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
     private List<String> searchPatterns(List<String> patterns, List<String> input) {
+    	debug(log, "Running RegExSearcher with patterns " + patterns);
         Execution search = new Execution();
         //search.setAlgorithm(PatternApplier.class);
+        search.setLog(getExecution().getLog());
         search.setAlgorithm(RegexSearcher.class);
         search.setPatterns(patterns);
         search.setInputFiles(input);
@@ -87,11 +90,13 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
         updateProgress(1, 4);
+    	debug(log, "Done running RegExSearcher, found textualReferences: " + search.getTextualReferences());
         return search.getTextualReferences();
     }
 
     public String extractMetaData(String textualReference) {
         Execution extract = new Execution();
+        extract.setLog(getExecution().getLog());
         extract.setAlgorithm(MetaDataExtractor.class);
         List<String> textRefs = Arrays.asList(textualReference);
         extract.setTextualReferences(textRefs);
@@ -109,34 +114,36 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
-        log.debug("FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
+        debug(log, "FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
     
     public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
-    	log.debug("Searching in repository for query: " + query);
+    	debug(log, "Searching in repository for query: " + query);
         Execution searchRepo = new Execution();
+        searchRepo.setLog(getExecution().getLog());
         searchRepo.setAlgorithm(FederatedSearcher.class);
         searchRepo.setSearchQuery(query);
         searchRepo.setQueryServiceClasses(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
-        log.debug("FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
+        debug(log, "FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
 
     public List<String> resolve(List<String> searchResults, String textRef) {
         Execution resolve = new Execution();
+        resolve.setLog(getExecution().getLog());
         resolve.setAlgorithm(Resolver.class);
         resolve.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
         resolve.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, resolve);
-        log.debug("Resolving " + searchResults.size() + " search results for textual references: " + textRef);
+        debug(log, "Resolving " + searchResults.size() + " search results for textual references: " + textRef);
         resolve.instantiateAlgorithm(this).run();
         updateProgress(4, 4);
-        log.debug("Returning links: " + resolve.getLinks());
+        debug(log, "Returning links: " + resolve.getLinks());
         return resolve.getLinks();
     }
 

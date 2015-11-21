@@ -44,6 +44,10 @@ public class Resolver extends BaseAlgorithm {
      */
     public double computeScorebasedOnNumbers(TextualReference textRef, SearchResult result) {
         List<String> numericInfosRef = NumericInformationExtractor.extractNumericInfoFromTextRef(textRef);
+        if(result.getNumericInformation() == null || result.getNumericInformation().isEmpty()) {
+            result.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(result.getTitles().get(0)));
+            
+        }
         List<String> numericInfoSearch = result.getNumericInformation();
         for (String ref : numericInfosRef) {
             for (String search : numericInfoSearch) {
@@ -370,10 +374,11 @@ public class Resolver extends BaseAlgorithm {
             //TODO FIX
             //confidenceValue += getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
             log.debug("Combining scores");
-            confidenceValue += 1 - ((double) r.getListIndex() / (double) results.get(results.size() - 1).getListIndex());
+            // normalize: +1 to avoid NaN if only results contains only one search result
+            confidenceValue += 1 - ((double) r.getListIndex() / ((double) results.get(results.size() - 1).getListIndex() + 1));
+            log.debug("Confidence score: " + confidenceValue);
             resultValues.put(r, confidenceValue);
             updateProgress(counter, results.size());
-
         }
         //determine the best search result for the textual reference
         SearchResult bestSearchResult = null;
@@ -389,8 +394,12 @@ public class Resolver extends BaseAlgorithm {
         Entity referencedInstance = new Entity();
         referencedInstance.setTags(getExecution().getTags());
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
-        referencedInstance.setName(bestSearchResult.getTitles().get(0));
-        referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
+        if(bestSearchResult.getTitles() != null &&bestSearchResult.getTitles().size()>0) {
+            referencedInstance.setName(bestSearchResult.getTitles().get(0));
+        }
+        if(bestSearchResult.getNumericInformation() != null && bestSearchResult.getNumericInformation().size()>0) {
+            referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
+        }
         getOutputDataStoreClient().post(Entity.class, referencedInstance);
         //TODO: how to define the link reason?
         String linkReason = textRefURI;
@@ -411,7 +420,7 @@ public class Resolver extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == getExecution().getSearchResults()) {
+        if (null == getExecution().getSearchResults() || getExecution().getSearchResults().isEmpty() ){
             throw new IllegalAlgorithmArgumentException(getClass(), "searchResults", "Required parameter 'search results' is missing!");
         }
         if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {

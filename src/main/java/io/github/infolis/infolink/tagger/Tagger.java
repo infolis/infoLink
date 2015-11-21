@@ -70,7 +70,7 @@ public class Tagger
 			try
 			{
 				// found phraseEndTag - chunk completed
-				if (wordInfo.startsWith("</") & wordInfo.endsWith(">"))
+				if (wordInfo.startsWith("</") && wordInfo.endsWith(">"))
 				{
 					if (phrases.containsKey(curTag)) {
 						curChunks = phrases.get(curTag);
@@ -83,7 +83,7 @@ public class Tagger
 					curTag = "";
 					curWords = new ArrayList<TaggedWord>();
 				}
-				else if (wordInfo.startsWith("<") & wordInfo.endsWith(">")) {
+				else if (wordInfo.startsWith("<") && wordInfo.endsWith(">")) {
 					curTag = wordInfo;
 				}
 				else

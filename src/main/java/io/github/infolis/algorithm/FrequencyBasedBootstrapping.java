@@ -231,7 +231,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           	}
 		        }
 		        if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
-		        if (nonStopwordPresent & isRelevant(candidate, candidates)) {
+		        if (nonStopwordPresent && isRelevant(candidate, candidates)) {
 		        	candidate.setTags(getExecution().getTags());
 		          	patterns.add(candidate);
 		           	processedMinimals_iteration.add(candidate.getMinimal());
@@ -258,8 +258,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		for (InfolisPattern candidateP : candidateList) {
     			if (pattern.getMinimal().equals(candidateP.getMinimal())) count++;
     		}
+		// TODO: Call computeRelevance only if count > 0 (optimisation)?
     		double relevance = computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext());
-    		return (relevance >= pattern.getThreshold()  & (count > 0));
+		return (relevance >= pattern.getThreshold() && (count > 0));
     	}
     }//end of class
 

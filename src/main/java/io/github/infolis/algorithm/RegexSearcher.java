@@ -129,8 +129,7 @@ public class RegexSearcher extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

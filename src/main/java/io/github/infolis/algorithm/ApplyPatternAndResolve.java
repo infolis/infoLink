@@ -38,9 +38,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
 
-    	Execution tagExec = new Execution();
-    	tagExec.setLog(getExecution().getLog());
-    	tagExec.setAlgorithm(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
@@ -80,10 +78,8 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     private List<String> searchPatterns(List<String> patterns, List<String> input) {
     	debug(log, "Running RegExSearcher with patterns " + patterns);
-        Execution search = new Execution();
+        Execution search = getExecution().createSubExecution(RegexSearcher.class);
         //search.setAlgorithm(PatternApplier.class);
-        search.setLog(getExecution().getLog());
-        search.setAlgorithm(RegexSearcher.class);
         search.setPatterns(patterns);
         search.setInputFiles(input);
         search.setIndexDirectory(getExecution().getIndexDirectory());
@@ -95,9 +91,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     }
 
     public String extractMetaData(String textualReference) {
-        Execution extract = new Execution();
-        extract.setLog(getExecution().getLog());
-        extract.setAlgorithm(MetaDataExtractor.class);
+        Execution extract = getExecution().createSubExecution(MetaDataExtractor.class);
         List<String> textRefs = Arrays.asList(textualReference);
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
@@ -107,8 +101,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     }
 
     public List<String> searchInRepositories(String query, List<String> queryServices) {
-        Execution searchRepo = new Execution();
-        searchRepo.setAlgorithm(FederatedSearcher.class);
+        Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchQuery(query);
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
@@ -120,9 +113,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     
     public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
     	debug(log, "Searching in repository for query: " + query);
-        Execution searchRepo = new Execution();
-        searchRepo.setLog(getExecution().getLog());
-        searchRepo.setAlgorithm(FederatedSearcher.class);
+        Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);;
         searchRepo.setSearchQuery(query);
         searchRepo.setQueryServiceClasses(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
@@ -133,9 +124,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     }
 
     public List<String> resolve(List<String> searchResults, String textRef) {
-        Execution resolve = new Execution();
-        resolve.setLog(getExecution().getLog());
-        resolve.setAlgorithm(Resolver.class);
+        Execution resolve = getExecution().createSubExecution(Resolver.class);
         resolve.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
         resolve.setTextualReferences(textRefs);

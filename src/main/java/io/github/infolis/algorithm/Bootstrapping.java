@@ -36,7 +36,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Bootstrapping.class);
-    Execution indexerExecution = new Execution();
+    Execution indexerExecution;
     
     public abstract List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException;
     
@@ -48,8 +48,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     public abstract class PatternRanker {};
     
     Execution createIndex() throws IOException {
-		Execution execution = new Execution();
-		execution.setAlgorithm(Indexer.class);
+		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
 		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
 		// 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
@@ -62,8 +61,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
-        Execution execution = new Execution();
-        execution.setAlgorithm(SearchTermPosition.class);
+        Execution execution = getExecution().createSubExecution(SearchTermPosition.class);
         execution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
         execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
         execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
@@ -96,8 +94,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
-        	Execution stpExecution = new Execution();
-            stpExecution.setAlgorithm(SearchTermPosition.class);
+        	Execution stpExecution = getExecution().createSubExecution(SearchTermPosition.class);
             stpExecution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
             stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
             stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
@@ -133,9 +130,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	for (String fileUri : filenamesForPatterns.keySet()) {
     	    Collection<InfolisPattern> patternList = filenamesForPatterns.get(fileUri);
     		List<String> patternURIs = getPatternUris(patternList);
-    		Execution applierExecution = new Execution();
+    		Execution applierExecution = getExecution().createSubExecution(RegexSearcher.class);
             applierExecution.setPatterns(patternURIs);
-            applierExecution.setAlgorithm(RegexSearcher.class);  
             applierExecution.getInputFiles().add(fileUri);
             applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
             applierExecution.instantiateAlgorithm(this).run();
@@ -161,8 +157,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

@@ -322,7 +322,7 @@ public class Execution extends BaseModel {
 
 	/**
          * When resolving the detected meta data by searching in repositories,
-         * we need to knwo what we search for. The different strategies are:         
+         * we need to know what we search for. The different strategies are:         
          * title, doi, urn, bibliography.
          * If we chose for example title, we search the meta data within the 
          * title field in a repository.

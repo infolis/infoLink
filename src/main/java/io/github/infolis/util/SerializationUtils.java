@@ -80,7 +80,7 @@ public class SerializationUtils {
 	/**
 	 * @see #getHexMd5(byte[])
 	 * @param asText
-	 *            String to calulate the MD5 {@link MessageDigest} for
+	 *            String to calculate the MD5 {@link MessageDigest} for
 	 */
 	public static final String getHexMd5(String asText) {
 		return getHexMd5(asText.getBytes());

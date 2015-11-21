@@ -373,7 +373,6 @@ public class Resolver extends BaseAlgorithm {
             confidenceValue += 1 - ((double) r.getListIndex() / (double) results.get(results.size() - 1).getListIndex());
             resultValues.put(r, confidenceValue);
             updateProgress(counter, results.size());
-
         }
         //determine the best search result for the textual reference
         SearchResult bestSearchResult = null;
@@ -389,8 +388,12 @@ public class Resolver extends BaseAlgorithm {
         Entity referencedInstance = new Entity();
         referencedInstance.setTags(getExecution().getTags());
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
-        referencedInstance.setName(bestSearchResult.getTitles().get(0));
-        referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
+        if(bestSearchResult.getTitles().size()>0) {
+            referencedInstance.setName(bestSearchResult.getTitles().get(0));
+        }
+        if(bestSearchResult.getNumericInformation().size()>0) {
+            referencedInstance.setNumber(bestSearchResult.getNumericInformation().get(0));
+        }
         getOutputDataStoreClient().post(Entity.class, referencedInstance);
         //TODO: how to define the link reason?
         String linkReason = textRefURI;

@@ -172,4 +172,47 @@ public class ResolverTest extends InfolisBaseTest {
         return searchResults;
     }
     
+    @Test
+    public void reproduceError() {
+        //http://infolis.gesis.org/infolink/api/execution/297d0e30-8fcc-11e5-87d1-9febea864153
+        Entity p = new Entity();
+        p.setIdentifier("xyz");
+        p.setName("abc");
+        dataStoreClient.post(Entity.class, p);
+        TextualReference r = new TextualReference("1243–1245. Terwey, M. (2000), »", "ALLBUS", ": A German General Social", "document", "pattern",p.getUri());
+        dataStoreClient.post(TextualReference.class, r);
+        //get the search results from both query services
+        List<String> combinedResults = new ArrayList<>();
+        
+        SearchResult r1 = new SearchResult();
+        r1.setIdentifier("10.6102/zis58");
+        r1.setListIndex(0);
+        List<String> allTitles = Arrays.asList("Anomie (ALLBUS)");
+        r1.setTitles(allTitles);
+        //r1.setNumericInformation(NumericInformationExtractor.extractNumbersFromString("Anomie (ALLBUS)"));
+        dataStoreClient.post(SearchResult.class, r1);
+        
+        SearchResult r2 = new SearchResult();
+        r2.setIdentifier("10.6102/zis13");
+        r2.setListIndex(1);
+        List<String> allTitles2 = Arrays.asList("Arbeitsorientierung (ALLBUS)");
+        r2.setTitles(allTitles2);
+        //r2.setNumericInformation(NumericInformationExtractor.extractNumbersFromString("Arbeitsorientierung (ALLBUS)"));
+        dataStoreClient.post(SearchResult.class, r2);
+        
+        combinedResults.add(r1.getUri());
+        combinedResults.add(r2.getUri());
+        
+        Execution execution = new Execution();
+        execution.setAlgorithm(Resolver.class);
+        execution.setSearchResults(combinedResults);
+        
+        List<String> references = Arrays.asList(r.getUri());
+        execution.setTextualReferences(references);
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();        
+        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());     
+        
+        Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
+    }
+    
 }   

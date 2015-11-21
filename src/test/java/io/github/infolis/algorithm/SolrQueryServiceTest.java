@@ -27,43 +27,43 @@ import org.junit.Test;
  * @author domi
  */
 public class SolrQueryServiceTest extends InfolisBaseTest {
-    
+
     @Test
-    public void searchWeb() throws IOException {        
-        
-        QueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/");              
+    public void searchWeb() throws IOException {
+
+        QueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/");
         dataStoreClient.post(QueryService.class, qs);
         List<String> qsList = new ArrayList<>();
         qsList.add(qs.getUri());
-        
-        Assume.assumeNotNull(System.getProperty("gesisRemoteTest")); 
+
+        Assume.assumeNotNull(System.getProperty("gesisRemoteTest"));
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
         String searchQuery = postTitleQuery();
         execution.setSearchQuery(searchQuery);
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        
+
         List<String> sr= execution.getSearchResults();
         List<SearchResult> result = dataStoreClient.get(SearchResult.class, sr);
-        
+
         //TODO: find test examples
     }
-    
+
     public String postTitleQuery() throws IOException {
         SearchQuery sq = new SearchQuery();
         sq.setQuery("?q=title:Studierendensurvey");
         dataStoreClient.post(SearchQuery.class, sq);
         return sq.getUri();
     }
-    
+
     @Test
     public void testQueryAdaption() {
         SolrQueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/",1.0);
-        String query = qs.adaptQuery("?q=title:ALLBUS");        
+        String query = qs.adaptQuery("?q=title:ALLBUS");
         Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:ALLBUS&start=0&rows=10&fl=doi,title&wt=json", query);
     }
-    
+
     @Test
     public void testTitleResponse() throws FileNotFoundException, IOException {
         InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrTitleResponse.json").getFile()));
@@ -89,7 +89,7 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
                 case 6:
                     Assert.assertEquals("10.4232/1.4344", doi);
                     break;
-                }                
+                }
             }
             Assert.assertEquals(11,i);
         } finally {
@@ -97,7 +97,7 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
             is.close();
         }
     }
-    
+
     @Test
     public void testDoiResponse() throws FileNotFoundException, IOException {
         InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrDOIResponse.json").getFile()));
@@ -119,7 +119,7 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
                     Assert.assertEquals(title1, title2);
                     Assert.assertEquals("10.4232/1.2525", doi);
                     break;
-                }                
+                }
             }
             Assert.assertEquals(0,i);
         } finally {
@@ -127,5 +127,5 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
             is.close();
         }
     }
-    
+
 }

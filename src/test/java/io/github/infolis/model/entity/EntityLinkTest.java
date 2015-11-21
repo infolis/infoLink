@@ -8,13 +8,13 @@ import io.github.infolis.util.SerializationUtils;
 
 public class EntityLinkTest
 {
-	
+
 	Logger log = LoggerFactory.getLogger(EntityLinkTest.class);
-	
+
 	@Test
 	public void testName() throws Exception
 	{
-		
+
 		EntityLink link = new EntityLink();
 		Entity e1 = new Entity();
 		e1.setName("foo");
@@ -22,7 +22,7 @@ public class EntityLinkTest
 		e1.setName("bar");
 		link.setFromEntity(e1.getUri());
 		link.setToEntity(e2.getUri());
-		
+
 		log.debug(SerializationUtils.toJSON(link));
 
 

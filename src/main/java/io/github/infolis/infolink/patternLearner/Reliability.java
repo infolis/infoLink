@@ -16,14 +16,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Class for storing espresso-like pattern ranking and instance ranking reliability scores.
- * 
- * Implemented based on algorithm in: 
- * Patrick Pantel and Marco Pennacchiotti. 2006. 
- * Espresso: leveraging generic patterns for automatically harvesting semantic relations. 
- * In Proceedings of the 21st International Conference on Computational Linguistics and 
- * the 44th annual meeting of the Association for Computational Linguistics (ACL-44). 
- * Association for Computational Linguistics, Stroudsburg, PA, USA, 113-120. 
- * DOI=10.3115/1220175.1220190 http://dx.doi.org/10.3115/1220175.1220190 
+ *
+ * Implemented based on algorithm in:
+ * Patrick Pantel and Marco Pennacchiotti. 2006.
+ * Espresso: leveraging generic patterns for automatically harvesting semantic relations.
+ * In Proceedings of the 21st International Conference on Computational Linguistics and
+ * the 44th annual meeting of the Association for Computational Linguistics (ACL-44).
+ * Association for Computational Linguistics, Stroudsburg, PA, USA, 113-120.
+ * DOI=10.3115/1220175.1220190 http://dx.doi.org/10.3115/1220175.1220190
  * http://www.anthology.aclweb.org/P/P06/P06-1.pdf#page=153
  *
  * @author kata
@@ -50,19 +50,19 @@ public class Reliability {
         this.seedTerms = new HashSet<>();
         this.scoreCache = new HashMap<>();
     }
-    
+
     public void deleteScoreCache() {
     	this.scoreCache = new HashMap<>();
     }
-    
+
     public void setSeedTerms(Set<String> seedTerms) {
     	this.seedTerms = seedTerms;
     }
-    
+
     public Set<String> getSeedTerms() {
     	return this.seedTerms;
     }
-    
+
     public Collection<Entity> getInstances() {
     	return this.instances.values();
     }
@@ -70,7 +70,7 @@ public class Reliability {
     public Collection<InfolisPattern> getPatterns() {
     	return this.patterns.values();
     }
-    
+
     public InfolisPattern getPattern(String regex) {
     	return this.patterns.get(regex);
     }
@@ -135,24 +135,24 @@ public class Reliability {
             return false;
         }
     }
-    
+
     public double getMaxPmi() {
     	return this.maximumPmi;
     }
-    
+
     /**
-     * Counts joint occurrences of instance and pattern. 
-     * Needed for computation of probabilities for computation of pmi scores. 
-     * 
-     * @param instance	
-     * @param pattern	
+     * Counts joint occurrences of instance and pattern.
+     * Needed for computation of probabilities for computation of pmi scores.
+     *
+     * @param instance
+     * @param pattern
      * @return
      */
     private int countJointOccurrences(Entity instance, InfolisPattern pattern) {
     	int jointOccurrences = 0;
-    	// joint occurrences can be calculated in two different ways: 
-    	// either search for pattern in textual references of instance (note: search pattern in the 
-    	// context strings, not search for pattern listed as extracting pattern there as the contexts 
+    	// joint occurrences can be calculated in two different ways:
+    	// either search for pattern in textual references of instance (note: search pattern in the
+    	// context strings, not search for pattern listed as extracting pattern there as the contexts
     	// were extracted by term search, not by applying patterns)
     	// or search for term in contexts of pattern
     	// Most efficient solution: search for term in contexts of pattern
@@ -161,10 +161,10 @@ public class Reliability {
         }
     	return jointOccurrences;
     }
-    
+
     /**
-     * Computes the point-wise mutual information score for instance and pattern. 
-     * 
+     * Computes the point-wise mutual information score for instance and pattern.
+     *
      * @param patternCount		count of all occurrences of regex in the complete input data
      * @param dataSize			size of input data (number of input documents)
      * @param contexts_seeds	contexts of all currently known seeds, extracted by term search
@@ -194,10 +194,10 @@ public class Reliability {
 	    log.trace("pmi: " + pmi_score);
 	    return pmi_score;
     }
-    
+
     /**
      * Computes the reliability score of pattern based on the given data.
-     * 
+     *
      * @param dataSize				size of the input data (number of input documents)
      * @param reliableInstances		all currently known instances
      * @param pattern				pattern to compute the reliability score for
@@ -207,17 +207,17 @@ public class Reliability {
     	//TODO: use custom comparator for Entities to avoid necessity of building this map
     	Map<String, Entity> reliableInstanceNames = new HashMap<>();
     	for (Entity i : reliableInstances) { reliableInstanceNames.put(i.getName(), i); }
-    	
+
         // compute pmi for every known instance referenced using pattern
     	for (TextualReference ref : pattern.getTextualReferences()) {
     		// do not try to compute reliability of unknown instances at this step
-    		if (!reliableInstanceNames.containsKey(ref.getReference()))  continue; 
+    		if (!reliableInstanceNames.containsKey(ref.getReference()))  continue;
     		Entity instance = reliableInstanceNames.get(ref.getReference());
         	double pmi = this.computePmi(dataSize, instance, pattern);
         	// instance and pattern do not occur together in the data and are thus not associated
         	// should not happen here because instance is found as term in the textual references of pattern
         	if (Double.isNaN(pmi) || Double.isInfinite(pmi)) throw new IllegalStateException(
-        			"Spurious association of pattern \"" + pattern.getMinimal() + " and instance\"" + instance.getName()); 
+        			"Spurious association of pattern \"" + pattern.getMinimal() + " and instance\"" + instance.getName());
 	        pattern.addAssociation(instance.getName(), pmi);
 	        //Instance instance = new Instance(instanceName);
 	        instance.addAssociation(pattern.getMinimal(), pmi);
@@ -228,10 +228,10 @@ public class Reliability {
         }
         return this.reliability(pattern, "");
     }
-    
+
     /**
-     * Computes the reliability score of instance based on the given data. 
-     * 
+     * Computes the reliability score of instance based on the given data.
+     *
      * @param dataSize				size of the input data (number of input documents)
      * @param reliablePatterns		currently known reliable patterns
      * @param contexts_seeds		contexts of all currently known instances, extracted by term search
@@ -239,7 +239,7 @@ public class Reliability {
      * @return						instance reliability score
      */
     public double computeReliability(int dataSize, Collection<InfolisPattern> reliablePatterns, Entity instance) {
-        // for every known pattern, check whether instance is associated with it   
+        // for every known pattern, check whether instance is associated with it
         for (InfolisPattern pattern : reliablePatterns) {
         	//double pmi = this.computePmi_instance(dataSize, pattern, instance);
         	double pmi = this.computePmi(dataSize, instance, pattern);
@@ -289,8 +289,8 @@ public class Reliability {
     }
 
     /**
-     * Computes the reliability of a pattern. 
-     * 
+     * Computes the reliability of a pattern.
+     *
      * @return the reliability score
      */
     public double reliability(InfolisPattern pattern, String callingEntity) {
@@ -318,5 +318,5 @@ public class Reliability {
 		return score;
     }
 
-    
+
 }

@@ -28,9 +28,9 @@ import javax.json.JsonReader;
 /**
  *
  * @author domi
- * 
+ *
  * Query service to perform a Solr query.
- * Currently only used for da|ra, if other portals follow, 
+ * Currently only used for da|ra, if other portals follow,
  * we need to think about which fields etc. are queried.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -44,23 +44,23 @@ public class SolrQueryService extends QueryService {
     public SolrQueryService(String target) {
         super(target);
     }
-    
+
     public SolrQueryService(String target,double reliability) {
         super(target,reliability);
     }
 
-    public String adaptQuery(String solrQuery) {        
+    public String adaptQuery(String solrQuery) {
         String beginning = "select/";
         String remainder = "&start=0&rows=10&fl=doi,title&wt=json";
         return "" + target + beginning + solrQuery + remainder;
-    }    
+    }
 
     @Override
     public List<SearchResult> executeQuery(SearchQuery solrQuery) {
         //TODO: use solr results and do not parse JSON
         List<SearchResult> results = new ArrayList<>();
         try {
-            
+
             URL url = new URL(adaptQuery(solrQuery.getQuery()));
             InputStream is = url.openStream();
             JsonReader reader = Json.createReader(is);

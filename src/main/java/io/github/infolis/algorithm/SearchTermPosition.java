@@ -72,7 +72,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         execution.instantiateAlgorithm(this).run();
 		return execution;
 	}
-    
+
     /**
      * Searches for this query in this index using a ComplexPhraseQueryParser.
      * Stores matching
@@ -89,7 +89,7 @@ public class SearchTermPosition extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-    	
+
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
     		debug(log, "No index directory specified, indexing on demand");
     		Execution indexerExecution = createIndex();
@@ -178,7 +178,7 @@ public class SearchTermPosition extends BaseAlgorithm {
             ltm.run();
         }
 
-        // these patterns are used for extracting contexts of known study titles, 
+        // these patterns are used for extracting contexts of known study titles,
         // do not confuse with patterns to detect study references -> do not post
         if (!ltm.finished()) {
             throw new IOException("Matcher timed out!");

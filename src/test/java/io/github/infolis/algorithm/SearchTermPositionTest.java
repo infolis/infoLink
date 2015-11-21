@@ -32,7 +32,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
     String testString6 = "Hallo, please try to find .the term. in this short text snippet. Thank you.";
     List<String> uris = new ArrayList<>();
     Execution indexerExecution;
-    
+
     public SearchTermPositionTest() throws Exception {
         String[] testStrings = {
             "Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -94,7 +94,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         // ("_" should not be indexed by analyzer, thus there should be no word to match the wildcard)
         assertEquals(100 - 14, testContexts("", "\"to find the * in\"").size());
     }
-    
+
     private Execution createIndex() throws IOException {
 		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
@@ -112,7 +112,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setInputFiles(uris);
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        
+
 
         ArrayList<TextualReference> contextList = new ArrayList<TextualReference>();
         for (String uri : exec.getTextualReferences()) {

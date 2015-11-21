@@ -20,34 +20,34 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 public class LocalClientTest extends InfolisBaseTest {
-	
+
     private static final Logger log = LoggerFactory.getLogger(LocalClientTest.class);
-    
+
 	@Test
 	public void testCRUD() throws IOException {
-		
+
 		InfolisFile file = new InfolisFile();
 		file.setFileName("foo");
-		
+
 		assertNull(file.getUri());
 		dataStoreClient.post(InfolisFile.class, file);
 		assertNotNull(file.getUri());
-		
+
 		InfolisFile file2 = dataStoreClient.get(InfolisFile.class, file.getUri());
 		assertEquals(file.getUri(), file2.getUri());
 		assertEquals(file.getFileName(), file2.getFileName());
-		
+
 		file2.setFileName("bar");
 		dataStoreClient.put(InfolisFile.class, file2);
-		
+
 		Path dumpPath = Paths.get("/tmp/infolis-test");
 		Files.createDirectories(dumpPath);
 		dataStoreClient.dump(dumpPath, "test");
-		
+
 	}
-	
+
 	@Test
-	public void testSearch() 
+	public void testSearch()
 	{
 	    String[] testTags = new String[] {"noplay", "foobar", "jack", "barfoo", "allwork", "noplay", "allwork", "noplay" };
 	    for (String tag : testTags) {
@@ -82,5 +82,5 @@ public class LocalClientTest extends InfolisBaseTest {
 	        }
 	    }
 	}
-		
+
 }

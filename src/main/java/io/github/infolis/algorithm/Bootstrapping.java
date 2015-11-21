@@ -18,7 +18,7 @@ import org.apache.lucene.queryParser.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ *
  * @author kata
  *
  */
@@ -29,16 +29,16 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 	}
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Bootstrapping.class);
     public Execution indexerExecution;
-    
+
     public abstract List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException;
-    
+
     public abstract static class PatternInducer {
     	protected abstract List<InfolisPattern> induce(TextualReference context, Double[] thresholds);
     	public abstract int getPatternsPerContext();
     };
     // TODO define getBestPatterns - method
     public abstract class PatternRanker {};
-    
+
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
@@ -46,7 +46,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         execution.instantiateAlgorithm(this).run();
 		return execution;
 	}
-    
+
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
         Execution execution = getExecution().createSubExecution(SearchTermPosition.class);
@@ -67,8 +67,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             	textualReferences.add(getOutputDataStoreClient().get(TextualReference.class, uri));
             }
         return textualReferences;
-    } 
-    
+    }
+
     private List<String> getPatternUris(Collection<InfolisPattern> patternList) {
     	List<String> patternUris = new ArrayList<String>();
     	for (InfolisPattern curPat : patternList) {
@@ -89,7 +89,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
     	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
     	// TODO this need not be a parameter for execution
-    	applierExec.setAllowLeadingWildcards(true);	
+    	applierExec.setAllowLeadingWildcards(true);
     	// TODO this need not be a parameter for execution
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
     	applierExec.setTags(getExecution().getTags());
@@ -103,7 +103,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 		if (null == exec.getSeeds() || exec.getSeeds().isEmpty()) {
             throw new IllegalArgumentException("Must set at least one term as seed!");
         }
-        if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+        if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
@@ -111,14 +111,14 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             throw new IllegalArgumentException("Must set the bootstrap strategy");
         }
     }
-    
+
     @Override
     public void execute() throws IOException {
     	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
-    	
+
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 
@@ -131,7 +131,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             log.error("Could not apply reliability bootstrapping: " + ex);
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
-        
+
         for (TextualReference sC : detectedContexts) {
             getOutputDataStoreClient().post(TextualReference.class, sC);
             this.getExecution().getTextualReferences().add(sC.getUri());

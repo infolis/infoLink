@@ -33,25 +33,25 @@ import org.slf4j.LoggerFactory;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Entity extends BaseModel {
-    
+
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Entity.class);
 
-    //TODO: list of names instead one? 
+    //TODO: list of names instead one?
     @XmlAttribute
     private String name;
     private String identifier;
-    private Set<String> tags;  
+    private Set<String> tags;
   //TODO use uris instead of TextualReference objects (hard to change it)
     //private Collection<String> textualReferences;
     private Collection<TextualReference> textualReferences;
     private String file;
-    
+
     @XmlAttribute
     private String number;
     private Map<String, Double> associations = new HashMap<>();
     private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
-    
+
     public Entity(String name) {
         this.name = name;
     }
@@ -70,15 +70,15 @@ public class Entity extends BaseModel {
     public void setTextualReferences(Collection<String> uris) {
     	this.textualReferences = uris;
     }
-    
+
     public Collection<String> getTextualReferences() {
     	return this.textualReferences;
     }*/
-    
+
     public void setTextualReferences(Collection<TextualReference> textualReferences) {
     	this.textualReferences = textualReferences;
     }
-    
+
     public Collection<TextualReference> getTextualReferences() {
     	return this.textualReferences;
     }
@@ -120,7 +120,7 @@ public class Entity extends BaseModel {
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
     }
-    
+
     /**
      * @return the file
      */
@@ -134,14 +134,14 @@ public class Entity extends BaseModel {
     public void setFile(String file) {
         this.file = file;
     }
-    
+
     /**
      * Set reliability to 1.0 for manually selected seed instances.
      */
     public void setIsSeed() {
     	this.reliability = 1.0;
     }
-    
+
     /**
      * @return the number
      */
@@ -155,11 +155,11 @@ public class Entity extends BaseModel {
     public void setNumber(String number) {
         this.number = number;
     }
-    
+
     public double getReliability() {
     	return this.reliability;
     }
-    
+
     public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
     	this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
         if (this.getReliability() >= threshold) {
@@ -182,7 +182,7 @@ public class Entity extends BaseModel {
     public void setAssociations(Map<String, Double> associations) {
         this.associations = associations;
     }
-    
+
         public boolean addAssociation(String entityName, double score) {
         if (this.getAssociations().containsKey(entityName)) {
             log.debug("association between entity " + this.getName()
@@ -205,7 +205,7 @@ public class Entity extends BaseModel {
     public void setAlternativeNames(List<String> alternativeNames) {
         this.alternativeNames = alternativeNames;
     }
-    
+
     /**
      * @param alternativeNames the alternativeName to add
      */

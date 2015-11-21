@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchQuery extends BaseModel{
-    
+
     private String query;
 
     /**
@@ -25,5 +25,5 @@ public class SearchQuery extends BaseModel{
     public void setQuery(String query) {
         this.query = query;
     }
-    
+
 }

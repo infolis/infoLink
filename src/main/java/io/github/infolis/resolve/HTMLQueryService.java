@@ -47,9 +47,9 @@ public class HTMLQueryService extends QueryService {
         super(target, reliability);
     }
 
-    public String adaptQuery(SearchQuery solrQuery) {        
+    public String adaptQuery(SearchQuery solrQuery) {
         String query ="";
-        
+
             if(solrQuery.getQuery().contains("?q=title")) {
                 //only extract the title
                 String title = solrQuery.getQuery().split("\\?date")[0];
@@ -62,7 +62,7 @@ public class HTMLQueryService extends QueryService {
                 query = String.format("%s?doi=%s&max=%s&lang=de", target, doi, String.valueOf(maxNumber));
             }
 
-        
+
         return query;
     }
 

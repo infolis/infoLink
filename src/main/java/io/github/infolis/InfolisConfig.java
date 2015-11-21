@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Configuration of the Infolis Web Services.
- * 
+ *
  * @author kba
  */
 public class InfolisConfig {
@@ -50,7 +50,7 @@ public class InfolisConfig {
 	/**
 	 * Looks for a properties file first in /etc/infolis-ws.properties. If not
 	 * found, loads defaults from classpath.
-	 * 
+	 *
 	 */
 	private InfolisConfig() {
 		prop = new Properties();
@@ -85,7 +85,7 @@ public class InfolisConfig {
 
 	/**
 	 * Ensures that the config options are valid, directories exist and such.
-	 * 
+	 *
 	 * @throws IOException
 	 */
 	public static void validate() throws IOException {
@@ -99,17 +99,17 @@ public class InfolisConfig {
 
 	/**
 	 * Property "fileSavePath"
-	 * 
+	 *
 	 * @return {@link Path} to the directory where files are to be saved
 	 */
 	public static Path getFileSavePath() {
 		Path path = Paths.get(INSTANCE.prop.getProperty("fileSavePath"));
 		return path;
 	}
-	
+
 	/**
 	 * Property "tmpFilePath"
-	 * 
+	 *
 	 * @return {@link Path} to the directory where temporary files are to be saved
 	 */
 	public static Path getTmpFilePath() {
@@ -119,7 +119,7 @@ public class InfolisConfig {
 
 	/**
 	 * Property "frontendURI"
-	 * 
+	 *
 	 * @return {@link URI} of the frontend Linked Data web service
 	 */
 	public static URI getFrontendURI() {
@@ -128,7 +128,7 @@ public class InfolisConfig {
 
 	/**
 	 * Property "ignoreStudy"
-	 * 
+	 *
 	 * @return
 	 */
 	public static List<String> getIgnoreStudy() {
@@ -137,7 +137,7 @@ public class InfolisConfig {
 
 	/**
 	 * Property "bibliographyCues"
-	 * 
+	 *
 	 * @return
 	 */
 	public static List<String> getBibliographyCues() {
@@ -146,7 +146,7 @@ public class InfolisConfig {
 
 	/**
 	 * Property "tagCommand"
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getTagCommand() {
@@ -155,16 +155,16 @@ public class InfolisConfig {
 
 	/**
 	 * Property "chunkCommand"
-	 * 
+	 *
 	 * @return
 	 */
 	public static String getChunkCommand() {
 		return INSTANCE.prop.getProperty("chunkCommand");
 	}
-	
+
 	/**
 	 * Property "stopwords"
-	 * 
+	 *
 	 * @return
 	 */
 	public static List<String> getStopwords() {

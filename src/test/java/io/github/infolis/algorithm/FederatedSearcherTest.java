@@ -29,9 +29,9 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         execution.setAlgorithm(FederatedSearcher.class);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         algo.run();
-        
+
         List<SearchResult> sr = dataStoreClient.get(SearchResult.class, execution.getSearchResults());
-        
+
         //be careful, could change from time to time
         Assert.assertEquals("Anomie (ALLBUS)", sr.get(0).getTitles().get(0));
         Assert.assertEquals("10.6102/zis58", sr.get(0).getIdentifier());

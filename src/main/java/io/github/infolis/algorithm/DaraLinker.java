@@ -81,22 +81,22 @@ public class DaraLinker extends BaseAlgorithm {
 			// datasets must have at least one title
 			// may have more than one title: e.g. translations
 			JsonArray titles = item.getJsonArray("title");
-			//String[] titleStringArray = new String[titles.size()];                        
+			//String[] titleStringArray = new String[titles.size()];
                         Entity daraStudy = new Entity();
-			
-			for (int i = 0; i < titles.size(); i++) { 
+
+			for (int i = 0; i < titles.size(); i++) {
                             log.debug("title " + i + ": " + titles.get(i).toString());
                             if(i==0) {
                                 daraStudy.setName(titles.get(0).toString());
                             }
                             else {
                                 daraStudy.addAlternativeNames(titles.get(i).toString());
-                            }				
+                            }
 			}
                         getOutputDataStoreClient().post(Entity.class, daraStudy);
 			daraStudies.add(daraStudy);
 		}
-                
+
 		return daraStudies;
 	}
 
@@ -112,7 +112,7 @@ public class DaraLinker extends BaseAlgorithm {
 			ExtractionMethod extractionMethod = ExtractionMethod.PATTERN;
 			// TODO: implement methods for string and url links, not only doi...
 			// TODO: use other titles as well, not only the first one
-                        
+
                         //TODO not really a nice link reason by now
 			EntityLink link = new EntityLink(daraStudy.getUri(),publication.getUri(), confidence, snippet + " " +extractionMethod);
 			links.add(link);
@@ -174,7 +174,7 @@ public class DaraLinker extends BaseAlgorithm {
 			// TODO: post links etc.
 			List<String> contexts = getExecution().getTextualReferences();
 			debug(log, "Linking " + String.valueOf(contexts.size()) + " contexts.");
-			List<EntityLink> studyLinks = createLinks(contexts);                        
+			List<EntityLink> studyLinks = createLinks(contexts);
                         List<String> linkURIs = new ArrayList<>();
                         for(EntityLink el : studyLinks) {
                             getOutputDataStoreClient().post(EntityLink.class, el);

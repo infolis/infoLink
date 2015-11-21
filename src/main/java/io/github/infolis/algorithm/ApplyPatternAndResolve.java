@@ -25,14 +25,14 @@ import io.github.infolis.resolve.QueryService;
  *
  * @author domi
  * @author kata
- * 
+ *
  */
 public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     public ApplyPatternAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-    
+
     private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
 
     @Override
@@ -42,15 +42,15 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
-    	
+
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-        
-        List<String> queryServices = getExecution().getQueryServices();        
+
+        List<String> queryServices = getExecution().getQueryServices();
         List<String> createdLinks = new ArrayList<>();
         List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
-               
-        List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());        
+
+        List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());
 
         //for each textual reference, extract the metadata,
         //query the given repository(ies) and generate links.
@@ -70,7 +70,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
                 createdLinks.addAll(resolve(searchRes, s));
             }
         }
-        //the output of the whole algorithm is again a list with links 
+        //the output of the whole algorithm is again a list with links
         debug(log, "Created links: " + createdLinks);
         getExecution().setLinks(createdLinks);
         getExecution().setStatus(ExecutionStatus.FINISHED);
@@ -110,7 +110,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         debug(log, "FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
-    
+
     public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
     	debug(log, "Searching in repository for query: " + query);
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);;
@@ -139,11 +139,11 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         Execution exec = this.getExecution();
-		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
         		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())){
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
-        if ((null == exec.getPatterns() || exec.getPatterns().isEmpty()) && 
+        if ((null == exec.getPatterns() || exec.getPatterns().isEmpty()) &&
         		(null == exec.getInfolisPatternTags() || exec.getInfolisPatternTags().isEmpty()))
         {
             throw new IllegalArgumentException("No patterns given.");

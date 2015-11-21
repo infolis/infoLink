@@ -21,9 +21,9 @@ import static io.github.infolis.model.ExecutionStatus.STARTED;
 import static io.github.infolis.model.ExecutionStatus.FINISHED;
 import static io.github.infolis.model.ExecutionStatus.FAILED;
 /**
- * 
+ *
  * Class to pool threads of {@link Execution Executions}s.
- * 
+ *
  *
  * @author domi
  */
@@ -41,7 +41,7 @@ public class ExecutionScheduler {
     private final Map<String, ExecutionStatus> statusForExecution = new HashMap<>();
 
     private ExecutionScheduler() { }
-     
+
     private void setStatus(String uri, ExecutionStatus status)
     {
         synchronized (statusForExecution) {

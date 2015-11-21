@@ -57,7 +57,7 @@ public class SerializationUtils {
 
 	/**
 	 * Get a hex representation of the MD5 checksum of an array of bytes.
-	 * 
+	 *
 	 * @param bytes
 	 *            array of bytes
 	 * @return lower-case hex digest of the input
@@ -88,7 +88,7 @@ public class SerializationUtils {
 
 	/**
 	 * Replace the file extension of a file with a new extension
-	 * 
+	 *
 	 * @param fileName
 	 *            the original file name
 	 * @param ext
@@ -98,10 +98,10 @@ public class SerializationUtils {
 	public static String changeFileExtension(String fileName, String ext) {
 		return fileName.replaceFirst("\\.[^\\.]+$", "." + ext);
 	}
-	
+
 	/**
 	 * Change the base dir of a path.
-	 * 
+	 *
 	 * <pre>
 	 * {@code
 	 * String oldPath = "/tmp/foo/quux.bar";
@@ -110,7 +110,7 @@ public class SerializationUtils {
 	 * }
 	 * </pre>
 	 * <code>/foo/bar/quux.baz</code>
-	 * 
+	 *
 	 * @param filename
 	 * @param newBaseDir
 	 * @return
@@ -121,7 +121,7 @@ public class SerializationUtils {
 
 	/**
 	 * Escapes a string for integration into XML files.
-	 * 
+	 *
 	 * @param string	the string to be escaped
 	 * @return			the escaped string
 	 */
@@ -135,10 +135,10 @@ public class SerializationUtils {
 	                + "]";
 		return StringEscapeUtils.escapeXml(string).replaceAll(xml10pattern,"");
 	}
-	
+
 	/**
 	 * Returns an escaped XML string into its normal string representation.
-	 * 
+	 *
 	 * @param string	the string to be transformed
 	 * @return			the transformed string
 	 */
@@ -146,7 +146,7 @@ public class SerializationUtils {
 	{
 		return StringEscapeUtils.unescapeXml(string);
 	}
-	
+
 	public static void writeContextToXML(TextualReference context, String filename) throws IOException {
 		try {
 			InfolisFileUtils.prepareOutputFile(filename);
@@ -167,7 +167,7 @@ public class SerializationUtils {
 		}
 		return sb.toString();
 	}
-	
-	
+
+
 
 }

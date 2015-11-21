@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 * @author kata
 */
 public class LearnerTest extends InfolisBaseTest {
-	
+
 	Logger log = LoggerFactory.getLogger(LearnerTest.class);
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "FOOBAR";
@@ -48,7 +48,7 @@ public class LearnerTest extends InfolisBaseTest {
             log.debug(str);
 		}
 	}
-	
+
     void testBootstrapping(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> expectedStudies, Set<String> expectedPatterns, Set<String> expectedContexts) throws Exception {
     	Execution execution = new Execution();
         execution.setAlgorithm(algorithm);
@@ -65,7 +65,7 @@ public class LearnerTest extends InfolisBaseTest {
         assertEquals(expectedPatterns, getRegex(execution.getPatterns()));
         assertEquals(expectedContexts, getContextStrings(execution.getTextualReferences()));
     }
-    
+
     Set<String> getRegex(List<String> patternURIs) {
     	Set<String> regexSet = new HashSet<String>();
     	for (String uri : patternURIs) {
@@ -74,7 +74,7 @@ public class LearnerTest extends InfolisBaseTest {
     	}
     	return regexSet;
     }
-    
+
     Set<String> getContextStrings(List<String> contextURIs) {
     	Set<String> contextSet = new HashSet<String>();
     	for (String uri : contextURIs) {
@@ -93,7 +93,7 @@ public class LearnerTest extends InfolisBaseTest {
     	}
     	return termSet;
     }*/
-    
+
     private class ExpectedOutput {
     	Class<? extends Algorithm> algorithm;
     	BootstrapStrategy strategy;
@@ -101,7 +101,7 @@ public class LearnerTest extends InfolisBaseTest {
     	Set<String> studies;
     	Set<String> patterns;
     	Set<String> contexts;
-    	
+
     	ExpectedOutput(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> studies, Set<String> patterns, Set<String> contexts) {
     		this.algorithm = algorithm;
     		this.strategy = strategy;
@@ -111,11 +111,11 @@ public class LearnerTest extends InfolisBaseTest {
     		this.contexts = contexts;
     	}
     }
-    
+
     //TODO: add values for reliability-based bootstrapping
     Set<ExpectedOutput> getExpectedOutput() {
     	// find all contexts for terms "FOOBAR" and "term"
-    	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least 
+    	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least
     	// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)
     	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
@@ -133,7 +133,7 @@ public class LearnerTest extends InfolisBaseTest {
     			"please try to find the FOOBAR in this short text snippet."));
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E", 
+    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
     			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
     			"please try to find the term in this short text snippet.",
@@ -146,11 +146,11 @@ public class LearnerTest extends InfolisBaseTest {
     			"please try to find the term in this short text snippet.",
     			"please try to find the FOOBAR in this short text snippet."));
 
-    	
+
     	Set<String> expectedStudies_reliability = new HashSet<String>(Arrays.asList("dummy"));
     	Set<String> expectedPatterns_reliability = new HashSet<String>(Arrays.asList("dummy"));
     	Set<String> expectedContexts_reliability = new HashSet<String>(Arrays.asList("dummy"));
-    	
+
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(
     			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
@@ -161,7 +161,7 @@ public class LearnerTest extends InfolisBaseTest {
     	));
     	return expectedOutput;
     }
-    
+
     @Test
     public void testBootstrapping() throws Exception {
     	Set<ExpectedOutput> expectedOutputs = getExpectedOutput();

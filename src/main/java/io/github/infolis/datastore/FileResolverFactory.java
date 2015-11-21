@@ -2,12 +2,12 @@ package io.github.infolis.datastore;
 
 /**
  * Factory method to create FileResolvers
- * 
+ *
  * @author kba
  *
  */
 public class FileResolverFactory {
-	
+
 	/**
 	 * @see DataStoreStrategy#CENTRAL
 	 * @see #create(DataStoreStrategy)
@@ -25,10 +25,10 @@ public class FileResolverFactory {
 	public static FileResolver local() {
 		return create(DataStoreStrategy.LOCAL);
 	}
-	
+
 	/**
-	 * Create {@link FileResolver} using the supplied strategy. 
-	 * 
+	 * Create {@link FileResolver} using the supplied strategy.
+	 *
 	 * @param strategy The {@link DataStoreStrategy} to use
 	 * @return a {@link FileResolver} instance
 	 */

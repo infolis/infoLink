@@ -159,11 +159,11 @@ public class Indexer extends BaseAlgorithm {
      */
     public static Document toLuceneDocument(FileResolver fileResolver, InfolisFile f) throws IOException {
         //use code below to process pdfs instead of text (requires pdfBox)
-	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));   
-         PDFParser parser = new PDFParser(fi);   
-         parser.parse();   
-         COSDocument cd = parser.getDocument();   
-         PDFTextStripper stripper = new PDFTextStripper();   
+	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));
+         PDFParser parser = new PDFParser(fi);
+         parser.parse();
+         COSDocument cd = parser.getDocument();
+         PDFTextStripper stripper = new PDFTextStripper();
          String text = stripper.getText(new PDDocument(cd));  */
         InputStreamReader isr = new InputStreamReader(fileResolver.openInputStream(f), "UTF8");
         BufferedReader reader = new BufferedReader(isr);
@@ -179,16 +179,16 @@ public class Indexer extends BaseAlgorithm {
         // make a new, empty document
         Document doc = new Document();
 
-        // Add the path of the file as a field named "path".  Use a field that is 
+        // Add the path of the file as a field named "path".  Use a field that is
         // indexed (i.e. searchable), but don't tokenize the field into words.
         doc.add(new Field("path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED));
         doc.add(new Field("fileName", f.getFileName(), Field.Store.YES, Field.Index.ANALYZED));
 
-        // Add the last modified date of the file a field named "modified".  Use 
+        // Add the last modified date of the file a field named "modified".  Use
         // a field that is indexed (i.e. searchable), but don't tokenize the field
         // into words.
         // TODO kba: Add modified to InfolisFile
-//      doc.add( new Field( "modified", 
+//      doc.add( new Field( "modified",
 //    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
 //    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
         // save the content (text files) in the index
@@ -196,7 +196,7 @@ public class Indexer extends BaseAlgorithm {
         // so that the text of the file is tokenized and indexed, but not stored.
         // Note that FileReader expects the file to be in the system's default encoding.
         // If that's not the case searching for special characters will fail.
-        //Store both position and offset information 
+        //Store both position and offset information
         // TextFilesContent = readTextFiles(f.getPath()) + " ";
         doc.add(new Field("contents", text, Field.Store.YES, Field.Index.ANALYZED,
                 Field.TermVector.WITH_POSITIONS_OFFSETS));

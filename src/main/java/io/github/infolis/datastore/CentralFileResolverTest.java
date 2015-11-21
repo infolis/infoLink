@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
 
 
 public class CentralFileResolverTest {
-	
+
 	Logger log = LoggerFactory.getLogger(CentralFileResolverTest.class);
 	private char[] inData;
 	FileResolver fr = new CentralFileResolver();
 	String checksum = "cbaeb94798f9a6c6f799daceb8a8726b";
-	
+
 	@Before
 	public void setUp() throws IOException {
 		inData = new char[]{'a', 'b', '\001'};
@@ -39,7 +39,7 @@ public class CentralFileResolverTest {
 			assertEquals(inData[i], read[i]);
 		}
 	}
-	
+
 	@Test
 	public void testUploadWebservice() {
 		UploadWebservice uws = new UploadWebservice();

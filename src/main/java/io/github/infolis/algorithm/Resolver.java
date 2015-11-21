@@ -374,7 +374,9 @@ public class Resolver extends BaseAlgorithm {
             //TODO FIX
             //confidenceValue += getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
             log.debug("Combining scores");
-            confidenceValue += 1 - ((double) r.getListIndex() / (double) results.get(results.size() - 1).getListIndex());
+            // normalize: +1 to avoid NaN if only results contains only one search result
+            confidenceValue += 1 - ((double) r.getListIndex() / ((double) results.get(results.size() - 1).getListIndex() + 1));
+            log.debug("Confidence score: " + confidenceValue);
             resultValues.put(r, confidenceValue);
             updateProgress(counter, results.size());
         }
@@ -418,7 +420,7 @@ public class Resolver extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        if (null == getExecution().getSearchResults()) {
+        if (null == getExecution().getSearchResults() || getExecution().getSearchResults().isEmpty() ){
             throw new IllegalAlgorithmArgumentException(getClass(), "searchResults", "Required parameter 'search results' is missing!");
         }
         if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {

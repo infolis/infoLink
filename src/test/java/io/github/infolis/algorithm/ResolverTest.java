@@ -215,4 +215,38 @@ public class ResolverTest extends InfolisBaseTest {
         Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
     }
     
+    @Test
+    public void testNPE() {
+    	SearchResult resultWithoutYear = new SearchResult();
+    	resultWithoutYear.addTitle("ALLBUS");
+    	resultWithoutYear.setUri("uri");
+    	resultWithoutYear.setListIndex(0);
+    	resultWithoutYear.setIdentifier("id");
+    	resultWithoutYear.setNumericInformation(new ArrayList<String>());
+    	
+    	SearchResult res2 = new SearchResult();
+    	res2.setNumericInformation(new ArrayList<String>());
+    	res2.addTitle("ALLBUS CAPI");
+    	res2.setUri("uri2");
+    	res2.setListIndex(1);
+    	res2.setIdentifier("id2");
+    	
+    	dataStoreClient.post(SearchResult.class, resultWithoutYear);
+    	dataStoreClient.post(SearchResult.class, res2);
+    	
+    	Entity entity = new Entity();
+    	dataStoreClient.post(Entity.class, entity);
+    	
+    	//TextualReference r = new TextualReference("this is a reference to", "ALLBUS", "of some unspecified year. Match?", "document", "pattern", "entity.getUri()");
+    	TextualReference r = new TextualReference("this is a reference to", "ALLBUS", "2000 some unspecified year. Match?", "document", "pattern", entity.getUri());
+    	dataStoreClient.post(TextualReference.class, r);
+    	
+    	Execution execution = new Execution();
+        execution.setAlgorithm(Resolver.class);
+        execution.setTextualReferences(Arrays.asList(r.getUri()));
+        //execution.setSearchResults(Arrays.asList(resultWithoutYear.getUri(), res2.getUri()));
+        execution.setSearchResults(Arrays.asList(resultWithoutYear.getUri()));
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+    }
+    
 }   

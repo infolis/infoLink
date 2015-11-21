@@ -181,7 +181,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         return contextList;
     }
 
-    //TODO: this checks for more characters than actually replaced by currently used analyzer - not neccessary and not a nice way to do it
+    //TODO: this checks for more characters than actually replaced by currently used analyzer - not necessary and not a nice way to do it
     // refer to normalizeQuery for a better way to do this
     private static String removeSpecialCharsFromTerm(String term) {
         String[] termParts = term.split("\\s+");

@@ -48,8 +48,12 @@ public class DaraSolrMatcher {
             JsonArray result = response.getJsonArray("docs");
             return result;
         } finally {
-            reader.close();
-            is.close();
+            if (reader != null) {
+                reader.close();
+            }
+            if (is != null) {
+                is.close();
+            }
         }
     }
 }

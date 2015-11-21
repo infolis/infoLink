@@ -65,7 +65,6 @@ public class SearchResult extends BaseModel {
      */
     public void setTitles(List<String> titles) {
         this.titles = titles;
-        this.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(titles.get(0)));
     }
 
     /**
@@ -73,7 +72,6 @@ public class SearchResult extends BaseModel {
      */
     public void addTitle(String title) {
         this.titles.add(title);
-        this.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(titles.get(0)));
     }
     
     /**

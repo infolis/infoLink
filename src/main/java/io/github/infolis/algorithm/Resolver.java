@@ -44,6 +44,10 @@ public class Resolver extends BaseAlgorithm {
      */
     public double computeScorebasedOnNumbers(TextualReference textRef, SearchResult result) {
         List<String> numericInfosRef = NumericInformationExtractor.extractNumericInfoFromTextRef(textRef);
+        if(result.getNumericInformation() == null || result.getNumericInformation().isEmpty()) {
+            result.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(result.getTitles().get(0)));
+            
+        }
         List<String> numericInfoSearch = result.getNumericInformation();
         for (String ref : numericInfosRef) {
             for (String search : numericInfoSearch) {
@@ -388,7 +392,7 @@ public class Resolver extends BaseAlgorithm {
         Entity referencedInstance = new Entity();
         referencedInstance.setTags(getExecution().getTags());
         referencedInstance.setIdentifier(bestSearchResult.getIdentifier());
-        if(bestSearchResult.getTitles() != null && bestSearchResult.getTitles().size()>0) {
+        if(bestSearchResult.getTitles() != null &&bestSearchResult.getTitles().size()>0) {
             referencedInstance.setName(bestSearchResult.getTitles().get(0));
         }
         if(bestSearchResult.getNumericInformation() != null && bestSearchResult.getNumericInformation().size()>0) {

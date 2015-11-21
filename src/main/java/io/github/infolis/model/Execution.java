@@ -1,6 +1,7 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.algorithm.Learner;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -774,6 +775,13 @@ public class Execution extends BaseModel {
         if (field.getType() == Boolean.TYPE) {field.set(this, Boolean.parseBoolean(value.toString())); return;}
        // if (field.getGenericType() == );
         field.set(this, value);
+    }
+    
+    public Execution createSubExecution(Class<? extends BaseAlgorithm> algo)
+    {
+    	Execution subExec = new Execution(algo);
+    	subExec.setLog(getLog());
+    	return subExec;
     }
 
 }

@@ -63,8 +63,7 @@ public class PatternApplier extends BaseAlgorithm {
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
-        	Execution stpExecution = new Execution();
-            stpExecution.setAlgorithm(SearchTermPosition.class);
+        	Execution stpExecution = getExecution().createSubExecution(SearchTermPosition.class);
             stpExecution.setIndexDirectory(getExecution().getIndexDirectory());
             stpExecution.setPhraseSlop(getExecution().getPhraseSlop());
             stpExecution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());

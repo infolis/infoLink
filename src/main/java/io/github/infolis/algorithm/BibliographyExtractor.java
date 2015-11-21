@@ -131,8 +131,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
     
     @Override
     public void execute() { 
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

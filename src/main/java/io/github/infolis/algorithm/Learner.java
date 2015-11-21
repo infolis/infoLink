@@ -7,6 +7,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
+import sun.font.TextRecord;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,9 +90,8 @@ public class Learner extends BaseAlgorithm {
    	}
     //TODO check
     private List<String> getTextDocuments(List<String> uris) {
-    	Execution execution = new Execution();
+    	Execution execution = getExecution().createSubExecution(TextExtractor.class);
     	execution.setInputFiles(uris);
-		execution.setAlgorithm(TextExtractor.class);
 		this.getInputDataStoreClient().post(Execution.class, execution);
 		Algorithm algo = execution.instantiateAlgorithm(this.getInputDataStoreClient(), this.getOutputDataStoreClient(), this.getInputFileResolver(), this.getOutputFileResolver());
 		algo.run();

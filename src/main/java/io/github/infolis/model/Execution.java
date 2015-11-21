@@ -99,7 +99,7 @@ public class Execution extends BaseModel {
 	//
 
 	/**
-         * The algorthim which is supposed to be executed within this
+         * The algorithm which is supposed to be executed within this
          * execution.
          * 
 	 * {@link Algorithm}

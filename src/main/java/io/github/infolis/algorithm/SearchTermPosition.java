@@ -65,6 +65,14 @@ public class SearchTermPosition extends BaseAlgorithm {
     private static final String DEFAULT_FIELD_NAME = "contents";
     private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
 
+    Execution createIndex() throws IOException {
+		Execution execution = getExecution().createSubExecution(Indexer.class);
+		execution.setInputFiles(getExecution().getInputFiles());
+        getOutputDataStoreClient().post(Execution.class, execution);
+        execution.instantiateAlgorithm(this).run();
+		return execution;
+	}
+    
     /**
      * Searches for this query in this index using a ComplexPhraseQueryParser.
      * Stores matching
@@ -76,6 +84,17 @@ public class SearchTermPosition extends BaseAlgorithm {
      */
     @Override
     public void execute() throws IOException {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+    	tagExec.instantiateAlgorithm(this).run();
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
+    	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
+    		debug(log, "No index directory specified, indexing on demand");
+    		Execution indexerExecution = createIndex();
+    		getExecution().setIndexDirectory(indexerExecution.getIndexDirectory());
+    	}
         IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))));
         QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
         // set phrase slop because dataset titles may consist of more than one word
@@ -217,9 +236,6 @@ public class SearchTermPosition extends BaseAlgorithm {
 //				 || this.getExecution().getInputFiles().isEmpty())
         // throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles",
         // "must be set and non-empty");
-        if (null == this.getExecution().getIndexDirectory()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "inputDirectory", "must be set and non-empty");
-        }
         if (null == this.getExecution().getSearchQuery()) {
             throw new IllegalAlgorithmArgumentException(getClass(), "searchQuery", "must be set and non-empty");
         }

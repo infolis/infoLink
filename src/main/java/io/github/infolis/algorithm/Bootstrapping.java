@@ -1,8 +1,6 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
@@ -15,15 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.MissingFormatArgumentException;
-import java.util.UnknownFormatConversionException;
 
 import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.search.BooleanQuery;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * 
@@ -36,7 +28,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Bootstrapping.class);
-    Execution indexerExecution;
+    public Execution indexerExecution;
     
     public abstract List<TextualReference> bootstrap() throws ParseException, IOException, InstantiationException, IllegalAccessException;
     
@@ -50,10 +42,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
-		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-		// 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-		execution.setPhraseSlop(getExecution().getPhraseSlop());
-		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
 		return execution;
@@ -62,10 +50,10 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
         Execution execution = getExecution().createSubExecution(SearchTermPosition.class);
-        execution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
-        execution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
-        execution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
-        execution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
+        execution.setIndexDirectory(indexerExecution.getOutputDirectory());
+        execution.setPhraseSlop(getExecution().getPhraseSlop());
+        execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+        execution.setMaxClauseCount(getExecution().getMaxClauseCount());
         execution.setSearchTerm(seed);
         execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
         execution.setInputFiles(getExecution().getInputFiles());
@@ -81,58 +69,32 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         return textualReferences;
     } 
     
-    private Multimap<String, InfolisPattern> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
-        HashMultimap<String, InfolisPattern> patternToFilename = HashMultimap.create();
-        for (InfolisPattern curPat : patterns) {
-    		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
-			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
-			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
-			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
-
-        	Execution stpExecution = getExecution().createSubExecution(SearchTermPosition.class);
-            stpExecution.setIndexDirectory(this.indexerExecution.getOutputDirectory());
-            stpExecution.setPhraseSlop(this.indexerExecution.getPhraseSlop());
-            stpExecution.setAllowLeadingWildcards(this.indexerExecution.isAllowLeadingWildcards());
-            stpExecution.setMaxClauseCount(this.indexerExecution.getMaxClauseCount());
-    		stpExecution.setSearchQuery(curPat.getLuceneQuery());
-    		stpExecution.setInputFiles(getExecution().getInputFiles());
-    		// with empty searchTerm, SearchTermPosition does not post any textual references
-    		// thus, no need to create temporary file resolver / data store client here
-    		stpExecution.instantiateAlgorithm(this).run();
-    		for (String fileUri : stpExecution.getMatchingFiles()) {
-    		    patternToFilename.put(fileUri, curPat);
-    		}
-        }
-        return patternToFilename;
-    }
-    
     private List<String> getPatternUris(Collection<InfolisPattern> patternList) {
     	List<String> patternUris = new ArrayList<String>();
     	for (InfolisPattern curPat : patternList) {
 	    	if (curPat.getUri() == null)
 	    		throw new RuntimeException("Pattern does not have a URI!");
 	    	patternUris.add(curPat.getUri());
+	    	log.debug("pattern " + curPat + " has uri " + curPat.getUri());
     	}
     	return patternUris;
     }
-    		
+
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
-    	// for all patterns, retrieve documents in which they occur (using lucene)
-    	Multimap<String, InfolisPattern> filenamesForPatterns = getFilenamesForPatterns(patterns);
-    	List<String> textualReferences = new ArrayList<>();
-    	// open each file once and search for all regex for which a corresponding (but more general)
-    	// lucene pattern has been found in it
-    	for (String fileUri : filenamesForPatterns.keySet()) {
-    	    Collection<InfolisPattern> patternList = filenamesForPatterns.get(fileUri);
-    		List<String> patternURIs = getPatternUris(patternList);
-    		Execution applierExecution = getExecution().createSubExecution(RegexSearcher.class);
-            applierExecution.setPatterns(patternURIs);
-            applierExecution.getInputFiles().add(fileUri);
-            applierExecution.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-            applierExecution.instantiateAlgorithm(this).run();
-            textualReferences.addAll(applierExecution.getTextualReferences());
-    	}
-        return textualReferences;
+    	Execution applierExec = new Execution();
+    	applierExec.setAlgorithm(PatternApplier.class);
+    	applierExec.setInputFiles(getExecution().getInputFiles());
+    	applierExec.setIndexDirectory(indexerExecution.getOutputDirectory());
+    	applierExec.setPatterns(getPatternUris(patterns));
+    	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
+    	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
+    	// TODO this need not be a parameter for execution
+    	applierExec.setAllowLeadingWildcards(true);	
+    	// TODO this need not be a parameter for execution
+    	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
+    	applierExec.setTags(getExecution().getTags());
+    	applierExec.instantiateAlgorithm(this).run();
+    	return applierExec.getTextualReferences();
     }
 
     @Override
@@ -159,8 +121,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-    	
+
     	this.indexerExecution = createIndex();
+    	getExecution().setIndexDirectory(this.indexerExecution.getIndexDirectory());
     	List<TextualReference> detectedContexts = new ArrayList<>();
         try {
         	detectedContexts = bootstrap();

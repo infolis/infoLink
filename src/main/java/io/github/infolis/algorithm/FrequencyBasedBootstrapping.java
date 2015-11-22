@@ -150,18 +150,20 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             }
 
             log.info("Pattern Selection completed.");
+            log.debug("Selected " + newPatterns.size() + " new patterns");
             log.info("--- Entering Instance Extraction phase ---");
 
             // 3. search for patterns in corpus
-            List<String> res = this.getContextsForPatterns(newPatterns);
-            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
-            	extractedContextsFromPatterns.add(studyContext);
-            	Entity entity = new Entity(studyContext.getReference());
-            	entity.setTags(getExecution().getTags());
-            	newSeedsIteration.add(entity);
-            	newSeedTermsIteration.add(studyContext.getReference());
+            if (!newPatterns.isEmpty()) {
+	            List<String> res = this.getContextsForPatterns(newPatterns);
+	            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
+	            	extractedContextsFromPatterns.add(studyContext);
+	            	Entity entity = new Entity(studyContext.getReference());
+	            	entity.setTags(getExecution().getTags());
+	            	newSeedsIteration.add(entity);
+	            	newSeedTermsIteration.add(studyContext.getReference());
+	            }
             }
-
             debug(log, "Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration);
             numIter++;
 

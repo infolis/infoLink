@@ -46,12 +46,12 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         for (InfolisFile file : createTestTextFiles(100, testStrings)) {
             uris.add(file.getUri());
         }
-        indexerExecution = createIndex();
+        //indexerExecution = createIndex();
     }
 
     @Test
     public void getContextTest() throws IOException {
-
+    	indexerExecution = createIndex();
         List<TextualReference> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1);
         List<TextualReference> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2);
         List<TextualReference> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
@@ -72,7 +72,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
     @Test
     public void complexSearch_getContextTest() throws Exception {
-
+    	indexerExecution = createIndex();
 		// terms shall be found even if enclosed by characters removed by the analyzer, e.g. punctuation
         // e.g., when "ALLBUS." is found as term, all occurrences of "ALLBUS." or "ALLBUS" or "ALLBUS," etc. are to be found
         assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());

@@ -19,7 +19,7 @@ public class TextualReferenceTest extends InfolisBaseTest {
 
 		TextualReference ctx = new TextualReference("a b c d e f", "FOOBAR!", "v w x y z", "doc1", "pattern","ref");
 		assertEquals(SerializationUtils.toXML(ctx).replaceAll("\\s", ""), ctx.toXML().replaceAll("\\s", ""));
-		String x = SerializationUtils.jacksonMapper.writeValueAsString(ctx);
+		String x = SerializationUtils.jacksonMapper.writeValueAsString(ctx);                
 		log.debug(x);
 		log.debug(SerializationUtils.toJSON(ctx));
 	}

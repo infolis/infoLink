@@ -44,7 +44,6 @@ public class TextualReference extends BaseModel {
 	private String			textFile;
 	@XmlTransient
 	private String			pattern;
-        @XmlTransient
 	private String			mentionsReference;
         
 

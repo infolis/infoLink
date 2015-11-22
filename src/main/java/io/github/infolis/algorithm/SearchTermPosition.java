@@ -93,7 +93,7 @@ public class SearchTermPosition extends BaseAlgorithm {
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
     		debug(log, "No index directory specified, indexing on demand");
     		Execution indexerExecution = createIndex();
-    		getExecution().setIndexDirectory(indexerExecution.getIndexDirectory());
+    		getExecution().setIndexDirectory(indexerExecution.getOutputDirectory());
     	}
         IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))));
         QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());

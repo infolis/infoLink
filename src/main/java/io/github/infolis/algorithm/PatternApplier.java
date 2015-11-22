@@ -125,7 +125,7 @@ public class PatternApplier extends BaseAlgorithm {
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
     		debug(log, "No index directory specified, indexing on demand");
     		Execution indexerExecution = createIndex();
-    		getExecution().setIndexDirectory(indexerExecution.getIndexDirectory());
+    		getExecution().setIndexDirectory(indexerExecution.getOutputDirectory());
     	}
         //int counter = 0, size = getExecution().getInputFiles().size();
         //log.debug("number of input files: " + size);

@@ -131,7 +131,7 @@ public class PatternApplier extends BaseAlgorithm {
         //log.debug("number of input files: " + size);
         //updateProgress(counter, size);
     	log.debug("started");
-        getExecution().setTextualReferences(getContextsForPatterns(getInfolisPatterns(getExecution().getInputFiles())));
+        getExecution().setTextualReferences(getContextsForPatterns(getInfolisPatterns(getExecution().getPatterns())));
         log.debug("No. contexts found: {}", getExecution().getTextualReferences().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }

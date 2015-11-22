@@ -780,7 +780,7 @@ public class Execution extends BaseModel {
     public Execution createSubExecution(Class<? extends BaseAlgorithm> algo)
     {
     	Execution subExec = new Execution(algo);
-    	subExec.setLog(getLog());
+    	//subExec.setLog(getLog());
     	return subExec;
     }
 

@@ -107,10 +107,6 @@ public class PatternApplier extends BaseAlgorithm {
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
-		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-		// 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-		execution.setPhraseSlop(getExecution().getPhraseSlop());
-		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
 		return execution;
@@ -123,15 +119,14 @@ public class PatternApplier extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
+    	getExecution().getPatterns().addAll(tagExec.getPatterns());
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
     		debug(log, "No index directory specified, indexing on demand");
     		Execution indexerExecution = createIndex();
     		getExecution().setIndexDirectory(indexerExecution.getIndexDirectory());
     	}
-    	
-    	getExecution().getPatterns().addAll(tagExec.getPatterns());
-    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
         //int counter = 0, size = getExecution().getInputFiles().size();
         //log.debug("number of input files: " + size);
         //updateProgress(counter, size);

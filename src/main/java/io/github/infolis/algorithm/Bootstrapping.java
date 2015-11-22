@@ -50,10 +50,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
-		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-		// 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
-		execution.setPhraseSlop(getExecution().getPhraseSlop());
-		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
 		return execution;
@@ -115,7 +111,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	}
     	return patternUris;
     }
-    		
+
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
     	// for all patterns, retrieve documents in which they occur (using lucene)
     	Multimap<String, InfolisPattern> filenamesForPatterns = getFilenamesForPatterns(patterns);

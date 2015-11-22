@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.MissingFormatArgumentException;
 import java.util.UnknownFormatConversionException;
 
+import org.apache.lucene.search.BooleanQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,18 @@ public class PatternApplier extends BaseAlgorithm {
         return textualReferences;
     }
 
+    Execution createIndex() throws IOException {
+		Execution execution = getExecution().createSubExecution(Indexer.class);
+		execution.setInputFiles(getExecution().getInputFiles());
+		execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+		// 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
+		execution.setPhraseSlop(getExecution().getPhraseSlop());
+		BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
+        getOutputDataStoreClient().post(Execution.class, execution);
+        execution.instantiateAlgorithm(this).run();
+		return execution;
+	}
+    
     @Override
     public void execute() throws IOException {
     	Execution tagExec = new Execution();
@@ -110,6 +123,12 @@ public class PatternApplier extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
+    	
+    	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
+    		debug(log, "No index directory specified, indexing on demand");
+    		Execution indexerExecution = createIndex();
+    		getExecution().setIndexDirectory(indexerExecution.getIndexDirectory());
+    	}
     	
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
@@ -132,9 +151,6 @@ public class PatternApplier extends BaseAlgorithm {
         if ((null == exec.getPatterns() || exec.getPatterns().isEmpty()) && 
         		(null == exec.getInfolisPatternTags() || exec.getInfolisPatternTags().isEmpty())) {
             throw new IllegalArgumentException("No patterns given.");
-        }
-        if (null == exec.getIndexDirectory() || exec.getIndexDirectory().isEmpty()) {
-            throw new IllegalArgumentException("No index directory given.");
         }
     }
 }

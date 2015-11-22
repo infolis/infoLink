@@ -84,6 +84,12 @@ public class SearchTermPosition extends BaseAlgorithm {
      */
     @Override
     public void execute() throws IOException {
+    	Execution tagExec = new Execution();
+    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+    	tagExec.instantiateAlgorithm(this).run();
+    	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {
     		debug(log, "No index directory specified, indexing on demand");
     		Execution indexerExecution = createIndex();

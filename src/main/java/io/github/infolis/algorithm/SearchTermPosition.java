@@ -166,8 +166,6 @@ public class SearchTermPosition extends BaseAlgorithm {
         }
         if (ltm.finished() && ltm.matched()) {
             infolisPat = new InfolisPattern(pat.toString());
-            outputDataStoreClient.post(InfolisPattern.class, infolisPat);
-//	    	log.debug("Posted Pattern: {}", infolisPat.getUri());
         }
         while (ltm.matched()) {
 

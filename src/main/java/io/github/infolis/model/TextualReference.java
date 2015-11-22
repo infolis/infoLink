@@ -75,6 +75,7 @@ public class TextualReference extends BaseModel {
 				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
 				+ this.getRightText() + "</rightContext>" + System.getProperty("line.separator")
+                                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" + System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
 

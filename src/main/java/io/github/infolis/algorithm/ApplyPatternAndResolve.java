@@ -78,8 +78,8 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 
     private List<String> searchPatterns(List<String> patterns, List<String> input) {
     	debug(log, "Running RegExSearcher with patterns " + patterns);
-        Execution search = getExecution().createSubExecution(RegexSearcher.class);
-        //search.setAlgorithm(PatternApplier.class);
+        //Execution search = getExecution().createSubExecution(RegexSearcher.class);
+    	Execution search = getExecution().createSubExecution(PatternApplier.class);
         search.setPatterns(patterns);
         search.setInputFiles(input);
         search.setIndexDirectory(getExecution().getIndexDirectory());

@@ -95,6 +95,9 @@ public class Learner extends BaseAlgorithm {
 		this.getInputDataStoreClient().post(Execution.class, execution);
 		Algorithm algo = execution.instantiateAlgorithm(this.getInputDataStoreClient(), this.getOutputDataStoreClient(), this.getInputFileResolver(), this.getOutputFileResolver());
 		algo.run();
+                if(execution.getStatus()==ExecutionStatus.FAILED) {
+                    getExecution().setSubExecutionFailed(true);
+                }
 		log.debug("{}", execution.getOutputFiles());
     	return execution.getOutputFiles();
     }
@@ -134,6 +137,9 @@ public class Learner extends BaseAlgorithm {
         e.setUpperCaseConstraint(this.getExecution().isUpperCaseConstraint());
         Algorithm algorithm = e.instantiateAlgorithm(getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         algorithm.run();
+        if(e.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         log.debug("input files: " + this.getExecution().getInputFiles());
         return e.getTextualReferences();
     }

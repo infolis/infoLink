@@ -82,15 +82,16 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         }
 
         while (numIter < getExecution().getMaxIterations()) {
+        	updateProgress(numIter, getExecution().getMaxIterations());
         	seeds = newSeedsIteration;
         	newSeedsIteration = new HashSet<>();
         	newSeedTermsIteration = new HashSet<>();
         	HashSet<String> addedSeeds = new HashSet<>();
-        	log.info("Bootstrapping... Iteration: " + numIter);
+        	info(log, "Bootstrapping... Iteration: " + numIter);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<TextualReference> contexts_currentIteration = new ArrayList<>();
             for (Entity seed : seeds) {
-            	log.info("Bootstrapping with seed \"" + seed.getName() + "\"");
+            	info(log, "Bootstrapping with seed \"" + seed.getName() + "\"");
                 if (processedSeeds.keySet().contains(seed.getName())) {
                 	if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent) {
                 		// add context of each seed only once even if seed was found multiple times
@@ -99,7 +100,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 			addedSeeds.add(seed.getName());
                 		}
                 	}
-                	debug(log, "seed " + seed.getName() + " already known, continuing.");
+                	log.debug("seed " + seed.getName() + " already known, continuing.");
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
@@ -112,13 +113,13 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 processedSeeds.put(seed.getName(), seed);
                 addedSeeds.add(seed.getName());
 
-                log.info("Extracted contexts of seed.");
+                info(log, "Extracted contexts of seed.");
                 // 2. generate patterns
                 if (getExecution().getBootstrapStrategy() == BootstrapStrategy.separate) {
-                	log.info("--- Entering Pattern Induction phase ---");
+                	info(log, "--- Entering Pattern Induction phase ---");
                 	List<InfolisPattern> candidates = inducePatterns(detectedContexts);
-                	log.info("Pattern Induction completed.");
-                    log.info("--- Entering Pattern Selection phase ---");
+                	info(log, "Pattern Induction completed.");
+                    info(log, "--- Entering Pattern Selection phase ---");
                     //newPatterns.addAll(ranker.getBestPatterns(candidates, detectedContexts, processedPatterns, new HashSet<Entity>()));
                     newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
                 }
@@ -126,19 +127,19 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent
             		|| getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeNew) {
-            	log.info("--- Entering Pattern Induction phase ---");
+            	info(log, "--- Entering Pattern Induction phase ---");
             	List<InfolisPattern> candidates = inducePatterns(contexts_currentIteration);
-            	log.info("Pattern Induction completed.");
-                log.info("--- Entering Pattern Selection phase ---");
+            	info(log, "Pattern Induction completed.");
+                info(log, "--- Entering Pattern Selection phase ---");
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
 
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeAll) {
-            	log.info("--- Entering Pattern Induction phase ---");
+            	info(log, "--- Entering Pattern Induction phase ---");
             	List<InfolisPattern> candidates = inducePatterns(extractedContextsFromSeeds);
-            	log.info("Pattern Induction completed.");
-                log.info("--- Entering Pattern Selection phase ---");
+            	info(log, "Pattern Induction completed.");
+                info(log, "--- Entering Pattern Selection phase ---");
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
@@ -149,9 +150,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	processedPatterns.add(pattern.getMinimal());
             }
 
-            log.info("Pattern Selection completed.");
-            log.debug("Selected " + newPatterns.size() + " new patterns");
-            log.info("--- Entering Instance Extraction phase ---");
+            info(log, "Pattern Selection completed.");
+            debug(log, "Selected " + newPatterns.size() + " new patterns");
+            info(log, "--- Entering Instance Extraction phase ---");
 
             // 3. search for patterns in corpus
             if (!newPatterns.isEmpty()) {
@@ -173,7 +174,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here
-            	log.info("Final iteration: " + numIter);
+            	info(log, "Final iteration: " + numIter);
                 log.debug("Final list of instances:  ");
                 for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
                 log.debug("Final list of patterns: " + processedPatterns);
@@ -183,7 +184,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         debug(log, "Maximum number of iterations reached, returning.");
         // TODO now delete all the contexts that were only temporary
 
-        log.info("Final iteration: " + numIter);
+        info(log, "Final iteration: " + numIter);
         log.debug("Final list of instances:  ");
         for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final list of patterns: " + processedPatterns);
@@ -215,7 +216,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		    	InfolisPattern candidate = candidates.get(contextNo);
 		    	log.debug("Processing context no. " + String.valueOf(contextNo));
 		      	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
-			if (processedMinimals.contains(candidate.getMinimal()) || processedMinimals_iteration.contains(candidate.getMinimal())) {
+		      	if (processedMinimals.contains(candidate.getMinimal()) || processedMinimals_iteration.contains(candidate.getMinimal())) {
 		       		// no need to induce less general patterns, continue with next context
 		            //TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		            //TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?

@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +36,6 @@ public class BibliographyExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(BibliographyExtractor.class);
-    BreakIterator sentenceIterator = BreakIterator.getSentenceInstance(Locale.ROOT);   
     
     /**
      * Compute the ratio of numbers on page: a high number of numbers is assumed
@@ -184,6 +182,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");
+            outFile.setTags(getExecution().getTags());
             
             try {
             	OutputStream outStream = getOutputFileResolver().openOutputStream(outFile);

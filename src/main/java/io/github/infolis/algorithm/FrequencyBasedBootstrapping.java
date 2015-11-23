@@ -87,11 +87,13 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         	newSeedsIteration = new HashSet<>();
         	newSeedTermsIteration = new HashSet<>();
         	HashSet<String> addedSeeds = new HashSet<>();
-        	info(log, "Bootstrapping... Iteration: " + numIter);
+        	//info(log, "Bootstrapping... Iteration: " + numIter);
+        	debug(log, "Bootstrapping... Iteration: " + numIter);
             Set<InfolisPattern> newPatterns = new HashSet<>();
             List<TextualReference> contexts_currentIteration = new ArrayList<>();
             for (Entity seed : seeds) {
-            	info(log, "Bootstrapping with seed \"" + seed.getName() + "\"");
+            	//info(log, "Bootstrapping with seed \"" + seed.getName() + "\"");
+            	debug(log, "Bootstrapping with seed \"" + seed.getName() + "\"");
                 if (processedSeeds.keySet().contains(seed.getName())) {
                 	if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent) {
                 		// add context of each seed only once even if seed was found multiple times
@@ -100,7 +102,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 			addedSeeds.add(seed.getName());
                 		}
                 	}
-                	log.debug("seed " + seed.getName() + " already known, continuing.");
+                	//log.trace("seed " + seed.getName() + " already known, continuing.");
                     continue;
                 }
                 // 1. use lucene index to search for term in corpus
@@ -113,13 +115,14 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
                 processedSeeds.put(seed.getName(), seed);
                 addedSeeds.add(seed.getName());
 
-                info(log, "Extracted contexts of seed.");
+                //info(log, "Extracted contexts of seed.");
+                debug(log, "Extracted contexts of seed.");
                 // 2. generate patterns
                 if (getExecution().getBootstrapStrategy() == BootstrapStrategy.separate) {
-                	info(log, "--- Entering Pattern Induction phase ---");
+                	debug(log, "--- Entering Pattern Induction phase ---");//info
                 	List<InfolisPattern> candidates = inducePatterns(detectedContexts);
-                	info(log, "Pattern Induction completed.");
-                    info(log, "--- Entering Pattern Selection phase ---");
+                	debug(log, "Pattern Induction completed.");//info
+                    debug(log, "--- Entering Pattern Selection phase ---");//info
                     //newPatterns.addAll(ranker.getBestPatterns(candidates, detectedContexts, processedPatterns, new HashSet<Entity>()));
                     newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
                 }
@@ -127,19 +130,19 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             // mergeNew and mergeCurrent have different contexts_currentIteration at this point, with previously processed seeds filtered for mergeNew but not for mergeCurrent
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeCurrent
             		|| getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeNew) {
-            	info(log, "--- Entering Pattern Induction phase ---");
+            	debug(log, "--- Entering Pattern Induction phase ---");//info
             	List<InfolisPattern> candidates = inducePatterns(contexts_currentIteration);
-            	info(log, "Pattern Induction completed.");
-                info(log, "--- Entering Pattern Selection phase ---");
+            	debug(log, "Pattern Induction completed.");//info
+            	debug(log, "--- Entering Pattern Selection phase ---");//info
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, contexts_currentIteration, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
 
             if (getExecution().getBootstrapStrategy() == BootstrapStrategy.mergeAll) {
-            	info(log, "--- Entering Pattern Induction phase ---");
+            	debug(log, "--- Entering Pattern Induction phase ---");//info
             	List<InfolisPattern> candidates = inducePatterns(extractedContextsFromSeeds);
-            	info(log, "Pattern Induction completed.");
-                info(log, "--- Entering Pattern Selection phase ---");
+            	debug(log, "Pattern Induction completed.");//info
+            	debug(log, "--- Entering Pattern Selection phase ---");//info
                 //newPatterns.addAll(ranker.getBestPatterns(candidates, extractedContextsFromSeeds, processedPatterns, new HashSet<Entity>()));
                 newPatterns.addAll(ranker.getBestPatterns(candidates, processedPatterns, new HashSet<Entity>()));
             }
@@ -150,9 +153,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	processedPatterns.add(pattern.getMinimal());
             }
 
-            info(log, "Pattern Selection completed.");
+            debug(log, "Pattern Selection completed.");//info
             debug(log, "Selected " + newPatterns.size() + " new patterns");
-            info(log, "--- Entering Instance Extraction phase ---");
+            debug(log, "--- Entering Instance Extraction phase ---");//info
 
             // 3. search for patterns in corpus
             if (!newPatterns.isEmpty()) {
@@ -174,7 +177,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	// extractedContexts contains all contexts resulting from searching a seed term
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here
-            	info(log, "Final iteration: " + numIter);
+            	debug(log, "Final iteration: " + numIter);//info
                 log.debug("Final list of instances:  ");
                 for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
                 log.debug("Final list of patterns: " + processedPatterns);
@@ -184,7 +187,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         debug(log, "Maximum number of iterations reached, returning.");
         // TODO now delete all the contexts that were only temporary
 
-        info(log, "Final iteration: " + numIter);
+        debug(log, "Final iteration: " + numIter);//info
         log.debug("Final list of instances:  ");
         for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final list of patterns: " + processedPatterns);

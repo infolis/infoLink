@@ -74,6 +74,9 @@ public class PatternApplier extends BaseAlgorithm {
     		// with empty searchTerm, SearchTermPosition does not post any textual references
     		// thus, no need to create temporary file resolver / data store client here
     		stpExecution.instantiateAlgorithm(this).run();
+                if(stpExecution.getStatus()==ExecutionStatus.FAILED) {
+                    getExecution().setSubExecutionFailed(true);
+                }
     		for (String fileUri : stpExecution.getMatchingFiles()) {
     		    patternToFilename.put(fileUri, curPat);
     		}
@@ -98,6 +101,9 @@ public class PatternApplier extends BaseAlgorithm {
         	regexExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
         	regexExec.setAlgorithm(RegexSearcher.class);
         	regexExec.instantiateAlgorithm(this).run();
+                if(regexExec.getStatus()==ExecutionStatus.FAILED) {
+                    getExecution().setSubExecutionFailed(true);
+                }
         	getExecution().setTextualReferences(regexExec.getTextualReferences());
             textualReferences.addAll(regexExec.getTextualReferences());
     	}
@@ -105,10 +111,13 @@ public class PatternApplier extends BaseAlgorithm {
     }
 
     Execution createIndex() throws IOException {
-		Execution execution = getExecution().createSubExecution(Indexer.class);
-		execution.setInputFiles(getExecution().getInputFiles());
+	Execution execution = getExecution().createSubExecution(Indexer.class);
+	execution.setInputFiles(getExecution().getInputFiles());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
+        if(execution.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
 		return execution;
 	}
     
@@ -119,6 +128,9 @@ public class PatternApplier extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
+        if(tagExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	

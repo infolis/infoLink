@@ -183,6 +183,9 @@ public abstract class BaseAlgorithm implements Algorithm {
             execute();
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
+            if(getExecution().isSubExecutionFailed()) {
+                getExecution().setStatus(ExecutionStatus.FAILED);
+            }
         } catch (Exception e) {
             error(log, "Execution threw an Exception: %s", e);
             e.printStackTrace();

@@ -61,6 +61,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         Algorithm algo = execution.instantiateAlgorithm(this);
         getOutputDataStoreClient().post(Execution.class, execution);
         algo.run();
+        if(execution.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         getExecution().getLog().addAll(execution.getLog());
         List<TextualReference> textualReferences = new ArrayList<>();
             for (String uri : execution.getTextualReferences()) {
@@ -94,6 +97,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
     	applierExec.setTags(getExecution().getTags());
     	applierExec.instantiateAlgorithm(this).run();
+        if(applierExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
     	return applierExec.getTextualReferences();
     }
 
@@ -117,7 +123,10 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
-    	tagExec.instantiateAlgorithm(this).run();
+    	tagExec.instantiateAlgorithm(this).run();        
+        if(tagExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
     	
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
@@ -137,7 +146,12 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             this.getExecution().getTextualReferences().add(sC.getUri());
             this.getExecution().getPatterns().add(sC.getPattern());
         }
-        getExecution().setStatus(ExecutionStatus.FINISHED);
+        if(getExecution().isSubExecutionFailed()) {
+            getExecution().setStatus(ExecutionStatus.FAILED);
+        }
+        else {
+            getExecution().setStatus(ExecutionStatus.FINISHED);
+        }
     }
 
 }

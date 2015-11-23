@@ -133,7 +133,10 @@ public class RegexSearcher extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
-    	
+    	if(tagExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
+        
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
@@ -169,6 +172,9 @@ public class RegexSearcher extends BaseAlgorithm {
                     Algorithm algo = convertExec.instantiateAlgorithm(this);
                     // do the actual conversion
                     algo.run();
+                    if(convertExec.getStatus()==ExecutionStatus.FAILED) {
+                        getExecution().setSubExecutionFailed(true);
+                    }
                     // Set the inputFile to the file we just created
                     InfolisFile convertedInputFile = algo.getOutputDataStoreClient().get(InfolisFile.class, convertExec.getOutputFiles().get(0));
                     log.debug("Converted {} -> {}", inputFile.getUri(), convertedInputFile.getUri());

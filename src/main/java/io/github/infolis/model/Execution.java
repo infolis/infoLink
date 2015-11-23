@@ -39,6 +39,7 @@ import java.lang.reflect.Field;
 public class Execution extends BaseModel {
 
 	private static final Logger logger = LoggerFactory.getLogger(Execution.class);
+        private boolean subExecutionFailed = false;
 
 	//
 	//
@@ -782,6 +783,14 @@ public class Execution extends BaseModel {
     	Execution subExec = new Execution(algo);
     	//subExec.setLog(getLog());
     	return subExec;
+    }
+
+    public boolean isSubExecutionFailed() {
+        return subExecutionFailed;
+    }
+
+    public void setSubExecutionFailed(boolean subExecutionFailed) {
+        this.subExecutionFailed = subExecutionFailed;
     }
 
 }

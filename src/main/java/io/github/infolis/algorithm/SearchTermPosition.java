@@ -70,6 +70,9 @@ public class SearchTermPosition extends BaseAlgorithm {
 		execution.setInputFiles(getExecution().getInputFiles());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
+        if(execution.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
 		return execution;
 	}
     
@@ -88,6 +91,9 @@ public class SearchTermPosition extends BaseAlgorithm {
     	tagExec.setAlgorithm(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
+        if(tagExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
     	if (null == getExecution().getIndexDirectory() || getExecution().getIndexDirectory().isEmpty()) {

@@ -87,6 +87,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         search.instantiateAlgorithm(this).run();
         updateProgress(1, 4);
     	debug(log, "Done running RegExSearcher, found textualReferences: " + search.getTextualReferences());
+        if(search.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         return search.getTextualReferences();
     }
 
@@ -96,6 +99,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
         extract.instantiateAlgorithm(this).run();
+        if(extract.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         updateProgress(2, 4);
         return extract.getSearchQuery();
     }
@@ -107,11 +113,14 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
+        if(searchRepo.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         debug(log, "FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
     
-    public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
+    public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {        
     	debug(log, "Searching in repository for query: " + query);
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);;
         searchRepo.setSearchQuery(query);
@@ -119,11 +128,14 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(3, 4);
+        if(searchRepo.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         debug(log, "FederatedSearcher returned " + searchRepo.getSearchResults().size() + " search results");
         return searchRepo.getSearchResults();
     }
 
-    public List<String> resolve(List<String> searchResults, String textRef) {
+    public List<String> resolve(List<String> searchResults, String textRef) {        
         Execution resolve = getExecution().createSubExecution(Resolver.class);
         resolve.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
@@ -132,6 +144,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         debug(log, "Resolving " + searchResults.size() + " search results for textual references: " + textRef);
         resolve.instantiateAlgorithm(this).run();
         updateProgress(4, 4);
+        if(resolve.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         debug(log, "Returning links: " + resolve.getLinks());
         return resolve.getLinks();
     }

@@ -155,6 +155,9 @@ public class TextExtractor extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
         tagExec.instantiateAlgorithm(this).run();
+        if(tagExec.getStatus()==ExecutionStatus.FAILED) {
+            getExecution().setSubExecutionFailed(true);
+        }
         
         getExecution().getPatterns().addAll(tagExec.getPatterns());
         getExecution().getInputFiles().addAll(tagExec.getInputFiles());

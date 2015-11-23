@@ -51,7 +51,7 @@ public class SolrQueryService extends QueryService {
 
     public String adaptQuery(String solrQuery) {        
         String beginning = "select/";
-        String remainder = "&start=0&rows=10000&fl=doi,title&wt=json";
+        String remainder = "&start=0&rows=10&fl=doi,title&wt=json";
         return "" + target + beginning + solrQuery + remainder;
     }    
 

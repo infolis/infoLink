@@ -61,7 +61,7 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
     public void testQueryAdaption() {
         SolrQueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/",1.0);
         String query = qs.adaptQuery("?q=title:ALLBUS");        
-        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:ALLBUS&start=0&rows=10000&fl=doi,title&wt=json", query);
+        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:ALLBUS&start=0&rows=10&fl=doi,title&wt=json", query);
     }
     
     @Test

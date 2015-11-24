@@ -74,6 +74,8 @@ public class SolrQueryService extends QueryService {
             for (JsonObject item : result.getValuesAs(JsonObject.class)) {
                 SearchResult sr = new SearchResult();
                 sr.setListIndex(listIndex);
+                JsonArray identifier = item.getJsonArray("doi");
+                sr.setIdentifier(identifier.getString(0));
                 JsonArray titles = item.getJsonArray("title");
                 for (int i = 0; i < titles.size(); i++) {
                     String title = titles.get(i).toString();
@@ -83,7 +85,8 @@ public class SolrQueryService extends QueryService {
                     DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                     Date date = new Date();
                     sr.setDate(dateFormat.format(date));
-                }
+                }              
+                
                 results.add(sr);
                 listIndex++;
             }

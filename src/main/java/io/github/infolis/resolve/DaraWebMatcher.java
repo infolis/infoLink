@@ -83,9 +83,9 @@ public class DaraWebMatcher {
         try {
             return new URL(String.format("%s?title=%s&max=%s&lang=de",
                     this.searchInterface,
-                    // URLEncoder transforms plain text into the	application/x-www-form-urlencoded MIME format 
+                    // URLEncoder transforms plain text into the	application/x-www-form-urlencoded MIME format
                     // as described in the HTML specification (GET-style URLs or POST forms)
-                    // does not work with the new dara search function 
+                    // does not work with the new dara search function
                     //URLEncoder.encode(searchTerm, "UTF-8"),
                     URLParamEncoder.encode(searchTerm),
                     String.valueOf(maxNumber)));

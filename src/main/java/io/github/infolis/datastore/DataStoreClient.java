@@ -16,7 +16,7 @@ public interface DataStoreClient {
 
 	/**
 	 * PUT an resource
-	 * 
+	 *
 	 * @param clazz
 	 * @param thing
 	 */
@@ -24,7 +24,7 @@ public interface DataStoreClient {
 
 	/**
 	 * GET a thing with a URI.
-	 * 
+	 *
 	 * @param clazz
 	 *            the class of the thing to retrieve
 	 * @param uriStr
@@ -34,12 +34,12 @@ public interface DataStoreClient {
 	 * @throws ProcessingException
 	 */
 	<T extends BaseModel> T get(Class<T> clazz, String uriStr) throws BadRequestException, ProcessingException;
-	
+
 	/**
 	 * GET a list of things for a list of URI.
-	 * 
+	 *
 	 * NOTE: It's a {@link List} and not a {@link Set} because we cannot be sure all {@link BaseModel} instances implement equals/hashcode.
-	 * 
+	 *
 	 * @param clazz
 	 * 			the class of the thing to retrieve
 	 * @param uriStrList
@@ -52,11 +52,11 @@ public interface DataStoreClient {
 
 	/**
 	 * POST a resource to the frontend web service.
-	 * 
+	 *
 	 * After successfully creation, {@link CentralClient#get(Class, URI)}
 	 * request is made and the current representation returned. The URI of the passed
 	 * resource will be set to the newly created URI
-	 * 
+	 *
 	 * @param clazz
 	 *            class of the thing to post
 	 * @param thing
@@ -67,11 +67,11 @@ public interface DataStoreClient {
 
 	/**
 	 * POST a list of things to the frontend web service.
-	 * 
+	 *
 	 * After successfully creation, {@link CentralClient#get(Class, URI)}
 	 * request is made and the current representation returned. The URI of the passed
 	 * resource will be set to the newly created URI
-	 * 
+	 *
 	 * @param clazz
 	 *            class of the thing to post
 	 * @param thing
@@ -82,13 +82,13 @@ public interface DataStoreClient {
 
 	/**
 	 * DELETE the complete datastore.
-	 * 
+	 *
 	 */
 	void clear();
 
 	/**
 	 * GET all things that have any of the key-value pairs (boolean OR).
-	 * 
+	 *
 	 * @param clazz
 	 *             class of the things to get
 	 * @param query
@@ -96,7 +96,7 @@ public interface DataStoreClient {
 	 * @return
 	 */
 	<T extends BaseModel> List<T> search(Class<T> clazz, Multimap<String, String> query);
-	
+
 	/**
 	 * Dump the whole datastore in JSON format.
 	 * @param directory Directory to dump to

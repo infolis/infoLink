@@ -113,7 +113,7 @@ public class DaraLinkerTest extends InfolisBaseTest {
 			"Hallo, please try to find .the Studierendensurvey. in this short text snippet. Thank you.",
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 	};
-	
+
 	protected List<InfolisFile> createTestFiles(int nrFiles) throws Exception {
 		String[] testStrings = {
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",

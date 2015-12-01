@@ -15,42 +15,42 @@ public interface Algorithm  {
 
 	/**
 	 * Execute the algorithm.
-	 * 
+	 *
 	 * @throws IOException
-	 * 
+	 *
 	 */
 	void execute()
 			throws IOException;
 
         /**
 	 * Run the algorithm.
-	 * 
-	 * 
+	 *
+	 *
 	 */
 	public void run();
-        
+
 	/**
 	 * Validate the execution object linking this algorithm with its
 	 * input/output parameters
-         * 
+         *
          * @throws io.github.infolis.algorithm.IllegalAlgorithmArgumentException
 	 */
 	void validate()
 			throws IllegalAlgorithmArgumentException;
 
-        
+
         void updateProgress(int done, int total);
-        
+
 	/**
 	 * Get the execution context of this algorithm instance.
-	 * 
+	 *
 	 * @return the {@link Execution} for this instance of the algorithm
 	 */
 	Execution getExecution();
 
 	/**
 	 * Set the execution context of this algorithm instance.
-	 * 
+	 *
 	 * @param execution
 	 */
 	void setExecution(Execution execution);
@@ -74,7 +74,7 @@ public interface Algorithm  {
 	 * @return the {@link DataStoreClient} to use for this algorithm instance.
 	 */
 	DataStoreClient getOutputDataStoreClient();
-	
+
 	/**
 	 * @return a temporary {@link TempFileResolver}
 	 */
@@ -94,7 +94,7 @@ public interface Algorithm  {
 
 	/**
 	 * Log a DEBUG message to both the system logger and the execution.
-	 * 
+	 *
 	 * @param log
 	 *            {@link Logger} to log to
 	 * @param fmt
@@ -106,7 +106,7 @@ public interface Algorithm  {
 
 	/**
 	 * Log an INFO message to both the system logger and the execution.
-	 * 
+	 *
 	 * @param log
 	 *            {@link Logger} to log to
 	 * @param fmt
@@ -115,10 +115,10 @@ public interface Algorithm  {
 	 *            Objects for {@link String#format(String, Object...)}
 	 */
 	void info(Logger log, String fmt, Object... args);
-	
+
 	/**
 	 * Log a WARN message to both the system logger and the execution.
-	 * 
+	 *
 	 * @param log
 	 *            {@link Logger} to log to
 	 * @param fmt
@@ -130,7 +130,7 @@ public interface Algorithm  {
 
 	/**
 	 * Log a FATAL message to both the system logger and the execution.
-	 * 
+	 *
 	 * @param log
 	 *            {@link Logger} to log to
 	 * @param fmt
@@ -139,10 +139,10 @@ public interface Algorithm  {
 	 *            Objects for {@link String#format(String, Object...)}
 	 */
 	void fatal(Logger log, String fmt, Object... args);
-	
+
 	/**
 	 * Log an ERROR message to both the system logger and the execution.
-	 * 
+	 *
 	 * @param log
 	 *            {@link Logger} to log to
 	 * @param fmt

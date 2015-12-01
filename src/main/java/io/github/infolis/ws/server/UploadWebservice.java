@@ -21,17 +21,17 @@ import org.apache.commons.io.IOUtils;
 
 /**
  * Simple upload/download handler.
- * 
+ *
  * @author kba
  *
  */
 @Path("upload")
 public class UploadWebservice {
-	
+
 //    private Logger logger = LoggerFactory.getLogger(UploadWebservice.class);
 
 	private FileResolver resolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);;
-	
+
 	/**
 	 * PUT /upload/d3b07384d113edec49eaa6238ad5ff00  -
 	 * @param fileId The id of the file, e.g. it's sha1 or md5 checksum
@@ -54,7 +54,7 @@ public class UploadWebservice {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * GET /upload/d3b07384d113edec49eaa6238ad5ff00  -
 	 * @param fileId The id of the file
@@ -75,5 +75,5 @@ public class UploadWebservice {
 		}
 		return ret;
 	}
-		
+
 }

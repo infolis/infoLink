@@ -46,7 +46,7 @@ public class Resolver extends BaseAlgorithm {
         List<String> numericInfosRef = NumericInformationExtractor.extractNumericInfoFromTextRef(textRef);
         if(result.getNumericInformation() == null || result.getNumericInformation().isEmpty()) {
             result.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(result.getTitles().get(0)));
-            
+
         }
         List<String> numericInfoSearch = result.getNumericInformation();
         for (String ref : numericInfosRef) {
@@ -360,7 +360,7 @@ public class Resolver extends BaseAlgorithm {
 
         String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
-        //check which search results fit 
+        //check which search results fit
         Map<SearchResult, Double> resultValues = new HashMap<>();
         int counter = 0;
         for (SearchResult r : results) {

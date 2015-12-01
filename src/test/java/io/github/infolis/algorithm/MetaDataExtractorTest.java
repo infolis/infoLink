@@ -41,14 +41,14 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("?q=title:ALLBUS&?date:2000", mde.extractQuery(testContexts[0],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:2000", mde.extractQuery(testContexts[1],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:2000", mde.extractQuery(testContexts[2],MetaDataExtractingStrategy.title));
-        
+
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[3],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[4],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[5],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[6],MetaDataExtractingStrategy.title));
-        assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[7],MetaDataExtractingStrategy.title));        
+        assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[7],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:Eurobarometer&?date:56.1", mde.extractQuery(testContexts[8],MetaDataExtractingStrategy.title));
-      
+
         assertEquals("?q=title:ALLBUS&?date:1996/08", mde.extractQuery(testContexts[9],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:1982   -   1983", mde.extractQuery(testContexts[10],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:85/01", mde.extractQuery(testContexts[11],MetaDataExtractingStrategy.title));
@@ -56,10 +56,10 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("?q=title:ALLBUS&?date:1982 to 1983", mde.extractQuery(testContexts[13],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:1982 bis 1983", mde.extractQuery(testContexts[14],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:ALLBUS&?date:1982 und 1983", mde.extractQuery(testContexts[15],MetaDataExtractingStrategy.title));
-     
+
         assertEquals("?q=title:Eurobarometer&?date:2000&?date:56.1&?date:2", mde.extractQuery(testContexts[16],MetaDataExtractingStrategy.title));
         assertEquals("?q=title:Eurobarometer&?date:2000&?date:2", mde.extractQuery(testContexts[17],MetaDataExtractingStrategy.title));
-        
+
         assertEquals("?q=doi:10.4232/1.2525", mde.extractQuery(testContexts[18],MetaDataExtractingStrategy.doi));
 
     }

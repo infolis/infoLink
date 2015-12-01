@@ -33,7 +33,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
 
         String tr = getExecution().getTextualReferences().get(0);
         MetaDataExtractingStrategy strat = getExecution().getMetaDataExtractingStrategy();
-        
+
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 
         debug(log, "Start to build query from textual reference %s", ref);

@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FilterDaraJsonResults {
-	
+
 	private final static Logger log = LoggerFactory.getLogger(FilterDaraJsonResults.class);
 
 	//TODO: test
@@ -39,7 +39,7 @@ public class FilterDaraJsonResults {
 		}
 		return createJsonArray(matchingItems);
 	}
-	
+
 	private static JsonArray createJsonArray(List<JsonObject> list) {
 		JsonArrayBuilder builder = Json.createArrayBuilder();
 		for (JsonObject item : list) {
@@ -51,29 +51,29 @@ public class FilterDaraJsonResults {
 	private static boolean containsYear(String number) {
 		return Pattern.matches(".*?" + DaraLinker.yearRegex + ".*?", number);
 	}
-	
+
 	private static boolean containsAbbreviatedYear(String number) {
 		return Pattern.matches("[\\D]*?" + "('?\\d\\d)" + "[^\\d\\.]*?", number);
 	}
-	
+
 	private static boolean containsEnum(String number) {
 		return Pattern.matches(".*?\\d\\s*" + DaraLinker.enumRegex+ "\\s*\\d.*?", number);
 	}
-	
+
 	private static boolean containsRange(String number) {
 		return Pattern.matches(".*?\\d\\s*" + DaraLinker.rangeRegex+ "\\s*\\d.*?", number);
 	}
-	
+
 	private static String[] getFullYearVariants(String extractedNumber) {
 		String number1a, number1b = extractedNumber;
 		if (containsAbbreviatedYear(extractedNumber)) {
-			number1a = "19" + extractedNumber; 
-			number1b = "20" + extractedNumber; 
+			number1a = "19" + extractedNumber;
+			number1b = "20" + extractedNumber;
 		}
 		else { number1a = number1b = extractedNumber; }
 		return new String[]{number1a, number1b};
 	}
-	
+
 	// call method for every enumerated value, one match is sufficient
 	private static boolean enumMatches(List<String> enumInfo, String info2) {
 		for (String enumeratedNumber : enumInfo) {
@@ -81,52 +81,52 @@ public class FilterDaraJsonResults {
 		}
 		return false;
 	}
-	
+
 	private static boolean rangeMatches(List<String> numericInfo1, List<String> numericInfo2, boolean containsRange_numericInfo2, boolean containsYear_numericInfo2, boolean containsAbbrYear_numericInfo2) {
 		// ranges may contain abbreviated years
 		String[] variants1a = getFullYearVariants(numericInfo1.get(0));
 		String[] variants1b = getFullYearVariants(numericInfo1.get(1));
-		
+
 		List<String> numericInfo1a = Arrays.asList(variants1a[0], variants1b[0]);
 		List<String> numericInfo1b = Arrays.asList(variants1a[1], variants1b[1]);
-		
-		if (containsRange_numericInfo2) { 
+
+		if (containsRange_numericInfo2) {
 			// ranges may contain abbreviated years
 			String[] variants2a = getFullYearVariants(numericInfo2.get(0));
 			String[] variants2b = getFullYearVariants(numericInfo2.get(1));
 			List<String> numericInfo2a = Arrays.asList(variants2a[0], variants2b[0]);
 			List<String> numericInfo2b = Arrays.asList(variants2a[1], variants2b[1]);
 
-			return overlap(numericInfo1a, numericInfo2a) 
-					|| overlap(numericInfo1b, numericInfo2b) ; 
+			return overlap(numericInfo1a, numericInfo2a)
+					|| overlap(numericInfo1b, numericInfo2b) ;
 		}
 		// year must be inside of range
-		if (containsYear_numericInfo2) { 
+		if (containsYear_numericInfo2) {
 			return inRange(numericInfo1a, numericInfo2.get(0))
 					|| inRange(numericInfo1b, numericInfo2.get(0));
-		} 
+		}
 		// modified value must be inside of range
-		if (containsAbbrYear_numericInfo2) { 
-			return inRange(numericInfo1a, "19" + numericInfo2.get(0)) 
-					|| inRange(numericInfo1b, "19" + numericInfo2.get(0)) 
+		if (containsAbbrYear_numericInfo2) {
+			return inRange(numericInfo1a, "19" + numericInfo2.get(0))
+					|| inRange(numericInfo1b, "19" + numericInfo2.get(0))
 					|| inRange(numericInfo1a, "20" + numericInfo2.get(0))
-					|| inRange(numericInfo1b, "20" + numericInfo2.get(0)); 
+					|| inRange(numericInfo1b, "20" + numericInfo2.get(0));
 		}
 		else { return inRange(numericInfo1a, numericInfo2.get(0))
-				|| inRange(numericInfo1b, numericInfo2.get(0)); 
+				|| inRange(numericInfo1b, numericInfo2.get(0));
 		}
-		
+
 	}
-	
+
 	public static boolean yearsMatch(List<String> numericInfo1, List<String> numericInfo2, boolean containsYear_numericInfo2, boolean containsAbbrYear_numericInfo2) {
 
 		if (containsAbbrYear_numericInfo2) {
 			for (String year : numericInfo1) {
 				for (String abbrYear2 : numericInfo2) {
 					for (String year2 : getFullYearVariants(abbrYear2)) {
-						if (year.equals(year2)) { 
-							log.debug("Years match: " + year + " <-> " + year2); 
-							return true; 
+						if (year.equals(year2)) {
+							log.debug("Years match: " + year + " <-> " + year2);
+							return true;
 						}
 						else { log.debug("No year match: " + year + " <-> " + year2); }
 					}
@@ -134,25 +134,25 @@ public class FilterDaraJsonResults {
 			}
 			return false;
 		}
-		
+
 		// candidate numeric info contains a year as well or is some number
-		else { 
+		else {
 			for (String year : numericInfo1) {
-				for (String year2 : numericInfo2) { 
-					if (year.equals(year2)) { 
+				for (String year2 : numericInfo2) {
+					if (year.equals(year2)) {
 						log.debug("Years match: " + year + " <-> " + year2);
-						return true; 
-					} 
+						return true;
+					}
 					else { log.debug("No year match: " + year + " <-> " + year2); }
 				}
 			}
 			return false;
-		} 
+		}
 	}
-	
+
 	public static boolean abbreviatedYearsMatch(List<String> numericInfo1, List<String> numericInfo2, boolean containsAbbrYear_numericInfo2) {
 		// modified year must match modified year
-		if (containsAbbrYear_numericInfo2) { 
+		if (containsAbbrYear_numericInfo2) {
 			for (String abbreviatedYear : numericInfo1) {
 				for (String abbreviatedYear2 : numericInfo2) {
 					if (abbreviatedYear.equals(abbreviatedYear2)) { return true; }
@@ -166,14 +166,14 @@ public class FilterDaraJsonResults {
 				float number2 = Float.parseFloat(info2);
 				for (String abbreviatedYear : numericInfo1) {
 					float number1 = Float.parseFloat(abbreviatedYear);
-					if (Math.abs(number1 - number2) < 0.00001) { 
+					if (Math.abs(number1 - number2) < 0.00001) {
 						log.debug("Equal: " + number1 + " <-> " +  number2); return true; }
 				}
 			}
 			return false;
 		}
 	}
-	
+
 	private static boolean floatsMatch(List<String> numericInfo1, List<String> numericInfo2) {
 		for (String info1 : numericInfo1) {
 			float number1 = Float.parseFloat(info1);
@@ -184,7 +184,7 @@ public class FilterDaraJsonResults {
 		}
 		return false;
 	}
-	
+
 	//TODO: also return kind of match (overlap vs exact match...?)
 	protected static boolean numericInfoMatches(String numericInfo, String string) {
 		// for study references without any specified years / numbers, accept all candidates
@@ -192,7 +192,7 @@ public class FilterDaraJsonResults {
 		if (numericInfo == null || string == null) return true;
 		List<String> numericInfo1 = extractNumbers(numericInfo);
 		List<String> numericInfo2 = extractNumbers(string);
-		boolean containsRange_numericInfo1 = containsRange(numericInfo); 
+		boolean containsRange_numericInfo1 = containsRange(numericInfo);
 		boolean containsRange_numericInfo2 = containsRange(string);
 		boolean containsEnum_numericInfo1 = containsEnum(numericInfo);
 		boolean containsEnum_numericInfo2 = containsEnum(string);
@@ -208,16 +208,16 @@ public class FilterDaraJsonResults {
 		if (containsEnum_numericInfo2) {
 			log.debug("Enum match for: " + string + " <-> " + numericInfo + "?");
 			return enumMatches(numericInfo2, numericInfo);
-		} 
+		}
 		// extracted numeric information is a range specification
-		if (containsRange_numericInfo1) { 
+		if (containsRange_numericInfo1) {
 			log.debug("Range match for: " + numericInfo + " <-> " + string + "?");
 			// continue if range does not match - maybe parts do
 			if (rangeMatches(numericInfo1, numericInfo2, containsRange_numericInfo2, containsYear_numericInfo2, containsAbbrYear_numericInfo2)) {
 				return true ;
 			}
 		}
-		
+
 		if (containsRange_numericInfo2) {
 			log.debug("Range match for: " + string + " <-> " + numericInfo + "?");
 			// continue if range does not match - maybe parts do
@@ -225,13 +225,13 @@ public class FilterDaraJsonResults {
 				return true;
 			}
 		}
-		
+
 		// extracted numeric info contains a year
 		if (containsYear_numericInfo1) {
 			log.debug("Year match for: " + numericInfo + " <-> " + string + "?");
 			return yearsMatch(numericInfo1, numericInfo2, containsYear_numericInfo2, containsAbbrYear_numericInfo2);
 		}
-		
+
 		// extracted numeric info contains a year
 		if (containsYear_numericInfo2) {
 			log.debug("Year match for: " + string + " <-> " + numericInfo + "?");
@@ -242,7 +242,7 @@ public class FilterDaraJsonResults {
 			log.debug("Abbreviated year match for: " + numericInfo + " <-> " + string + "?");
 			return abbreviatedYearsMatch(numericInfo1, numericInfo2, containsAbbrYear_numericInfo2);
 		}
-		
+
 		if (containsAbbrYear_numericInfo2) {
 			log.debug("Abbreviated year match for: " + string + " <-> " + numericInfo + "?");
 			return abbreviatedYearsMatch(numericInfo2, numericInfo1, containsAbbrYear_numericInfo1);
@@ -252,18 +252,18 @@ public class FilterDaraJsonResults {
 			return floatsMatch(numericInfo1, numericInfo2);
 		}
 	}
-	
+
 	private static float[] toFloatArray(List<String> numberList) {
 		float[] res = new float[numberList.size()];
-		for (int i = 0; i< numberList.size(); i++) { 
+		for (int i = 0; i< numberList.size(); i++) {
 			res[i] = Float.parseFloat(numberList.get(i));
 		}
 		return res;
 	}
-	
+
 	/**
 	 * Checks whether given value lies inside of range1.
-	 * 
+	 *
 	 * @param range1
 	 * @param value
 	 * @return
@@ -276,10 +276,10 @@ public class FilterDaraJsonResults {
 		}
 		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
-	
+
 	/**
 	 * Checks whether given value lies inside of range1.
-	 * 
+	 *
 	 * @param range1
 	 * @param value
 	 * @return
@@ -290,16 +290,16 @@ public class FilterDaraJsonResults {
 		if (year1a > year1b)  { return false; }
 		return (value >= year1a && value <= year1b);
 	}
-	
+
 	/**
-	 * Return true if both ranges overlap = Check whether period a entirely or partly covers period b. 
-	 * Period a: year1a - year1b; period b: year2a - year2b. 
+	 * Return true if both ranges overlap = Check whether period a entirely or partly covers period b.
+	 * Period a: year1a - year1b; period b: year2a - year2b.
 	 * 4 cases may occur:
 	 * 1. period b is entirely covered: e.g. 1991-1999 in 1990-2000
 	 * 2. period b is partly covered 1): e.g. 1980-1999 in 1990-2000
 	 * 3. period b is partly covered 2): e.g. 1991-2013 in 1990-2000
 	 * 4. period a is entirely covered: e.g. 1980-2013 in 1990-2000
-	 * 
+	 *
 	 * @param range1
 	 * @param range2
 	 * @return
@@ -320,7 +320,7 @@ public class FilterDaraJsonResults {
 		}
 		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
-	
+
 	private static List<String> extractNumbers (String string) {
 		Pattern p = Pattern.compile(DaraLinker.numberRegex);
 		Matcher matcher = p.matcher(string);

@@ -3,7 +3,7 @@ package io.github.infolis.datastore;
 import java.util.UUID;
 
 public class DataStoreClientFactory {
-	
+
 	/**
 	 * @see DataStoreStrategy#CENTRAL
 	 * @see #create(DataStoreStrategy)
@@ -21,10 +21,10 @@ public class DataStoreClientFactory {
 	public static DataStoreClient local() {
 		return create(DataStoreStrategy.LOCAL);
 	}
-	
+
 	/**
-	 * Create {@link FileResolver} using the supplied strategy. 
-	 * 
+	 * Create {@link FileResolver} using the supplied strategy.
+	 *
 	 * @param strategy The {@link DataStoreStrategy} to use
 	 * @return a {@link FileResolver} instance
 	 */

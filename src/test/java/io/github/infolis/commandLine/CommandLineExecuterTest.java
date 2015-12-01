@@ -30,7 +30,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
     private Path mktempdir() throws IOException {
         return Files.createTempDirectory("infolis-test-" + UUID.randomUUID());
     }
-    
+
     public CommandLineExecuterTest() {
         System.setProperty("testing", "true");
     }
@@ -68,7 +68,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
-    
+
     @Test
     public void testSearchCandidates() throws Exception {
         Path outputBaseDir = mktempdir();
@@ -125,5 +125,5 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         });
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
-    
+
 }

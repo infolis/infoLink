@@ -81,7 +81,7 @@ public class InfolisBaseTest {
 			j = i % testStrings.length;
 			String data = testStrings[j];
 			Path tempFile = Files.createTempFile("infolis-", ".pdf");
-			
+
 			// create the pdf
 			PDDocument document = new PDDocument();
 			PDPage page = new PDPage();

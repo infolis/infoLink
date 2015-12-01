@@ -30,12 +30,12 @@ public abstract class QueryService extends BaseModel {
     public QueryService(String target) {
         this.target = target;
     }
-    
+
     public QueryService(String target, double reliability) {
         this.target = target;
         this.reliability = reliability;
     }
-    
+
     public abstract List<SearchResult> executeQuery(SearchQuery solrQuery);
 
     /**

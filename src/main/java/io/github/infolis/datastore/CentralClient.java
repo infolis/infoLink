@@ -44,7 +44,7 @@ import com.google.common.collect.Multimap;
 
 /**
  * Client to access the Linked Data frontend web services.
- * 
+ *
  * @author kba
  *
  */
@@ -55,7 +55,7 @@ class CentralClient extends AbstractClient {
 	/*
 	 * <pre>
 	 * Add mappings from class name to uri fragment here, e.g.
-	 * http://infolis-frontend/api/infolisFile/124 
+	 * http://infolis-frontend/api/infolisFile/124
 	 *                             \__/
 	 *                            map this
 	 * </pre>

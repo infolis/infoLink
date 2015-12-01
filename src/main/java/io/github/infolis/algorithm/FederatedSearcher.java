@@ -24,7 +24,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     public FederatedSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-    
+
     private static final Logger log = LoggerFactory.getLogger(FederatedSearcher.class);
 
     @Override

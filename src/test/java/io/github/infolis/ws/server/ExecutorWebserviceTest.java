@@ -22,13 +22,13 @@ import org.slf4j.LoggerFactory;
 
 
 public class ExecutorWebserviceTest extends InfolisBaseTest {
-	
+
 	Logger log = LoggerFactory.getLogger(ExecutorWebserviceTest.class);
 
 	@Test
 	public void testStartFrontendExecution() throws Exception {
         Assume.assumeNotNull(System.getProperty("infolisRemoteTest"));
-		
+
 		FormDataMultiPart fdm = new FormDataMultiPart();
 		fdm.field("algorithm", TextExtractor.class.getName());
 		WebTarget target = jerseyClient
@@ -38,7 +38,7 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		Entity<FormDataMultiPart> entity = Entity.entity(fdm, fdm.getMediaType());
 		log.debug("{}", entity);
 		log.debug("{}", fdm.getField("algorithm").getValue());
-		
+
 		// Why TF does this hang???
 		Response post = target
 				.request(MediaType.APPLICATION_JSON)
@@ -56,10 +56,10 @@ public class ExecutorWebserviceTest extends InfolisBaseTest {
 		e.setAlgorithm(TextExtractor.class);
 		centralClient.post(Execution.class, e);
 		assertNotNull(e.getUri());
-		
+
 //		Execution e2 = centralClient.get(Execution.class, e.getUri());
 //		log.debug("E2: {}", e2.getInputFiles());
-		
+
 		ExecutorWebservice ws = new ExecutorWebservice();
 		Response resp = ws.startExecution(e.getUri());
 		log.error("{}", resp);

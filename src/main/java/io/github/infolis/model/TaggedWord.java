@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Class for storing words along with their POS tags
- * 
+ *
  * @author katarina.boland@gesis.org
  * @version 2014-01-27
  *
@@ -17,7 +17,7 @@ public class TaggedWord
 
 	/**
 	 * Class constructor specifying the word and its POS tag
-	 * 
+	 *
 	 * @param word
 	 *            string representation of the word
 	 * @param tag
@@ -44,7 +44,7 @@ public class TaggedWord
 	 * Overrides the equals method: two TaggedWords are equal if the string
 	 * representations of their words are equal (case-insensitive!) and they
 	 * share the same POS-tag
-	 * 
+	 *
 	 */
 	@Override
 	public boolean equals(Object w2)
@@ -66,7 +66,7 @@ public class TaggedWord
 	/**
 	 * Converts a TaggedWord to lowerCase by applying toLowerCase on the
 	 * string representation of the word and leaving the tag unaltered
-	 * 
+	 *
 	 * @return a new TaggedWord in lowerCase
 	 */
 	public TaggedWord toLowerCase()

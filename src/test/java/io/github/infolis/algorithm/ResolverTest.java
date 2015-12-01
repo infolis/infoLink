@@ -34,13 +34,13 @@ public class ResolverTest extends InfolisBaseTest {
 
     /**
      * Check whether the most suitable search results from one source
-     * is chosen. 
-     * 
-     * @throws IOException 
+     * is chosen.
+     *
+     * @throws IOException
      */
     @Test
     public void evaluateSearchResultsFromOneSource() throws IOException {
-        
+
         Entity p = new Entity();
         p.setIdentifier("xyz");
         p.setName("abc");
@@ -50,30 +50,30 @@ public class ResolverTest extends InfolisBaseTest {
         //compare against the search results
         TextualReference r = new TextualReference("the reference to the", "Studierendensurvey", "2000 is to be extracted as", "document", "pattern",p.getUri());
         dataStoreClient.post(TextualReference.class, r);
-        
+
         System.out.println("ref: " +r.getMentionsReference());
-        
+
         Execution execution = new Execution();
         execution.setAlgorithm(Resolver.class);
         //load the search results
         execution.setSearchResults(loadResults());
         List<String> references = Arrays.asList(r.getUri());
         execution.setTextualReferences(references);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();        
-        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());     
-        
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());
+
         //should be the study with the highest confidence
         //titel: Studiensituation und studentische Orientierungen 2000/01 (Studierenden-Survey)
         //which is the only study where a numerical overlap can be found
         Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
-		assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");    
+		assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");
     }
-    
+
     /**
      * Tests the combination of several query service results.
      * In this case, especially the reliability of the source is important.
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void evaluateSearchResultCombination() throws IOException {
@@ -87,53 +87,53 @@ public class ResolverTest extends InfolisBaseTest {
         List<String> combinedResults = new ArrayList<>();
         combinedResults.addAll(loadResults());
         combinedResults.addAll(loadOtherResults());
-        
+
         Execution execution = new Execution();
         execution.setAlgorithm(Resolver.class);
         execution.setSearchResults(combinedResults);
-        
+
         List<String> references = Arrays.asList(r.getUri());
         execution.setTextualReferences(references);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();        
-        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());     
-        
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());
+
         Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
-        assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");    
-        
+        assertEquals(toEntity.getIdentifier(), "10.4232/1.4208");
+
     }
-    
+
     /**
      * Load results from an HTML query service.
-     * 
-     * @return 
+     *
+     * @return
      */
     public List<String> loadOtherResults() {
-        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);              
+        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);
         dataStoreClient.post(QueryService.class, qs);
         List<String> qsList = new ArrayList<>();
         qsList.add(qs.getUri());
-        
+
         SearchQuery sq = new SearchQuery();
         sq.setQuery("?q=title:Studierendensurvey");
         dataStoreClient.post(SearchQuery.class, sq);
-        
+
         Execution execution = new Execution();
         execution.setAlgorithm(FederatedSearcher.class);
         execution.setSearchQuery(sq.getUri());
         execution.setQueryServices(qsList);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        
-        return execution.getSearchResults();        
+
+        return execution.getSearchResults();
     }
-    
+
     /**
      * Load results from a SOLR service. Since the service is only
      * available on the server, use a downloaded query response to
      * simulate the search.
-     * 
+     *
      * @return
      * @throws FileNotFoundException
-     * @throws IOException 
+     * @throws IOException
      */
     public List<String> loadResults() throws FileNotFoundException, IOException {
         InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrTitleResponse.json").getFile()));
@@ -157,7 +157,7 @@ public class ResolverTest extends InfolisBaseTest {
                 r.setTitles(allTitles);
                 r.setDate(Long.toString(System.currentTimeMillis()));
                 List<String> allTags = Arrays.asList("http://www.da-ra.de/solr/dara/");
-                QueryService solr = new SolrQueryService("http://www.da-ra.de/solr/dara/", 1.0);             
+                QueryService solr = new SolrQueryService("http://www.da-ra.de/solr/dara/", 1.0);
                 dataStoreClient.post(QueryService.class, solr);
                 r.setQueryService(solr.getUri());
                 r.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(title1));
@@ -167,11 +167,11 @@ public class ResolverTest extends InfolisBaseTest {
         }
             finally {
             reader.close();
-            is.close();        
+            is.close();
         }
         return searchResults;
     }
-    
+
     @Test
     public void reproduceError() {
         //http://infolis.gesis.org/infolink/api/execution/297d0e30-8fcc-11e5-87d1-9febea864153
@@ -183,7 +183,7 @@ public class ResolverTest extends InfolisBaseTest {
         dataStoreClient.post(TextualReference.class, r);
         //get the search results from both query services
         List<String> combinedResults = new ArrayList<>();
-        
+
         SearchResult r1 = new SearchResult();
         r1.setIdentifier("10.6102/zis58");
         r1.setListIndex(0);
@@ -191,7 +191,7 @@ public class ResolverTest extends InfolisBaseTest {
         r1.setTitles(allTitles);
         //r1.setNumericInformation(NumericInformationExtractor.extractNumbersFromString("Anomie (ALLBUS)"));
         dataStoreClient.post(SearchResult.class, r1);
-        
+
         SearchResult r2 = new SearchResult();
         r2.setIdentifier("10.6102/zis13");
         r2.setListIndex(1);
@@ -199,22 +199,22 @@ public class ResolverTest extends InfolisBaseTest {
         r2.setTitles(allTitles2);
         //r2.setNumericInformation(NumericInformationExtractor.extractNumbersFromString("Arbeitsorientierung (ALLBUS)"));
         dataStoreClient.post(SearchResult.class, r2);
-        
+
         combinedResults.add(r1.getUri());
         combinedResults.add(r2.getUri());
-        
+
         Execution execution = new Execution();
         execution.setAlgorithm(Resolver.class);
         execution.setSearchResults(combinedResults);
-        
+
         List<String> references = Arrays.asList(r.getUri());
         execution.setTextualReferences(references);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();        
-        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());     
-        
+        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        List<EntityLink> ents = dataStoreClient.get(EntityLink.class, execution.getLinks());
+
         Entity toEntity = dataStoreClient.get(Entity.class, ents.get(0).getToEntity());
     }
-    
+
     @Test
     public void testNPE() {
     	SearchResult resultWithoutYear = new SearchResult();
@@ -223,24 +223,24 @@ public class ResolverTest extends InfolisBaseTest {
     	resultWithoutYear.setListIndex(0);
     	resultWithoutYear.setIdentifier("id");
     	resultWithoutYear.setNumericInformation(new ArrayList<String>());
-    	
+
     	SearchResult res2 = new SearchResult();
     	res2.setNumericInformation(new ArrayList<String>());
     	res2.addTitle("ALLBUS CAPI");
     	res2.setUri("uri2");
     	res2.setListIndex(1);
     	res2.setIdentifier("id2");
-    	
+
     	dataStoreClient.post(SearchResult.class, resultWithoutYear);
     	dataStoreClient.post(SearchResult.class, res2);
-    	
+
     	Entity entity = new Entity();
     	dataStoreClient.post(Entity.class, entity);
-    	
+
     	//TextualReference r = new TextualReference("this is a reference to", "ALLBUS", "of some unspecified year. Match?", "document", "pattern", "entity.getUri()");
     	TextualReference r = new TextualReference("this is a reference to", "ALLBUS", "2000 some unspecified year. Match?", "document", "pattern", entity.getUri());
     	dataStoreClient.post(TextualReference.class, r);
-    	
+
     	Execution execution = new Execution();
         execution.setAlgorithm(Resolver.class);
         execution.setTextualReferences(Arrays.asList(r.getUri()));
@@ -248,5 +248,5 @@ public class ResolverTest extends InfolisBaseTest {
         execution.setSearchResults(Arrays.asList(resultWithoutYear.getUri()));
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
     }
-    
-}   
+
+}

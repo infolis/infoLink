@@ -59,7 +59,7 @@ import io.github.infolis.util.SerializationUtils;
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
  * JSON file.
- * 
+ *
  */
 public class CommandLineExecuter {
 
@@ -92,16 +92,16 @@ public class CommandLineExecuter {
 
     @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
     private boolean shouldConvertToText = false;
-    
+
     @Option(name = "--search-candidates", usage = "look for files that match a set of queries", depends = {"--queries-file", "--tag"})
     private boolean searchCandidatesMode = false;
-    
+
     @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE", depends = {"--search-candidates"})
     private String queriesFile;
-    
+
     @Option(name = "--search-query", usage = "search query for the query service", metaVar = "SEARCHQUERY")
     private String searchQuery;
-    
+
     // This is set so we can accept --convert-to-text without JSON and not try to execute anything
     private boolean convertToTextMode = false;
 
@@ -145,7 +145,7 @@ public class CommandLineExecuter {
                         exec.setMetaDataExtractingStrategy(mde);
                         break;
                     }
-                    
+
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
@@ -155,7 +155,7 @@ public class CommandLineExecuter {
                         JsonArray array = (JsonArray) values.getValue();
                         for (int i = 0; i < array.size(); i++) {
                             JsonString stringEntry = array.getJsonString(i);
-                            
+
                             String queryServiceName = stringEntry.getString();
                             queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
                             if (!queryServiceName.startsWith("io.github.infolis.resolve")) {
@@ -169,7 +169,7 @@ public class CommandLineExecuter {
                             } catch (ClassNotFoundException | ClassCastException e1) {
                                 throwCLI("No such queryService: " + queryServiceName);
                             }
-                            
+
                         }
                         break;
                     }
@@ -193,15 +193,15 @@ public class CommandLineExecuter {
             throwCLI("No such field", e);
         }
     }
-    
+
     List<String> getQueryTermsFromFile(String filename) throws IOException {
     	return FileUtils.readLines(new File(filename), "UTF-8");
     }
-    
+
     /**
      * Executes the 'candidate search' mode which fires a SearchTermPosition execution for every searchQuery provided./
-     * @param exec2 
-     * 
+     * @param exec2
+     *
      * @param exec
      * @throws BadRequestException
      * @throws IOException
@@ -240,7 +240,7 @@ public class CommandLineExecuter {
 
     /**
      * Run the execution
-     * 
+     *
      * @param exec
      * @throws BadRequestException
      * @throws IOException
@@ -291,7 +291,7 @@ public class CommandLineExecuter {
 
     /**
      * Sets the input files for an execution and converts depending on command line arguments.
-     * 
+     *
      * @param exec
      * @throws IOException
      */
@@ -341,7 +341,7 @@ public class CommandLineExecuter {
     /**
      * checks whether all the variables in the Json file are indeed variables
      * which can be set in the execution.
-     * 
+     *
      * @param o
      * @return
      */
@@ -365,7 +365,7 @@ public class CommandLineExecuter {
 
     /**
      * Converts a list of InfolisFile to text
-     * 
+     *
      * @param uris URIs of the InfolisFiles
      * @return URIs of the InfolisFiles of the text versions
      */
@@ -408,7 +408,7 @@ public class CommandLineExecuter {
 
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
-    
+
     public String postQuery(String query) {
         SearchQuery sq = new SearchQuery();
         sq.setQuery(query);
@@ -458,7 +458,7 @@ public class CommandLineExecuter {
 
         Execution exec = new Execution();
         exec.setTags(new HashSet<String>(Arrays.asList(tag)));
-        
+
         // if no JSON was provided, only convert files and exit
         if (null != json) {
             try (Reader reader = Files.newBufferedReader(json, Charset.forName("UTF-8"))) {

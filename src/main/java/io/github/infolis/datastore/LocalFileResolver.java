@@ -13,7 +13,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * {@link FileResolver} using the <code>fileName</code> of an
  * {@link InfolisFile}.
- * 
+ *
  * @author kba
  */
 class LocalFileResolver implements FileResolver {

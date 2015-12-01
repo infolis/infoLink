@@ -73,7 +73,7 @@ public class RegexSearcherTest extends InfolisBaseTest {
 		execution.setAlgorithm(RegexSearcher.class);
 		execution.getInputFiles().addAll(pdfUris);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
-		algo.run();             
+		algo.run();
 		// find the contexts of "FOOBAR" and "term" (see also
 		// FrequencyBasedBootstrappingTest)
 		log.debug("LOG: {}", execution.getLog());

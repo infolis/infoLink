@@ -54,7 +54,7 @@ public class TextExtractorTest extends InfolisBaseTest {
 		assertTrue(StringUtils.join(execution.getLog()).contains("not a PDF"));
 	}
 
-	
+
 
 	@Test
 	public void testLocalFile() throws IOException {

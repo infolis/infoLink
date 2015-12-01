@@ -9,7 +9,7 @@ import java.io.OutputStream;
 /**
  * Implementations of this interface are able to resolve a textual ID or an
  * {@link InfolisFile} to {@link InputStream} / {@link OutputStream}
- * 
+ *
  * @author kba
  *
  */
@@ -26,7 +26,7 @@ public interface OutputFileResolver extends FileResolver {
 
 	/**
 	 * Return the file contents for an Id as an {@link OutputStream}
-	 * 
+	 *
 	 * @param fileId
 	 *            the id of the file
 	 * @return the file contents as an {@link OutputStream}

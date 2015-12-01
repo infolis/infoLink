@@ -19,12 +19,12 @@ import org.slf4j.LoggerFactory;
 /**
  * FileResolver encapsulating file storage in a central directory with files
  * named with the MD5 sum of the {@link InfolisFile}
- * 
+ *
  * @author kba
  *
  */
 class CentralFileResolver implements FileResolver {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(CentralFileResolver.class);
 
 	private static Logger logger = LoggerFactory.getLogger(CentralFileResolver.class);
@@ -38,7 +38,7 @@ class CentralFileResolver implements FileResolver {
 	/**
 	 * Resolve a filename to a {@link java.nio.file.Path} relative to the base
 	 * directory defined by the {@link InfolisConfig}
-	 * 
+	 *
 	 * @param fileId
 	 *            the id to resolve
 	 * @return the absolute path to the file

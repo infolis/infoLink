@@ -4,12 +4,12 @@ import io.github.infolis.model.entity.InfolisFile;
 
 /**
  * Predefined strategies for resolving {@link InfolisFile} and instantiating {@link DataStoreClient}.
- * 
+ *
  * @author kba
  *
  */
 public enum DataStoreStrategy {
-	
+
 	/**
 	 *  @see CentralFileResolver
 	 */

@@ -31,7 +31,7 @@ public class CitationMinerTest extends InfolisBaseTest {
 
             Process p = pb.start();
             InputStream is = p.getInputStream();
-            
+
             JsonReader reader = Json.createReader(is);
             JsonArray o = reader.readArray();
             for(JsonObject single : o.getValuesAs(JsonObject.class)) {

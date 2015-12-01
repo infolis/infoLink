@@ -33,18 +33,18 @@ import io.github.infolis.util.EvaluationUtils;
 import io.github.infolis.util.SerializationUtils;
 
 /**
- * 
+ *
  * @author kata
  *
  */
 public class BibliographyExtractorTest extends InfolisBaseTest {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(BibliographyExtractorTest.class);
 	Path inputDir;
 	Path goldDir;
 	List<String> inputFiles;
 	List<String> goldFiles;
-	
+
 	public BibliographyExtractorTest() throws URISyntaxException, IOException {
 		inputDir = getResourcePath("/bibExtractor/test/");
 		goldDir = getResourcePath("/bibExtractor/gold/");
@@ -52,13 +52,13 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		goldFiles = postFiles(goldDir, "text/plain");
 		fileResolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
 	}
-	
+
 	private Path getResourcePath(String resName) throws URISyntaxException {
     	URL resource = CommandLineExecuterTest.class.getResource(resName);
     	log.debug("{}", resource);
         return Paths.get(resource.toURI());
     }
-	
+
 	public List<String> postFiles(Path dir, String mimetype) throws IOException {
         List<InfolisFile> infolisFiles = new ArrayList<>();
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir);
@@ -74,7 +74,7 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
         }
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }
-	
+
 	@Test
 	public void testBibExtractor() throws URISyntaxException, IOException {
 		Execution exec = new Execution();
@@ -85,10 +85,10 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		assertEquals(exec.getInputFiles().size(), exec.getOutputFiles().size());
 		// todo: check if files are written properly
 	}
-	
+
 	private Map<String, String> getGoldTexts() throws IOException {
 		Map<String, String> txtBibless = new HashMap<>();
-		for (String uri : goldFiles) { 
+		for (String uri : goldFiles) {
 			InfolisFile infolisFile = dataStoreClient.get(InfolisFile.class, uri);
 			File file = new File(infolisFile.getFileName());
 			String text = FileUtils.readFileToString(file, "utf-8");
@@ -96,16 +96,16 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		}
 		return txtBibless;
 	}
-	
+
 	private String mapFilename(InfolisFile file) {
 		Path p = Paths.get(file.getFileName());
 		return p.getFileName().toString();
 	}
-	
+
 	private Map<String, String> getExtractedTexts() throws IOException {
 		BibliographyExtractor bibExtractor = new BibliographyExtractor(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		Map<String, String> txtBibless = new HashMap<>();
-		for (String uri : inputFiles) { 
+		for (String uri : inputFiles) {
 			InfolisFile infolisFile = dataStoreClient.get(InfolisFile.class, uri);
 			File file = new File(infolisFile.getFileName());
 			String text = FileUtils.readFileToString(file, "utf-8");
@@ -114,7 +114,7 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		}
 		return txtBibless;
 	}
-	
+
 	@Test
 	public void testRemoveBibliography() throws IOException {
 		Map<String, String> output = getExtractedTexts();

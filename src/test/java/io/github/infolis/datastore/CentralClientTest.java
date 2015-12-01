@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class CentralClientTest {
-	
+
 	Logger log = LoggerFactory.getLogger(CentralClientTest.class);
 
 	@Test
@@ -31,5 +31,5 @@ public class CentralClientTest {
 		serverFile = client.get(InfolisFile.class, inFile.getUri());
 		assertThat(serverFile.getFileName(), equalTo(inFile.getFileName()));
 	}
-	
+
 }

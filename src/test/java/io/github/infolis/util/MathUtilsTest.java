@@ -9,15 +9,15 @@ import org.slf4j.LoggerFactory;
 import io.github.infolis.InfolisBaseTest;
 
 public class MathUtilsTest extends InfolisBaseTest {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(MathUtilsTest.class);
 	// see http://www.ijfcc.org/papers/43-T00053.pdf for example values
 	// apparently, they forgot to apply the log though...
 	private static final double dataSize = 10000000.0;
 	private static final double p_x = 24200 / dataSize; // occurrence of term x in all contexts
-	private static final double p_y = 38900 / dataSize; // occurrence of pattern (or term) y 
+	private static final double p_y = 38900 / dataSize; // occurrence of pattern (or term) y
 	private static final double p_xy = 169 / dataSize; // joint occurrence of x and y
-	
+
 	@Test
 	public void testPmi() {
 		log.debug("p_x: " + p_x);

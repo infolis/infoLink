@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Class for saving contexts (= surrounding words of a term).
- * 
+ *
  * @author kata
  * @author kba
  *
@@ -44,13 +44,12 @@ public class TextualReference extends BaseModel {
 	private String			textFile;
 	@XmlTransient
 	private String			pattern;
-        @XmlTransient
 	private String			mentionsReference;
-        
+
 
     public TextualReference() {
     }
-    
+
     public TextualReference(String term) {
         this.leftText = "";
         this.rightText = "";
@@ -68,14 +67,15 @@ public class TextualReference extends BaseModel {
         this.textFile = textFile;
         this.pattern = pattern;
         this.mentionsReference = mentionsReference;
-    }    
-        
+    }
+
 	public String toXML() {
 		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getReference()) + "\" textFile=\""
 				+ this.getFile() + "\">" + System.getProperty("line.separator") + "\t\t"
 				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
 				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
 				+ this.getRightText() + "</rightContext>" + System.getProperty("line.separator")
+                                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" + System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
 

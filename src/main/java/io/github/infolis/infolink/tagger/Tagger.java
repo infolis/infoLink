@@ -15,7 +15,7 @@ import java.util.HashMap;
  * Part-of-speech tagger using the TreeTagger
  * (http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/) command line
  * interface.
- * 
+ *
  * @author katarina.boland@gesis.org
  *
  */
@@ -29,7 +29,7 @@ public class Tagger
 	 * Class constructor specifying the command for invoking the tagger via
 	 * command line interface, the command for invoking the phrase chunker via
 	 * command line interface and the character encoding.
-	 * 
+	 *
 	 * @param tagCommand
 	 *            the command for invoking the tagger via command line interface
 	 * @param chunkCommand
@@ -48,7 +48,7 @@ public class Tagger
 	/**
 	 * Generates a map of Chunks from a TreeTagger output string. Keys: phrase
 	 * tags. Values: phrase chunks
-	 * 
+	 *
 	 * @param file
 	 *            TreeTagger output string containing information on phrase
 	 *            chunks
@@ -70,7 +70,7 @@ public class Tagger
 			try
 			{
 				// found phraseEndTag - chunk completed
-				if (wordInfo.startsWith("</") & wordInfo.endsWith(">"))
+				if (wordInfo.startsWith("</") && wordInfo.endsWith(">"))
 				{
 					if (phrases.containsKey(curTag)) {
 						curChunks = phrases.get(curTag);
@@ -83,7 +83,7 @@ public class Tagger
 					curTag = "";
 					curWords = new ArrayList<TaggedWord>();
 				}
-				else if (wordInfo.startsWith("<") & wordInfo.endsWith(">")) {
+				else if (wordInfo.startsWith("<") && wordInfo.endsWith(">")) {
 					curTag = wordInfo;
 				}
 				else
@@ -106,13 +106,13 @@ public class Tagger
 
 	/**
 	 * Applies the TreeTagger to tag a sentence (POS-tags).
-	 * 
+	 *
 	 * The TreeTagger is called via its command line interface using the
 	 * commands provided at initiation of this Tagger instance. Temporary files
 	 * are used to store the input and output of the tagger. To generate the
 	 * list of TaggedWords from the temporary output file, the getTaggedSentence
 	 * method is called.
-	 * 
+	 *
 	 * @param sentence
 	 *            the sentence to be tagged
 	 * @return the tagged sentence as a list of TaggedWords
@@ -143,7 +143,7 @@ public class Tagger
 	/**
 	 * Extracts a list of TaggedWords from an output string created by the
 	 * TreeTagger
-	 * 
+	 *
 	 * @param content
 	 *            the TreeTagger output string containing words and their
 	 *            POS-tags
@@ -174,13 +174,13 @@ public class Tagger
 
 	/**
 	 * Applies the TreeTagger to chunk a string into phrases.
-	 * 
+	 *
 	 * The TreeTagger is called via its command line interface using the
 	 * commands provided at initiation of this Tagger instance. Temporary files
 	 * are used to store the input and output of the tagger. To generate the map
 	 * of phrase chunks from the temporary output file, the getPhrases method is
 	 * called.
-	 * 
+	 *
 	 * @param string
 	 *            the string to be chunked into phrases
 	 * @return a map of chunks having the phrase tags as keys and a list of
@@ -212,7 +212,7 @@ public class Tagger
 
 	/**
 	 * Prints chunks and POS tags of input text
-	 * 
+	 *
 	 * @param args
 	 *            args[0]: tagCommand; args[1]: chunkCommand; args[2]: encoding;
 	 *            args[3]: tempFileIn; args[4]: tempFileOut; args[5]: inputText

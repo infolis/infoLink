@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * Class for representing phrase chunks
- * 
+ *
  * @author katarina.boland@gesis.org
  * @version 2014-01-27
  *
@@ -18,7 +18,7 @@ public class Chunk
 	/**
 	 * Class constructor specifying the startTag and endTag symbols and a
 	 * list of words constituting this phrase chunk
-	 * 
+	 *
 	 * @param startTag
 	 *            symbol representing the startTag
 	 * @param endTag
@@ -51,7 +51,7 @@ public class Chunk
 	/**
 	 * Returns the string representation of the TaggedWords contained in
 	 * this phrase chunk
-	 * 
+	 *
 	 * @return the string representation of the TaggedWords contained in
 	 *         this phrase chunk
 	 */

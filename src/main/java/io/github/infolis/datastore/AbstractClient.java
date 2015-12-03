@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractClient implements DataStoreClient{
-	
+
 	@SuppressWarnings("unused")
 	private static final Logger log = LoggerFactory.getLogger(AbstractClient.class);
 
@@ -30,7 +30,7 @@ public abstract class AbstractClient implements DataStoreClient{
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public <T extends BaseModel> List<String> post(Class<T> clazz, Iterable<T> thingList) throws BadRequestException {
 		ArrayList<String> ret = new ArrayList<>();

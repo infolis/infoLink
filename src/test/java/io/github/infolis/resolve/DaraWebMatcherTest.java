@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DaraWebMatcherTest extends InfolisBaseTest {
-	
+
 	Logger log = LoggerFactory.getLogger(DaraWebMatcherTest.class);
 	String datasetName = "Studierendensurvey";
 	// use cache for test - database in da|ra may change
@@ -20,7 +20,7 @@ public class DaraWebMatcherTest extends InfolisBaseTest {
 	String urlListFile = null;
 	String searchInterface = "http://www.da-ra.de/dara/study/web_search_show";
 	Map<String, String> expectedOutput = new HashMap<>();
-	
+
 	public DaraWebMatcherTest() {
 		expectedOutput.put("10.4232/1.4263", "Studiensituation und studentische Orientierungen 2006/07 (Studierenden-Survey)");
 		expectedOutput.put("10.4232/1.4344", "Studiensituation und studentische Orientierungen 2003/04 (Studierenden-Survey)");
@@ -35,7 +35,7 @@ public class DaraWebMatcherTest extends InfolisBaseTest {
 		expectedOutput.put("10.4232/1.4208", "Studiensituation und studentische Orientierungen 2000/01 (Studierenden-Survey)");
 		expectedOutput.put("10.4232/1.3511", "Studiensituation und studentische Orientierungen 1997/98 (Studierenden-Survey)");
 	}
-	
+
 	@Test
 	public void testMatch() {
 		DaraWebMatcher matcher = new DaraWebMatcher(searchInterface, this.queryCachePath, this.urlListFile);

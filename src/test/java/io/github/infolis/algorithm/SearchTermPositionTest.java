@@ -32,7 +32,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
     String testString6 = "Hallo, please try to find .the term. in this short text snippet. Thank you.";
     List<String> uris = new ArrayList<>();
     Execution indexerExecution;
-    
+
     public SearchTermPositionTest() throws Exception {
         String[] testStrings = {
             "Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -46,12 +46,12 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         for (InfolisFile file : createTestTextFiles(100, testStrings)) {
             uris.add(file.getUri());
         }
-        indexerExecution = createIndex();
+        //indexerExecution = createIndex();
     }
 
     @Test
     public void getContextTest() throws IOException {
-
+    	indexerExecution = createIndex();
         List<TextualReference> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1);
         List<TextualReference> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2);
         List<TextualReference> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
@@ -72,7 +72,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
     @Test
     public void complexSearch_getContextTest() throws Exception {
-
+    	indexerExecution = createIndex();
 		// terms shall be found even if enclosed by characters removed by the analyzer, e.g. punctuation
         // e.g., when "ALLBUS." is found as term, all occurrences of "ALLBUS." or "ALLBUS" or "ALLBUS," etc. are to be found
         assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
@@ -94,7 +94,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         // ("_" should not be indexed by analyzer, thus there should be no word to match the wildcard)
         assertEquals(100 - 14, testContexts("", "\"to find the * in\"").size());
     }
-    
+
     private Execution createIndex() throws IOException {
 		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
@@ -112,7 +112,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
         exec.setInputFiles(uris);
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        
+
 
         ArrayList<TextualReference> contextList = new ArrayList<TextualReference>();
         for (String uri : exec.getTextualReferences()) {

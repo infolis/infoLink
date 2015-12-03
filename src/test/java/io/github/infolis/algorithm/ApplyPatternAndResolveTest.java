@@ -26,7 +26,7 @@ import io.github.infolis.util.SerializationUtils;
 
 /**
  * Tests for the ApplyPatternAndResolve algorithm.
- * 
+ *
  * @author kata
  * @author domi
  */
@@ -43,7 +43,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
     public void applyPatternAndResolveRefs() throws IOException {
 
         File txtDir = new File(getClass().getResource("/examples/minimal-txt").getFile());
-        
+
         InfolisPattern infolisPattern = new InfolisPattern();
         infolisPattern.setPatternRegex(".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
         infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
@@ -75,7 +75,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         for (EntityLink el : createdLinks) {
             //TODO any nice tests?
 //            if (el.getToEntity().getName().equals("Flash Eurobarometer 35")) {
-//                
+//
 //            }
         }
     }

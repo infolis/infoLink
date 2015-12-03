@@ -13,7 +13,7 @@ import io.github.infolis.resolve.FilterDaraJsonResults;
 public class FilterDaraJsonResultsTest {
 
 	private static final String[] candidates = {
-			"Studierendensurvey 2000/01", 
+			"Studierendensurvey 2000/01",
 			"Studierendensurvey 2001",
 			"German Social Survey (ALLBUS) Cumulative File, 1980, 1982, 1984, 1986",
 			"German Social Survey (ALLBUS) Cumulative File, 1980-1992",
@@ -32,9 +32,9 @@ public class FilterDaraJsonResultsTest {
 		};
 
 	private static final String[] refNumbers = {
-			"1996/08", 
-			"1982", 
-			"1982   -   1983", 
+			"1996/08",
+			"1982",
+			"1982   -   1983",
 			"85/82",
 			"54.1",
 			"2000, 2002",
@@ -42,7 +42,7 @@ public class FilterDaraJsonResultsTest {
 			"2, 3"
 	};
 
-	
+
 	@Test
 	public void inRangeTest() {
 		List<String> range1 = Arrays.asList(new String[]{"2000", "2010"});
@@ -57,11 +57,11 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.inRange(range1, value4));
 		assertTrue(FilterDaraJsonResults.inRange(range1, value5));
 	}
-	
+
 	@Test
 	public void OverlapTest() {
 		List<String> range1 = Arrays.asList(new String[]{"2000", "2010"});
-		
+
 		List<String> range2 = Arrays.asList(new String[]{"2000", "2010"});
 		List<String> range3 = Arrays.asList(new String[]{"1900", "2010"});
 		List<String> range3b = Arrays.asList(new String[]{"1900", "2009"});
@@ -71,7 +71,7 @@ public class FilterDaraJsonResultsTest {
 		List<String> range6 = Arrays.asList(new String[]{"2005", "2006"});
 		List<String> range7 = Arrays.asList(new String[]{"1900", "1990"});
 		List<String> range8 = Arrays.asList(new String[]{"2011", "2020"});
-		
+
 		assertTrue(FilterDaraJsonResults.overlap(range1, range2));
 		assertTrue(FilterDaraJsonResults.overlap(range1, range3));
 		assertTrue(FilterDaraJsonResults.overlap(range1, range3b));
@@ -82,7 +82,7 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.overlap(range1, range7));
 		assertFalse(FilterDaraJsonResults.overlap(range1, range8));
 	}
-	
+
 	@Test
 	public void filterTest() {
 		//"1996/08"
@@ -97,11 +97,11 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[8]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[9]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[10]));
-		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[11])); 
+		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[11]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[13]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[0], candidates[14]));
-		
+
 		//"1982"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[1], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[1], candidates[1]));
@@ -118,7 +118,7 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[1], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[1], candidates[13]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[1], candidates[14]));
-		
+
 		//"1982   -   1983"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[2], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[2], candidates[1]));
@@ -135,7 +135,7 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[2], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[2], candidates[13]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[2], candidates[14]));
-		
+
 		//"85/82"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[3], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[3], candidates[1]));
@@ -152,7 +152,7 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[3], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[3], candidates[13]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[3], candidates[14]));
-		
+
 		//"54.1"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[4], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[4], candidates[1]));
@@ -169,7 +169,7 @@ public class FilterDaraJsonResultsTest {
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[4], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[4], candidates[13]));
 		assertTrue(FilterDaraJsonResults.numericInfoMatches(refNumbers[4], candidates[14]));
-		
+
 		//"2000, 2002"
 		assertTrue(FilterDaraJsonResults.numericInfoMatches(refNumbers[5], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[5], candidates[1]));
@@ -186,7 +186,7 @@ public class FilterDaraJsonResultsTest {
 		assertTrue(FilterDaraJsonResults.numericInfoMatches(refNumbers[5], candidates[12]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[5], candidates[13]));
 		assertTrue(FilterDaraJsonResults.numericInfoMatches(refNumbers[5], candidates[14]));
-		
+
 		//"2-4"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[6], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[6], candidates[1]));
@@ -207,10 +207,10 @@ public class FilterDaraJsonResultsTest {
 		// same: "Ausländer in Deutschland 2000 - 2. Welle
 		//assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[6], candidates[12]));
 		assertTrue(FilterDaraJsonResults.numericInfoMatches(refNumbers[6], candidates[13]));
-		// TODO: @domi : this has to pass 
+		// TODO: @domi : this has to pass
 		// else, matches 2-4 with "Eurobarometer 54.1 (2000)"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[6], candidates[14]));
-		
+
 		//"2, 3"
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[7], candidates[0]));
 		assertFalse(FilterDaraJsonResults.numericInfoMatches(refNumbers[7], candidates[1]));

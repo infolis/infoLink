@@ -65,7 +65,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         dataStoreClient.post(Execution.class, e);
         ExecutionScheduler exe = ExecutionScheduler.getInstance();
         exe.execute(e.instantiateAlgorithm(dataStoreClient, fileResolver));
-        
+
         InfolisFile inFile = new InfolisFile();
         Execution execution = new Execution();
         inFile.setFileName(tempFile.toString());
@@ -79,16 +79,16 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         dataStoreClient.post(Execution.class, execution);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
         exe.execute(algo);
-        
+
         if(exe.getStatus(e)!=FINISHED && exe.getStatus(e)!=FAILED ) {
             System.out.println(e.getAlgorithm().toString() +" not finished.");
         }
         if(exe.getStatus(execution)!=FINISHED && exe.getStatus(e)!=FAILED) {
             System.out.println(execution.getAlgorithm().toString() +" not finished.");
         }
-        
+
         exe.shutDown();
-        
+
         Assert.assertEquals(0, exe.getByStatus(STARTED).size());
         Assert.assertEquals(0, exe.getByStatus(PENDING).size());
         Assert.assertEquals(2, exe.getByStatus(FINISHED).size());
@@ -136,7 +136,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         read.close();
         return postedPattern;
     }
-    
+
     private void writeFile(InfolisFile inFile) {
         dataStoreClient.post(InfolisFile.class, inFile);
         try {

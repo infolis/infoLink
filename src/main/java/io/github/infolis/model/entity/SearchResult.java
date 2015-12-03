@@ -4,6 +4,7 @@ package io.github.infolis.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.util.NumericInformationExtractor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchResult extends BaseModel {
-    
+
     private int listIndex;
     private double relevanceScore;
     private List<String> titles = new ArrayList<>();
@@ -72,7 +73,7 @@ public class SearchResult extends BaseModel {
     public void addTitle(String title) {
         this.titles.add(title);
     }
-    
+
     /**
      * @param numericInfo the titles to set
      */

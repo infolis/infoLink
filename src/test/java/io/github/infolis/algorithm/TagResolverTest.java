@@ -12,7 +12,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisPattern;
 
 /**
- * 
+ *
  * @author kata
  *
  */

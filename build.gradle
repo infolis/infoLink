@@ -67,7 +67,7 @@ jar {
                    'Main-Class': 'io.github.infolis.commandLine.CommandLineExecuter'
     }
     doFirst {
-        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } 
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     }
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
 }

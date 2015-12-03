@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,9 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
+ *
  * @author kata
- * 
+ *
  */
 public class BibliographyExtractor extends BaseAlgorithm {
 
@@ -37,8 +36,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(BibliographyExtractor.class);
-    BreakIterator sentenceIterator = BreakIterator.getSentenceInstance(Locale.ROOT);   
-    
+
     /**
      * Compute the ratio of numbers on page: a high number of numbers is assumed
      * to be typical for bibliographies as they contain many years, page numbers
@@ -70,7 +68,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
                     break;
                 }
             }
-            
+
             // use hasBibNumberRatio_d method from python scripts
             // TODO learn thresholds
             if (containsCueWord && ((numNumbers / numChars) >= 0.005) && ((numNumbers / numChars) <= 0.1)
@@ -95,7 +93,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
         }
         return textWithoutBib;
     }
-    
+
     protected List<String> tokenizeSections(String text, int sentencesPerSection) {
     	List<String> sections = new ArrayList<String>();
     	int n = 0;
@@ -105,7 +103,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
     	for (int i = 0; i < lines.length; i++) {
     		n++;
     		section += lines[i] + System.getProperty("line.separator");
-    		if (n >= sentencesPerSection) { 
+    		if (n >= sentencesPerSection) {
         		sections.add(section);
         		section = "";
         		n = 0;
@@ -114,32 +112,31 @@ public class BibliographyExtractor extends BaseAlgorithm {
         if (n < sentencesPerSection) sections.add(section);
         return sections;
     }
-    
+
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
     	Execution exec = this.getExecution();
-		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && 
+		if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
              throw new IllegalArgumentException("Must set at least one inputFile!");
-    	}       
+    	}
     }
-    
+
     public String transformFilename(String filename) {
     	return filename.replace(".txt", "_bibless.txt");
     }
-    
-    
+
+
     @Override
-    public void execute() { 
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    public void execute() {
+    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
-    	
+
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-    	
+
     	int counter = 0;
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		counter++;
@@ -165,7 +162,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
                 persistExecution();
                 return;
             }
-            
+
             debug(log, "Start removing bib from %s", inputFile);
             String text;
 			try ( InputStream is =  getInputFileResolver().openInputStream(inputFile)) {
@@ -185,7 +182,8 @@ public class BibliographyExtractor extends BaseAlgorithm {
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");
-            
+            outFile.setTags(getExecution().getTags());
+
             try {
             	OutputStream outStream = getOutputFileResolver().openOutputStream(outFile);
             	IOUtils.write(text, outStream);
@@ -195,9 +193,9 @@ public class BibliographyExtractor extends BaseAlgorithm {
             	persistExecution();
             	return;
             }
-            
+
             updateProgress(counter, getExecution().getInputFiles().size());
-            
+
             debug(log, "Removed bibliography from file %s", outFile);
             getOutputDataStoreClient().post(InfolisFile.class, outFile);
             getExecution().getOutputFiles().add(outFile.getUri());
@@ -206,5 +204,5 @@ public class BibliographyExtractor extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
         persistExecution();
     }
-    
+
 }

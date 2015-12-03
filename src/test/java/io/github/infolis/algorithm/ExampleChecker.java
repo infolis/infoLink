@@ -41,7 +41,7 @@ import org.junit.Test;
 //@Ignore
 public class ExampleChecker extends InfolisBaseTest {
 
-    //@Test    
+    //@Test
     public void resolveDOI() throws IOException {
         List<String> qServices = postQueryServices();
         String sq = postDoiQuery("10.4232/1.2525");
@@ -49,7 +49,7 @@ public class ExampleChecker extends InfolisBaseTest {
 
         //TextualReference ref = new TextualReference("10.4232/1.2525", TextualReference.ReferenceType.DOI);
         //dataStoreClient.post(TextualReference.class, ref);
-        
+
         //TODO: create an entity link? to what?
         //List<String> entityLinks = resolve(searchRes, ref.getUri());
 
@@ -184,7 +184,7 @@ public class ExampleChecker extends InfolisBaseTest {
 
         return search.getTextualReferences();
     }
-    
+
     private Execution createIndex(List<String> input) throws IOException {
 		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);

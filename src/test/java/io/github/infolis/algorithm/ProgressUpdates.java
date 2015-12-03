@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Test whether the progress of an execution is corretly set (also in the datastore).
- * 
+ *
  * @author domi
  */
 public class ProgressUpdates extends InfolisBaseTest {
-    
+
     private static final Logger log = LoggerFactory.getLogger(ProgressUpdates.class);
 
     @Test
@@ -26,7 +26,7 @@ public class ProgressUpdates extends InfolisBaseTest {
 
         DumpAlgo da = new DumpAlgo(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         da.setExecution(e);
-        
+
         int done = 0;
         for (int i=0; i<4; i++) {
             try {
@@ -36,7 +36,7 @@ public class ProgressUpdates extends InfolisBaseTest {
             }
             done++;
             da.updateProgress(done, 4);
-            
+
             switch(i) {
                 case 0:
                     assertEquals(25, da.getExecution().getProgress());
@@ -45,7 +45,7 @@ public class ProgressUpdates extends InfolisBaseTest {
                 case 1:
                     assertEquals(50, da.getExecution().getProgress());
                     assertEquals(50, da.getOutputDataStoreClient().get(Execution.class, da.getExecution().getUri()).getProgress());
-                    break;    
+                    break;
                 case 2:
                     assertEquals(75, da.getExecution().getProgress());
                     assertEquals(75, da.getOutputDataStoreClient().get(Execution.class, da.getExecution().getUri()).getProgress());
@@ -53,8 +53,8 @@ public class ProgressUpdates extends InfolisBaseTest {
                 case 3:
                     assertEquals(100, da.getExecution().getProgress());
                     assertEquals(100, da.getOutputDataStoreClient().get(Execution.class, da.getExecution().getUri()).getProgress());
-                    break;    
-            }            
+                    break;
+            }
         }
     }
 

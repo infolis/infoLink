@@ -72,7 +72,7 @@ public class ExecutorWebservice {
 		Class<? extends Algorithm> algoClass = execution.getAlgorithm();
 		Algorithm algo = null;
 		if (algoClass == null) {
-			String msg = "ERROR: No such algorithm: " + algoClass;
+			String msg = "ERROR: No algorithm provided for execution";
 			execution.getLog().add(msg);
 			execution.setStatus(ExecutionStatus.FAILED);
 			resp.entity(msg);

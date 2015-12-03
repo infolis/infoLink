@@ -20,7 +20,7 @@ public class DumpAlgo extends BaseAlgorithm {
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
-        
+
     }
-    
+
 }

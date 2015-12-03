@@ -7,6 +7,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
+import sun.font.TextRecord;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +55,10 @@ public class Learner extends BaseAlgorithm {
     	super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    
+
     /**
      * Get filenames of all documents listed in given path (non-recursive).
-     * 
+     *
      * @param path root directory of documents
      */
     private List<String> getDocumentNames(File path) {
@@ -67,8 +68,8 @@ public class Learner extends BaseAlgorithm {
     		log.debug("added to corpus: " + path + File.separator + filename);
     	}
     	return corpus;
-    } 
-    
+    }
+
     private List<String> createInfolisFiles(List<String> filenames) throws IOException
     {
     	List<String> uris = new ArrayList<>();
@@ -89,16 +90,15 @@ public class Learner extends BaseAlgorithm {
    	}
     //TODO check
     private List<String> getTextDocuments(List<String> uris) {
-    	Execution execution = new Execution();
+    	Execution execution = getExecution().createSubExecution(TextExtractor.class);
     	execution.setInputFiles(uris);
-		execution.setAlgorithm(TextExtractor.class);
 		this.getInputDataStoreClient().post(Execution.class, execution);
 		Algorithm algo = execution.instantiateAlgorithm(this.getInputDataStoreClient(), this.getOutputDataStoreClient(), this.getInputFileResolver(), this.getOutputFileResolver());
 		algo.run();
 		log.debug("{}", execution.getOutputFiles());
     	return execution.getOutputFiles();
     }
-    
+
     //TODO call textExtractor first in case pdf text extraction is desired
     private List<String> getInputCorpus(File path) throws IOException {
     	//return getTextDocuments(createInfolisFiles(getDocumentNames(path)));
@@ -124,7 +124,7 @@ public class Learner extends BaseAlgorithm {
         Execution e = new Execution();
         e.setBootstrapStrategy(this.getExecution().getBootstrapStrategy());
         if (this.getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)) {
-        	e.setAlgorithm(ReliabilityBasedBootstrapping.class); 
+        	e.setAlgorithm(ReliabilityBasedBootstrapping.class);
         }
         else { e.setAlgorithm(FrequencyBasedBootstrapping.class); }
         e.setInputFiles(this.getExecution().getInputFiles());

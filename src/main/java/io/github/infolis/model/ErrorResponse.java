@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @XmlRootElement
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class ErrorResponse extends BaseModel {
-	
+
 	private String stack;
 	private String message;
 	private Map<String,Object> cause;

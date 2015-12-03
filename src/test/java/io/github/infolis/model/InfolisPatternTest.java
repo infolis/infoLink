@@ -22,11 +22,11 @@ public class InfolisPatternTest extends InfolisBaseTest {
 	private static final Logger log = LoggerFactory.getLogger(InfolisPatternTest.class);
 	private static final List<String> contextStrings = Arrays.asList(
 			"bar foo bar", "bar foo bar", "bar foo bar", "bar foo bar",
-			"foO bar foO", "foO bar foO", "foO bar foO", 
-			"fOo bAr fOo", 
+			"foO bar foO", "foO bar foO", "foO bar foO",
+			"fOo bAr fOo",
 			"bar bar bar", "bar bar bar");
 	private static InfolisPattern pat = new InfolisPattern();
-	
+
 
 	public InfolisPatternTest() throws Exception {
 		pat.setMinimal("foO\\s(.*?)\\sfoO");
@@ -39,7 +39,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		dataStoreClient.post(InfolisPattern.class, pat);
 		log.debug(pat.getUri());
 	}
-	
+
 	/*
 	 * @Test
 	public void testIsRelevant() throws Exception {
@@ -56,8 +56,8 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		int dataSize = contextStrings.size();
 		//String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference
 		List<TextualReference> contexts_pattern = Arrays.asList(
-				new TextualReference("foO", "bar", "foO", "textfile1", "pattern", "ref"), 
-				new TextualReference("foO", "bar", "foO", "textfile2", "pattern", "ref"), 
+				new TextualReference("foO", "bar", "foO", "textfile1", "pattern", "ref"),
+				new TextualReference("foO", "bar", "foO", "textfile2", "pattern", "ref"),
 				new TextualReference("foO", "bar", "foO", "textfile3", "pattern", "ref"));
 		Set<String> reliableInstanceTerms = new HashSet<>();
 		Set<Entity> reliableInstances = new HashSet<>();
@@ -80,7 +80,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		Entity bar = new Entity(seed);
 		bar.setTextualReferences(contexts);
 		reliableInstances.add(bar);
-		
+
 		double p_x = 5 / 10.0; // "bar" occurs 5 times as instance in all data
 		double p_y = 3 / 10.0; // bar_patt occurs 3 times
 		double p_xy = 3 / 10.0; // "bar" instance and bar_pat occur jointly 3 times
@@ -92,13 +92,13 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		r.addPattern(pat);
 		r.setMaxPmi(pmi_score);
 		pat.setTextualReferences(contexts_pattern);
-		
+
 		double expectedReliability = r.reliability(pat, "");
-		
+
 		pat.isReliable(dataSize, reliableInstances, r);
 		assertEquals(expectedReliability, pat.getReliability(), 0.0);
 		log.debug("Expected reliability: " + expectedReliability);
 		log.debug("Computed reliability: " + pat.getReliability());
 	}
-	
+
 }

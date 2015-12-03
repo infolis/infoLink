@@ -1,6 +1,7 @@
 package io.github.infolis.model;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.algorithm.Learner;
 import io.github.infolis.algorithm.SearchTermPosition;
@@ -99,7 +100,7 @@ public class Execution extends BaseModel {
 	//
 
 	/**
-         * The algorthim which is supposed to be executed within this
+         * The algorithm which is supposed to be executed within this
          * execution.
          * 
 	 * {@link Algorithm}
@@ -322,7 +323,7 @@ public class Execution extends BaseModel {
 
 	/**
          * When resolving the detected meta data by searching in repositories,
-         * we need to knwo what we search for. The different strategies are:         
+         * we need to know what we search for. The different strategies are:         
          * title, doi, urn, bibliography.
          * If we chose for example title, we search the meta data within the 
          * title field in a repository.
@@ -774,6 +775,13 @@ public class Execution extends BaseModel {
         if (field.getType() == Boolean.TYPE) {field.set(this, Boolean.parseBoolean(value.toString())); return;}
        // if (field.getGenericType() == );
         field.set(this, value);
+    }
+    
+    public Execution createSubExecution(Class<? extends BaseAlgorithm> algo)
+    {
+    	Execution subExec = new Execution(algo);
+    	//subExec.setLog(getLog());
+    	return subExec;
     }
 
 }

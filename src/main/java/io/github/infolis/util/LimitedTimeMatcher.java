@@ -26,7 +26,7 @@ public class LimitedTimeMatcher implements Runnable {
 	/**
 	 * CharSequence that noticed thread interrupts -- as might be necessary to
 	 * recover from a loose regex on unexpected challenging input.
-	 * 
+	 *
 	 * @see {@linkplain http://stackoverflow.com/questions/910740/cancelling-a-long-running-regex-match}
 	 * @author gojomo
 	 */
@@ -196,7 +196,7 @@ public class LimitedTimeMatcher implements Runnable {
 	/**
 	 * Returns the input subsequence captured by the given group during the
 	 * previous match operation.
-	 * 
+	 *
 	 * @see Matcher#group(int)
 	 */
 	public String group(int i) {
@@ -205,7 +205,7 @@ public class LimitedTimeMatcher implements Runnable {
 
 	/**
 	 * Returns the input subsequence matched by the previous match.
-	 * 
+	 *
 	 * @see Matcher#group()
 	 */
 	public String group() {

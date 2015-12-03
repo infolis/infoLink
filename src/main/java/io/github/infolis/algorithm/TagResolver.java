@@ -21,13 +21,13 @@ import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
 public class TagResolver extends BaseAlgorithm {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(TagResolver.class);
-	
+
 	public TagResolver(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-	
+
 	private void parseTags() {
 		Map<Class<?extends BaseModel>, Collection<String>> toResolve = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class TagResolver extends BaseAlgorithm {
 		toResolve.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
 
 		for (Class<? extends BaseModel> clazz : toResolve.keySet()) {
-			if (toResolve.get(clazz).isEmpty()) 
+			if (toResolve.get(clazz).isEmpty())
 				continue;
 			Multimap<String, String> query = HashMultimap.create();
 			query.putAll("tags", toResolve.get(clazz));
@@ -43,10 +43,10 @@ public class TagResolver extends BaseAlgorithm {
 			matchingItemsInDb = getInputDataStoreClient().search(clazz, query);
 			setExecutionParameters(clazz, matchingItemsInDb);
 		}
-		
+
 	}
 
-	
+
 	private List<String> getUris(List<? extends BaseModel> itemList) {
     	List<String> uris = new ArrayList<String>();
     	for (BaseModel item : itemList) {
@@ -56,7 +56,7 @@ public class TagResolver extends BaseAlgorithm {
     	}
     	return uris;
     }
-	
+
 	// TODO more generic way to do this?
 	private void setExecutionParameters(Class<? extends BaseModel> clazz, List<? extends BaseModel> instances) {
 		List<String> uris = getUris(instances);
@@ -64,13 +64,13 @@ public class TagResolver extends BaseAlgorithm {
 		if (clazz.equals(InfolisFile.class)) { getExecution().setInputFiles(uris); }
 		//if (clazz.equals(Entity.class)) { getExecution().set?(uris); }
 	}
-	
+
 	@Override
-	public void execute() throws IOException { 
+	public void execute() throws IOException {
 		parseTags();
 		getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
-	 
+
 	@Override
 	public void validate() throws IllegalAlgorithmArgumentException {
 		// no validation needed, if no tags are specified, TagResolver simply won't do anything

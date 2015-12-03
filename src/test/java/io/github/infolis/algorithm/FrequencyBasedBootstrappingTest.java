@@ -54,7 +54,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	 * Tests basic functionality using no threshold for pattern induction (=
 	 * accept all). For a more detailed test refer to patternLearner.LearnerTest
 	 * class.
-	 * 
+	 *
 	 * @param strategy
 	 * @throws Exception
 	 */
@@ -67,7 +67,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 		execution.setSearchTerm(terms.get(0));
 		execution.setReliabilityThreshold(0.0);
 		execution.setBootstrapStrategy(strategy);
-		
+
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
 

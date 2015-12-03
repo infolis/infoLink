@@ -24,7 +24,7 @@ public class RegexUtilsTest {
 		assertThat(pat.matcher("1995 bis 1998").matches(), is(true));
 		assertThat(pat.matcher("1995 to 1998").matches(), is(true));
 		assertThat(pat.matcher("1995       till '98").matches(), is(true));
-		
+
 		assertThat(pat.matcher("NaN").matches(), is(false));
 		assertThat(pat.matcher("(1998)").matches(), is(false));
 	}
@@ -35,13 +35,13 @@ public class RegexUtilsTest {
 		assertEquals("term", RegexUtils.normalizeQuery("term,", true));
 		assertEquals("term", RegexUtils.normalizeQuery(".term.", true));
 		assertEquals("terma", RegexUtils.normalizeQuery("terma", true));
-		
+
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term,", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery(".the term.", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the. term.", true));
 	}
-	
+
 	@Test
 	public void testIsStopword() {
 		assertTrue(RegexUtils.isStopword("the"));
@@ -58,13 +58,13 @@ public class RegexUtilsTest {
 		assertFalse(RegexUtils.isStopword("Daten"));
 		assertTrue(RegexUtils.isStopword("für"));
 	}
-	
+
 	@Test
 	public void testNormalizeAndEscapeRegex() {
 		assertEquals("\\Q\\E" + RegexUtils.percentRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2%"));
 		assertEquals("\\Q\\E" + RegexUtils.numberRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
 		assertEquals("\\Q\\E" + RegexUtils.yearRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
 	}
-	
+
 
 }

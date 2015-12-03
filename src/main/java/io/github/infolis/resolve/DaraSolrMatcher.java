@@ -38,18 +38,13 @@ public class DaraSolrMatcher {
     }
 
     private JsonArray executeQuery(URL query) throws IOException {
-        InputStream is = null;
-        JsonReader reader = null;
-        try {
-            is = query.openStream();
-            reader = Json.createReader(is);
-            JsonObject obj = reader.readObject();
-            JsonObject response = obj.getJsonObject("response");
-            JsonArray result = response.getJsonArray("docs");
-            return result;
-        } finally {
-            reader.close();
-            is.close();
-        }
+		try (InputStream is = query.openStream()) {
+			try (JsonReader reader = Json.createReader(is)) {
+				JsonObject obj = reader.readObject();
+				JsonObject response = obj.getJsonObject("response");
+				JsonArray result = response.getJsonArray("docs");
+				return result;
+			}
+		}
     }
 }

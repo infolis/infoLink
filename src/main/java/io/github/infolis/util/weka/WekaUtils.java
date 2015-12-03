@@ -15,7 +15,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 public class WekaUtils {
-	
+
     /**
      * Retrieves all training instances from the specified data having the
      * specified class attribute. Note: each instance is required to have
@@ -59,7 +59,7 @@ public class WekaUtils {
                 Instance newInstance = new Instance(11);
                 newInstance.setDataset(data_matchingClass);
     			// loop over all attributes and fill in values
-                // copying values from an existing instance using 
+                // copying values from an existing instance using
                 // Instance newInstance = new Instance(curInstance);
                 // does not work...
                 for (int i = 0; i < 11; i++) {

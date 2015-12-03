@@ -50,7 +50,7 @@ public class EntityLink extends BaseModel {
 	{
 		this.fromEntity = fromEntity;
 	}
-    
+
     /**
      * @return the confidence
      */

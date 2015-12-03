@@ -21,7 +21,7 @@
 	LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 	OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-	
+
 	package com.mashape.unirest.http.utils;
  */
 
@@ -31,10 +31,10 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * Class for transforming all parameters in <emph>input</emph> URL into valid URL parameters.
- * (URLEncoder transforms plain text into the application/x-www-form-urlencoded MIME format 
- * as described in the HTML specification (GET-style URLs or POST forms) but this 
+ * (URLEncoder transforms plain text into the application/x-www-form-urlencoded MIME format
+ * as described in the HTML specification (GET-style URLs or POST forms) but this
  * does not work with the new dara search function)
- * 
+ *
  * @author Mashape (http://mashape.com)
  * @version 2013
  */

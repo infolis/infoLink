@@ -44,24 +44,24 @@ public class RegexUtils {
 
     public static final String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
     public static final String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
-    //this is a fix for SearchTermPosition.getContexts: words may be separated by punctuation, not only by whitespace. Left original patterns for compatibility reasons. 
+    //this is a fix for SearchTermPosition.getContexts: words may be separated by punctuation, not only by whitespace. Left original patterns for compatibility reasons.
     //TODO: Check where leftContextPat and rightContextPat are used and replace by these new versions:
     public static final String leftContextPat_ = "((" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s*?" + ")";
     public static final String rightContextPat_ = "(\\s*?(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.lastWordRegex + "))";
-    
+
 	public static final Pattern patternNumeric = Pattern.compile("\\d+");
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
 
 
 	/**
-	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their 
+	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their
 	 * regular expressions.
-	 * 
+	 *
 	 * @param string	input text where placeholders shall be replaced
 	 * @return			string with placeholders replaced by regular expressions
 	 */
 	public static String denormalizeRegex(String string)
-	{	
+	{
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");
@@ -75,33 +75,33 @@ public class RegexUtils {
 		Pattern yearPat = Pattern.compile(yearRegex);
 		Pattern percentPat = Pattern.compile(percentRegex);
 		Pattern numberPat = Pattern.compile(numberRegex);
-		
+
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");
-		
+
 		// do not change order of replacements
 		Matcher percentMatcher = percentPat.matcher(term);
 		term = percentMatcher.replaceAll(percentNorm);
-		
+
 		Matcher yearMatcher = yearPat.matcher(term);
 		term = yearMatcher.replaceAll(yearNorm);
-		
+
 		Matcher numberMatcher = numberPat.matcher(term);
 		term = numberMatcher.replaceAll(numberNorm);
-		
+
 		return term;
 	}
-	
+
 	/**
-	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their 
-	 * regular expressions and quotes all parts of the regular expression that are to be treated as 
+	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their
+	 * regular expressions and quotes all parts of the regular expression that are to be treated as
 	 * strings (all but character classes).
-	 * 
+	 *
 	 * @param string	input text where placeholders shall be replaced and all literals quoted
 	 * @return			quoted regular expression string
 	 */
-	public static String normalizeAndEscapeRegex(String string) {	
+	public static String normalizeAndEscapeRegex(String string) {
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
 		String numberNorm = new String("<NUMBER>");
@@ -109,12 +109,12 @@ public class RegexUtils {
 		string = Pattern.quote(string).replace(yearNorm, "\\E" + yearRegex + "\\Q").replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(numberNorm, "\\E" + numberRegex + "\\Q");
 		return string;
 	}
-	
+
 	/**
-	 * Normalizes and escapes strings for usage as Lucene queries. 
-	 * Replaces placeholders by wildcards, removes characters with special meanings in Lucene and 
+	 * Normalizes and escapes strings for usage as Lucene queries.
+	 * Replaces placeholders by wildcards, removes characters with special meanings in Lucene and
 	 * normalizes the query using the Lucene Analyzer used for building the Lucene index.
-	 * 
+	 *
 	 * @param string	input string to be used as Lucene query
 	 * @return			a Lucene query string
 	 */
@@ -125,11 +125,11 @@ public class RegexUtils {
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
 	}
-	
+
 	/**
-	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the 
+	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the
 	 * same as the analyzer used for indexing the text files!
-	 * 
+	 *
 	 * @param 	query	the Lucene query to be normalized
 	 * @return	a normalized version of the query
 	 */
@@ -156,15 +156,15 @@ public class RegexUtils {
 	}
 
 	/**
-	 * Returns a list of patterns for extracting numerical information. 
-	 * 
-	 * Patterns should be sorted by priority / reliability (highest priority first), first match is accepted 
-	 * by calling method. This way, you can give year specifications a higher weight than other 
+	 * Returns a list of patterns for extracting numerical information.
+	 *
+	 * Patterns should be sorted by priority / reliability (highest priority first), first match is accepted
+	 * by calling method. This way, you can give year specifications a higher weight than other
 	 * number specifications, for example. Currently, only one pattern is used.
-	 * 
+	 *
 	 * @return	a list of patterns
 	 */
-	public static Pattern[] getContextMinerYearPatterns() 
+	public static Pattern[] getContextMinerYearPatterns()
 	{
 		Pattern[] patterns = new Pattern[1];
 
@@ -173,7 +173,7 @@ public class RegexUtils {
 		String yearAbbrRegex = "('\\d\\d)";
 		String numberRegex = "(\\d+[.,]?\\d*)"; //this includes yearRegex
 		String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
-		
+
 		String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
 		String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
 		String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
@@ -181,10 +181,10 @@ public class RegexUtils {
 		patterns[0] = Pattern.compile(complexNumericInfoRegex);
 		return patterns;
 	}
-	
+
 	/**
 	 * Removes all characters that are not allowed in filenames (on windows filesystems).
-	 * 
+	 *
 	 * @param seed	the string to be escaped
 	 * @return		the escaped string
 	 */
@@ -192,7 +192,7 @@ public class RegexUtils {
 	{
 		return seed.replace(":", "_").replace("\\", "_").replace("/", "_").replace("?",  "_").replace(">",  "_").replace("<",  "_");
 	}
-	
+
     /**
      * Checks whether a given word is a stop word
      *
@@ -237,6 +237,6 @@ public class RegexUtils {
 		}
 		return false;
 	}
-	
+
 
 }

@@ -77,7 +77,10 @@ public class TextExtractor extends BaseAlgorithm {
         outFile.setFileName(outFileName);
         outFile.setMediaType("text/plain");
         //TODO either set or list for all tags
-        outFile.setTags(new HashSet<>(getExecution().getTags()));
+		for (String tag : getExecution().getTags())
+        	outFile.getTags().add(tag);
+		for (String tag : inFile.getTags())
+        	outFile.getTags().add(tag);
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {
@@ -148,8 +151,7 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void execute() {
-        Execution tagExec = new Execution();
-        tagExec.setAlgorithm(TagResolver.class);
+        Execution tagExec = getExecution().createSubExecution(TagResolver.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
         tagExec.instantiateAlgorithm(this).run();

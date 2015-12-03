@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class InfolisConfigTest {
-	
+
 	Logger log = LoggerFactory.getLogger(InfolisConfigTest.class);
 
 	@Test

@@ -20,14 +20,14 @@ import io.github.infolis.model.entity.InfolisPattern;
 import static org.junit.Assert.*;
 
 /**
- * 
+ *
  * @author kata
  */
 public class BootstrappingTest extends InfolisBaseTest {
-	
+
 	//private static final org.slf4j.Logger log = LoggerFactory.getLogger(BootstrappingTest.class);
 	Execution indexerExecution = new Execution();
-	
+
 	private List<String> uris = new ArrayList<>();
 	private static InfolisPattern pat = new InfolisPattern();
 	private static InfolisPattern pat2 = new InfolisPattern();
@@ -42,7 +42,7 @@ public class BootstrappingTest extends InfolisBaseTest {
 				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
 				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
 		};
-		for (InfolisFile file : createTestTextFiles(7, testStrings)) 
+		for (InfolisFile file : createTestTextFiles(7, testStrings))
 			uris.add(file.getUri());
 		pat.setPatternRegex("\\S++\\s\\S++\\s\\S++\\s\\S++\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
 		pat.setLuceneQuery("the * in");
@@ -52,8 +52,8 @@ public class BootstrappingTest extends InfolisBaseTest {
 		dataStoreClient.post(InfolisPattern.class, pat2);
 		indexerExecution = createIndex();
 	}
-	
-	
+
+
 	public Execution createIndex() throws IOException {
 		Execution execution = new Execution();
 		execution.setAlgorithm(Indexer.class);
@@ -71,7 +71,7 @@ public class BootstrappingTest extends InfolisBaseTest {
         algo.run();
         return execution.getTextualReferences();
     }
-    
+
     private List<String> getReferenceStrings(Collection<String> URIs) {
         List<String> contexts = new ArrayList<>();
         for (String uri : URIs) {
@@ -79,8 +79,8 @@ public class BootstrappingTest extends InfolisBaseTest {
         }
         return contexts;
     }
-    
-    @Test 
+
+    @Test
     public void testGetContextsForSeed() throws IOException {
     	Execution e = new Execution();
     	e.setInputFiles(uris);
@@ -89,15 +89,15 @@ public class BootstrappingTest extends InfolisBaseTest {
     	b.setExecution(e);
     	List<TextualReference> refs = b.getContextsForSeed("term");
     	assertEquals(new HashSet<String>(Arrays.asList("please try to find the term in this short text snippet.",
-    			"please try to find .the term . in this short text")), 
+    			"please try to find .the term . in this short text")),
     			new HashSet<String>(TextualReference.getContextStrings(refs)));
     }
-   
+
     @Test
     /**
-     * Tests whether optimized search using lucene yields the same result as 
+     * Tests whether optimized search using lucene yields the same result as
      * searching the regular expressions directly without prior filtering.
-     * 
+     *
      * @throws IOException
      */
     public void testGetContextsForPatterns() throws IOException {

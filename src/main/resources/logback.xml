@@ -16,11 +16,17 @@
     </encoder>
   </appender>
 
+  <appender name="LOGGLY" class="ch.qos.logback.ext.loggly.LogglyAppender">
+      <endpointUrl>http://logs-01.loggly.com/inputs/0a25d1c1-9097-4218-90b4-3021476d1728/tag/logback</endpointUrl>
+      <pattern>%d{"ISO8601", UTC}  %p %t %c{0}.%M - %m%n</pattern>
+  </appender>
+
   <logger name="io.github.infolis.algorithm.TextExtractorAlgorithm" level="debug"/>
   <logger name="io.github.infolis.algorithm.BaseAlgorithm" level="info"/>
 
   <root level="debug">
     <appender-ref ref="FILE" />
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="LOGGLY" />
   </root>
 </configuration>

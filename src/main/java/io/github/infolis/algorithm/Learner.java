@@ -7,7 +7,6 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
-import sun.font.TextRecord;
 
 import java.io.File;
 import java.io.IOException;

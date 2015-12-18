@@ -18,6 +18,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -37,22 +38,24 @@ public class ExecutorWebservice {
 
 	private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.CENTRAL);
 	private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.CENTRAL);
-	
-        @GET
-        public List<String> getExecutionStatus(@QueryParam("status") String statusParam) {            
-            ExecutionScheduler executionPool = ExecutionScheduler.getInstance();
-            List<String> executionURIs = new ArrayList<>();
-            ExecutionStatus status = null;
-            try {
-                status = ExecutionStatus.valueOf(statusParam);
-                executionURIs.addAll(executionPool.getByStatus(status));
-            } catch (IllegalArgumentException | NullPointerException e) {
-                executionURIs.addAll(executionPool.getAllExcecutions());
-            }
-            return executionURIs;
-        }
-        
+
+	@GET
+	@Produces("application/json")
+	public List<String> getExecutionStatus(@QueryParam("status") String statusParam) {
+	    ExecutionScheduler executionPool = ExecutionScheduler.getInstance();
+	    List<String> executionURIs = new ArrayList<>();
+	    ExecutionStatus status = null;
+	    try {
+	        status = ExecutionStatus.valueOf(statusParam);
+	        executionURIs.addAll(executionPool.getByStatus(status));
+	    } catch (IllegalArgumentException | NullPointerException e) {
+	        executionURIs.addAll(executionPool.getAllExcecutions());
+	    }
+	    return executionURIs;
+	}
+
 	@POST
+	@Produces("application/json")
 	public Response startExecution(@QueryParam("id") String executionUri) {
 		ResponseBuilder resp = Response.ok();
 
@@ -96,7 +99,7 @@ public class ExecutorWebservice {
 			resp.status(400);
 		} else {
 			dataStoreClient.put(Execution.class, execution);
-                        ExecutionScheduler exe = ExecutionScheduler.getInstance(); 
+                        ExecutionScheduler exe = ExecutionScheduler.getInstance();
                         exe.execute(algo);
 		}
 		return resp.build();

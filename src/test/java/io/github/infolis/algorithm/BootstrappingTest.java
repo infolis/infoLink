@@ -176,7 +176,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     	return termSet;
     }*/
 
-    private class ExpectedOutput {
+    static class ExpectedOutput {
     	Class<? extends Algorithm> algorithm;
     	BootstrapStrategy strategy;
     	double threshold;
@@ -194,53 +194,10 @@ public class BootstrappingTest extends InfolisBaseTest {
     	}
     }
 
-    //TODO: add values for reliability-based bootstrapping
+ 
     Set<ExpectedOutput> getExpectedOutput() {
-    	// find all contexts for terms "FOOBAR" and "term"
-    	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least
-    	// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)
-    	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
-    	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
-    	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text"));
-    	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
-    	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
-    	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet."));
-    	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
-    	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
-    	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text"));
-    	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
-    	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
-    	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet."));
-
-
-    	Set<String> expectedStudies_reliability = new HashSet<String>(Arrays.asList("dummy"));
-    	Set<String> expectedPatterns_reliability = new HashSet<String>(Arrays.asList("dummy"));
-    	Set<String> expectedContexts_reliability = new HashSet<String>(Arrays.asList("dummy"));
-
-    	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
-    	expectedOutput.addAll(Arrays.asList(
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeCurrent, 0.45, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeNew, 0.45, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeAll, 0.45, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)//,
-    			//new ExpectedOutput(ReliabilityBasedBootstrapping.class, Execution.Strategy.reliability, 0.4, expectedStudies_reliability, expectedPatterns_reliability, expectedContexts_reliability)
-    	));
+    	Set<ExpectedOutput> expectedOutput = FrequencyBasedBootstrappingTest.getExpectedOutput();
+    	expectedOutput.addAll(ReliabilityBasedBootstrappingTest.getExpectedOutput());
     	return expectedOutput;
     }
 

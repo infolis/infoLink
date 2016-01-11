@@ -3,7 +3,6 @@ package io.github.infolis.model;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.algorithm.Learner;
 import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
@@ -148,7 +147,7 @@ public class Execution extends BaseModel {
          * They are for example used to search patterns within the
          * Pattern Applier algorithm.
          * 
-         * {@link Learner} {@link TextExtractor} {@link Bootstrapping}
+         * {@link TextExtractor} {@link Bootstrapping}
          * {@link PatternApplier} {@link ApplyPatternAndResolve} 
          * {@link Indexer} 
 	 */ 
@@ -160,7 +159,7 @@ public class Execution extends BaseModel {
          * For example, the TextExtraction algorithm extracts texts of pdfs
          * and stores these texts as output files.
          * 
-         * {@link Learner} {@link SearchTermPosition} {@link TextExtractor} 
+         * {@link SearchTermPosition} {@link TextExtractor} 
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
@@ -243,7 +242,7 @@ public class Execution extends BaseModel {
          * Besides the text and the term that has been found in the text,
          * it also contains the context, i.e. where the term has been detected.
          * 
-	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataExtractor}
+         * {@link FederatedSearcher} {@link MetaDataExtractor}
          * {@link Resolver} {@link SearchTermPosition} {@link ApplyPatternAndResolve}
          * {@link PatternApplier} {@link Bootstrapping}
 	 */
@@ -271,7 +270,7 @@ public class Execution extends BaseModel {
          * named entity and thus should contain at least one upper-case character.
          * Default: false
          * 
-         * {@link PatternApplier} {@link Bootstrapping} {@link Learner}
+         * {@link PatternApplier} {@link Bootstrapping}
          */
 	private boolean upperCaseConstraint = false;
 
@@ -279,7 +278,7 @@ public class Execution extends BaseModel {
 	 * Seeds used for bootstrapping, e.g. study names to start
          * with like "ALLBUS".
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private List<String> seeds = new ArrayList<>();
 
@@ -288,7 +287,7 @@ public class Execution extends BaseModel {
          * A high number of iterations can lead to a increased run time.       
          * Default: 10
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private int maxIterations = 10;
 

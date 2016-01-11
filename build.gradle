@@ -34,11 +34,11 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
 
     // Jersey / JAX-RS / JSON / XML
-    compile 'org.glassfish.jersey.core:jersey-server:2.17'
-    compile 'org.glassfish.jersey.core:jersey-client:2.17'
-    compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.17'
-    compile 'org.glassfish.jersey.media:jersey-media-multipart:2.17'
-    compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.17'
+    compile 'org.glassfish.jersey.core:jersey-server:2.22.1'
+    compile 'org.glassfish.jersey.core:jersey-client:2.22.1'
+    compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.22.1'
+    compile 'org.glassfish.jersey.media:jersey-media-multipart:2.22.1'
+    compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.22.1'
     compile 'org.glassfish:javax.json:1.0.4'
 
     // Reflections

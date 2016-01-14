@@ -33,7 +33,7 @@ public class HTMLQueryService extends QueryService {
 
     private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
 
-    private int maxNumber = 10;
+    private int maxNumber = 1000;
 
     public HTMLQueryService() {
         super();

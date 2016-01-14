@@ -52,7 +52,12 @@ public class LearnAndResolve extends BaseAlgorithm {
 		
 		// TODO applyPatterns not needed, Textual refs are already found while learning. Resolve only
 		applyAndResolveExec.setPatterns(learnExec.getPatterns());
-		applyAndResolveExec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
+		if (null != getExecution().getQueryServiceClasses()) {
+			applyAndResolveExec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
+		}
+		if (null != getExecution().getQueryServices()) {
+			applyAndResolveExec.setQueryServices(getExecution().getQueryServices());
+		}
 		applyAndResolveExec.instantiateAlgorithm(this).run();
 		return applyAndResolveExec;
 	}

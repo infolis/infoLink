@@ -1,132 +1,108 @@
 package io.github.infolis.resolve;
 
+import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.DaraHTMLQueryService;
 import io.github.infolis.resolve.HTMLQueryService;
 import io.github.infolis.resolve.QueryService;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author domi
+ * @author kata
+ * 
  */
 public class HTMLQueryServiceTest extends InfolisBaseTest {
 
-    @Ignore
+	Logger log = LoggerFactory.getLogger(HTMLQueryServiceTest.class);
+	Set<ExpectedOutput> expectedOutput = new HashSet<>();
+	
+	public HTMLQueryServiceTest() {
+        expectedOutput = getExpectedOutput();
+	}
+	
+	static class ExpectedOutput {
+		QueryService queryService;
+		SearchQuery searchQuery;
+		Map<String, String> doiTitleMap;
+		
+		ExpectedOutput(QueryService queryService, SearchQuery searchQuery, Map<String, String> doiTitleMap) {
+			this.queryService = queryService;
+			this.searchQuery = searchQuery;
+			this.doiTitleMap = doiTitleMap;
+		}
+		
+		QueryService getQueryService() {
+			return this.queryService;
+		}
+		
+		SearchQuery getSearchQuery() {
+			return this.searchQuery;
+		}
+		
+		Map<String, String> getDoiTitleMap() {
+			return this.doiTitleMap;
+		}
+	}
+	
+	public Set<ExpectedOutput> getExpectedOutput() {
+		Set<ExpectedOutput> expectedOutput = DaraHTMLQueryServiceTest.getExpectedOutput();
+		// add other expected output here to test other sub-classes of HTMLQueryService
+		return expectedOutput;
+	}
+	
     @Test
-    public void searchWeb() throws IOException {
-        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);
-        dataStoreClient.post(QueryService.class, qs);
-        List<String> qsList = new ArrayList<>();
-        qsList.add(qs.getUri());
+    public void testHTMLQueryService() throws IOException {
+    	Map<String, String> doiTitleMap = new HashMap<>();
+        for (ExpectedOutput expectedOutputItem : expectedOutput) {
+        	SearchQuery searchQuery = expectedOutputItem.getSearchQuery();
+        	dataStoreClient.post(SearchQuery.class, searchQuery);
+        	QueryService queryService = expectedOutputItem.getQueryService();
+        	dataStoreClient.post(QueryService.class, queryService);
 
-        Execution execution = new Execution();
-        execution.setAlgorithm(FederatedSearcher.class);
-        SearchQuery searchQuery = postTitelQuery("?q=title:ALLBUS");
-        execution.setSearchQuery(searchQuery.getUri());
-        execution.setQueryServices(qsList);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        	Execution execution = new Execution();
+        	execution.setAlgorithm(FederatedSearcher.class);
+        	execution.setSearchQuery(searchQuery.getUri());
+        	execution.setQueryServices(Arrays.asList(queryService.getUri()));
+        	execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 
-        List<String> sr= execution.getSearchResults();
-        List<SearchResult> result = dataStoreClient.get(SearchResult.class, sr);
+        	List<String> searchResultURIs = execution.getSearchResults();
+        	List<SearchResult> searchResults = dataStoreClient.get(SearchResult.class, searchResultURIs);
+        
+        	for (SearchResult sr : searchResults) {
+        		doiTitleMap.put(sr.getIdentifier(), sr.getTitles().get(0));
+        		log.debug(sr.getIdentifier());
+        		log.debug(sr.getTitles().get(0));
+        	}
+        	assertEquals(expectedOutputItem.getDoiTitleMap(), doiTitleMap);
 
-        //be careful, could change from time to time
-        Assert.assertEquals("Arbeitsorientierung (ALLBUS)", result.get(0).getTitles().get(0));
-        Assert.assertEquals("10.6102/zis13", result.get(0).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
-        Assert.assertEquals(0, result.get(0).getListIndex());
-
-        Assert.assertEquals("German Social Survey (ALLBUS), 1998", result.get(6).getTitles().get(0));
-        Assert.assertEquals("10.3886/ICPSR02779.v1", result.get(6).getIdentifier());
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show", dataStoreClient.get(QueryService.class,result.get(0).getQueryService()).getTarget());
-        Assert.assertEquals(6, result.get(6).getListIndex());
-        Assert.assertEquals("1998", result.get(6).getNumericInformation().get(0));
-    }
-
-    public SearchQuery postTitelQuery(String q) throws IOException {
-        SearchQuery sq = new SearchQuery();
-        sq.setQuery(q);
-        dataStoreClient.post(SearchQuery.class, sq);
-        return sq;
-    }
-
-    public SearchQuery postDoiQuery(String q) throws IOException {
-        SearchQuery sq = new SearchQuery();
-        sq.setQuery(q);
-        dataStoreClient.post(SearchQuery.class, sq);
-        return sq;
-    }
-
-    @Ignore
-    @Test
-    public void testDoiQueryExecution() throws IOException {
-        HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
-        qs.setMaxNumber(10);
-        SearchQuery sq = postDoiQuery("?q=doi:10.4232/1.2525");
-        String query = qs.adaptQuery(sq);
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?doi=10.4232/1.2525&max=10&lang=de", query);
-        List<SearchResult> sr = qs.executeQuery(sq);
-        for(SearchResult s : sr) {
-            Assert.assertEquals("Flash Eurobarometer 35", s.getTitles().get(0));
         }
     }
 
 
     @Test
-    public void testQueryAdaption() throws IOException {
-        HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
-        qs.setMaxNumber(600);
-        SearchQuery sq = postTitelQuery("?q=title:ALLBUS");
-        String query = qs.adaptQuery(sq);
-        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?title=ALLBUS&max=600&lang=de", query);
+    public void testAdaptQuery() throws IOException {
+        HTMLQueryService queryService = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
+        queryService.setMaxNumber(600);
+        SearchQuery searchQuery = new SearchQuery();
+        searchQuery.setQuery("?q=title:Studierendensurvey");
+        String query = queryService.adaptQuery(searchQuery);
+        Assert.assertEquals("http://www.da-ra.de/dara/study/web_search_show?title=Studierendensurvey&max=600&lang=de", query);
     }
 
-    @Ignore
-    @Test
-    public void testQueryExecution() throws IOException {
-        HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
-        qs.setMaxNumber(10);
-        SearchQuery sq = postTitelQuery("?q=title:ALLBUS");
-        List<SearchResult> sr = qs.executeQuery(sq);
-
-        //be careful, could change from time to time
-        Assert.assertEquals("Anomie (ALLBUS)", sr.get(0).getTitles().get(0));
-        Assert.assertEquals("10.6102/zis58", sr.get(0).getIdentifier());
-        Assert.assertEquals(0, sr.get(0).getListIndex());
-
-        Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));
-        Assert.assertEquals("10.3886/ICPSR02779.v1", sr.get(6).getIdentifier());
-        Assert.assertEquals(6, sr.get(6).getListIndex());
-        Assert.assertEquals("1998", sr.get(6).getNumericInformation().get(0));
-    }
-
-    @Ignore
-    @Test
-    public void testDaraHTMLQueryService() throws IOException {
-        DaraHTMLQueryService qs = new DaraHTMLQueryService();
-        qs.setMaxNumber(10);
-        SearchQuery sq = postTitelQuery("?q=title:ALLBUS");
-        List<SearchResult> sr = qs.executeQuery(sq);
-
-        //be careful, could change from time to time
-        Assert.assertEquals("Anomie (ALLBUS)", sr.get(0).getTitles().get(0));
-        Assert.assertEquals("10.6102/zis58", sr.get(0).getIdentifier());
-        Assert.assertEquals(0, sr.get(0).getListIndex());
-
-        Assert.assertEquals("German Social Survey (ALLBUS), 1998", sr.get(6).getTitles().get(0));
-        Assert.assertEquals("10.3886/ICPSR02779.v1", sr.get(6).getIdentifier());
-        Assert.assertEquals(6, sr.get(6).getListIndex());
-        Assert.assertEquals("1998", sr.get(6).getNumericInformation().get(0));
-    }
 }

@@ -1,6 +1,7 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.resolve;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.algorithm.FederatedSearcher;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;

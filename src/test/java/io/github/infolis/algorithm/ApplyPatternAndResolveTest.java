@@ -110,7 +110,8 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
     public List<String> postQueryServices() throws IOException {
         List<String> postedQueryServices = new ArrayList<>();
-        QueryService p1 = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+        HTMLQueryService p1 = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+        p1.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, p1);
         postedQueryServices.add(p1.getUri());
         return postedQueryServices;

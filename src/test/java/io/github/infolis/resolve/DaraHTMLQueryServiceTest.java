@@ -17,7 +17,8 @@ import io.github.infolis.resolve.HTMLQueryServiceTest.ExpectedOutput;
 class DaraHTMLQueryServiceTest extends InfolisBaseTest {
 	
 	public static Set<ExpectedOutput> getExpectedOutput() {
-		QueryService queryService = new DaraHTMLQueryService();
+		HTMLQueryService queryService = new DaraHTMLQueryService();
+		queryService.setMaxNumber(15);
 		SearchQuery searchQuery = new SearchQuery();
 		searchQuery.setQuery("?q=title:Studierendensurvey");
 		Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();

@@ -5,11 +5,11 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.resolve.DaraHTMLQueryService;
-import io.github.infolis.resolve.DaraSolrQueryService;
+import io.github.infolis.resolve.HTMLQueryService;
 import io.github.infolis.resolve.QueryService;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +25,10 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         Execution execution = new Execution();
         SearchQuery searchQuery = postDoiQuery("?q=title:ALLBUS");
         execution.setSearchQuery(searchQuery.getUri());
-        execution.addQueryServiceClasses(DaraHTMLQueryService.class);
+        HTMLQueryService queryService = new DaraHTMLQueryService();
+        queryService.setMaxNumber(10);
+        dataStoreClient.post(QueryService.class, queryService);
+        execution.setQueryServices(Arrays.asList(queryService.getUri()));
         execution.setAlgorithm(FederatedSearcher.class);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         algo.run();

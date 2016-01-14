@@ -108,7 +108,8 @@ public class ResolverTest extends InfolisBaseTest {
      * @return
      */
     public List<String> loadOtherResults() {
-        QueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);
+        HTMLQueryService qs = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show",0.5);
+        qs.setMaxNumber(15);
         dataStoreClient.post(QueryService.class, qs);
         List<String> qsList = new ArrayList<>();
         qsList.add(qs.getUri());

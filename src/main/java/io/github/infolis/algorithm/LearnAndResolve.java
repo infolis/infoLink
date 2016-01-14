@@ -26,16 +26,15 @@ public class LearnAndResolve extends BaseAlgorithm {
 	@Override
 	public void execute() {
 		try {
-			debug(log, "Step1: Learning patterns...");
+			debug(log, "Step1: Learning patterns and extracting textual references...");
 			Execution learnExec = learn();
 			updateProgress(1, 2);
-			//TODO step2: resolving references (using textual references generated while learning)
-			debug(log, "Step 2: Applying patterns and resolving references...");
-			Execution applyAndResolveExec = applyAndResolve(learnExec);
+			debug(log, "Step 2: Creating links...");
+			Execution linkingExec = createLinks(learnExec);
 			updateProgress(2, 2);
-			getExecution().setTextualReferences(applyAndResolveExec.getTextualReferences());
-			getExecution().setLinks(applyAndResolveExec.getLinks());
-			//getExecution().setLinkedEntities(applyAndResolveExec.getLinkedEntities());
+			getExecution().setTextualReferences(linkingExec.getTextualReferences());
+			getExecution().setLinks(linkingExec.getLinks());
+			//TODO: set all created entities
 			debug(log, "Done. Returning textual references and entity links");
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		}
@@ -45,21 +44,20 @@ public class LearnAndResolve extends BaseAlgorithm {
 		}
 	}
 	
-	private Execution applyAndResolve(Execution learnExec) {
-		Execution applyAndResolveExec = new Execution();
-		applyAndResolveExec.setAlgorithm(ApplyPatternAndResolve.class);
-		applyAndResolveExec.setInputFiles(getExecution().getInputFiles());
+	private Execution createLinks(Execution learnExec) {
+		Execution linkExec = new Execution();
+		linkExec.setAlgorithm(ReferenceResolver.class);
+		linkExec.setInputFiles(getExecution().getInputFiles());
 		
-		// TODO applyPatterns not needed, Textual refs are already found while learning. Resolve only
-		applyAndResolveExec.setPatterns(learnExec.getPatterns());
+		linkExec.setTextualReferences(learnExec.getTextualReferences());
 		if (null != getExecution().getQueryServiceClasses()) {
-			applyAndResolveExec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
+			linkExec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
 		}
 		if (null != getExecution().getQueryServices()) {
-			applyAndResolveExec.setQueryServices(getExecution().getQueryServices());
+			linkExec.setQueryServices(getExecution().getQueryServices());
 		}
-		applyAndResolveExec.instantiateAlgorithm(this).run();
-		return applyAndResolveExec;
+		linkExec.instantiateAlgorithm(this).run();
+		return linkExec;
 	}
 	
 	private Execution learn() {

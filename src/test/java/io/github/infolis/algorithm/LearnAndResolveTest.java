@@ -13,6 +13,8 @@ import io.github.infolis.resolve.QueryService;
 import io.github.infolis.resolve.HTMLQueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 
 /**
@@ -58,11 +60,14 @@ public class LearnAndResolveTest extends InfolisBaseTest {
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		for (String textRefUri: execution.getTextualReferences()) {
 			log.debug(textRefUri);
-			//TODO resolve uris; add assert statements
+			log.debug(dataStoreClient.get(TextualReference.class, textRefUri).toString());
+			//TODO add assert statements
 		}
 		for (String linkUri: execution.getLinks()) {
 			log.debug(linkUri);
-			//TODO resolve uris; add assert statements
+			log.debug(dataStoreClient.get(EntityLink.class, linkUri).getToEntity());
+			log.debug(dataStoreClient.get(EntityLink.class, linkUri).getLinkReason());
+			//TODO add assert statements
 		}
 	}
 }

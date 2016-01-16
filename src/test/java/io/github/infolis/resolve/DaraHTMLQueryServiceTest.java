@@ -5,16 +5,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.SearchQuery;
-import io.github.infolis.resolve.HTMLQueryServiceTest.ExpectedOutput;
 
 /**
  * 
  * @author kata
  *
  */
-class DaraHTMLQueryServiceTest extends InfolisBaseTest {
+public class DaraHTMLQueryServiceTest extends QueryServiceTest {
 	
 	public static Set<ExpectedOutput> getExpectedOutput() {
 		HTMLQueryService queryService = new DaraHTMLQueryService();

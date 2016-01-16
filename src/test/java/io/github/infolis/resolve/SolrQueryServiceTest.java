@@ -1,11 +1,5 @@
 package io.github.infolis.resolve;
 
-import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.SearchQuery;
-import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.QueryService;
 import io.github.infolis.resolve.SolrQueryService;
 
 import java.io.File;
@@ -13,56 +7,35 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 
 /**
- *
+ * 
  * @author domi
+ * @author kata
+ * 
  */
-public class SolrQueryServiceTest extends InfolisBaseTest {
+public class SolrQueryServiceTest extends QueryServiceTest {
 
+	public static Set<ExpectedOutput> getExpectedOutput() {
+		Set<ExpectedOutput> expectedOutput = DaraSolrQueryServiceTest.getExpectedOutput();
+		// add other expected output here to test other sub-classes of SolrQueryService
+		return expectedOutput;
+	}
+	
+   
     @Test
-    public void searchWeb() throws IOException {
-
-        QueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/");
-        dataStoreClient.post(QueryService.class, qs);
-        List<String> qsList = new ArrayList<>();
-        qsList.add(qs.getUri());
-
-        Assume.assumeNotNull(System.getProperty("gesisRemoteTest"));
-        Execution execution = new Execution();
-        execution.setAlgorithm(FederatedSearcher.class);
-        String searchQuery = postTitleQuery();
-        execution.setSearchQuery(searchQuery);
-        execution.setQueryServices(qsList);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-
-        List<String> sr= execution.getSearchResults();
-        List<SearchResult> result = dataStoreClient.get(SearchResult.class, sr);
-
-        //TODO: find test examples
-    }
-
-    public String postTitleQuery() throws IOException {
-        SearchQuery sq = new SearchQuery();
-        sq.setQuery("?q=title:Studierendensurvey");
-        dataStoreClient.post(SearchQuery.class, sq);
-        return sq.getUri();
-    }
-
-    @Test
-    public void testQueryAdaption() {
-        SolrQueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/",1.0);
-        String query = qs.adaptQuery("?q=title:ALLBUS");
-        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:ALLBUS&start=0&rows=10&fl=doi,title&wt=json", query);
+    public void testAdaptQuery() {
+        SolrQueryService queryService = new SolrQueryService("http://www.da-ra.de/solr/dara/", 0.5);
+        String query = queryService.adaptQuery("?q=title:Studierendensurvey");
+        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey&start=0&rows=10&fl=doi,title&wt=json", query);
     }
 
     @Test

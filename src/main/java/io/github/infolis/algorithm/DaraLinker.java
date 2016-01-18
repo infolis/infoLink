@@ -8,7 +8,7 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.resolve.DaraSolrMatcher;
-import io.github.infolis.resolve.FilterDaraJsonResults;
+//import io.github.infolis.resolve.FilterDaraJsonResults;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
@@ -64,9 +64,10 @@ public class DaraLinker extends BaseAlgorithm {
 		DaraSolrMatcher matcher = new DaraSolrMatcher(studyName);
 		JsonArray candidates = matcher.query();
 		log.debug("number of candidates in dara: " + String.valueOf(candidates.size()));
-		JsonArray matchingDatasets = FilterDaraJsonResults.filter(candidates, study);
+		/*JsonArray matchingDatasets = FilterDaraJsonResults.filter(candidates, study);
 		Set<EntityLink> links = createStudyLinks(matchingDatasets, study, context);
-		return links;
+		return links;*/
+		return new HashSet<EntityLink>();
 	}
 
 	private Set<Entity> getDaraStudies(JsonArray datasets) throws IllegalArgumentException {

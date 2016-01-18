@@ -1,54 +1,53 @@
 package io.github.infolis.resolve;
 
+import io.github.infolis.algorithm.DaraLinker;
+import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.util.NumericInformationExtractor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.github.infolis.algorithm.DaraLinker;
-import io.github.infolis.model.entity.Entity;
-
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FilterDaraJsonResults {
-
-	private final static Logger log = LoggerFactory.getLogger(FilterDaraJsonResults.class);
-
-	//TODO: test
-	public static JsonArray filter(JsonArray candidates, Entity study) {
-		List<JsonObject> matchingItems = new ArrayList<JsonObject>();
-		for (JsonObject item : candidates.getValuesAs(JsonObject.class)) {
-			JsonArray titles = item.getJsonArray("title");
-			for (int i=0; i<titles.size(); i++) {
-				String title = titles.get(i).toString();
-				log.debug("study: " + study.getName());
-				log.debug("number: " + study.getNumber());
-				log.debug("candidate title: " + title);
-				if (numericInfoMatches(study.getNumber(), title)) {
-					matchingItems.add(item);
-					break; // no need to search in alternative title
-				}
-			}
-		}
-		return createJsonArray(matchingItems);
-	}
-
-	private static JsonArray createJsonArray(List<JsonObject> list) {
-		JsonArrayBuilder builder = Json.createArrayBuilder();
-		for (JsonObject item : list) {
-			builder.add(item);
-		}
-		return builder.build();
-	}
-
-	private static boolean containsYear(String number) {
+/**
+ * 
+ * @author kata
+ *
+ */
+public class SearchResultScorer {
+	
+	private final static Logger log = LoggerFactory.getLogger(SearchResultScorer.class);
+	
+	/**
+     * Computes score based on correspondence of numbers in textual references and 
+     * search results. Considers ranges, abbreviated years and exact matches.
+     *
+     * @param reference
+     * @param targetCandidate
+     * @return
+     */
+    public static double computeScoreBasedOnNumbers(TextualReference reference, SearchResult targetCandidate) {
+        List<String> textRefNumInfoList = NumericInformationExtractor.extractNumericInfoFromTextRef(reference);
+        if(targetCandidate.getNumericInformation() == null || targetCandidate.getNumericInformation().isEmpty()) {
+        	targetCandidate.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(targetCandidate.getTitles().get(0)));
+        }
+        List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
+        for (String textRefNumInfo : textRefNumInfoList) {
+            for (String targetCandidateNumInfo : targetCandidateNumInfoList) {
+                if (numericInfoMatches(textRefNumInfo, targetCandidateNumInfo)) {
+                    return 1.0;
+                }
+            }
+        }
+        return 0.0;
+    }
+    
+    private static boolean containsYear(String number) {
 		return Pattern.matches(".*?" + DaraLinker.yearRegex + ".*?", number);
 	}
 

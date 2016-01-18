@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,6 +147,7 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		return execution.getTextualReferences();
 	}
 
+	@Ignore
 	@Test
 	public void linkContextTest() throws Exception {
         Assume.assumeNotNull(System.getProperty("gesisRemoteTest"));

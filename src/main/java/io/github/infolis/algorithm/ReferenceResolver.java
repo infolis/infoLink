@@ -88,7 +88,11 @@ public class ReferenceResolver extends BaseAlgorithm {
     }
 
     public List<String> createLinks(List<String> searchResults, String textRef) {
-        Execution resolve = getExecution().createSubExecution(Resolver.class);
+        //Execution resolve = getExecution().createSubExecution(Resolver.class);
+    	//TODO: which Ranker to use? -> param
+    	//TODO: BestMatchRanker requires QueryService to search for date as well...
+    	//MultiMatchesRanker: search only for title without date
+    	Execution resolve = getExecution().createSubExecution(MultiMatchesRanker.class);
         resolve.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
         resolve.setTextualReferences(textRefs);

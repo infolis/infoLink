@@ -12,12 +12,16 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
-
+/**
+ * 
+ * @author kata
+ *
+ */
 public class RegexUtilsTest {
 
 	@Test
-	public void testGetContextMinerYearPatterns() throws Exception {
-		Pattern pat = RegexUtils.getContextMinerYearPatterns()[0];
+	public void testComplexNumericInfoRegex() throws Exception {
+		Pattern pat = Pattern.compile(RegexUtils.complexNumericInfoRegex);
 		assertThat(pat, is(not(nullValue())));
 		assertThat(pat.matcher("1995").matches(), is(true));
 		assertThat(pat.matcher("1995-1998").matches(), is(true));
@@ -64,6 +68,20 @@ public class RegexUtilsTest {
 		assertEquals("\\Q\\E" + RegexUtils.percentRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2%"));
 		assertEquals("\\Q\\E" + RegexUtils.numberRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
 		assertEquals("\\Q\\E" + RegexUtils.yearRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
+	}
+	
+	//TODO may change if different values for ignoreStudy are set in the config
+	@Test
+	public void ignoreStudyTest() {
+		assertTrue(RegexUtils.ignoreStudy("eigene Erhebung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Erhebungen"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Berechnung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Berechnungen"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Darstellung"));
+		assertTrue(RegexUtils.ignoreStudy("eigene Darstellungen"));
+		assertFalse(RegexUtils.ignoreStudy("ALLBUS"));
+		assertFalse(RegexUtils.ignoreStudy("eigene Berechnung; ALLBUS"));
+		assertFalse(RegexUtils.ignoreStudy("ALLBUS; eigene Berechnung"));
 	}
 
 

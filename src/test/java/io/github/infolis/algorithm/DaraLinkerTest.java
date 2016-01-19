@@ -1,12 +1,6 @@
 package io.github.infolis.algorithm;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
@@ -14,7 +8,6 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.util.RegexUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
@@ -175,19 +167,6 @@ public class DaraLinkerTest extends InfolisBaseTest {
 	}
 
 	@Test
-	public void ignoreStudyTest() {
-		assertTrue(RegexUtils.ignoreStudy("eigene Erhebung"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Erhebungen"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Berechnung"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Berechnungen"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Darstellung"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Darstellungen"));
-		assertFalse(RegexUtils.ignoreStudy("ALLBUS"));
-		assertFalse(RegexUtils.ignoreStudy("eigene Berechnung; ALLBUS"));
-		assertFalse(RegexUtils.ignoreStudy("ALLBUS; eigene Berechnung"));
-	}
-
-	@Test
 	public void extractStudyTest() {
 		DaraLinker linker = new DaraLinker(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		assertEquals("2000", linker.extractStudy(testContexts[0]).getNumber());
@@ -208,20 +187,6 @@ public class DaraLinkerTest extends InfolisBaseTest {
 		assertEquals("1982 und 1983", linker.extractStudy(testContexts[15]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[16]).getNumber());
 		assertEquals("2000", linker.extractStudy(testContexts[17]).getNumber());
-	}
-
-	@Test
-	public void testStudyYearPattern() throws Exception {
-		Pattern pat = Pattern.compile(DaraLinker.complexNumericInfoRegex);
-		assertThat(pat, is(not(nullValue())));
-		assertThat(pat.matcher("1995").matches(), is(true));
-		assertThat(pat.matcher("1995-1998").matches(), is(true));
-		assertThat(pat.matcher("1995 bis 1998").matches(), is(true));
-		assertThat(pat.matcher("1995 to 1998").matches(), is(true));
-		assertThat(pat.matcher("1995       till '98").matches(), is(true));
-
-		assertThat(pat.matcher("NaN").matches(), is(false));
-		assertThat(pat.matcher("(1998)").matches(), is(false));
 	}
 
 }

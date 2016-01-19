@@ -68,12 +68,14 @@ public class MetaDataExtractor extends BaseAlgorithm {
         }
         switch (strat) {
             case title:
-                List<String> numericInfo = NumericInformationExtractor.extractNumericInfoFromTextRef(ref);
+                List<String> numericInfo = NumericInformationExtractor.extractNumericInfo(ref);
                 name = ref.getReference().replaceAll("[^a-zA-Z]", "");
 
                 if (name != null && !name.isEmpty()) {
                     finalQuery += "title:" + name + "&";
                 }
+                //TODO results are ordered by their positions
+                // use priority here?
                 if (numericInfo.size() > 0) {
                     for (String numInf : numericInfo) {
                         finalQuery += "?date:" + numInf + "&";

@@ -156,10 +156,6 @@ public class DaraLinker extends BaseAlgorithm {
 		// remove numeric info from study name
 		String studyName = context.getReference().replaceAll("[^a-zA-Z]", "");
 		study.setName(studyName);
-		// 1. prefer mentions found inside of term
-		// 2. prefer mentions found in right context
-		// 3. accept mentions found in left context
-		// TODO: better heuristic for choosing best numeric info item?
 		if (numericInfo.size() > 0) {
 			study.setNumber(numericInfo.get(0));
 		}

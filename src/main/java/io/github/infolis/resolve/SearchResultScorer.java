@@ -1,14 +1,12 @@
 package io.github.infolis.resolve;
 
-import io.github.infolis.algorithm.DaraLinker;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.RegexUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -32,9 +30,9 @@ public class SearchResultScorer {
      * @return
      */
     public static double computeScoreBasedOnNumbers(TextualReference reference, SearchResult targetCandidate) {
-        List<String> textRefNumInfoList = NumericInformationExtractor.extractNumericInfoFromTextRef(reference);
+        List<String> textRefNumInfoList = NumericInformationExtractor.extractNumericInfo(reference);
         if(targetCandidate.getNumericInformation() == null || targetCandidate.getNumericInformation().isEmpty()) {
-        	targetCandidate.setNumericInformation(NumericInformationExtractor.extractNumbersFromString(targetCandidate.getTitles().get(0)));
+        	targetCandidate.setNumericInformation(NumericInformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
         }
         List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
         for (String textRefNumInfo : textRefNumInfoList) {
@@ -48,7 +46,7 @@ public class SearchResultScorer {
     }
     
     private static boolean containsYear(String number) {
-		return Pattern.matches(".*?" + DaraLinker.yearRegex + ".*?", number);
+		return Pattern.matches(".*?" + RegexUtils.yearRegex + ".*?", number);
 	}
 
 	private static boolean containsAbbreviatedYear(String number) {
@@ -56,11 +54,11 @@ public class SearchResultScorer {
 	}
 
 	private static boolean containsEnum(String number) {
-		return Pattern.matches(".*?\\d\\s*" + DaraLinker.enumRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + RegexUtils.enumRegex+ "\\s*\\d.*?", number);
 	}
 
 	private static boolean containsRange(String number) {
-		return Pattern.matches(".*?\\d\\s*" + DaraLinker.rangeRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + RegexUtils.rangeRegex+ "\\s*\\d.*?", number);
 	}
 
 	private static String[] getFullYearVariants(String extractedNumber) {
@@ -189,8 +187,8 @@ public class SearchResultScorer {
 		// for study references without any specified years / numbers, accept all candidates
 		// TODO: match to higher order entity according to dataset ontology (study, not dataset)
 		if (numericInfo == null || string == null) return true;
-		List<String> numericInfo1 = extractNumbers(numericInfo);
-		List<String> numericInfo2 = extractNumbers(string);
+		List<String> numericInfo1 = NumericInformationExtractor.extractNumbers(numericInfo);
+		List<String> numericInfo2 = NumericInformationExtractor.extractNumbers(string);
 		boolean containsRange_numericInfo1 = containsRange(numericInfo);
 		boolean containsRange_numericInfo2 = containsRange(string);
 		boolean containsEnum_numericInfo1 = containsEnum(numericInfo);
@@ -320,14 +318,4 @@ public class SearchResultScorer {
 		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
 
-	private static List<String> extractNumbers (String string) {
-		Pattern p = Pattern.compile(DaraLinker.numberRegex);
-		Matcher matcher = p.matcher(string);
-		List<String> numericInfo = new ArrayList<String>();
-		while (matcher.find()) {
-			// remove "." and "," if not followed by any number (1. -> 1; 1.0 -> 1.0)
-	        numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
-	    }
-		return numericInfo;
-	}
 }

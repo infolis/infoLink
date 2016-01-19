@@ -10,6 +10,7 @@ import io.github.infolis.model.MetaDataExtractingStrategy;
 /**
  *
  * @author domi
+ * @author kata
  */
 public class MetaDataExtractorTest extends InfolisBaseTest {
 

@@ -10,25 +10,13 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author domi
+ * @author kata
+ * 
  */
 public class NumericInformationExtractor {
 
-    private static final long maxTimeMillis = 75000;
-
-    public static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
-    public static final String yearRegex = "(\\d{4})";
-    public static final String yearAbbrRegex = "('\\d\\d)";
-    public static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes
-    // yearRegex
-    public static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
-
-    public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
-    public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
-    public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
-
     public static String getNumericInfo(String title) {
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(complexNumericInfoRegex), title, maxTimeMillis, title + "\n" + complexNumericInfoRegex);
+        LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(RegexUtils.complexNumericInfoRegex), title, RegexUtils.maxTimeMillis, title + "\n" + RegexUtils.complexNumericInfoRegex);
         ltm.run();
         if (!ltm.finished()) {
             // TODO: what to do if search was aborted?
@@ -39,8 +27,12 @@ public class NumericInformationExtractor {
         return null;
     }
 
-    public static List<String> extractNumericInfoFromTextRef(TextualReference context) {
+    public static List<String> extractNumericInfo(TextualReference context) {
         List<String> numericInfo = new ArrayList<>();
+        // 1. prefer mentions found inside of term
+     	// 2. prefer mentions found in right context
+     	// 3. accept mentions found in left context
+     	// TODO: better heuristic for choosing best numeric info item? Adjustable depending on language?
         for (String string : Arrays.asList(context.getReference(), context.getRightText(), context.getLeftText())) {
             String year = NumericInformationExtractor.getNumericInfo(string);
             if (year != null) {
@@ -50,8 +42,8 @@ public class NumericInformationExtractor {
         return numericInfo;
     }
 
-    public static List<String> extractNumbersFromString(String string) {
-        Pattern p = Pattern.compile(numberRegex);
+    public static List<String> extractNumbers(String string) {
+        Pattern p = Pattern.compile(RegexUtils.numberRegex);
         Matcher matcher = p.matcher(string);
         List<String> numericInfo = new ArrayList<>();
         while (matcher.find()) {

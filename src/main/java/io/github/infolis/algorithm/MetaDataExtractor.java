@@ -3,99 +3,82 @@ package io.github.infolis.algorithm;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.SearchQuery;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.NumericInformationExtractor;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 
+ * @author kata
  *
- * @author domi
  */
 public class MetaDataExtractor extends BaseAlgorithm {
 
     public MetaDataExtractor(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
-
     private static final Logger log = LoggerFactory.getLogger(MetaDataExtractor.class);
 
-    //methods from DataLinker to extract dates etc.
     @Override
     public void execute() throws IOException {
 
         String tr = getExecution().getTextualReferences().get(0);
-        MetaDataExtractingStrategy strat = getExecution().getMetaDataExtractingStrategy();
-
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 
-        debug(log, "Start to build query from textual reference %s", ref);
-
-        String query = extractQuery(ref,strat);
-        if (query == null || query.isEmpty()) {
-            debug(log, "could not create a query");
-            getExecution().setStatus(ExecutionStatus.FAILED);
+        debug(log, "Extracting metadata from textual reference %s", ref);
+        Entity entity = extractMetadata(ref);
+        
+        if ((null == entity.getName() || entity.getName().isEmpty()) &&
+        	entity.getNumericInfo().isEmpty() &&
+        	(null == entity.getIdentifier() || entity.getIdentifier().isEmpty()) &&
+        	(null == entity.getURL() || entity.getURL().isEmpty())) {
+        	error(log, "Could not extract metadata for reference: " + ref);
+        	getExecution().setStatus(ExecutionStatus.FAILED);
             return;
         }
-        SearchQuery squery = new SearchQuery();
-        squery.setQuery(query);
-        getOutputDataStoreClient().post(SearchQuery.class, squery);
-        getExecution().setSearchQuery(squery.getUri());
+        getOutputDataStoreClient().post(Entity.class, entity);
+        getExecution().setLinkedEntities(Arrays.asList(entity.getUri()));
         getExecution().setStatus(ExecutionStatus.FINISHED);
         persistExecution();
     }
-
+    
     /**
-     * Extract a query (SOLR based syntax) with information contained in the
-     * context like date information or version.
-     *
-     * @param ref
-     * @param strat
-     * @return
+     * Extracts metadata from a TextualReference object and returns a corresponding Entity.
+     *  
+     * @param ref the textual reference
+     * @return	an entity representing the extracted information
      */
-    public String extractQuery(TextualReference ref, MetaDataExtractingStrategy strat) {
-        String finalQuery = "?q=";
-        String name;
-        if (RegexUtils.ignoreStudy(ref.getReference())) {
-            return null;
-        }
-        switch (strat) {
-            case title:
-                List<String> numericInfo = NumericInformationExtractor.extractNumericInfo(ref);
-                name = ref.getReference().replaceAll("[^a-zA-Z]", "");
+    public Entity extractMetadata(TextualReference ref) {
+    	if (RegexUtils.ignoreStudy(ref.getReference())) return null;
 
-                if (name != null && !name.isEmpty()) {
-                    finalQuery += "title:" + name + "&";
-                }
-                //TODO results are ordered by their positions
-                // use priority here?
-                if (numericInfo.size() > 0) {
-                    for (String numInf : numericInfo) {
-                        finalQuery += "?date:" + numInf + "&";
-                    }
-                }
-                finalQuery = finalQuery.substring(0, finalQuery.lastIndexOf("&"));
-                break;
-            case doi:
-                name = ref.getReference();
-                finalQuery += "doi:" + name;
-                break;
-			case bibliography:
-				break;
-			case urn:
-				break;
-			default:
-				break;
+    	Entity entity = new Entity();
+    	//TODO: NumericInformationExtractor -> InformationExtractor...
+        List<String> numericInfo = NumericInformationExtractor.extractNumericInfo(ref);
+        String name = ref.getReference().replaceAll("[^a-zA-Z]", "");
+        
+        if (name != null && !name.isEmpty()) entity.setName(name);
+       
+        if (!numericInfo.isEmpty()) {
+            for (String numInf : numericInfo) {
+              	entity.addNumericInfo(numInf);
+            }
+            //TODO make priorities configurable...
+            String bestNumInfo = NumericInformationExtractor.getBestNumericInfo(numericInfo);
+            entity.setNumber(bestNumInfo);
         }
-        //TODO: author of publications? other information?
-        return finalQuery;
+        
+        entity.setIdentifier(NumericInformationExtractor.extractDOI(ref));
+        entity.setURL(NumericInformationExtractor.extractURL(ref));
+        //TODO entity.setCreator(InformationExtractor.extractCreator(ref));
+        return entity;	
     }
 
     @Override

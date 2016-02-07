@@ -15,28 +15,55 @@ import java.util.regex.Pattern;
  */
 public class NumericInformationExtractor {
 
-    public static String getNumericInfo(String title) {
+    public static List<String> getNumericInfo(String title) {
+    	List<String> numericInfo = new ArrayList<>();
         LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(RegexUtils.complexNumericInfoRegex), title, RegexUtils.maxTimeMillis, title + "\n" + RegexUtils.complexNumericInfoRegex);
         ltm.run();
         if (!ltm.finished()) {
             // TODO: what to do if search was aborted?
         }
         while (ltm.finished() && ltm.matched()) {
-            return ltm.group();
+        	if (!"".equals(extractDOI(ltm.group()))) {
+        		numericInfo.add(ltm.group());
+        	}
+        	ltm.run();
         }
-        return null;
+        return numericInfo;
+    }
+    
+    public static String getBestNumericInfo(List<String> numericInfo) {
+    	//prefer years to abbreviated years to numbers
+    	//prefer position: term to right context to left context
+    	for (String numInfo : numericInfo) {
+    		Pattern yearPat = Pattern.compile(RegexUtils.yearRegex);
+    		Matcher matcher = yearPat.matcher(numInfo);
+    		if (matcher.find()) return numInfo;
+    	}
+    	for (String numInfo : numericInfo) {
+    		Pattern yearPat = Pattern.compile(RegexUtils.yearAbbrRegex);
+    		Matcher matcher = yearPat.matcher(numInfo);
+    		if (matcher.find()) return numInfo;
+    	}
+    	return numericInfo.get(0);
     }
 
+    // TODO: make priorities adjustable (depends on language: e.g. left context is more useful in English, 
+    //right context more useful in German)
+    /**
+     * Extracts all numeric information and orders them according to confidence level:
+     * high confidence: numeric information found in term
+     * modest confidence: numeric information found in left context
+     * low confidence: numeric information found in right context
+     * 
+     * @param context
+     * @return
+     */
     public static List<String> extractNumericInfo(TextualReference context) {
-        List<String> numericInfo = new ArrayList<>();
-        // 1. prefer mentions found inside of term
-     	// 2. prefer mentions found in right context
-     	// 3. accept mentions found in left context
-     	// TODO: better heuristic for choosing best numeric info item? Adjustable depending on language?
+    	List<String> numericInfo = new ArrayList<>();
         for (String string : Arrays.asList(context.getReference(), context.getRightText(), context.getLeftText())) {
-            String year = NumericInformationExtractor.getNumericInfo(string);
-            if (year != null) {
-                numericInfo.add(year);
+        	List<String> numericInfoInString = NumericInformationExtractor.getNumericInfo(string);
+            if (!numericInfoInString.isEmpty()) {
+                numericInfo.addAll(numericInfoInString);
             }
         }
         return numericInfo;
@@ -51,6 +78,24 @@ public class NumericInformationExtractor {
             numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
         }
         return numericInfo;
+    }
+    
+  //TODO implement
+    public static String extractDOI(String string) {
+    	String doi = "";
+    	return null;
+    }
+    
+    //TODO implement
+    public static String extractDOI(TextualReference ref) {
+    	String doi = "";
+    	return null;
+    }
+    
+  //TODO implement
+    public static String extractURL(TextualReference ref) {
+    	String url = "";
+    	return null;
     }
 
 }

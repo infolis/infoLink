@@ -96,6 +96,18 @@ public abstract class SearchResultRanker extends BaseAlgorithm {
         return resultMap;
     }
     
+    public Map<SearchResult, Double> getMatchingSearchResults(Map<SearchResult, Double> scoreMap, double threshold) {
+        log.debug("Selecting all search results with score above or equal to threshold");
+        Map<SearchResult, Double> resultMap = new HashMap<>();
+        for (SearchResult sr : scoreMap.keySet()) {
+        	log.debug("Score for search result " + sr.getUri() + ": " + scoreMap.get(sr));
+            if (scoreMap.get(sr) >= threshold) {
+            	resultMap.put(sr, scoreMap.get(sr));
+            }
+        }
+        return resultMap;
+    }
+    
     public List<String> createLinks(TextualReference textRef, Map<SearchResult, Double> scoreMap) {
     	List<String> entityLinks = new ArrayList<>();
     	for (SearchResult searchResult : scoreMap.keySet()) {

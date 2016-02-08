@@ -44,6 +44,7 @@ public class InformationExtractor {
     		Matcher matcher = yearPat.matcher(numInfo);
     		if (matcher.find()) return numInfo;
     	}
+    	if (numericInfo.isEmpty()) return "";
     	return numericInfo.get(0);
     }
 

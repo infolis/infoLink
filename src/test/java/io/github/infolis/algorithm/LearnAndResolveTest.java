@@ -56,6 +56,7 @@ public class LearnAndResolveTest extends InfolisBaseTest {
 		HTMLQueryService queryService = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
 		queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
+        execution.setSearchResultRankerClass(BestMatchRanker.class);
 		execution.setQueryServices(Arrays.asList(queryService.getUri()));
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		for (String textRefUri: execution.getTextualReferences()) {

@@ -71,6 +71,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     		exec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
     	}
     	exec.setTextualReferences(textualRefs);
+    	exec.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
     	exec.setAlgorithm(ReferenceResolver.class);
     	exec.instantiateAlgorithm(this).run();
     	updateProgress(2, 2);
@@ -92,14 +93,17 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
             throw new IllegalArgumentException("No patterns given.");
         }
         boolean queryServiceSet = false;
-        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
+        if (null != exec.getQueryServiceClasses() && !exec.getQueryServiceClasses().isEmpty()) {
             queryServiceSet = true;
         }
-		if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
+		if (null != exec.getQueryServices() && !exec.getQueryServices().isEmpty()) {
             queryServiceSet = true;
 		}
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
+		if (null == exec.getSearchResultRankerClass()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultRankerClass", "Required parameter 'SearchResultRankerClass' is missing!");
+		}
     }
 }

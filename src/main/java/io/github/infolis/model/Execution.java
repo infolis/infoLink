@@ -3,6 +3,7 @@ package io.github.infolis.model;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
+import io.github.infolis.algorithm.SearchResultRanker;
 import io.github.infolis.algorithm.SearchTermPosition;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
@@ -321,16 +322,11 @@ public class Execution extends BaseModel {
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
 	/**
-         * When resolving the detected meta data by searching in repositories,
-         * we need to know what we search for. The different strategies are:         
-         * title, doi, urn, bibliography.
-         * If we chose for example title, we search the meta data within the 
-         * title field in a repository.
-         * Default: MetaDataExtractingStrategy.title
-         * 
-	 * {@link MetaDataExtractingStrategy} {@link MetaDataResolver}
+	 * The searchResultRankerClass determines the SearchResultRanker to 
+	 * use. That class is responsible for deciding which SearchResults to 
+	 * select for creating links.
 	 */
-	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
+	private Class<? extends SearchResultRanker> searchResultRankerClass;
         
 	/**
          * As a final step, links between the texts and the discovered
@@ -661,14 +657,14 @@ public class Execution extends BaseModel {
 	public void setLinks(List<String> links) {
 		this.links = links;
 	}
-
-    public MetaDataExtractingStrategy getMetaDataExtractingStrategy() {
-        return metaDataExtractingStrategy;
-    }
-
-    public void setMetaDataExtractingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
-        this.metaDataExtractingStrategy = metaDataExtractingStrategy;
-    }
+	
+	public Class<? extends SearchResultRanker> getSearchResultRankerClass() {
+		return this.searchResultRankerClass;
+	}
+	
+	public void setSearchResultRankerClass (Class<? extends SearchResultRanker> searchResultRankerClass) {
+		this.searchResultRankerClass = searchResultRankerClass;
+	}
 
     public List<String> getLinkedEntities() {
         return linkedEntities;

@@ -1,12 +1,18 @@
 package io.github.infolis.resolve;
 
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.resolve.QueryServiceTest.ExpectedOutput;
 import io.github.infolis.resolve.SolrQueryService;
+import io.github.infolis.resolve.QueryService.QueryField;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.json.Json;
@@ -22,7 +28,7 @@ import org.junit.Test;
  * @author kata
  * 
  */
-public class SolrQueryServiceTest extends QueryServiceTest {
+public class SolrQueryServiceTest {
 
 	public static Set<ExpectedOutput> getExpectedOutput() {
 		Set<ExpectedOutput> expectedOutput = DaraSolrQueryServiceTest.getExpectedOutput();
@@ -32,10 +38,14 @@ public class SolrQueryServiceTest extends QueryServiceTest {
 	
    
     @Test
-    public void testAdaptQuery() {
+    public void testCreateQuery() throws MalformedURLException {
         SolrQueryService queryService = new SolrQueryService("http://www.da-ra.de/solr/dara/", 0.5);
-        String query = queryService.adaptQuery("?q=title:Studierendensurvey");
-        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey&start=0&rows=10&fl=doi,title&wt=json", query);
+        Entity entity = new Entity();
+        entity.setName("Studierendensurvey");
+        Set<QueryField> queryStrategy = new HashSet<>();
+        queryStrategy.add(QueryField.title);
+        queryService.setQueryStrategy(queryStrategy);
+        Assert.assertEquals(new URL("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey&start=0&rows=1000&fl=doi,title&wt=json"), queryService.createQuery(entity));
     }
 
     @Test

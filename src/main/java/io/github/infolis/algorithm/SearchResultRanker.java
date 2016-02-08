@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
@@ -12,6 +13,7 @@ import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.resolve.SearchResultScorer;
+import io.github.infolis.resolve.QueryService.QueryField;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ public abstract class SearchResultRanker extends BaseAlgorithm {
 	private static final Logger log = LoggerFactory.getLogger(SearchResultRanker.class);
 	// weight for number-based score, weight for reliability of QueryService, weight for list index
 	private int[] weights = {1, 1, 1};
+	Set<QueryField> queryStrategy;
 
     public SearchResultRanker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -42,6 +45,14 @@ public abstract class SearchResultRanker extends BaseAlgorithm {
     
     public void setWeightForListIndex(int weight) {
     	weights[2] = weight;
+    }
+    
+    public void setQueryStrategy(Set<QueryField> queryStrategy) {
+    	this.queryStrategy = queryStrategy;
+    }
+    
+    public Set<QueryField> getQueryStrategy() {
+    	return this.queryStrategy;
     }
 
     public Map<SearchResult, Double> rankResults(TextualReference textRef) {

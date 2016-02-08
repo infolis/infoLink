@@ -61,6 +61,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
         e.setAlgorithm(ApplyPatternAndResolve.class);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
+        e.setSearchResultRankerClass(BestMatchRanker.class);
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         for (String ref : e.getTextualReferences()) {

@@ -46,6 +46,7 @@ public class LearnAndResolve extends BaseAlgorithm {
 	
 	private Execution createLinks(Execution learnExec) {
 		Execution linkExec = new Execution();
+		linkExec.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
 		linkExec.setAlgorithm(ReferenceResolver.class);
 		linkExec.setInputFiles(getExecution().getInputFiles());
 		

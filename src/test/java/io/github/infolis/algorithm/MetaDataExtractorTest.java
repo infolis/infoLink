@@ -138,13 +138,13 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("Eurobarometer", entity.getName());
         assertEquals(new HashSet<>(Arrays.asList("2", "56.1")), new HashSet<>(entity.getNumericInfo()));
         assertEquals("56.1", entity.getNumber());
-        assertEquals(null, entity.getIdentifier());
-        assertEquals(null, entity.getURL());
+        assertEquals("", entity.getIdentifier());
+        assertEquals("", entity.getURL());
         
         entity = mde.extractMetadata(new TextualReference("the reference to the 2nd wave of the", "10.4232/1.2525", "2000 is to be extracted as", "document", "pattern","ref"));
-        assertEquals(null, entity.getName());
-        //assertEquals(new HashSet<>(Arrays.asList("2", "10.4232/1.2525", "2000")), new HashSet<>(entity.getNumericInfo()));
-        //assertEquals("2000", entity.getNumber());
-        //assertEquals("10.4232/1.2525", entity.getIdentifier());
+        assertEquals("", entity.getName());
+        assertEquals(new HashSet<>(Arrays.asList("2", "2000")), new HashSet<>(entity.getNumericInfo()));
+        assertEquals("2000", entity.getNumber());
+        assertEquals("10.4232/1.2525", entity.getIdentifier());
     }
 }

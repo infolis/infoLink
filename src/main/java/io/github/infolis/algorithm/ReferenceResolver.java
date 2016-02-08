@@ -38,14 +38,15 @@ public class ReferenceResolver extends BaseAlgorithm {
 
 	    for (String s : textualReferences) {
 	    	debug(log, "Resolving TextualReference " + s);
-	        String searchQuery = extractMetaData(s);
-	        debug(log, "Extracted metadata from reference. SearchQuery for QueryService: " + searchQuery);
+	        String referencedEntity = extractMetaData(s);
+	        debug(log, "Extracted metadata from reference");
+	        
 	        List<String> searchRes = new ArrayList<>();
 	        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
-	            searchRes = searchClassInRepositories(searchQuery, queryServiceClasses);
+	            searchRes = searchClassInRepositories(referencedEntity, queryServiceClasses);
 	        }
 	        if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
-	            searchRes = searchInRepositories(searchQuery, queryServices);
+	            searchRes = searchInRepositories(referencedEntity, queryServices);
 	        }
 	        if (searchRes.size() > 0) {
 	        	entityLinks.addAll(createLinks(searchRes, s));
@@ -60,13 +61,16 @@ public class ReferenceResolver extends BaseAlgorithm {
         extract.setTextualReferences(textRefs);
         getOutputDataStoreClient().post(Execution.class, extract);
         extract.instantiateAlgorithm(this).run();
+        String entityUri = extract.getLinkedEntities().get(0);
         updateProgress(1, 3);
-        return extract.getSearchQuery();
+        return entityUri;
     }
 
-    public List<String> searchInRepositories(String query, List<String> queryServices) {
+    //TODO call referenceResolver on list of entites?
+    public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
-        searchRepo.setSearchQuery(query);
+        searchRepo.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
+        searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
@@ -75,10 +79,10 @@ public class ReferenceResolver extends BaseAlgorithm {
         return searchRepo.getSearchResults();
     }
 
-    public List<String> searchClassInRepositories(String query, List<Class<? extends QueryService>> queryServices) {
-    	debug(log, "Searching in repository for query: " + query);
-        Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);;
-        searchRepo.setSearchQuery(query);
+    public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices) {
+        Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
+        searchRepo.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
+        searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServiceClasses(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
@@ -87,21 +91,18 @@ public class ReferenceResolver extends BaseAlgorithm {
         return searchRepo.getSearchResults();
     }
 
+    // TODO searchResultRanker -> searchResultLinker?
     public List<String> createLinks(List<String> searchResults, String textRef) {
-        //Execution resolve = getExecution().createSubExecution(Resolver.class);
-    	//TODO: which Ranker to use? -> param
-    	//TODO: BestMatchRanker requires QueryService to search for date as well...
-    	//MultiMatchesRanker: search only for title without date
-    	Execution resolve = getExecution().createSubExecution(MultiMatchesRanker.class);
-        resolve.setSearchResults(searchResults);
+    	Execution linker = getExecution().createSubExecution(getExecution().getSearchResultRankerClass());
+    	linker.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
-        resolve.setTextualReferences(textRefs);
-        getOutputDataStoreClient().post(Execution.class, resolve);
-        debug(log, "Resolving " + searchResults.size() + " search results for textual references: " + textRef);
-        resolve.instantiateAlgorithm(this).run();
+        linker.setTextualReferences(textRefs);
+        getOutputDataStoreClient().post(Execution.class, linker);
+        debug(log, "Creating links based on " + searchResults.size() + " search results for textual references: " + textRef);
+        linker.instantiateAlgorithm(this).run();
         updateProgress(3, 3);
-        debug(log, "Returning links: " + resolve.getLinks());
-        return resolve.getLinks();
+        debug(log, "Returning links: " + linker.getLinks());
+        return linker.getLinks();
     }
 
     
@@ -125,6 +126,9 @@ public class ReferenceResolver extends BaseAlgorithm {
         }
 		if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
+		}
+		if (null == getExecution().getSearchResultRankerClass()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultRankerClass", "Required parameter 'SearchResultRankerClass' is missing!");
 		}
 	}
 }

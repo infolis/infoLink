@@ -1,5 +1,9 @@
 {
 "algorithm":"io.github.infolis.algorithm.FederatedSearcher",
-"searchQuery": "foo",
+"linkedEntities": 
+    [
+        {"name": "foo"}
+    ],
+"searchResultRankerClass":"io.github.infolis.algorithm.BestMatchRanker",
 "queryServiceClasses":["DaraHTMLQueryService","io.github.infolis.resolve.DaraSolrQueryService"]
 }

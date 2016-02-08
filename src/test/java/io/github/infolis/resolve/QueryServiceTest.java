@@ -3,8 +3,9 @@ package io.github.infolis.resolve;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.FederatedSearcher;
+import io.github.infolis.algorithm.SearchResultRanker;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.SearchQuery;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
 
 import java.io.IOException;
@@ -35,12 +36,14 @@ public class QueryServiceTest extends InfolisBaseTest {
 	
 	static class ExpectedOutput {
 		QueryService queryService;
-		SearchQuery searchQuery;
+		Entity entity;
 		Map<String, String> doiTitleMap;
+		Class<? extends SearchResultRanker> searchResulterRankerClass;
 		
-		ExpectedOutput(QueryService queryService, SearchQuery searchQuery, Map<String, String> doiTitleMap) {
+		ExpectedOutput(QueryService queryService, Entity entity, Class<? extends SearchResultRanker> searchResulterRankerClass, Map<String, String> doiTitleMap) {
 			this.queryService = queryService;
-			this.searchQuery = searchQuery;
+			this.entity = entity;
+			this.searchResulterRankerClass = searchResulterRankerClass;
 			this.doiTitleMap = doiTitleMap;
 		}
 		
@@ -48,8 +51,12 @@ public class QueryServiceTest extends InfolisBaseTest {
 			return this.queryService;
 		}
 		
-		SearchQuery getSearchQuery() {
-			return this.searchQuery;
+		Entity getEntity() {
+			return this.entity;
+		}
+		
+		Class<? extends SearchResultRanker> getSearchResulterRankerClass() {
+			return this.searchResulterRankerClass;
 		}
 		
 		Map<String, String> getDoiTitleMap() {
@@ -69,15 +76,16 @@ public class QueryServiceTest extends InfolisBaseTest {
     public void testQueryService() throws IOException {
     	Map<String, String> doiTitleMap = new HashMap<>();
         for (ExpectedOutput expectedOutputItem : expectedOutput) {
-        	SearchQuery searchQuery = expectedOutputItem.getSearchQuery();
-        	dataStoreClient.post(SearchQuery.class, searchQuery);
+        	Entity entity = expectedOutputItem.getEntity();
+        	dataStoreClient.post(Entity.class, entity);
         	QueryService queryService = expectedOutputItem.getQueryService();
         	dataStoreClient.post(QueryService.class, queryService);
 
         	Execution execution = new Execution();
         	execution.setAlgorithm(FederatedSearcher.class);
-        	execution.setSearchQuery(searchQuery.getUri());
+        	execution.setLinkedEntities(Arrays.asList(entity.getUri()));
         	execution.setQueryServices(Arrays.asList(queryService.getUri()));
+        	execution.setSearchResultRankerClass(expectedOutputItem.getSearchResulterRankerClass());
         	execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 
         	List<String> searchResultURIs = execution.getSearchResults();

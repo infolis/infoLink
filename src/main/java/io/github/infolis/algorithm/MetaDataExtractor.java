@@ -64,7 +64,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         List<String> numericInfo = NumericInformationExtractor.extractNumericInfo(ref);
         String name = ref.getReference().replaceAll("[^a-zA-Z]", "");
         
-        if (name != null && !name.isEmpty()) entity.setName(name);
+        entity.setName(name);
        
         if (!numericInfo.isEmpty()) {
             for (String numInf : numericInfo) {

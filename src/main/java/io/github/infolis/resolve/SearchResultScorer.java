@@ -35,6 +35,8 @@ public class SearchResultScorer {
         	targetCandidate.setNumericInformation(InformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
         }
         List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
+        if (targetCandidate.getNumericInformation().isEmpty()) return 0.5;
+        if (textRefNumInfoList.isEmpty()) return 0.7;
         for (String textRefNumInfo : textRefNumInfoList) {
             for (String targetCandidateNumInfo : targetCandidateNumInfoList) {
                 if (numericInfoMatches(textRefNumInfo, targetCandidateNumInfo)) {

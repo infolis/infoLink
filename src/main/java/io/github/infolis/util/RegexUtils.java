@@ -40,10 +40,12 @@ public class RegexUtils {
 	// list of symbols to be treated as enumerators. Useful for querying textual references
 	// TODO this feature seems to have been lost during refactoring of the matcher classes. Restore!
 	public static final String[] enumeratorList = {",", ";", "/", "\\\\"};
-	// regex for extracting URLs
-	// TODO this feature seems to have been lost during refactoring. Restore!
-	public static final String urlPatString = "((\\w+?://)|(www.*?\\.)).+\\.[a-zA-Z][a-zA-Z][a-zA-Z]*";
-	public static final Pattern urlPat = Pattern.compile(urlPatString);
+	// regex for extracting DOIs
+    public static final String doiRegex = "10\\.\\d+?/\\S+";
+    // regex for extracting URLs
+    public static String httpRegex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+    public static String wwwRegex = "www\\d?\\..*?\\.[^\\d\\s]+";
+    public static String urlRegex = "((" + httpRegex + ")|(" + wwwRegex + "))";
 
 	// regex for extracting named entities
 	// restricts names to contain at most 5 words (and at least 3 characters)

@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * @author kata
  * 
  */
-public class NumericInformationExtractor {
+public class InformationExtractor {
 
     public static List<String> getNumericInfo(String title) {
     	List<String> numericInfo = new ArrayList<>();
@@ -61,7 +61,7 @@ public class NumericInformationExtractor {
     public static List<String> extractNumericInfo(TextualReference context) {
     	List<String> numericInfo = new ArrayList<>();
         for (String string : Arrays.asList(context.getReference(), context.getRightText(), context.getLeftText())) {
-        	List<String> numericInfoInString = NumericInformationExtractor.getNumericInfo(string);
+        	List<String> numericInfoInString = InformationExtractor.getNumericInfo(string);
             if (!numericInfoInString.isEmpty()) {
                 numericInfo.addAll(numericInfoInString);
             }

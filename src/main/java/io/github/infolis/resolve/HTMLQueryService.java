@@ -2,7 +2,7 @@ package io.github.infolis.resolve;
 
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.InformationExtractor;
 import io.github.infolis.util.URLParamEncoder;
 
 import java.io.IOException;
@@ -173,7 +173,7 @@ public class HTMLQueryService extends QueryService {
             }
             //create the search result
             log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
-            List<String> numericInfo = NumericInformationExtractor.getNumericInfo(title);
+            List<String> numericInfo = InformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
             sr.setIdentifier(identifier);
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));

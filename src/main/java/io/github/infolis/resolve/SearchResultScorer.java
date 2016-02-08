@@ -2,7 +2,7 @@ package io.github.infolis.resolve;
 
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.InformationExtractor;
 import io.github.infolis.util.RegexUtils;
 
 import java.util.Arrays;
@@ -30,9 +30,9 @@ public class SearchResultScorer {
      * @return
      */
     public static double computeScoreBasedOnNumbers(TextualReference reference, SearchResult targetCandidate) {
-        List<String> textRefNumInfoList = NumericInformationExtractor.extractNumericInfo(reference);
+        List<String> textRefNumInfoList = InformationExtractor.extractNumericInfo(reference);
         if(targetCandidate.getNumericInformation() == null || targetCandidate.getNumericInformation().isEmpty()) {
-        	targetCandidate.setNumericInformation(NumericInformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
+        	targetCandidate.setNumericInformation(InformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
         }
         List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
         for (String textRefNumInfo : textRefNumInfoList) {
@@ -187,8 +187,8 @@ public class SearchResultScorer {
 		// for study references without any specified years / numbers, accept all candidates
 		// TODO: match to higher order entity according to dataset ontology (study, not dataset)
 		if (numericInfo == null || string == null) return true;
-		List<String> numericInfo1 = NumericInformationExtractor.extractNumbers(numericInfo);
-		List<String> numericInfo2 = NumericInformationExtractor.extractNumbers(string);
+		List<String> numericInfo1 = InformationExtractor.extractNumbers(numericInfo);
+		List<String> numericInfo2 = InformationExtractor.extractNumbers(string);
 		boolean containsRange_numericInfo1 = containsRange(numericInfo);
 		boolean containsRange_numericInfo2 = containsRange(string);
 		boolean containsEnum_numericInfo1 = containsEnum(numericInfo);

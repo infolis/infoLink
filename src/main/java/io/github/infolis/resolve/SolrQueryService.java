@@ -12,7 +12,7 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.InformationExtractor;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -138,7 +138,7 @@ public class SolrQueryService extends QueryService {
                 for (int i = 0; i < titles.size(); i++) {
                 	// remove " at beginning and end of title
                     String title = titles.get(i).toString().substring(1, titles.get(i).toString().length()-1);
-                    List<String> numericInfo = NumericInformationExtractor.getNumericInfo(title);
+                    List<String> numericInfo = InformationExtractor.getNumericInfo(title);
                     sr.addTitle(title);
                     for (String num : numericInfo) sr.addNumericInformation(num);                    
                 }              

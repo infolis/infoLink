@@ -5,7 +5,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.InformationExtractor;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
@@ -60,8 +60,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
     	if (RegexUtils.ignoreStudy(ref.getReference())) return null;
 
     	Entity entity = new Entity();
-    	//TODO: NumericInformationExtractor -> InformationExtractor...
-        List<String> numericInfo = NumericInformationExtractor.extractNumericInfo(ref);
+        List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);
         String name = ref.getReference().replaceAll("[^a-zA-Z]", "");
         
         entity.setName(name);
@@ -71,12 +70,12 @@ public class MetaDataExtractor extends BaseAlgorithm {
               	entity.addNumericInfo(numInf);
             }
             //TODO make priorities configurable...
-            String bestNumInfo = NumericInformationExtractor.getBestNumericInfo(numericInfo);
+            String bestNumInfo = InformationExtractor.getBestNumericInfo(numericInfo);
             entity.setNumber(bestNumInfo);
         }
         
-        entity.setIdentifier(NumericInformationExtractor.extractDOI(ref));
-        entity.setURL(NumericInformationExtractor.extractURL(ref));
+        entity.setIdentifier(InformationExtractor.extractDOI(ref));
+        entity.setURL(InformationExtractor.extractURL(ref));
         //TODO entity.setCreator(InformationExtractor.extractCreator(ref));
         return entity;	
     }

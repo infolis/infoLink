@@ -65,7 +65,7 @@ public abstract class SearchResultRanker extends BaseAlgorithm {
             counter++;
             double confidenceValue = 0.0;
             log.debug("Computing score based on numbers. Weight: " + weights[0]);
-            confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
+            if (0 != weights[0]) confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
             //TODO FIX
             //log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
             //confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();

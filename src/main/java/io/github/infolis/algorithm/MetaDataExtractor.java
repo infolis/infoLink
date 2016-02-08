@@ -65,14 +65,12 @@ public class MetaDataExtractor extends BaseAlgorithm {
         
         entity.setName(name);
        
-        if (!numericInfo.isEmpty()) {
-            for (String numInf : numericInfo) {
-              	entity.addNumericInfo(numInf);
-            }
-            //TODO make priorities configurable...
-            String bestNumInfo = InformationExtractor.getBestNumericInfo(numericInfo);
-            entity.setNumber(bestNumInfo);
+        for (String numInf : numericInfo) {
+           	entity.addNumericInfo(numInf);
         }
+        //TODO make priorities configurable...
+        String bestNumInfo = InformationExtractor.getBestNumericInfo(numericInfo);
+        entity.setNumber(bestNumInfo);
         
         entity.setIdentifier(InformationExtractor.extractDOI(ref));
         entity.setURL(InformationExtractor.extractURL(ref));

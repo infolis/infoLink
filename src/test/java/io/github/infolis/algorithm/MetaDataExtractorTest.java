@@ -146,5 +146,11 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals(new HashSet<>(Arrays.asList("2", "2000")), new HashSet<>(entity.getNumericInfo()));
         assertEquals("2000", entity.getNumber());
         assertEquals("10.4232/1.2525", entity.getIdentifier());
+        
+        entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", "document", "pattern","ref"));
+        assertEquals("Studierendensurvey", entity.getName());
+        assertEquals(new HashSet<>(Arrays.asList()), new HashSet<>(entity.getNumericInfo()));
+        assertEquals("", entity.getNumber());
+        assertEquals("", entity.getIdentifier());
     }
 }

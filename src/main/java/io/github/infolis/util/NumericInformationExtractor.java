@@ -23,7 +23,7 @@ public class NumericInformationExtractor {
             // TODO: what to do if search was aborted?
         }
         while (ltm.finished() && ltm.matched()) {
-        	if (!"".equals(extractDOI(ltm.group()))) {
+        	if ("".equals(extractRegex(RegexUtils.doiRegex, ltm.group()))) {
         		numericInfo.add(ltm.group());
         	}
         	ltm.run();
@@ -80,22 +80,32 @@ public class NumericInformationExtractor {
         return numericInfo;
     }
     
-  //TODO implement
-    public static String extractDOI(String string) {
-    	String doi = "";
-    	return null;
-    }
-    
-    //TODO implement
     public static String extractDOI(TextualReference ref) {
-    	String doi = "";
-    	return null;
+    	for (String string : Arrays.asList(ref.getReference(), ref.getRightText(), ref.getLeftText())) {
+    		String doi = extractRegex(RegexUtils.doiRegex, string);
+    		if (!"".equals(doi)) return doi;
+    	}
+    	return "";
     }
     
-  //TODO implement
+    public static String extractRegex(String regex, String string) {
+        LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(regex), string, RegexUtils.maxTimeMillis, string + "\n" + regex);
+        ltm.run();
+        if (!ltm.finished()) {
+            // TODO: what to do if search was aborted?
+        }
+        while (ltm.finished() && ltm.matched()) {
+        	return ltm.group();
+        }
+        return "";
+    }
+    
     public static String extractURL(TextualReference ref) {
-    	String url = "";
-    	return null;
+    	for (String string : Arrays.asList(ref.getReference(), ref.getRightText(), ref.getLeftText())) {
+    		String url = extractRegex(RegexUtils.urlRegex, string);
+    		if (!"".equals(url)) return url;
+    	}
+    	return "";
     }
 
 }

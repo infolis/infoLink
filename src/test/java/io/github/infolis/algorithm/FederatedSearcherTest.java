@@ -32,7 +32,6 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         dataStoreClient.post(Entity.class, entity);
         execution.setLinkedEntities(Arrays.asList(entity.getUri()));
         HTMLQueryService queryService = new DaraHTMLQueryService();
-        //SolrQueryService queryService = new DaraSolrQueryService();
         queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
         execution.setQueryServices(Arrays.asList(queryService.getUri()));

@@ -54,33 +54,28 @@ public class HTMLQueryService extends QueryService {
      * Constructs a search URL from the base URL and the query.
      *
      * @param title	the query term
+     * @param pubDate the publication date
+     * @param doi the doi
      * @param maxNumber	the maximum number of hits to be displayed
+     * @param resourceType type of the resource (e.g. dataset of text)
      * @return	the query URL
      * @throws MalformedURLException
      */
-    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber) throws MalformedURLException {
-        try {
-        	String query = String.format("%s?title=%s&publicationDate=%s&doi=%s&max=%s&lang=de",
-                    this.target,
-                    // URLEncoder transforms plain text into the application/x-www-form-urlencoded MIME format
-                    // as described in the HTML specification (GET-style URLs or POST forms)
-                    // does not work with the new dara search function
-                    //URLEncoder.encode(searchTerm, "UTF-8"),
-                    URLParamEncoder.encode(title),
-                    pubDate,
-                    doi,
-                    String.valueOf(maxNumber));
-        	// overlapping matches possible for all optional parameters
-        	for (int i = 0; i<2; i++) query = query.replaceAll("&.*?=&", "&");
-        	if (title.isEmpty()) query = query.replaceAll("title=&", "");
-        	return new URL(query);
-        } catch (UnsupportedEncodingException e) {
-            log.debug(e.getMessage());
-            String query = String.format("%s?title=%s&publicationDate=%s&doi=%s&max=%s&lang=de", 
-            		this.target, title, pubDate, doi, String.valueOf(maxNumber));
-            query = query.replaceAll("&.*?=&", "&");
-            return new URL(query);
+    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber, String resourceType) throws MalformedURLException {
+    	String remainder = "&lang=en&mdlang=de&max=" + maxNumber;
+        String query = "?q=";
+        if (!title.isEmpty()) {
+        	try {
+        		query += "title:" + URLParamEncoder.encode(title);
+        	} catch (UnsupportedEncodingException e) {
+        		query += "title:" + title;
+        	}
         }
+        if (!pubDate.isEmpty()) query += " +publicationDate:" + pubDate;
+        if (!doi.isEmpty()) query += " +doi:" + doi;
+        if (!pubDate.isEmpty()) query += " +resourceType:" + resourceType;
+        query = query.replaceAll("= \\+", "");
+        return new URL(target + query + remainder);
     }
 
     public URL createQuery(Entity entity) throws MalformedURLException {
@@ -108,7 +103,8 @@ public class HTMLQueryService extends QueryService {
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
     		doi = entity.getIdentifier();
     	}
-    	return constructQueryURL(title, pubDate, doi, this.maxNumber);
+    	//TODO use resourceType field
+    	return constructQueryURL(title, pubDate, doi, this.maxNumber, "");
     }
 
     @Override
@@ -141,6 +137,7 @@ public class HTMLQueryService extends QueryService {
         return null;
     }
 
+    //TODO this belongs to the DaraHTMLQueryService class, highly repository-specific
     /**
      * Parses the HTML output of the dara search function and returns a map with
      * dataset DOIs (keys) and names (values).
@@ -157,7 +154,7 @@ public class HTMLQueryService extends QueryService {
             String title = "";
             String identifier = "";
             //TODO: search for tag "a" first to limit elements to search by attribute value?
-            Elements names = hit.getElementsByAttributeValueMatching("href", "/dara/study/web_show?.*");
+            Elements names = hit.getElementsByAttributeValueMatching("href", "/dara/search/search_show?.*");
             Elements dois = hit.getElementsByAttributeValueContaining("href", "http://dx.doi.org");
             // each entry has exactly one name and one doi element
             //TODO: except for some datasets that are not registered but only referenced in dara!

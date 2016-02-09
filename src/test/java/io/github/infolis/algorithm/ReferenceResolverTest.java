@@ -13,7 +13,7 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.resolve.DaraSolrQueryService;
+import io.github.infolis.resolve.DaraHTMLQueryService;
 import io.github.infolis.resolve.QueryService;
 
 /**
@@ -33,7 +33,7 @@ public class ReferenceResolverTest extends InfolisBaseTest {
 		Execution exec = new Execution();
 		exec.setTextualReferences(Arrays.asList(reference.getUri()));
 		exec.setAlgorithm(ReferenceResolver.class);
-		QueryService queryService = new DaraSolrQueryService();
+		QueryService queryService = new DaraHTMLQueryService();
 		dataStoreClient.post(QueryService.class, queryService);
 		exec.setQueryServices(Arrays.asList(queryService.getUri()));
 		exec.setSearchResultRankerClass(BestMatchRanker.class);

@@ -32,14 +32,14 @@ public class HTMLQueryServiceTest {
 
     @Test
     public void testCreateQuery() throws IOException {
-        HTMLQueryService queryService = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show");
+        HTMLQueryService queryService = new HTMLQueryService("http://www.da-ra.de/dara/search/search_result");
         queryService.setMaxNumber(600);
         Set<QueryField> queryStrategy = new HashSet<>();
         queryStrategy.add(QueryField.title);
         queryService.setQueryStrategy(queryStrategy);
         Entity entity = new Entity();
         entity.setName("Studierendensurvey");
-        Assert.assertEquals(new URL("http://www.da-ra.de/dara/study/web_search_show?title=Studierendensurvey&max=600&lang=de"), queryService.createQuery(entity));
+        Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
     }
 
 }

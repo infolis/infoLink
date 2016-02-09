@@ -69,9 +69,9 @@ public class SolrQueryService extends QueryService {
      */
     //TODO use field resourceType...also in htmlQueryService and all calling methods
     //TODO maxNum param for rows
-    public URL constructQueryURL(String title, String pubDate, String doi, String resourceType) throws MalformedURLException {
+    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber, String resourceType) throws MalformedURLException {
     	String beginning = "select/";
-        String remainder = "&start=0&rows=1000&fl=doi,title&wt=json";
+        String remainder = "&start=0&rows=" + maxNumber + "&fl=doi,title&wt=json";
         String query = "?q=";
         if (!title.isEmpty()) query += "title:" + title;
         if (!pubDate.isEmpty()) query += " +publicationDate:" + pubDate;
@@ -106,7 +106,8 @@ public class SolrQueryService extends QueryService {
     		doi = entity.getIdentifier();
     	}
     	//TODO use resourceType field
-    	return constructQueryURL(title, pubDate, doi, "");
+    	//TODO use maxNumber field
+    	return constructQueryURL(title, pubDate, doi, 1000, "");
     }
     
     @Override

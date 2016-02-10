@@ -6,10 +6,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.resolve.DaraHTMLQueryService;
-//import io.github.infolis.resolve.DaraSolrQueryService;
-import io.github.infolis.resolve.HTMLQueryService;
 import io.github.infolis.resolve.QueryService;
-//import io.github.infolis.resolve.SolrQueryService;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +28,7 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         entity.setNumber("2012/13");
         dataStoreClient.post(Entity.class, entity);
         execution.setLinkedEntities(Arrays.asList(entity.getUri()));
-        HTMLQueryService queryService = new DaraHTMLQueryService();
+        QueryService queryService = new DaraHTMLQueryService();
         queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
         execution.setQueryServices(Arrays.asList(queryService.getUri()));

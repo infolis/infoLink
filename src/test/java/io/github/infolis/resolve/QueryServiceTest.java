@@ -65,9 +65,9 @@ public class QueryServiceTest extends InfolisBaseTest {
 	}
 	
 	private static Set<ExpectedOutput> getExpectedOutput() {
-		Set<ExpectedOutput> expectedOutput = HTMLQueryServiceTest.getExpectedOutput();
+		Set<ExpectedOutput> expectedOutput = DaraHTMLQueryServiceTest.getExpectedOutput();
 		if (null != System.getProperty("gesisRemoteTest")) {
-			expectedOutput.addAll(SolrQueryServiceTest.getExpectedOutput());
+			expectedOutput.addAll(DaraSolrQueryServiceTest.getExpectedOutput());
 		}
 		return expectedOutput;
 	};

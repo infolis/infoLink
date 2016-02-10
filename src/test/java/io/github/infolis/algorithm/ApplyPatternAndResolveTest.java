@@ -20,7 +20,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.resolve.HTMLQueryService;
+import io.github.infolis.resolve.DaraHTMLQueryService;
 import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
@@ -111,7 +111,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
     public List<String> postQueryServices() throws IOException {
         List<String> postedQueryServices = new ArrayList<>();
-        HTMLQueryService p1 = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+        QueryService p1 = new DaraHTMLQueryService();
         p1.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, p1);
         postedQueryServices.add(p1.getUri());

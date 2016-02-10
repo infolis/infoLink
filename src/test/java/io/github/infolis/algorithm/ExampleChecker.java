@@ -9,7 +9,7 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.HTMLQueryService;
+import io.github.infolis.resolve.DaraHTMLQueryService;
 import io.github.infolis.resolve.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
@@ -76,7 +76,7 @@ public class ExampleChecker extends InfolisBaseTest {
 
     public List<String> postQueryServices() throws IOException {
         List<String> postedQueryServices = new ArrayList<>();
-        QueryService p1 = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+        QueryService p1 = new DaraHTMLQueryService();
         dataStoreClient.post(QueryService.class, p1);
         postedQueryServices.add(p1.getUri());
         return postedQueryServices;

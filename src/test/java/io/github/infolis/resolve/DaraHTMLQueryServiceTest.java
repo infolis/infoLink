@@ -1,13 +1,19 @@
 package io.github.infolis.resolve;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.github.infolis.algorithm.SearchResultRanker;
 import io.github.infolis.algorithm.MultiMatchesRanker;
 import io.github.infolis.model.entity.Entity;
+import io.github.infolis.resolve.QueryService.QueryField;
 import io.github.infolis.resolve.QueryServiceTest.ExpectedOutput;
 
 /**
@@ -18,7 +24,7 @@ import io.github.infolis.resolve.QueryServiceTest.ExpectedOutput;
 public class DaraHTMLQueryServiceTest {
 	
 	public static Set<ExpectedOutput> getExpectedOutput() {
-		HTMLQueryService queryService = new DaraHTMLQueryService();
+		QueryService queryService = new DaraHTMLQueryService();
 		queryService.setMaxNumber(15);
 		Entity entity = new Entity();
 		entity.setName("Studierendensurvey");
@@ -41,4 +47,16 @@ public class DaraHTMLQueryServiceTest {
 		expectedOutput.add(output);
 		return expectedOutput;
 	}
+	
+	 @Test
+	    public void testCreateQuery() throws IOException {
+	        QueryService queryService = new DaraHTMLQueryService();
+	        queryService.setMaxNumber(600);
+	        Set<QueryField> queryStrategy = new HashSet<>();
+	        queryStrategy.add(QueryField.title);
+	        queryService.setQueryStrategy(queryStrategy);
+	        Entity entity = new Entity();
+	        entity.setName("Studierendensurvey");
+	        Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
+	    }
 }

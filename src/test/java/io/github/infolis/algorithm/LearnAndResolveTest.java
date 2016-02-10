@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.resolve.QueryService;
-import io.github.infolis.resolve.HTMLQueryService;
+import io.github.infolis.resolve.DaraHTMLQueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
@@ -53,7 +53,7 @@ public class LearnAndResolveTest extends InfolisBaseTest {
 		execution.setSearchTerm(terms.get(0));
 		execution.setReliabilityThreshold(0.0);
 		execution.setBootstrapStrategy(BootstrapStrategy.mergeAll);
-		HTMLQueryService queryService = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+		QueryService queryService = new DaraHTMLQueryService();
 		queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
         execution.setSearchResultRankerClass(BestMatchRanker.class);

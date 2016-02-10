@@ -23,11 +23,12 @@ Change into your Eclipse workspace directory
 cd ~/workspace
 ```
 
-Clone the repository
+Clone the repository and get the submodules
 
 ```
 git clone https://github.com/infolis/infoLink
-git submodule add https://github.com/infolis/Tagging keywordTagging
+git submodule init
+git submodule update
 ```
 
 Change to the directory and run the `eclipse` gradle task

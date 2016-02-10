@@ -46,10 +46,10 @@ public class FederatedSearcher extends BaseAlgorithm {
                 try {
                     Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
                     queryService = constructor.newInstance();
-                    Constructor<? extends SearchResultRanker> rankerConstructor = getExecution().getSearchResultRankerClass().getDeclaredConstructor(parameterTypes);
-                    if (!Modifier.isAbstract(getExecution().getSearchResultRankerClass().getModifiers())) {
-                    	SearchResultRanker ranker = rankerConstructor.newInstance(initArgs);
-                    	queryService.setQueryStrategy(ranker.getQueryStrategy());
+                    Constructor<? extends SearchResultLinker> linkerConstructor = getExecution().getSearchResultLinkerClass().getDeclaredConstructor(parameterTypes);
+                    if (!Modifier.isAbstract(getExecution().getSearchResultLinkerClass().getModifiers())) {
+                    	SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
+                    	queryService.setQueryStrategy(linker.getQueryStrategy());
                     }
                     //TODO else?
                     debug(log, "Calling QueryService %s to find entity %s", queryService, entity);
@@ -65,10 +65,10 @@ public class FederatedSearcher extends BaseAlgorithm {
             size = getExecution().getQueryServices().size();
             try {
             	for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
-	            	Constructor<? extends SearchResultRanker> rankerConstructor = getExecution().getSearchResultRankerClass().getDeclaredConstructor(parameterTypes);
-	            	if (!Modifier.isAbstract(getExecution().getSearchResultRankerClass().getModifiers())) {
-                    	SearchResultRanker ranker = rankerConstructor.newInstance(initArgs);
-                    	queryService.setQueryStrategy(ranker.getQueryStrategy());
+	            	Constructor<? extends SearchResultLinker> linkerConstructor = getExecution().getSearchResultLinkerClass().getDeclaredConstructor(parameterTypes);
+	            	if (!Modifier.isAbstract(getExecution().getSearchResultLinkerClass().getModifiers())) {
+                    	SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
+                    	queryService.setQueryStrategy(linker.getQueryStrategy());
                     }
                     //TODO else?
 	            	List<SearchResult> results = queryService.find(entity);
@@ -104,8 +104,8 @@ public class FederatedSearcher extends BaseAlgorithm {
         if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
-        if (null == getExecution().getSearchResultRankerClass()) {
-        	throw new IllegalAlgorithmArgumentException(getClass(), "searchResultRankerClass", "Required parameter 'searchResultRankerClass' is missing!");
+        if (null == getExecution().getSearchResultLinkerClass()) {
+        	throw new IllegalAlgorithmArgumentException(getClass(), "SearchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
         }
     }
 

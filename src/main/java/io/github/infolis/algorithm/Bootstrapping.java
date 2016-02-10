@@ -49,7 +49,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
-        Execution execution = getExecution().createSubExecution(SearchTermPosition.class);
+        Execution execution = getExecution().createSubExecution(LuceneSearcher.class);
         execution.setIndexDirectory(indexerExecution.getOutputDirectory());
         execution.setPhraseSlop(getExecution().getPhraseSlop());
         execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
@@ -82,7 +82,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
     	Execution applierExec = new Execution();
-    	applierExec.setAlgorithm(PatternApplier.class);
+    	applierExec.setAlgorithm(InfolisPatternSearcher.class);
     	applierExec.setInputFiles(getExecution().getInputFiles());
     	applierExec.setIndexDirectory(indexerExecution.getOutputDirectory());
     	applierExec.setPatterns(getPatternUris(patterns));
@@ -114,7 +114,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

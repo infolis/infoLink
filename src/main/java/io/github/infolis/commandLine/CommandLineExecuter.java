@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchResultRanker;
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.SearchResultLinker;
+import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -136,15 +136,15 @@ public class CommandLineExecuter {
                         break;
                     }
                     
-                    if (values.getKey().equals("searchResultRankerClass")) {
-                        String searchResultRankerClassName = values.getValue().toString().replace("\"", "");
+                    if (values.getKey().equals("searchResultLinkerClass")) {
+                        String searchResultLinkerClassName = values.getValue().toString().replace("\"", "");
                         String prefix = "io.github.infolis.algorithm.";
-                        if (!searchResultRankerClassName.startsWith(prefix)) searchResultRankerClassName = prefix + searchResultRankerClassName;
+                        if (!searchResultLinkerClassName.startsWith(prefix)) searchResultLinkerClassName = prefix + searchResultLinkerClassName;
                         try {
-                        	Class<? extends SearchResultRanker> searchResultRankerClass = (Class<? extends SearchResultRanker>) Class.forName(searchResultRankerClassName);
-                        	exec.setSearchResultRankerClass(searchResultRankerClass);
+                        	Class<? extends SearchResultLinker> searchResultLinkerClass = (Class<? extends SearchResultLinker>) Class.forName(searchResultLinkerClassName);
+                        	exec.setSearchResultLinkerClass(searchResultLinkerClass);
                         } catch (ClassNotFoundException | ClassCastException e1) {
-                            throwCLI("No such SearchResultRanker class: " + searchResultRankerClassName);
+                            throwCLI("No such SearchResultLinker class: " + searchResultLinkerClassName);
                         }
                         break;
                     }
@@ -225,7 +225,7 @@ public class CommandLineExecuter {
     }
 
     /**
-     * Executes the 'candidate search' mode which fires a SearchTermPosition execution for every search term provided./
+     * Executes the 'candidate search' mode which fires a LuceneSearcher execution for every search term provided./
      * @param exec2
      *
      * @param exec
@@ -243,7 +243,7 @@ public class CommandLineExecuter {
 		    matchingFilesByQuery.put(normalizeQuery, new ArrayList<String>());
 
 		    Execution exec = new Execution();
-		    exec.setAlgorithm(SearchTermPosition.class);
+		    exec.setAlgorithm(LuceneSearcher.class);
 		    exec.setPhraseSlop(0);
 		    exec.setIndexDirectory(parentExec.getIndexDirectory());
 		    // normalize to treat phrase query properly

@@ -14,26 +14,26 @@ import io.github.infolis.model.ExecutionStatus;
 /**
  *
  * This algorithm searches for a set of given patterns, then executes the 
- * ReferenceResolver algorithm to create EntityLinks from the resulting textualReferences.
+ * ReferenceLinker algorithm to create EntityLinks from the resulting textualReferences.
  *
- * Used algorithms: PatternApplier - ReferenceResolver
+ * Used algorithms: InfolisPatternSearcher - ReferenceLinker
  *
  * @author domi
  * @author kata
  *
  */
-public class ApplyPatternAndResolve extends BaseAlgorithm {
+public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
 
-    public ApplyPatternAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public SearchPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
+    private static final Logger log = LoggerFactory.getLogger(SearchPatternsAndCreateLinks.class);
 
     @Override
     public void execute() throws IOException {
 
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
@@ -41,7 +41,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
         List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());
 
-        List<String> createdLinks = resolveReferences(textualRefs);
+        List<String> createdLinks = createLinks(textualRefs);
         
         debug(log, "Created links: " + createdLinks);
         getExecution().setLinks(createdLinks);
@@ -49,9 +49,9 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     }
     
     private List<String> searchPatterns(List<String> patterns, List<String> input) {
-    	debug(log, "Executing PatternApplier with patterns " + patterns);
+    	debug(log, "Executing InfolisPatternSearcher with patterns " + patterns);
         //Execution search = getExecution().createSubExecution(RegexSearcher.class);
-    	Execution search = getExecution().createSubExecution(PatternApplier.class);
+    	Execution search = getExecution().createSubExecution(InfolisPatternSearcher.class);
         search.setPatterns(patterns);
         search.setInputFiles(input);
         search.setIndexDirectory(getExecution().getIndexDirectory());
@@ -62,7 +62,7 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
         return search.getTextualReferences();
     }
     
-    private List<String> resolveReferences(List<String> textualRefs) {
+    private List<String> createLinks(List<String> textualRefs) {
     	Execution exec = new Execution();
     	if (null != getExecution().getQueryServices()) {
     		exec.setQueryServices(getExecution().getQueryServices());
@@ -71,11 +71,11 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
     		exec.setQueryServiceClasses(getExecution().getQueryServiceClasses());
     	}
     	exec.setTextualReferences(textualRefs);
-    	exec.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
-    	exec.setAlgorithm(ReferenceResolver.class);
+    	exec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
+    	exec.setAlgorithm(ReferenceLinker.class);
     	exec.instantiateAlgorithm(this).run();
     	updateProgress(2, 2);
-    	debug(log, "Done executing ReferenceResolver, created entityLinks: " + exec.getLinks());
+    	debug(log, "Done executing ReferenceLinker, created entityLinks: " + exec.getLinks());
     	return exec.getLinks();
     }
     
@@ -102,8 +102,8 @@ public class ApplyPatternAndResolve extends BaseAlgorithm {
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
-		if (null == exec.getSearchResultRankerClass()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultRankerClass", "Required parameter 'SearchResultRankerClass' is missing!");
+		if (null == exec.getSearchResultLinkerClass()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
 		}
     }
 }

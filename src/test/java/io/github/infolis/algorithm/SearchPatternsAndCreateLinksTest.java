@@ -30,9 +30,9 @@ import io.github.infolis.util.SerializationUtils;
  * @author kata
  * @author domi
  */
-public class ApplyPatternAndResolveTest extends InfolisBaseTest {
+public class SearchPatternsAndCreateLinksTest extends InfolisBaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
+	private static final Logger log = LoggerFactory.getLogger(SearchPatternsAndCreateLinksTest.class);
     /**
      * Applies a given set of pattern (loaded from a file) and resolves the
      * references.
@@ -40,7 +40,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
      * @throws IOException
      */
     @Test
-    public void applyPatternAndResolveRefs() throws IOException {
+    public void testSearchPatternsAndCreateLinks() throws IOException {
 
         File txtDir = new File(getClass().getResource("/examples/minimal-txt").getFile());
 
@@ -58,10 +58,10 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.getInfolisPatternTags().add("test");
-        e.setAlgorithm(ApplyPatternAndResolve.class);
+        e.setAlgorithm(SearchPatternsAndCreateLinks.class);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
-        e.setSearchResultRankerClass(BestMatchRanker.class);
+        e.setSearchResultLinkerClass(BestMatchLinker.class);
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         for (String ref : e.getTextualReferences()) {

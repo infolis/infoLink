@@ -151,7 +151,7 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void execute() {
-        Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+        Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
         tagExec.instantiateAlgorithm(this).run();

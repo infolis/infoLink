@@ -3,10 +3,8 @@ package io.github.infolis.algorithm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 
 import io.github.infolis.InfolisConfig;
@@ -18,7 +16,6 @@ import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +126,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
 
     @Override
     public void execute() {
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

@@ -22,14 +22,14 @@ import io.github.infolis.resolve.QueryService;
  * @author domi
  *
  */
-public class ReferenceResolver extends BaseAlgorithm {
+public class ReferenceLinker extends BaseAlgorithm {
 	
-	public ReferenceResolver(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+	public ReferenceLinker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
     		FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
-	private static final Logger log = LoggerFactory.getLogger(ReferenceResolver.class);
+	private static final Logger log = LoggerFactory.getLogger(ReferenceLinker.class);
 	
 	private List<String> resolveReferences(List<String> textualReferences) {
     	List<String> entityLinks = new ArrayList<>();
@@ -66,10 +66,10 @@ public class ReferenceResolver extends BaseAlgorithm {
         return entityUri;
     }
 
-    //TODO call referenceResolver on list of entites?
+    //TODO call referenceLinker on list of entites?
     public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
-        searchRepo.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
+        searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServices(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
@@ -81,7 +81,7 @@ public class ReferenceResolver extends BaseAlgorithm {
 
     public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
-        searchRepo.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
+        searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServiceClasses(queryServices);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
@@ -91,9 +91,8 @@ public class ReferenceResolver extends BaseAlgorithm {
         return searchRepo.getSearchResults();
     }
 
-    // TODO searchResultRanker -> searchResultLinker?
     public List<String> createLinks(List<String> searchResults, String textRef) {
-    	Execution linker = getExecution().createSubExecution(getExecution().getSearchResultRankerClass());
+    	Execution linker = getExecution().createSubExecution(getExecution().getSearchResultLinkerClass());
     	linker.setSearchResults(searchResults);
         List<String> textRefs = Arrays.asList(textRef);
         linker.setTextualReferences(textRefs);
@@ -127,8 +126,8 @@ public class ReferenceResolver extends BaseAlgorithm {
 		if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
 		}
-		if (null == getExecution().getSearchResultRankerClass()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultRankerClass", "Required parameter 'SearchResultRankerClass' is missing!");
+		if (null == getExecution().getSearchResultLinkerClass()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
 		}
 	}
 }

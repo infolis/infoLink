@@ -198,7 +198,7 @@ public class ExampleChecker extends InfolisBaseTest {
     // if you find any problem with searching the index when reactivating this class, please let me know
     public List<String> searchSeed(String seed, List<String> input) throws IOException {
         Execution search = new Execution();
-        search.setAlgorithm(SearchTermPosition.class);
+        search.setAlgorithm(LuceneSearcher.class);
         Execution indexerExecution = createIndex(input);
         search.setIndexDirectory(indexerExecution.getOutputDirectory());
         search.setSearchTerm(seed);

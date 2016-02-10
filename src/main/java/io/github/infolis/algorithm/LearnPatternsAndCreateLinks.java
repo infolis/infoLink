@@ -14,14 +14,14 @@ import io.github.infolis.model.ExecutionStatus;
  * @author kata
  *
  */
-public class LearnAndResolve extends BaseAlgorithm {
+public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	
-	public LearnAndResolve(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+	public LearnPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             		FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
-	private static final Logger log = LoggerFactory.getLogger(LearnAndResolve.class);
+	private static final Logger log = LoggerFactory.getLogger(LearnPatternsAndCreateLinks.class);
 	
 	@Override
 	public void execute() {
@@ -46,8 +46,8 @@ public class LearnAndResolve extends BaseAlgorithm {
 	
 	private Execution createLinks(Execution learnExec) {
 		Execution linkExec = new Execution();
-		linkExec.setSearchResultRankerClass(getExecution().getSearchResultRankerClass());
-		linkExec.setAlgorithm(ReferenceResolver.class);
+		linkExec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
+		linkExec.setAlgorithm(ReferenceLinker.class);
 		linkExec.setInputFiles(getExecution().getInputFiles());
 		
 		linkExec.setTextualReferences(learnExec.getTextualReferences());

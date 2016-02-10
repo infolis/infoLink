@@ -24,14 +24,14 @@ import org.slf4j.LoggerFactory;
  * @author domi
  *
  */
-public abstract class SearchResultRanker extends BaseAlgorithm {
+public abstract class SearchResultLinker extends BaseAlgorithm {
 
-	private static final Logger log = LoggerFactory.getLogger(SearchResultRanker.class);
+	private static final Logger log = LoggerFactory.getLogger(SearchResultLinker.class);
 	// weight for number-based score, weight for reliability of QueryService, weight for list index
 	private int[] weights = {1, 1, 1};
 	Set<QueryField> queryStrategy;
 
-    public SearchResultRanker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public SearchResultLinker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
     

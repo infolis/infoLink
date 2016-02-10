@@ -20,11 +20,11 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public class BestMatchRanker extends SearchResultRanker {
+public class BestMatchLinker extends SearchResultLinker {
 
-	private static final Logger log = LoggerFactory.getLogger(BestMatchRanker.class);
+	private static final Logger log = LoggerFactory.getLogger(BestMatchLinker.class);
 	
-	public BestMatchRanker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+	public BestMatchLinker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
         setWeightForNumberBasedScore(0);
         setWeightForQSReliability(1);

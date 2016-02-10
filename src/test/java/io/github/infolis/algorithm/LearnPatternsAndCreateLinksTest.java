@@ -22,9 +22,9 @@ import io.github.infolis.model.entity.InfolisFile;
  * @author kata
  *
  */
-public class LearnAndResolveTest extends InfolisBaseTest {
+public class LearnPatternsAndCreateLinksTest extends InfolisBaseTest {
 	
-	Logger log = LoggerFactory.getLogger(LearnAndResolve.class);
+	Logger log = LoggerFactory.getLogger(LearnPatternsAndCreateLinksTest.class);
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "ALLBUS";
 	private final static List<String> terms = Arrays.asList(term);
@@ -38,16 +38,16 @@ public class LearnAndResolveTest extends InfolisBaseTest {
 			"Hallo, please try to find the ALLBUS in this short text snippet. Thank you."
 	};
 
-	public LearnAndResolveTest() throws Exception {
+	public LearnPatternsAndCreateLinksTest() throws Exception {
 		for (InfolisFile file : createTestTextFiles(7, testStrings)) {
 			uris.add(file.getUri());
 		}
 	}
 	
 	@Test
-	public void testInfoLink() {
+	public void testExecute() {
 		Execution execution = new Execution();
-		execution.setAlgorithm(LearnAndResolve.class);
+		execution.setAlgorithm(LearnPatternsAndCreateLinks.class);
 		execution.getSeeds().addAll(terms);
 		execution.setInputFiles(uris);
 		execution.setSearchTerm(terms.get(0));
@@ -56,7 +56,7 @@ public class LearnAndResolveTest extends InfolisBaseTest {
 		QueryService queryService = new DaraHTMLQueryService();
 		queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
-        execution.setSearchResultRankerClass(BestMatchRanker.class);
+        execution.setSearchResultLinkerClass(BestMatchLinker.class);
 		execution.setQueryServices(Arrays.asList(queryService.getUri()));
 		execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		for (String textRefUri: execution.getTextualReferences()) {

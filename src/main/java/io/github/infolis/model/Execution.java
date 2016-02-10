@@ -3,8 +3,8 @@ package io.github.infolis.model;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.algorithm.SearchResultRanker;
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.SearchResultLinker;
+import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
@@ -149,7 +149,7 @@ public class Execution extends BaseModel {
          * Pattern Applier algorithm.
          * 
          * {@link TextExtractor} {@link Bootstrapping}
-         * {@link PatternApplier} {@link ApplyPatternAndResolve} 
+         * {@link InfolisPatternSearcher} {@link SearchPatternsAndCreateLinks} 
          * {@link Indexer} 
 	 */ 
 	private List<String> inputFiles = new ArrayList<>();
@@ -160,7 +160,7 @@ public class Execution extends BaseModel {
          * For example, the TextExtraction algorithm extracts texts of pdfs
          * and stores these texts as output files.
          * 
-         * {@link SearchTermPosition} {@link TextExtractor} 
+         * {@link LuceneSearcher} {@link TextExtractor} 
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
@@ -180,9 +180,9 @@ public class Execution extends BaseModel {
 	private String outputDirectory = "";
 
 	/**
-	 * Input directory of SearchTermPosition = output directory of indexer. 
+	 * Input directory of LuceneSearcher = output directory of indexer. 
          * 
-	 * {@link Indexer} {@link SearchTermPosition}
+	 * {@link Indexer} {@link LuceneSearcher}
 	 */
 	private String indexDirectory = "";
 	
@@ -193,7 +193,7 @@ public class Execution extends BaseModel {
          * operations may be carried out.
          * Default: 10 
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int phraseSlop = 10;
 
@@ -202,7 +202,7 @@ public class Execution extends BaseModel {
          * use leading wildcard characters.
          * Default: true       
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private boolean allowLeadingWildcards = true;
 
@@ -212,7 +212,7 @@ public class Execution extends BaseModel {
          * matching boolean combinations of other queries.
          * Default: Integer max value
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int maxClauseCount = Integer.MAX_VALUE;
 
@@ -223,7 +223,7 @@ public class Execution extends BaseModel {
          * beginning to start the whole process. The search term represents 
          * such a seed, e.g. the study name "ALLBUS".
          * 
-	 * {@link SearchTermPosition}
+	 * {@link LuceneSearcher}
 	 */
 	private String searchTerm;
 
@@ -233,7 +233,7 @@ public class Execution extends BaseModel {
          * to perform a search in different repositories to find
          * fitting research data.
          * 
-	 * {@link SearchTermPosition} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
+	 * {@link LuceneSearcher} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private String searchQuery;
 
@@ -244,7 +244,7 @@ public class Execution extends BaseModel {
          * it also contains the context, i.e. where the term has been detected.
          * 
          * {@link FederatedSearcher} {@link MetaDataExtractor}
-         * {@link Resolver} {@link SearchTermPosition} {@link ApplyPatternAndResolve}
+         * {@link Resolver} {@link LuceneSearcher} {@link SearchPatternsAndCreateLinks}
          * {@link PatternApplier} {@link Bootstrapping}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
@@ -252,7 +252,7 @@ public class Execution extends BaseModel {
         //TODO: necessary? can't we used the outputFiles?
 	/**
          * 
-	 * {@link SearchTermPosition}
+	 * {@link LuceneSearcher}
 	 */
 	private List<String> matchingFiles = new ArrayList<>();
 
@@ -322,11 +322,11 @@ public class Execution extends BaseModel {
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
 	/**
-	 * The searchResultRankerClass determines the SearchResultRanker to 
+	 * The SearchResultLinkerClass determines the SearchResultLinker to 
 	 * use. That class is responsible for deciding which SearchResults to 
 	 * select for creating links.
 	 */
-	private Class<? extends SearchResultRanker> searchResultRankerClass;
+	private Class<? extends SearchResultLinker> searchResultLinkerClass;
         
 	/**
          * As a final step, links between the texts and the discovered
@@ -658,12 +658,12 @@ public class Execution extends BaseModel {
 		this.links = links;
 	}
 	
-	public Class<? extends SearchResultRanker> getSearchResultRankerClass() {
-		return this.searchResultRankerClass;
+	public Class<? extends SearchResultLinker> getSearchResultLinkerClass() {
+		return this.searchResultLinkerClass;
 	}
 	
-	public void setSearchResultRankerClass (Class<? extends SearchResultRanker> searchResultRankerClass) {
-		this.searchResultRankerClass = searchResultRankerClass;
+	public void setSearchResultLinkerClass (Class<? extends SearchResultLinker> searchResultLinkerClass) {
+		this.searchResultLinkerClass = searchResultLinkerClass;
 	}
 
     public List<String> getLinkedEntities() {

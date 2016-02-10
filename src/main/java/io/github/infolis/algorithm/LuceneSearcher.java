@@ -55,13 +55,13 @@ import org.slf4j.LoggerFactory;
  * @author kba
  *
  */
-public class SearchTermPosition extends BaseAlgorithm {
+public class LuceneSearcher extends BaseAlgorithm {
 
-    public SearchTermPosition(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public LuceneSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(SearchTermPosition.class);
+    private static final Logger log = LoggerFactory.getLogger(LuceneSearcher.class);
     private static final String DEFAULT_FIELD_NAME = "contents";
     private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
 
@@ -85,7 +85,7 @@ public class SearchTermPosition extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
     	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setAlgorithm(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
@@ -153,7 +153,7 @@ public class SearchTermPosition extends BaseAlgorithm {
         if (this.getExecution().getSearchTerm() != null) {
             log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
         }
-        log.debug("Finished SearchTermPosition#execute");
+        log.debug("Finished LuceneSearcher#execute");
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 

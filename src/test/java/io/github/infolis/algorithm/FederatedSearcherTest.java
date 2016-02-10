@@ -33,7 +33,7 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         dataStoreClient.post(QueryService.class, queryService);
         execution.setQueryServices(Arrays.asList(queryService.getUri()));
         execution.setAlgorithm(FederatedSearcher.class);
-        execution.setSearchResultRankerClass(BestMatchRanker.class);
+        execution.setSearchResultLinkerClass(BestMatchLinker.class);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         algo.run();
 

@@ -4,6 +4,6 @@
     [
         {"name": "foo"}
     ],
-"searchResultRankerClass":"io.github.infolis.algorithm.BestMatchRanker",
+"searchResultLinkerClass":"io.github.infolis.algorithm.BestMatchLinker",
 "queryServiceClasses":["DaraHTMLQueryService","io.github.infolis.resolve.DaraSolrQueryService"]
 }

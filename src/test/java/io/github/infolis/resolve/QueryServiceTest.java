@@ -3,7 +3,7 @@ package io.github.infolis.resolve;
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.algorithm.SearchResultRanker;
+import io.github.infolis.algorithm.SearchResultLinker;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
@@ -38,12 +38,12 @@ public class QueryServiceTest extends InfolisBaseTest {
 		QueryService queryService;
 		Entity entity;
 		Map<String, String> doiTitleMap;
-		Class<? extends SearchResultRanker> searchResulterRankerClass;
+		Class<? extends SearchResultLinker> searchResulterLinkerClass;
 		
-		ExpectedOutput(QueryService queryService, Entity entity, Class<? extends SearchResultRanker> searchResulterRankerClass, Map<String, String> doiTitleMap) {
+		ExpectedOutput(QueryService queryService, Entity entity, Class<? extends SearchResultLinker> searchResultLinkerClass, Map<String, String> doiTitleMap) {
 			this.queryService = queryService;
 			this.entity = entity;
-			this.searchResulterRankerClass = searchResulterRankerClass;
+			this.searchResulterLinkerClass = searchResultLinkerClass;
 			this.doiTitleMap = doiTitleMap;
 		}
 		
@@ -55,8 +55,8 @@ public class QueryServiceTest extends InfolisBaseTest {
 			return this.entity;
 		}
 		
-		Class<? extends SearchResultRanker> getSearchResulterRankerClass() {
-			return this.searchResulterRankerClass;
+		Class<? extends SearchResultLinker> getSearchResultLinkerClass() {
+			return this.searchResulterLinkerClass;
 		}
 		
 		Map<String, String> getDoiTitleMap() {
@@ -85,7 +85,7 @@ public class QueryServiceTest extends InfolisBaseTest {
         	execution.setAlgorithm(FederatedSearcher.class);
         	execution.setLinkedEntities(Arrays.asList(entity.getUri()));
         	execution.setQueryServices(Arrays.asList(queryService.getUri()));
-        	execution.setSearchResultRankerClass(expectedOutputItem.getSearchResulterRankerClass());
+        	execution.setSearchResultLinkerClass(expectedOutputItem.getSearchResultLinkerClass());
         	execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 
         	List<String> searchResultURIs = execution.getSearchResults();

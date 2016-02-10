@@ -36,7 +36,7 @@ public class DaraSolrQueryServiceTest {
 		Set<ExpectedOutput> expectedOutputHtml = DaraHTMLQueryServiceTest.getExpectedOutput();
 		Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
 		for (ExpectedOutput outputHtml : expectedOutputHtml) {
-			ExpectedOutput output = new ExpectedOutput(queryService, outputHtml.getEntity(), outputHtml.getSearchResulterRankerClass(), outputHtml.getDoiTitleMap());
+			ExpectedOutput output = new ExpectedOutput(queryService, outputHtml.getEntity(), outputHtml.getSearchResultLinkerClass(), outputHtml.getDoiTitleMap());
 			expectedOutput.add(output);
 		}
 		return expectedOutput;

@@ -21,22 +21,22 @@ import io.github.infolis.resolve.QueryService;
  * @author kata
  *
  */
-public class ReferenceResolverTest extends InfolisBaseTest {
+public class ReferenceLinkerTest extends InfolisBaseTest {
 	
 	@Test
 	public void testExecute() {
-		// BestMatchRanker and MultiMatchesRanker should yield the same result in this case
+		// BestMatchLinker and MultiMatchesLinker should yield the same result in this case
 		InfolisFile infolisFile = new InfolisFile();
 		dataStoreClient.post(InfolisFile.class, infolisFile);
 		TextualReference reference = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
 		dataStoreClient.post(TextualReference.class, reference);
 		Execution exec = new Execution();
 		exec.setTextualReferences(Arrays.asList(reference.getUri()));
-		exec.setAlgorithm(ReferenceResolver.class);
+		exec.setAlgorithm(ReferenceLinker.class);
 		QueryService queryService = new DaraHTMLQueryService();
 		dataStoreClient.post(QueryService.class, queryService);
 		exec.setQueryServices(Arrays.asList(queryService.getUri()));
-		exec.setSearchResultRankerClass(BestMatchRanker.class);
+		exec.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		List<String> linkUris = exec.getLinks();
 	    assertEquals(1, linkUris.size());
@@ -47,9 +47,9 @@ public class ReferenceResolverTest extends InfolisBaseTest {
 	    
 	    Execution exec2 = new Execution();
 	    exec2.setTextualReferences(Arrays.asList(reference.getUri()));
-		exec2.setAlgorithm(ReferenceResolver.class);
+		exec2.setAlgorithm(ReferenceLinker.class);
 		exec2.setQueryServices(Arrays.asList(queryService.getUri()));
-		exec2.setSearchResultRankerClass(MultiMatchesRanker.class);
+		exec2.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec2.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec2.getLinks();
 	    assertEquals(1, linkUris.size());
@@ -63,9 +63,9 @@ public class ReferenceResolverTest extends InfolisBaseTest {
 	    TextualReference reference2 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", infolisFile.getUri(), "pattern", infolisFile.getUri());
 		dataStoreClient.post(TextualReference.class, reference2);
 	    exec3.setTextualReferences(Arrays.asList(reference2.getUri()));
-		exec3.setAlgorithm(ReferenceResolver.class);
+		exec3.setAlgorithm(ReferenceLinker.class);
 		exec3.setQueryServices(Arrays.asList(queryService.getUri()));
-		exec3.setSearchResultRankerClass(BestMatchRanker.class);
+		exec3.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec3.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec3.getLinks();
 	    assertEquals(1, linkUris.size());
@@ -76,9 +76,9 @@ public class ReferenceResolverTest extends InfolisBaseTest {
 	    
 	    Execution exec4 = new Execution();
 	    exec4.setTextualReferences(Arrays.asList(reference2.getUri()));
-		exec4.setAlgorithm(ReferenceResolver.class);
+		exec4.setAlgorithm(ReferenceLinker.class);
 		exec4.setQueryServices(Arrays.asList(queryService.getUri()));
-		exec4.setSearchResultRankerClass(MultiMatchesRanker.class);
+		exec4.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec4.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec4.getLinks();
 	    assertEquals(12, linkUris.size());

@@ -27,6 +27,7 @@ Clone the repository
 
 ```
 git clone https://github.com/infolis/infoLink
+git submodule add https://github.com/infolis/Tagging keywordTagging
 ```
 
 Change to the directory and run the `eclipse` gradle task

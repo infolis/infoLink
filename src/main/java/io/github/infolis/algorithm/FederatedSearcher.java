@@ -5,7 +5,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.querying.QueryService;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;

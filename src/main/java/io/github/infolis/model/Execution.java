@@ -8,7 +8,7 @@ import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.querying.QueryService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

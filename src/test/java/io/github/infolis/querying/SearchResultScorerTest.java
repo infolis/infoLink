@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

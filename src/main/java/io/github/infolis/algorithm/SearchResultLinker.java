@@ -12,8 +12,8 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.SearchResultScorer;
-import io.github.infolis.resolve.QueryService.QueryField;
+import io.github.infolis.querying.SearchResultScorer;
+import io.github.infolis.querying.QueryService.QueryField;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

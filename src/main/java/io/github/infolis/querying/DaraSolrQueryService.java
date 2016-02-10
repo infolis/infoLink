@@ -1,5 +1,5 @@
 
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;

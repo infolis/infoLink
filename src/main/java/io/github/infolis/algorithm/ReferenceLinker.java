@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.querying.QueryService;
 
 /**
  * This algorithm extracts metadata from textual references and links them 

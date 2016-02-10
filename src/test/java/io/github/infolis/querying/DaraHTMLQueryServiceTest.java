@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,8 +13,8 @@ import org.junit.Test;
 import io.github.infolis.algorithm.SearchResultLinker;
 import io.github.infolis.algorithm.MultiMatchesLinker;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.resolve.QueryService.QueryField;
-import io.github.infolis.resolve.QueryServiceTest.ExpectedOutput;
+import io.github.infolis.querying.QueryService.QueryField;
+import io.github.infolis.querying.QueryServiceTest.ExpectedOutput;
 
 /**
  * 

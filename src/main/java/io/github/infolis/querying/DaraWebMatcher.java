@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.URLParamEncoder;

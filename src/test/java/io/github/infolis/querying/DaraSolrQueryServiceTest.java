@@ -1,8 +1,8 @@
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.resolve.QueryService.QueryField;
-import io.github.infolis.resolve.QueryServiceTest.ExpectedOutput;
+import io.github.infolis.querying.QueryService.QueryField;
+import io.github.infolis.querying.QueryServiceTest.ExpectedOutput;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -10,7 +10,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.QueryService.QueryField;
+import io.github.infolis.querying.QueryService.QueryField;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

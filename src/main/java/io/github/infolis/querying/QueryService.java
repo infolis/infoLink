@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.querying;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;

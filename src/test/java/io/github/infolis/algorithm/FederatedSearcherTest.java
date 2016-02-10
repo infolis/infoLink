@@ -5,8 +5,8 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.DaraHTMLQueryService;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.querying.DaraHTMLQueryService;
+import io.github.infolis.querying.QueryService;
 
 import java.io.IOException;
 import java.util.Arrays;

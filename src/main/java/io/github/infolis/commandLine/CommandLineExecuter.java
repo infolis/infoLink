@@ -39,7 +39,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.SearchResultLinker;
+import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -48,11 +49,9 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
-import io.github.infolis.model.MetaDataExtractingStrategy;
-import io.github.infolis.model.SearchQuery;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
@@ -83,7 +82,7 @@ public class CommandLineExecuter {
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
 
-    //TODO: support multiple tags (e.g. domain, journal, langage)
+    //TODO: support multiple tags (e.g. domain, journal, language)
     @Option(name = "--tag", usage = "tag, also JSON dump basename", metaVar = "TAG", required = true)
     private String tag;
 
@@ -98,9 +97,6 @@ public class CommandLineExecuter {
 
     @Option(name = "--queries-file", usage = "csv-file containing one query term per line", metaVar = "QUERIESFILE", depends = {"--search-candidates"})
     private String queriesFile;
-
-    @Option(name = "--search-query", usage = "search query for the query service", metaVar = "SEARCHQUERY")
-    private String searchQuery;
 
     // This is set so we can accept --convert-to-text without JSON and not try to execute anything
     private boolean convertToTextMode = false;
@@ -139,18 +135,48 @@ public class CommandLineExecuter {
                         exec.setBootstrapStrategy(b);
                         break;
                     }
-                    if (values.getKey().equals("metaDataExtractingStrategy")) {
-                        MetaDataExtractingStrategy mde = MetaDataExtractingStrategy
-                                .valueOf(values.getValue().toString().replace("\"", ""));
-                        exec.setMetaDataExtractingStrategy(mde);
+                    
+                    if (values.getKey().equals("searchResultLinkerClass")) {
+                        String searchResultLinkerClassName = values.getValue().toString().replace("\"", "");
+                        String prefix = "io.github.infolis.algorithm.";
+                        if (!searchResultLinkerClassName.startsWith(prefix)) searchResultLinkerClassName = prefix + searchResultLinkerClassName;
+                        try {
+                        	Class<? extends SearchResultLinker> searchResultLinkerClass = (Class<? extends SearchResultLinker>) Class.forName(searchResultLinkerClassName);
+                        	exec.setSearchResultLinkerClass(searchResultLinkerClass);
+                        } catch (ClassNotFoundException | ClassCastException e1) {
+                            throwCLI("No such SearchResultLinker class: " + searchResultLinkerClassName);
+                        }
                         break;
                     }
 
                     // all other fields are just set
                     exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
                     break;
-                // for arrays we first have to create a list
+
                 case ARRAY:
+                	if (values.getKey().equals("linkedEntities")) {
+                		List<String> entityURIs = new ArrayList<>();
+                		JsonArray array = (JsonArray) values.getValue();
+                		for (int i = 0; i < array.size(); i++) {
+                			
+	                		JsonObject entityObject = (JsonObject) array.getJsonObject(i);
+	                		String name = "";
+	                		String number = "";
+	                		String identifier = "";
+	                		if (entityObject.containsKey("name")) name = String.valueOf(entityObject.get("name"));
+	                		if (entityObject.containsKey("number")) name = String.valueOf(entityObject.get("number"));
+	                		if (entityObject.containsKey("identifier")) name = String.valueOf(entityObject.get("identifier"));
+	                		Entity entity = new Entity();
+	                		entity.setName(name);
+	                		entity.setNumber(number);
+	                		entity.setIdentifier(identifier);
+	                		dataStoreClient.post(Entity.class, entity);
+	                		entityURIs.add(entity.getUri());
+                		}
+                		exec.setLinkedEntities(entityURIs);
+                		break;
+                	}
+                	
                     if (values.getKey().equals("queryServiceClasses")) {
                         JsonArray array = (JsonArray) values.getValue();
                         for (int i = 0; i < array.size(); i++) {
@@ -158,8 +184,8 @@ public class CommandLineExecuter {
 
                             String queryServiceName = stringEntry.getString();
                             queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
-                            if (!queryServiceName.startsWith("io.github.infolis.resolve")) {
-                                queryServiceName = "io.github.infolis.resolve." + queryServiceName;
+                            if (!queryServiceName.startsWith("io.github.infolis.infolink.querying.")) {
+                                queryServiceName = "io.github.infolis.infolink.querying." + queryServiceName;
                             }
                             log.debug("queryServiceClass item: " + queryServiceName);
                             try {
@@ -199,7 +225,7 @@ public class CommandLineExecuter {
     }
 
     /**
-     * Executes the 'candidate search' mode which fires a SearchTermPosition execution for every searchQuery provided./
+     * Executes the 'candidate search' mode which fires a LuceneSearcher execution for every search term provided./
      * @param exec2
      *
      * @param exec
@@ -217,7 +243,7 @@ public class CommandLineExecuter {
 		    matchingFilesByQuery.put(normalizeQuery, new ArrayList<String>());
 
 		    Execution exec = new Execution();
-		    exec.setAlgorithm(SearchTermPosition.class);
+		    exec.setAlgorithm(LuceneSearcher.class);
 		    exec.setPhraseSlop(0);
 		    exec.setIndexDirectory(parentExec.getIndexDirectory());
 		    // normalize to treat phrase query properly
@@ -333,9 +359,6 @@ public class CommandLineExecuter {
                 }
             }
         }
-        if(searchQuery!=null){
-            exec.setSearchQuery(postQuery(searchQuery));
-        }
     }
 
     /**
@@ -407,13 +430,6 @@ public class CommandLineExecuter {
         }
 
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
-    }
-
-    public String postQuery(String query) {
-        SearchQuery sq = new SearchQuery();
-        sq.setQuery(query);
-        dataStoreClient.post(SearchQuery.class, sq);
-        return sq.getUri();
     }
 
     private static void throwCLI(String msg) {

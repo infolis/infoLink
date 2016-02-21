@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.infolink.querying;
 
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.URLParamEncoder;
@@ -176,7 +176,7 @@ public class DaraWebMatcher {
             while ((text = reader.readLine()) != null) {
                 if (text.contains(url.toString())) {
                     Map<String, String> res = new HashMap<String, String>();
-                    String[] data = text.split(RegexUtils.delimiter_internal);
+                    String[] data = text.split("--@--");
                     // query is in cache but no data can be found in dara - return empty hashmap
                     if (data.length < 3) {
                         res.put("", "");
@@ -332,7 +332,7 @@ public class DaraWebMatcher {
      * @param cacheFilename	path of the cache file
      */
     private void writeToCache(String url, Map<String, String> res) {
-        String delimiter = RegexUtils.delimiter_internal;
+        String delimiter = "--@--";
         String newLine = url;
 
         for (String key : res.keySet()) {

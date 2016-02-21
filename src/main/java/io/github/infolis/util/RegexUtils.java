@@ -5,9 +5,7 @@ import io.github.infolis.algorithm.Indexer;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,61 +13,62 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 
+/**
+ * 
+ * @author kata
+ *
+ */
 public class RegexUtils {
-
-	public static final String yearRegex = new String("(\\d{4})");
+	// maximum time for LimitedTimeMatcher
+	// TODO set maxTimeMillis in config - its optimal value depends on granted stack size
+	public static final long maxTimeMillis = 750000;
+	// basic regex for extraction of numeric information
 	public static final String percentRegex = new String("\\d+[.,]?\\d*%");
-	public static final String numberRegex = new String("\\d+[.,]?\\d*");
+    public static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
+    public static final String yearRegex = "(\\d{4})";
+    public static final String yearAbbrRegex = "('\\d\\d)";
+    public static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes yearRegex
+    public static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
+	public static final Pattern patternNumeric = Pattern.compile("\\d+");
+	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
+    // complex regex for extraction of numeric information
+    public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
+    public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
+    public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
+    // sorted list of regex for extraction of numeric information (sorted by priority)
 	public static final Pattern[] patterns = getContextMinerYearPatterns();
-	public static final String delimiter_csv = "|";
-	public static final String delimiter_internal = "--@--";
+	// list of symbols to be treated as enumerators. Useful for querying textual references
+	// TODO this feature seems to have been lost during refactoring of the matcher classes. Restore!
 	public static final String[] enumeratorList = {",", ";", "/", "\\\\"};
-	public static final String urlPatString = "((\\w+?://)|(www.*?\\.)).+\\.[a-zA-Z][a-zA-Z][a-zA-Z]*";
-	public static final Pattern urlPat = Pattern.compile(urlPatString);
-	// restricts study names to contain at most 3 words (and at least 3 characters)
-	//public static String studyRegex_ngram = new String("(\\S+?\\s?\\S+?\\s?\\S+?)");
-	// restricts study names to contain at most 5 words (and at least 3 characters)
+	// regex for extracting DOIs
+    public static final String doiRegex = "10\\.\\d+?/\\S+";
+    // regex for extracting URLs
+    public static String httpRegex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+    public static String wwwRegex = "www\\d?\\..*?\\.[^\\d\\s]+";
+    public static String urlRegex = "((" + httpRegex + ")|(" + wwwRegex + "))";
+
+	// regex for extracting named entities
+	// restricts names to contain at most 5 words (and at least 3 characters)
 	public static final String studyRegex_ngram = new String("(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)");
-	//public static String studyRegex_ngram = new String("(\\S*?\\s?\\S*?\\s?\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?\\s?\\S*?\\s?\\S*?)");
-	// restricts study names to contain at most 6 words (and at least 3 characters)
-	// slower and does not yield better results: 5 words seem to be optimal
-	//public static String studyRegex_ngram = new String("(\\S*?\\s?\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)");
 	// word = any char sequence not containing whitespace (punctuation is seen as part of the word here)
 	public static final String studyRegex = new String("(\\S+?)");
-	// use atomic grouping where possible to prevent catastrophic backtracking
 	public static final String wordRegex = new String("\\S+?");
+	// use atomic grouping where possible to prevent catastrophic backtracking
 	public static final String wordRegex_atomic = new String("\\S++");
 	// use greedy variant for last word - normal wordRegex would only extract first character of last word
 	public static final String lastWordRegex = new String("\\S+");
 
-    public static final String leftContextPat = "(" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s*?" + ")";
-    public static final String rightContextPat = "(\\s*?" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.wordRegex + "\\s+" + RegexUtils.lastWordRegex + ")";
-    //this is a fix for SearchTermPosition.getContexts: words may be separated by punctuation, not only by whitespace. Left original patterns for compatibility reasons.
-    //TODO: Check where leftContextPat and rightContextPat are used and replace by these new versions:
+	// regex for extracting contexts of named entities
     public static final String leftContextPat_ = "((" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s*?" + ")";
     public static final String rightContextPat_ = "(\\s*?(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.lastWordRegex + "))";
 
-	public static final Pattern patternNumeric = Pattern.compile("\\d+");
-	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
-
-
-	/**
-	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their
-	 * regular expressions.
-	 *
-	 * @param string	input text where placeholders shall be replaced
-	 * @return			string with placeholders replaced by regular expressions
-	 */
-	public static String denormalizeRegex(String string)
-	{
-		String yearNorm = new String("<YEAR>");
-		String percentNorm = new String("<PERCENT>");
-		String numberNorm = new String("<NUMBER>");
-		string = string.replace(yearNorm, yearRegex).replace(percentNorm, percentRegex).replace(numberNorm, numberRegex);
-		//return Pattern.quote(string);
-		return string;
-	}
-
+    /**
+     * Replaces regular expressions in term with placeholders. 
+     * Used in TrainingSet class (and useful for weka exports)
+     * 
+     * @param term
+     * @return
+     */
 	public static String normalizeRegex(String term)
 	{
 		Pattern yearPat = Pattern.compile(yearRegex);
@@ -94,9 +93,9 @@ public class RegexUtils {
 	}
 
 	/**
-	 * Replaces previously inserted placeholders for years, numbers and percent specifications with their
+	 * Replaces placeholders for years, numbers and percent specifications (if previously inserted) with their
 	 * regular expressions and quotes all parts of the regular expression that are to be treated as
-	 * strings (all but character classes).
+	 * strings (all but character classes). Used in StandardPatternInducer class.
 	 *
 	 * @param string	input text where placeholders shall be replaced and all literals quoted
 	 * @return			quoted regular expression string
@@ -114,6 +113,7 @@ public class RegexUtils {
 	 * Normalizes and escapes strings for usage as Lucene queries.
 	 * Replaces placeholders by wildcards, removes characters with special meanings in Lucene and
 	 * normalizes the query using the Lucene Analyzer used for building the Lucene index.
+	 * Used in StandardPatternInducer class.
 	 *
 	 * @param string	input string to be used as Lucene query
 	 * @return			a Lucene query string
@@ -128,7 +128,8 @@ public class RegexUtils {
 
 	/**
 	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the
-	 * same as the analyzer used for indexing the text files!
+	 * same as the analyzer used for indexing the text files! Used to normalize automatically 
+	 * generated queries (e.g. in bootstrapping) that may contain special characters.
 	 *
 	 * @param 	query	the Lucene query to be normalized
 	 * @return	a normalized version of the query
@@ -154,7 +155,7 @@ public class RegexUtils {
 		}
 		return result.trim();
 	}
-
+	
 	/**
 	 * Returns a list of patterns for extracting numerical information.
 	 *
@@ -167,30 +168,8 @@ public class RegexUtils {
 	public static Pattern[] getContextMinerYearPatterns()
 	{
 		Pattern[] patterns = new Pattern[1];
-
-		String enumRegex = "(([,;/&\\\\])|(and)|(und))";
-		String yearRegex = "(\\d{4})";
-		String yearAbbrRegex = "('\\d\\d)";
-		String numberRegex = "(\\d+[.,]?\\d*)"; //this includes yearRegex
-		String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
-
-		String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
-		String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
-		String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
-
 		patterns[0] = Pattern.compile(complexNumericInfoRegex);
 		return patterns;
-	}
-
-	/**
-	 * Removes all characters that are not allowed in filenames (on windows filesystems).
-	 *
-	 * @param seed	the string to be escaped
-	 * @return		the escaped string
-	 */
-	public static String escapeSeed( String seed )
-	{
-		return seed.replace(":", "_").replace("\\", "_").replace("/", "_").replace("?",  "_").replace(">",  "_").replace("<",  "_");
 	}
 
     /**

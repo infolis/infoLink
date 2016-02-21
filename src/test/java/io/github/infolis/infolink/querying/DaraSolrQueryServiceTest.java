@@ -1,70 +1,59 @@
-package io.github.infolis.algorithm;
+package io.github.infolis.infolink.querying;
 
-import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.model.Execution;
-import io.github.infolis.model.SearchQuery;
-import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.resolve.QueryService;
-import io.github.infolis.resolve.SolrQueryService;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.infolink.querying.QueryService.QueryField;
+import io.github.infolis.infolink.querying.QueryServiceTest.ExpectedOutput;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 
 /**
- *
+ * 
+ * @author kata
  * @author domi
+ *
  */
-public class SolrQueryServiceTest extends InfolisBaseTest {
-
-    @Test
-    public void searchWeb() throws IOException {
-
-        QueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/");
-        dataStoreClient.post(QueryService.class, qs);
-        List<String> qsList = new ArrayList<>();
-        qsList.add(qs.getUri());
-
-        Assume.assumeNotNull(System.getProperty("gesisRemoteTest"));
-        Execution execution = new Execution();
-        execution.setAlgorithm(FederatedSearcher.class);
-        String searchQuery = postTitleQuery();
-        execution.setSearchQuery(searchQuery);
-        execution.setQueryServices(qsList);
-        execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-
-        List<String> sr= execution.getSearchResults();
-        List<SearchResult> result = dataStoreClient.get(SearchResult.class, sr);
-
-        //TODO: find test examples
+public class DaraSolrQueryServiceTest {
+	
+	public static Set<ExpectedOutput> getExpectedOutput() {
+		QueryService queryService = new DaraSolrQueryService();
+		// equal results must be retrieved when submitting queries via solr and submitting them via web interface
+		Set<ExpectedOutput> expectedOutputHtml = DaraHTMLQueryServiceTest.getExpectedOutput();
+		Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
+		for (ExpectedOutput outputHtml : expectedOutputHtml) {
+			ExpectedOutput output = new ExpectedOutput(queryService, outputHtml.getEntity(), outputHtml.getSearchResultLinkerClass(), outputHtml.getDoiTitleMap());
+			expectedOutput.add(output);
+		}
+		return expectedOutput;
+	}
+	
+	@Test
+    public void testCreateQuery() throws MalformedURLException {
+        QueryService queryService = new DaraSolrQueryService();
+        Entity entity = new Entity();
+        entity.setName("Studierendensurvey");
+        Set<QueryField> queryStrategy = new HashSet<>();
+        queryStrategy.add(QueryField.title);
+        queryService.setQueryStrategy(queryStrategy);
+        Assert.assertEquals(new URL("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey +resourceType:2&start=0&rows=1000&fl=doi,title&wt=json"), queryService.createQuery(entity));
     }
-
-    public String postTitleQuery() throws IOException {
-        SearchQuery sq = new SearchQuery();
-        sq.setQuery("?q=title:Studierendensurvey");
-        dataStoreClient.post(SearchQuery.class, sq);
-        return sq.getUri();
-    }
-
-    @Test
-    public void testQueryAdaption() {
-        SolrQueryService qs = new SolrQueryService("http://www.da-ra.de/solr/dara/",1.0);
-        String query = qs.adaptQuery("?q=title:ALLBUS");
-        Assert.assertEquals("http://www.da-ra.de/solr/dara/select/?q=title:ALLBUS&start=0&rows=10&fl=doi,title&wt=json", query);
-    }
-
-    @Test
+	
+	@Test
     public void testTitleResponse() throws FileNotFoundException, IOException {
         InputStream is = new FileInputStream(new File(getClass().getResource("/solr/solrTitleResponse.json").getFile()));
         JsonReader reader = null;
@@ -127,5 +116,5 @@ public class SolrQueryServiceTest extends InfolisBaseTest {
             is.close();
         }
     }
-
+	
 }

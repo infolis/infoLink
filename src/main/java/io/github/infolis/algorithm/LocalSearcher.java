@@ -23,11 +23,11 @@ import io.github.infolis.model.entity.Entity;
  *
  * @author domi
  */
-public class LocalResolver extends BaseAlgorithm {
+public class LocalSearcher extends BaseAlgorithm {
 
-	Logger log = LoggerFactory.getLogger(LocalResolver.class);
+	Logger log = LoggerFactory.getLogger(LocalSearcher.class);
 
-    public LocalResolver(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public LocalSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 

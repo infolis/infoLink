@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.infolink.querying;
 
 import io.github.infolis.util.URLParamEncoder;
 

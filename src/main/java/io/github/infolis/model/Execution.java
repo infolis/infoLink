@@ -3,12 +3,12 @@ package io.github.infolis.model;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.algorithm.Learner;
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.SearchResultLinker;
+import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.infolink.querying.QueryService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -148,8 +148,8 @@ public class Execution extends BaseModel {
          * They are for example used to search patterns within the
          * Pattern Applier algorithm.
          * 
-         * {@link Learner} {@link TextExtractor} {@link Bootstrapping}
-         * {@link PatternApplier} {@link ApplyPatternAndResolve} 
+         * {@link TextExtractor} {@link Bootstrapping}
+         * {@link InfolisPatternSearcher} {@link SearchPatternsAndCreateLinks} 
          * {@link Indexer} 
 	 */ 
 	private List<String> inputFiles = new ArrayList<>();
@@ -160,7 +160,7 @@ public class Execution extends BaseModel {
          * For example, the TextExtraction algorithm extracts texts of pdfs
          * and stores these texts as output files.
          * 
-         * {@link Learner} {@link SearchTermPosition} {@link TextExtractor} 
+         * {@link LuceneSearcher} {@link TextExtractor} 
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
@@ -180,9 +180,9 @@ public class Execution extends BaseModel {
 	private String outputDirectory = "";
 
 	/**
-	 * Input directory of SearchTermPosition = output directory of indexer. 
+	 * Input directory of LuceneSearcher = output directory of indexer. 
          * 
-	 * {@link Indexer} {@link SearchTermPosition}
+	 * {@link Indexer} {@link LuceneSearcher}
 	 */
 	private String indexDirectory = "";
 	
@@ -193,7 +193,7 @@ public class Execution extends BaseModel {
          * operations may be carried out.
          * Default: 10 
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int phraseSlop = 10;
 
@@ -202,7 +202,7 @@ public class Execution extends BaseModel {
          * use leading wildcard characters.
          * Default: true       
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private boolean allowLeadingWildcards = true;
 
@@ -212,7 +212,7 @@ public class Execution extends BaseModel {
          * matching boolean combinations of other queries.
          * Default: Integer max value
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int maxClauseCount = Integer.MAX_VALUE;
 
@@ -223,7 +223,7 @@ public class Execution extends BaseModel {
          * beginning to start the whole process. The search term represents 
          * such a seed, e.g. the study name "ALLBUS".
          * 
-	 * {@link SearchTermPosition}
+	 * {@link LuceneSearcher}
 	 */
 	private String searchTerm;
 
@@ -233,7 +233,7 @@ public class Execution extends BaseModel {
          * to perform a search in different repositories to find
          * fitting research data.
          * 
-	 * {@link SearchTermPosition} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
+	 * {@link LuceneSearcher} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private String searchQuery;
 
@@ -243,8 +243,8 @@ public class Execution extends BaseModel {
          * Besides the text and the term that has been found in the text,
          * it also contains the context, i.e. where the term has been detected.
          * 
-	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataExtractor}
-         * {@link Resolver} {@link SearchTermPosition} {@link ApplyPatternAndResolve}
+         * {@link FederatedSearcher} {@link MetaDataExtractor}
+         * {@link Resolver} {@link LuceneSearcher} {@link SearchPatternsAndCreateLinks}
          * {@link PatternApplier} {@link Bootstrapping}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
@@ -252,7 +252,7 @@ public class Execution extends BaseModel {
         //TODO: necessary? can't we used the outputFiles?
 	/**
          * 
-	 * {@link SearchTermPosition}
+	 * {@link LuceneSearcher}
 	 */
 	private List<String> matchingFiles = new ArrayList<>();
 
@@ -271,7 +271,7 @@ public class Execution extends BaseModel {
          * named entity and thus should contain at least one upper-case character.
          * Default: false
          * 
-         * {@link PatternApplier} {@link Bootstrapping} {@link Learner}
+         * {@link PatternApplier} {@link Bootstrapping}
          */
 	private boolean upperCaseConstraint = false;
 
@@ -279,7 +279,7 @@ public class Execution extends BaseModel {
 	 * Seeds used for bootstrapping, e.g. study names to start
          * with like "ALLBUS".
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private List<String> seeds = new ArrayList<>();
 
@@ -288,7 +288,7 @@ public class Execution extends BaseModel {
          * A high number of iterations can lead to a increased run time.       
          * Default: 10
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private int maxIterations = 10;
 
@@ -322,16 +322,11 @@ public class Execution extends BaseModel {
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
 	/**
-         * When resolving the detected meta data by searching in repositories,
-         * we need to know what we search for. The different strategies are:         
-         * title, doi, urn, bibliography.
-         * If we chose for example title, we search the meta data within the 
-         * title field in a repository.
-         * Default: MetaDataExtractingStrategy.title
-         * 
-	 * {@link MetaDataExtractingStrategy} {@link MetaDataResolver}
+	 * The SearchResultLinkerClass determines the SearchResultLinker to 
+	 * use. That class is responsible for deciding which SearchResults to 
+	 * select for creating links.
 	 */
-	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
+	private Class<? extends SearchResultLinker> searchResultLinkerClass;
         
 	/**
          * As a final step, links between the texts and the discovered
@@ -662,14 +657,14 @@ public class Execution extends BaseModel {
 	public void setLinks(List<String> links) {
 		this.links = links;
 	}
-
-    public MetaDataExtractingStrategy getMetaDataExtractingStrategy() {
-        return metaDataExtractingStrategy;
-    }
-
-    public void setMetaDataExtractingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
-        this.metaDataExtractingStrategy = metaDataExtractingStrategy;
-    }
+	
+	public Class<? extends SearchResultLinker> getSearchResultLinkerClass() {
+		return this.searchResultLinkerClass;
+	}
+	
+	public void setSearchResultLinkerClass (Class<? extends SearchResultLinker> searchResultLinkerClass) {
+		this.searchResultLinkerClass = searchResultLinkerClass;
+	}
 
     public List<String> getLinkedEntities() {
         return linkedEntities;

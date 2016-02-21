@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public class SearchTermPositionTest extends InfolisBaseTest {
+public class LuceneSearcherTest extends InfolisBaseTest {
 
-    Logger log = LoggerFactory.getLogger(SearchTermPositionTest.class);
+    Logger log = LoggerFactory.getLogger(LuceneSearcherTest.class);
 
     String testString1 = "Please try to find the term in this short text snippet.";
     String testString2 = "Please try to find the _ in this short text snippet.";
@@ -33,7 +33,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
     List<String> uris = new ArrayList<>();
     Execution indexerExecution;
 
-    public SearchTermPositionTest() throws Exception {
+    public LuceneSearcherTest() throws Exception {
         String[] testStrings = {
             "Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
             "Hallo, please try to find the R2 in this short text snippet. Thank you.",
@@ -52,9 +52,9 @@ public class SearchTermPositionTest extends InfolisBaseTest {
     @Test
     public void getContextTest() throws IOException {
     	indexerExecution = createIndex();
-        List<TextualReference> contextList1 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString1);
-        List<TextualReference> contextList2 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString2);
-        List<TextualReference> contextList3 = SearchTermPosition.getContexts(dataStoreClient, "document", "term", testString3);
+        List<TextualReference> contextList1 = LuceneSearcher.getContexts(dataStoreClient, "document", "term", testString1);
+        List<TextualReference> contextList2 = LuceneSearcher.getContexts(dataStoreClient, "document", "term", testString2);
+        List<TextualReference> contextList3 = LuceneSearcher.getContexts(dataStoreClient, "document", "term", testString3);
         assertEquals(1, contextList1.size());
         assertEquals(0, contextList2.size());
         assertEquals(1, contextList3.size());
@@ -106,7 +106,7 @@ public class SearchTermPositionTest extends InfolisBaseTest {
 
     private List<TextualReference> testContexts(String searchTerm, String searchQuery) throws Exception {
         Execution exec = new Execution();
-        exec.setAlgorithm(SearchTermPosition.class);
+        exec.setAlgorithm(LuceneSearcher.class);
         exec.setSearchTerm(searchTerm);
         exec.setSearchQuery(searchQuery);
         exec.setInputFiles(uris);

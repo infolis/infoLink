@@ -1,55 +1,54 @@
-package io.github.infolis.resolve;
+package io.github.infolis.infolink.querying;
 
-import java.util.ArrayList;
+import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.SearchResult;
+import io.github.infolis.util.InformationExtractor;
+import io.github.infolis.util.RegexUtils;
+
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.github.infolis.algorithm.DaraLinker;
-import io.github.infolis.model.entity.Entity;
-
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FilterDaraJsonResults {
-
-	private final static Logger log = LoggerFactory.getLogger(FilterDaraJsonResults.class);
-
-	//TODO: test
-	public static JsonArray filter(JsonArray candidates, Entity study) {
-		List<JsonObject> matchingItems = new ArrayList<JsonObject>();
-		for (JsonObject item : candidates.getValuesAs(JsonObject.class)) {
-			JsonArray titles = item.getJsonArray("title");
-			for (int i=0; i<titles.size(); i++) {
-				String title = titles.get(i).toString();
-				log.debug("study: " + study.getName());
-				log.debug("number: " + study.getNumber());
-				log.debug("candidate title: " + title);
-				if (numericInfoMatches(study.getNumber(), title)) {
-					matchingItems.add(item);
-					break; // no need to search in alternative title
-				}
-			}
-		}
-		return createJsonArray(matchingItems);
-	}
-
-	private static JsonArray createJsonArray(List<JsonObject> list) {
-		JsonArrayBuilder builder = Json.createArrayBuilder();
-		for (JsonObject item : list) {
-			builder.add(item);
-		}
-		return builder.build();
-	}
-
-	private static boolean containsYear(String number) {
-		return Pattern.matches(".*?" + DaraLinker.yearRegex + ".*?", number);
+/**
+ * 
+ * @author kata
+ *
+ */
+public class SearchResultScorer {
+	
+	private final static Logger log = LoggerFactory.getLogger(SearchResultScorer.class);
+	
+	/**
+     * Computes score based on correspondence of numbers in textual references and 
+     * search results. Considers ranges, abbreviated years and exact matches.
+     *
+     * @param reference
+     * @param targetCandidate
+     * @return
+     */
+    public static double computeScoreBasedOnNumbers(TextualReference reference, SearchResult targetCandidate) {
+        List<String> textRefNumInfoList = InformationExtractor.extractNumericInfo(reference);
+        if(targetCandidate.getNumericInformation() == null || targetCandidate.getNumericInformation().isEmpty()) {
+        	targetCandidate.setNumericInformation(InformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
+        }
+        List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
+        if (targetCandidate.getNumericInformation().isEmpty()) return 0.5;
+        if (textRefNumInfoList.isEmpty()) return 0.7;
+        for (String textRefNumInfo : textRefNumInfoList) {
+            for (String targetCandidateNumInfo : targetCandidateNumInfoList) {
+                if (numericInfoMatches(textRefNumInfo, targetCandidateNumInfo)) {
+                    return 1.0;
+                }
+            }
+        }
+        return 0.0;
+    }
+    
+    private static boolean containsYear(String number) {
+		return Pattern.matches(".*?" + RegexUtils.yearRegex + ".*?", number);
 	}
 
 	private static boolean containsAbbreviatedYear(String number) {
@@ -57,11 +56,11 @@ public class FilterDaraJsonResults {
 	}
 
 	private static boolean containsEnum(String number) {
-		return Pattern.matches(".*?\\d\\s*" + DaraLinker.enumRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + RegexUtils.enumRegex+ "\\s*\\d.*?", number);
 	}
 
 	private static boolean containsRange(String number) {
-		return Pattern.matches(".*?\\d\\s*" + DaraLinker.rangeRegex+ "\\s*\\d.*?", number);
+		return Pattern.matches(".*?\\d\\s*" + RegexUtils.rangeRegex+ "\\s*\\d.*?", number);
 	}
 
 	private static String[] getFullYearVariants(String extractedNumber) {
@@ -190,8 +189,8 @@ public class FilterDaraJsonResults {
 		// for study references without any specified years / numbers, accept all candidates
 		// TODO: match to higher order entity according to dataset ontology (study, not dataset)
 		if (numericInfo == null || string == null) return true;
-		List<String> numericInfo1 = extractNumbers(numericInfo);
-		List<String> numericInfo2 = extractNumbers(string);
+		List<String> numericInfo1 = InformationExtractor.extractNumbers(numericInfo);
+		List<String> numericInfo2 = InformationExtractor.extractNumbers(string);
 		boolean containsRange_numericInfo1 = containsRange(numericInfo);
 		boolean containsRange_numericInfo2 = containsRange(string);
 		boolean containsEnum_numericInfo1 = containsEnum(numericInfo);
@@ -321,14 +320,4 @@ public class FilterDaraJsonResults {
 		catch (NumberFormatException nfe) { log.debug(nfe.getMessage()); return false; }
 	}
 
-	private static List<String> extractNumbers (String string) {
-		Pattern p = Pattern.compile(DaraLinker.numberRegex);
-		Matcher matcher = p.matcher(string);
-		List<String> numericInfo = new ArrayList<String>();
-		while (matcher.find()) {
-			// remove "." and "," if not followed by any number (1. -> 1; 1.0 -> 1.0)
-	        numericInfo.add(matcher.group().replaceAll("[.,](?!\\d)", ""));
-	    }
-		return numericInfo;
-	}
 }

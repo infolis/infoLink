@@ -1,10 +1,13 @@
-package io.github.infolis.resolve;
 
-import io.github.infolis.model.SearchQuery;
+package io.github.infolis.infolink.querying;
+
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.util.NumericInformationExtractor;
+import io.github.infolis.util.InformationExtractor;
+import io.github.infolis.util.URLParamEncoder;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,57 +26,81 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 
+ * @author kata
  *
- * @author domi
- *
- * Perform a query which uses an HTML search portal. Parse the retuned HTML page
- * to detect the search results.
  */
-public class HTMLQueryService extends QueryService {
+public class DaraHTMLQueryService extends QueryService {
 
-    private static final Logger log = LoggerFactory.getLogger(HTMLQueryService.class);
-
-    private int maxNumber = 10;
-
-    public HTMLQueryService() {
-        super();
+    public DaraHTMLQueryService() {
+        super("http://www.da-ra.de/dara/search/search_result", 0.5);
+    }
+    
+    private static final Logger log = LoggerFactory.getLogger(DaraHTMLQueryService.class);
+    
+    /**
+     * Constructs a search URL from the base URL and the query.
+     *
+     * @param title	the query term
+     * @param pubDate the publication date
+     * @param doi the doi
+     * @param maxNumber	the maximum number of hits to be displayed
+     * @param resourceType type of the resource (e.g. dataset of text)
+     * @return	the query URL
+     * @throws MalformedURLException
+     */
+    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber, String resourceType) throws MalformedURLException {
+    	String remainder = "&lang=en&mdlang=de&max=" + maxNumber;
+        String query = "?q=";
+        if (!title.isEmpty()) {
+        	try {
+        		query += "title:" + URLParamEncoder.encode(title);
+        	} catch (UnsupportedEncodingException e) {
+        		query += "title:" + title;
+        	}
+        }
+        if (!pubDate.isEmpty()) query += "+publicationDate:" + pubDate;
+        if (!doi.isEmpty()) query += "+doi:" + doi;
+        if (!resourceType.isEmpty()) query += "+resourceType:" + resourceType;
+        query = query.replaceAll("=\\+", "=");
+        return new URL(target + query + remainder);
     }
 
-    public HTMLQueryService(String target) {
-        super(target);
-    }
-
-    public HTMLQueryService(String target, double reliability) {
-        super(target, reliability);
-    }
-
-    public String adaptQuery(SearchQuery solrQuery) {
-        String query ="";
-
-            if(solrQuery.getQuery().contains("?q=title")) {
-                //only extract the title
-                String title = solrQuery.getQuery().split("\\?date")[0];
-                title = title.replace("?q=title:", "");
-                query = String.format("%s?title=%s&max=%s&lang=de", target, title, String.valueOf(maxNumber));
-            }
-            else if(solrQuery.getQuery().contains("?q=doi")) {
-                String doi = solrQuery.getQuery();
-                doi = doi.replace("?q=doi:", "");
-                query = String.format("%s?doi=%s&max=%s&lang=de", target, doi, String.valueOf(maxNumber));
-            }
-
-
-        return query;
+    public URL createQuery(Entity entity) throws MalformedURLException {
+    	String title = "";
+    	String pubDate = "";
+    	String doi = "";
+    	if (this.getQueryStrategy().contains(QueryService.QueryField.title)) {
+    		title = entity.getName();
+    	}
+    	
+    	if (this.getQueryStrategy().contains(QueryService.QueryField.publicationDate)) {
+    		pubDate = entity.getNumber();
+    	}
+    	
+    	if (this.getQueryStrategy().contains(QueryService.QueryField.numericInfoInTitle)) {
+    		if (!title.isEmpty()) log.debug("Warning: both title and numericInfoInTitle strategies set. Using numericInfoInTitle"); 
+    		title = entity.getName() + " " + entity.getNumber();
+    		/*for (String numInfo : entity.getNumericInfo()) {
+    			title += " " + numInfo;
+    		}*/
+    	}
+    	
+    	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
+    		doi = entity.getIdentifier();
+    	}
+    	// resourceType field in da|ra: "2" denotes dataset
+    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
     }
 
     @Override
-    public List<SearchResult> executeQuery(SearchQuery solrQuery) {
+    public List<SearchResult> find(Entity entity) {
         try {
-            URL url = new URL(adaptQuery(solrQuery));
+            URL url = createQuery(entity);
             URLConnection connection = url.openConnection();
             connection.setRequestProperty("Accept-Charset", "UTF-8");
             //connection.setConnectTimeout(6000);
-            System.out.println("Reading from url...");
+            System.out.println("Reading from url " + url);
             //make sure that all data is read
             byte[] resultBuff = new byte[0];
             byte[] buff = new byte[1024];
@@ -112,7 +139,7 @@ public class HTMLQueryService extends QueryService {
             String title = "";
             String identifier = "";
             //TODO: search for tag "a" first to limit elements to search by attribute value?
-            Elements names = hit.getElementsByAttributeValueMatching("href", "/dara/study/web_show?.*");
+            Elements names = hit.getElementsByAttributeValueMatching("href", "/dara/search/search_show?.*");
             Elements dois = hit.getElementsByAttributeValueContaining("href", "http://dx.doi.org");
             // each entry has exactly one name and one doi element
             //TODO: except for some datasets that are not registered but only referenced in dara!
@@ -128,11 +155,11 @@ public class HTMLQueryService extends QueryService {
             }
             //create the search result
             log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
-            String num = NumericInformationExtractor.getNumericInfo(title);
+            List<String> numericInfo = InformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
             sr.setIdentifier(identifier);
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
-            sr.setNumericInformation(new ArrayList<>(Arrays.asList(num)));
+            sr.setNumericInformation(numericInfo);
             sr.setListIndex(i);
             sr.setQueryService(this.getUri());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -144,17 +171,4 @@ public class HTMLQueryService extends QueryService {
         return results;
     }
 
-    /**
-     * @return the maxNumber
-     */
-    public int getMaxNumber() {
-        return maxNumber;
-    }
-
-    /**
-     * @param maxNumber the maxNumber to set
-     */
-    public void setMaxNumber(int maxNumber) {
-        this.maxNumber = maxNumber;
-    }
 }

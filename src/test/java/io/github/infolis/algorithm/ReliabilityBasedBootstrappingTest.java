@@ -7,6 +7,7 @@ package io.github.infolis.algorithm;
 
 import static org.junit.Assert.*;
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.algorithm.BootstrappingTest.ExpectedOutput;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.entity.InfolisFile;
@@ -78,8 +79,7 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 
 	/**
 	 * Tests basic functionality using no threshold for pattern induction (=
-	 * accept all). For a more detailed test refer to patternLearner.LearnerTest
-	 * class.
+	 * accept all)
 	 * 
 	 * @param strategy
 	 * @throws Exception
@@ -106,5 +106,16 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 		}
 		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}
-
+	
+	// set expected output to test this bootstrapping algorithm with its current configuration 
+	// in BoostrappingTest
+	//TODO: add values!
+	public static Set<BootstrappingTest.ExpectedOutput> getExpectedOutput() {
+		Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
+		Set<String> expectedStudies = new HashSet<String>(Arrays.asList("dummy"));
+    	Set<String> expectedPatterns = new HashSet<String>(Arrays.asList("dummy"));
+    	Set<String> expectedContexts = new HashSet<String>(Arrays.asList("dummy"));
+    	//expectedOutput.add(new ExpectedOutput(ReliabilityBasedBootstrapping.class, BootstrapStrategy.reliability, 0.4, expectedStudies, expectedPatterns, expectedContexts));
+    	return expectedOutput;
+	}
 }

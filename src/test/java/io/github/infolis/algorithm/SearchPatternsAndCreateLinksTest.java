@@ -20,8 +20,8 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.resolve.HTMLQueryService;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.infolink.querying.DaraHTMLQueryService;
+import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
 /**
@@ -30,9 +30,9 @@ import io.github.infolis.util.SerializationUtils;
  * @author kata
  * @author domi
  */
-public class ApplyPatternAndResolveTest extends InfolisBaseTest {
+public class SearchPatternsAndCreateLinksTest extends InfolisBaseTest {
 
-	private static final Logger log = LoggerFactory.getLogger(ApplyPatternAndResolve.class);
+	private static final Logger log = LoggerFactory.getLogger(SearchPatternsAndCreateLinksTest.class);
     /**
      * Applies a given set of pattern (loaded from a file) and resolves the
      * references.
@@ -40,7 +40,7 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
      * @throws IOException
      */
     @Test
-    public void applyPatternAndResolveRefs() throws IOException {
+    public void testSearchPatternsAndCreateLinks() throws IOException {
 
         File txtDir = new File(getClass().getResource("/examples/minimal-txt").getFile());
 
@@ -58,9 +58,10 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
         Execution e = new Execution();
         e.getInfolisPatternTags().add("test");
-        e.setAlgorithm(ApplyPatternAndResolve.class);
+        e.setAlgorithm(SearchPatternsAndCreateLinks.class);
         e.setInputFiles(txt);
         e.setQueryServices(qServices);
+        e.setSearchResultLinkerClass(BestMatchLinker.class);
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         for (String ref : e.getTextualReferences()) {
@@ -110,7 +111,8 @@ public class ApplyPatternAndResolveTest extends InfolisBaseTest {
 
     public List<String> postQueryServices() throws IOException {
         List<String> postedQueryServices = new ArrayList<>();
-        QueryService p1 = new HTMLQueryService("http://www.da-ra.de/dara/study/web_search_show", 0.5);
+        QueryService p1 = new DaraHTMLQueryService();
+        p1.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, p1);
         postedQueryServices.add(p1.getUri());
         return postedQueryServices;

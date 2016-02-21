@@ -1,4 +1,4 @@
-package io.github.infolis.resolve;
+package io.github.infolis.infolink.querying;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.infolis.resolve.DaraSolrMatcher;
+import io.github.infolis.infolink.querying.DaraSolrMatcher;
 
 public class DaraSolrMatcherTest {
 

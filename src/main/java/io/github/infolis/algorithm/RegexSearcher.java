@@ -111,7 +111,7 @@ public class RegexSearcher extends BaseAlgorithm {
                     }
                 }
 
-                List<TextualReference> references = SearchTermPosition.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
+                List<TextualReference> references = LuceneSearcher.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
                 for (TextualReference ref : references) {
                     ref.setPattern(pattern.getUri());
                     log.debug("added reference: " + ref);
@@ -129,7 +129,7 @@ public class RegexSearcher extends BaseAlgorithm {
 
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

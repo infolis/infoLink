@@ -20,25 +20,31 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
-public class TagResolver extends BaseAlgorithm {
+/**
+ * Class for searching InfolisFile and InfolisPattern objects with given tags.
+ * 
+ * @author kata
+ *
+ */
+public class TagSearcher extends BaseAlgorithm {
 
-	private static final Logger log = LoggerFactory.getLogger(TagResolver.class);
+	private static final Logger log = LoggerFactory.getLogger(TagSearcher.class);
 
-	public TagResolver(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+	public TagSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
 	private void parseTags() {
-		Map<Class<?extends BaseModel>, Collection<String>> toResolve = new HashMap<>();
+		Map<Class<?extends BaseModel>, Collection<String>> toSearch = new HashMap<>();
 
-		toResolve.put(InfolisFile.class, getExecution().getInfolisFileTags());
-		toResolve.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
+		toSearch.put(InfolisFile.class, getExecution().getInfolisFileTags());
+		toSearch.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
 
-		for (Class<? extends BaseModel> clazz : toResolve.keySet()) {
-			if (toResolve.get(clazz).isEmpty())
+		for (Class<? extends BaseModel> clazz : toSearch.keySet()) {
+			if (toSearch.get(clazz).isEmpty())
 				continue;
 			Multimap<String, String> query = HashMultimap.create();
-			query.putAll("tags", toResolve.get(clazz));
+			query.putAll("tags", toSearch.get(clazz));
 			List<? extends BaseModel> matchingItemsInDb;
 			matchingItemsInDb = getInputDataStoreClient().search(clazz, query);
 			setExecutionParameters(clazz, matchingItemsInDb);
@@ -73,6 +79,6 @@ public class TagResolver extends BaseAlgorithm {
 
 	@Override
 	public void validate() throws IllegalAlgorithmArgumentException {
-		// no validation needed, if no tags are specified, TagResolver simply won't do anything
+		// no validation needed, if no tags are specified, TagSearcher simply won't do anything
 	}
 }

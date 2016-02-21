@@ -30,13 +30,13 @@ import com.google.common.collect.Multimap;
  * @author kata
  *
  */
-public class PatternApplier extends BaseAlgorithm {
+public class InfolisPatternSearcher extends BaseAlgorithm {
 
-    public PatternApplier(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
+    public InfolisPatternSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
 
-    private static final Logger log = LoggerFactory.getLogger(PatternApplier.class);
+    private static final Logger log = LoggerFactory.getLogger(InfolisPatternSearcher.class);
     
     private List<InfolisPattern> getInfolisPatterns(Collection<String> patternUris) {
     	List<InfolisPattern> patterns = new ArrayList<>();
@@ -64,14 +64,14 @@ public class PatternApplier extends BaseAlgorithm {
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
-        	Execution stpExecution = getExecution().createSubExecution(SearchTermPosition.class);
+        	Execution stpExecution = getExecution().createSubExecution(LuceneSearcher.class);
             stpExecution.setIndexDirectory(getExecution().getIndexDirectory());
             stpExecution.setPhraseSlop(getExecution().getPhraseSlop());
             stpExecution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
             stpExecution.setMaxClauseCount(getExecution().getMaxClauseCount());
     		stpExecution.setSearchQuery(curPat.getLuceneQuery());
     		stpExecution.setInputFiles(getExecution().getInputFiles());
-    		// with empty searchTerm, SearchTermPosition does not post any textual references
+    		// with empty searchTerm, LuceneSearcher does not post any textual references
     		// thus, no need to create temporary file resolver / data store client here
     		stpExecution.instantiateAlgorithm(this).run();
     		for (String fileUri : stpExecution.getMatchingFiles()) {
@@ -115,7 +115,7 @@ public class PatternApplier extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
     	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagResolver.class);
+    	tagExec.setAlgorithm(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

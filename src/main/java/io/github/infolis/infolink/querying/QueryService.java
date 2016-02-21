@@ -1,4 +1,4 @@
-package io.github.infolis.querying;
+package io.github.infolis.infolink.querying;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;

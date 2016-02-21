@@ -9,8 +9,8 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
-import io.github.infolis.querying.DaraHTMLQueryService;
-import io.github.infolis.querying.QueryService;
+import io.github.infolis.infolink.querying.DaraHTMLQueryService;
+import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
 import java.io.BufferedReader;

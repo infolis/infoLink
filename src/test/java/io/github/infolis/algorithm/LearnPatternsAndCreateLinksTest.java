@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.querying.QueryService;
-import io.github.infolis.querying.DaraHTMLQueryService;
+import io.github.infolis.infolink.querying.QueryService;
+import io.github.infolis.infolink.querying.DaraHTMLQueryService;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;

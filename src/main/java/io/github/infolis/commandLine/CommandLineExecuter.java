@@ -51,7 +51,7 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.querying.QueryService;
+import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
@@ -184,8 +184,8 @@ public class CommandLineExecuter {
 
                             String queryServiceName = stringEntry.getString();
                             queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
-                            if (!queryServiceName.startsWith("io.github.infolis.querying")) {
-                                queryServiceName = "io.github.infolis.querying." + queryServiceName;
+                            if (!queryServiceName.startsWith("io.github.infolis.infolink.querying.")) {
+                                queryServiceName = "io.github.infolis.infolink.querying." + queryServiceName;
                             }
                             log.debug("queryServiceClass item: " + queryServiceName);
                             try {

@@ -1,4 +1,4 @@
-package io.github.infolis.querying;
+package io.github.infolis.infolink.querying;
 
 import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;

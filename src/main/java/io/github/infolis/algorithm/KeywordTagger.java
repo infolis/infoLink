@@ -16,7 +16,8 @@
  */
 package io.github.infolis.algorithm;
 
-import de.unima.ki.infolis.fastjoin.FastJoinIndexer;
+import de.unima.ki.infolis.fastjoin.core.FastJoinIndexer;
+import de.unima.ki.infolis.fastjoin.core.Settings;
 import de.unima.ki.infolis.fastjoin.util.ConceptWithScore;
 import de.unima.ki.infolis.lohai.IflAnnotationSource;
 import de.unima.ki.infolis.lohai.IflConcept;
@@ -24,6 +25,7 @@ import de.unima.ki.infolis.lohai.IflConceptScheme;
 import de.unima.ki.infolis.lohai.IflLanguage;
 import de.unima.ki.infolis.lohai.IflRecord;
 import de.unima.ki.infolis.lohai.IflRecordSet;
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.entity.Entity;
@@ -34,13 +36,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.semtinel.core.data.api.AnnotationSource;
-import org.semtinel.core.data.api.Concept;
 import org.semtinel.core.data.api.ConceptScheme;
 import org.semtinel.core.skos.impl.SKOSManager;
 
 /**
  *
  * @author domi
+ * 
+ * Algorithm to detect keywords for entities. All keywords come from a 
+ * given thesaurus. The keyword detection can either use the abstract of an 
+ * entity or exploit existing links.
+ * 
  */
 public class KeywordTagger extends BaseAlgorithm {
 
@@ -49,10 +55,8 @@ public class KeywordTagger extends BaseAlgorithm {
     }
 
     @Override
-    public void execute() throws IOException {
-        //read thesaurus URL -> variable in execution    
-        //need to be skos!
-        //String thesaurusURL = "file:///C:/Users/domi/InFoLiS2/Verschlagwortung/thesaurus/thesoz.rdf";
+    public void execute() throws IOException {        
+        
         String thesaurusURL = getExecution().getThesaurus();
         SKOSManager man = new SKOSManager(thesaurusURL);
         ConceptScheme iflCs = new IflConceptScheme(man.getConceptSchemes().get(0), thesaurusURL);
@@ -74,6 +78,13 @@ public class KeywordTagger extends BaseAlgorithm {
             rs.addRecord(r);
         }
         FastJoinIndexer indexer = new FastJoinIndexer(IflConcept.preferredLangaue, target, iflCs, rs);
+        //depends on the indexing strategy!
+        Settings.USE_SUBJECTHEADINGS = false;
+        Settings.USE_TITLE = false;
+        Settings.FASTJOIN_EXE_WIN = InfolisConfig.getFastJoinLocation();
+        Settings.TOP_K = 5;
+        Settings.TOP_K_UNNORMALIZED = 0;
+        
         Map<IflRecord, HashSet<ConceptWithScore>> results = indexer.index();
 
         List<Keyword> keywords = new ArrayList<>();

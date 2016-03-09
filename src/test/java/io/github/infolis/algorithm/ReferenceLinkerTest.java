@@ -13,8 +13,8 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.querying.DaraHTMLQueryService;
-import io.github.infolis.querying.QueryService;
+import io.github.infolis.infolink.querying.DaraHTMLQueryService;
+import io.github.infolis.infolink.querying.QueryService;
 
 /**
  * 

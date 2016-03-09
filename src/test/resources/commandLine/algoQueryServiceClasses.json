@@ -5,5 +5,5 @@
         {"name": "foo"}
     ],
 "searchResultLinkerClass":"io.github.infolis.algorithm.BestMatchLinker",
-"queryServiceClasses":["DaraHTMLQueryService","io.github.infolis.querying.DaraSolrQueryService"]
+"queryServiceClasses":["DaraHTMLQueryService","io.github.infolis.infolink.querying.DaraSolrQueryService"]
 }

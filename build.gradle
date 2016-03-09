@@ -4,7 +4,7 @@ apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.p
 apply plugin: 'eclipse'
 
 version =  1.0
-sourceCompatibility = 1.7
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -28,7 +28,8 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
     compile 'com.google.guava:guava:18.0'
     compile 'org.apache.solr:solr-solrj:4.1.0'
-    compile 'edu.stanford.nlp:stanford-parser:2.0.2'
+    compile 'edu.stanford.nlp:stanford-parser:3.6.0'
+    compile 'cc.mallet:mallet:2.0.7'
 
     // Logging
     compile 'ch.qos.logback:logback-core:1.1.3'

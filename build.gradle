@@ -28,6 +28,7 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
     compile 'com.google.guava:guava:18.0'
     compile 'org.apache.solr:solr-solrj:4.1.0'
+    compile 'edu.stanford.nlp:stanford-parser:2.0.2'
 
     // Logging
     compile 'ch.qos.logback:logback-core:1.1.3'

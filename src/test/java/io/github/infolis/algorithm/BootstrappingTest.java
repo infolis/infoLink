@@ -41,13 +41,13 @@ public class BootstrappingTest extends InfolisBaseTest {
 
 	public BootstrappingTest() throws Exception {
 		String[] testStrings = {
-				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
-				"Hallo, please try to find the R2 in this short text snippet. Thank you.",
-				"Hallo, please try to find the D2 in this short text snippet. Thank you.",
-				"Hallo, please try to find the term in this short text snippet. Thank you.",
-				"Hallo, please try to find the _ in this short text snippet. Thank you.",
-				"Hallo, please try to find .the term. in this short text snippet. Thank you.",
-				"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+				"Hallo , please try to find the FOOBAR in this short text snippet . Thank you .",
+				"Hallo , please try to find the R2 in this short text snippet . Thank you .",
+				"Hallo , please try to find the D2 in this short text snippet . Thank you .",
+				"Hallo , please try to find the term in this short text snippet . Thank you .",
+				"Hallo , please try to find the _ in this short text snippet . Thank you .",
+				"Hallo , please try to find . the term . in this short text snippet . Thank you .",
+				"Hallo , please try to find the FOOBAR in this short text snippet . Thank you ."
 		};
 		for (InfolisFile file : createTestTextFiles(7, testStrings))
 			uris7.add(file.getUri());
@@ -101,8 +101,8 @@ public class BootstrappingTest extends InfolisBaseTest {
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
     	List<TextualReference> refs = b.getContextsForSeed("term");
-    	assertEquals(new HashSet<String>(Arrays.asList("please try to find the term in this short text snippet.",
-    			"please try to find .the term . in this short text")),
+    	assertEquals(new HashSet<String>(Arrays.asList("please try to find the term in this short text snippet",
+    			"try to find . the term . in this short text")),
     			new HashSet<String>(TextualReference.getContextStrings(refs)));
     }
 

@@ -22,14 +22,18 @@ public class TokenizerTest extends InfolisBaseTest {
 	List<InfolisFile> testFiles;
 	
 	public TokenizerTest() throws Exception {
-		String[] testStrings = {"On the one hand, the granularity (what is the smallest element of research data in need of description?) and the possible, aggregating intermediary steps vary widely."};
+		String[] testStrings = {"On the one hand, the granularity (what is the smallest element of research data in need of description?) and the possible, aggregating intermediary steps vary widely.\nOn the other hand, ..."};
 		testFiles = createTestTextFiles(1, testStrings);
 	}
 	
 	@Test
 	public void testGetTokenizedSentences() {
-		List<String> sentences = Tokenizer.getTokenizedSentences(testFiles.get(0).getFileName());
-		for (String sentence : sentences) { 
+		List<String> sentences1 = Tokenizer.getTokenizedSentences(testFiles.get(0).getFileName(), true, true);
+		List<String> sentences2 = Tokenizer.getTokenizedSentences(testFiles.get(0).getFileName(), false, false);
+		for (String sentence : sentences1) { 
+			log.debug("Sentence: " + sentence); 
+		}
+		for (String sentence : sentences2) { 
 			log.debug("Sentence: " + sentence); 
 		}
 	}

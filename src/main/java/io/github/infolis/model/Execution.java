@@ -407,6 +407,18 @@ public class Execution extends BaseModel {
 	 * {@link TextExtractor}
 	 */
 	private boolean overwriteTextfiles = true;
+	
+	/**
+	 * Determines whether new line characters are to be tokenized.
+	 * {@link Tokenizer}
+	 */
+	private boolean tokenizeNLs = true;
+	
+	/**
+	 * Enable all traditional PTB3 token transforms (like parentheses becoming -LRB-, -RRB-).
+	 * {@link Tokenizer}
+	 */
+	private boolean ptb3Escaping = true;
 
 	//
 	//
@@ -717,6 +729,23 @@ public class Execution extends BaseModel {
     public boolean getOverwriteTextfiles() {
     	return this.overwriteTextfiles;
     }
+    
+    public void setTokenizeNLs(boolean tokenizeNLs) {
+    	this.tokenizeNLs = tokenizeNLs;
+    }
+    
+    public boolean getTokenizeNLs() {
+    	return this.tokenizeNLs;
+    }
+    
+    public void setPtb3Escaping(boolean ptb3Escaping) {
+    	this.ptb3Escaping = ptb3Escaping;
+    }
+	
+	public boolean getPtb3Escaping() {
+		return this.ptb3Escaping;
+	};
+
     
     public List<Class<? extends QueryService>> getQueryServiceClasses() {
         return queryServiceClasses;

@@ -38,13 +38,13 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	private final static String term = "FOOBAR";
 	private final static List<String> terms = Arrays.asList(term);
 	private String[] testStrings = {
-			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
-			"Hallo, please try to find the R2 in this short text snippet. Thank you.",
-			"Hallo, please try to find the D2 in this short text snippet. Thank you.",
-			"Hallo, please try to find the term in this short text snippet. Thank you.",
-			"Hallo, please try to find the _ in this short text snippet. Thank you.",
-			"Hallo, please try to find .the term. in this short text snippet. Thank you.",
-			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you."
+			"Hallo , please try to find the FOOBAR in this short text snippet . Thank you .",
+			"Hallo , please try to find the R2 in this short text snippet . Thank you .",
+			"Hallo , please try to find the D2 in this short text snippet . Thank you .",
+			"Hallo , please try to find the term in this short text snippet . Thank you .",
+			"Hallo , please try to find the _ in this short text snippet . Thank you .",
+			"Hallo , please try to find . the term . in this short text snippet . Thank you .",
+			"Hallo , please try to find the FOOBAR in this short text snippet . Thank you ."
 	};
 
 	public FrequencyBasedBootstrappingTest() throws Exception {
@@ -102,31 +102,31 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Q.\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text"));
+    			"please try to find the term in this short text snippet",
+    			"please try to find the FOOBAR in this short text snippet",
+    			"try to find . the term . in this short text"));
     	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet."));
+    			"please try to find the term in this short text snippet",
+    			"please try to find the FOOBAR in this short text snippet"));
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Q.\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet.",
-    			"please try to find .the term . in this short text"));
+    			"please try to find the term in this short text snippet",
+    			"please try to find the FOOBAR in this short text snippet",
+    			"try to find . the term . in this short text"));
     	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet.",
-    			"please try to find the FOOBAR in this short text snippet."));
+    			"please try to find the term in this short text snippet",
+    			"please try to find the FOOBAR in this short text snippet"));
 
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(

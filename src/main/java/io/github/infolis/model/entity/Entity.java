@@ -19,7 +19,7 @@ import io.github.infolis.model.TextualReference;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**

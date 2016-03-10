@@ -36,14 +36,10 @@ public class RegexUtilsTest {
 	@Test
 	public void normalizeQueryTest() {
 		assertEquals("term", RegexUtils.normalizeQuery("term", true));
-		assertEquals("term", RegexUtils.normalizeQuery("term,", true));
-		assertEquals("term", RegexUtils.normalizeQuery(".term.", true));
 		assertEquals("terma", RegexUtils.normalizeQuery("terma", true));
-
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term", true));
-		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term,", true));
-		assertEquals("\"the term\"", RegexUtils.normalizeQuery(".the term.", true));
-		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the. term.", true));
+		assertEquals("\\:term", RegexUtils.normalizeQuery(":term", true));
+		assertEquals("\"the\\: term\"", RegexUtils.normalizeQuery("the: term", true));
 	}
 
 	@Test

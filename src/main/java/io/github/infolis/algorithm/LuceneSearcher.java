@@ -11,26 +11,26 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.LimitedTimeMatcher;
 import io.github.infolis.util.RegexUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryParser.ParseException;
-import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.queryParser.complexPhrase.ComplexPhraseQueryParser;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.complexPhrase.ComplexPhraseQueryParser;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,8 +95,10 @@ public class LuceneSearcher extends BaseAlgorithm {
     		Execution indexerExecution = createIndex();
     		getExecution().setIndexDirectory(indexerExecution.getOutputDirectory());
     	}
-        IndexSearcher searcher = new IndexSearcher(IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))));
-        QueryParser qp = new ComplexPhraseQueryParser(Version.LUCENE_35, DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
+    	IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(getExecution().getIndexDirectory())));
+    	log.debug("Reading index at " + getExecution().getIndexDirectory() );
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        QueryParser qp = new ComplexPhraseQueryParser(DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
         // set phrase slop because dataset titles may consist of more than one word
         qp.setPhraseSlop(getExecution().getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
         qp.setAllowLeadingWildcard(getExecution().isAllowLeadingWildcards());
@@ -110,7 +112,6 @@ public class LuceneSearcher extends BaseAlgorithm {
         } catch (ParseException e) {
             error(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
             getExecution().setStatus(ExecutionStatus.FAILED);
-            searcher.close();
             throw new RuntimeException();
         }
 
@@ -128,7 +129,6 @@ public class LuceneSearcher extends BaseAlgorithm {
                 error(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
-                searcher.close();
                 return;
             }
 
@@ -146,10 +146,8 @@ public class LuceneSearcher extends BaseAlgorithm {
             updateProgress(i, scoreDocs.length);
 
         }
-        searcher.close();
         Indexer.createAnalyzer().close();
-        IndexReader.open(FSDirectory.open(new File(getExecution().getIndexDirectory()))).close();
-        FSDirectory.open(new File(getExecution().getIndexDirectory())).close();
+        //TODO close searcher, indexReader, FSDirectory
         if (this.getExecution().getSearchTerm() != null) {
             log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
         }
@@ -171,12 +169,12 @@ public class LuceneSearcher extends BaseAlgorithm {
         LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
         List<TextualReference> contextList = new ArrayList<>();
         ltm.run();
-
+/*
         if (ltm.finished() && !ltm.matched()) {
             pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + removeSpecialCharsFromTerm(term) + RegexUtils.rightContextPat_);
             ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
             ltm.run();
-        }
+        }*/
 
         // these patterns are used for extracting contexts of known study titles,
         // do not confuse with patterns to detect study references -> do not post

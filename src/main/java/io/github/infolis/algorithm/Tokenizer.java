@@ -38,10 +38,9 @@ public class Tokenizer extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
-	public static List<String> getTokenizedSentences(String filename) {
+	public static List<String> getTokenizedSentences(String filename, boolean tokenizeNLs, boolean ptb3Escaping) {
 		DocumentPreprocessor dp = new DocumentPreprocessor(filename);
-		//PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=true, ptb3Escaping=true");
-		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=false, ptb3Escaping=false");
+		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=" + tokenizeNLs + ", ptb3Escaping=" + ptb3Escaping);
 		dp.setTokenizerFactory(tf);
 		List<String> sentences = new ArrayList<>();
 		for (List<HasWord> wordList : dp) {
@@ -101,7 +100,7 @@ public class Tokenizer extends BaseAlgorithm {
     	
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		InfolisFile infolisFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-    		List<String> tokenizedSentences = getTokenizedSentences(infolisFile.getFileName());
+    		List<String> tokenizedSentences = getTokenizedSentences(infolisFile.getFileName(), getExecution().getTokenizeNLs(), getExecution().getPtb3Escaping());
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), tokenizedSentences, tagsToSet);

@@ -11,7 +11,8 @@ import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.queryparser.classic.QueryParser;
+//import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 
 /**
  * 
@@ -127,33 +128,19 @@ public class RegexUtils {
 	}
 
 	/**
-	 * Normalizes a query by applying a Lucene analyzer. Make sure the analyzer used here is the
-	 * same as the analyzer used for indexing the text files! Used to normalize automatically 
+	 * Normalizes a query by escaping special lucene characters. Used to normalize automatically 
 	 * generated queries (e.g. in bootstrapping) that may contain special characters.
 	 *
 	 * @param 	query	the Lucene query to be normalized
 	 * @return	a normalized version of the query
 	 */
-	@SuppressWarnings("deprecation")
 	public static String normalizeQuery(String query, boolean quoteIfSpace)
 	{
-		Analyzer analyzer = Indexer.createAnalyzer();
-		String field = "contents";
-		String result = new String();
-		TokenStream stream = analyzer.tokenStream(field, new StringReader(query));
-		try
-		{
-			while (stream.incrementToken()) {
-				result += " " + (stream.getAttribute(TermAttribute.class).term());
-			}
-		} catch (IOException e) {
-			// not thrown due to using a string reader...
+		query = QueryParser.escape(query.trim());
+		if (quoteIfSpace && query.trim().matches(".*\\s.*")) {
+			query = "\"" + query + "\"";
 		}
-		analyzer.close();
-		if (quoteIfSpace && result.trim().matches(".*\\s.*")) {
-				return "\"" + result.trim() + "\"";
-		}
-		return result.trim();
+		return query;
 	}
 	
 	/**

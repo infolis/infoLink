@@ -54,10 +54,6 @@ public class RegexUtils {
 	// use greedy variant for last word - normal wordRegex would only extract first character of last word
 	public static final String lastWordRegex = new String("\\S+");
 
-	// regex for extracting contexts of named entities
-    public static final String leftContextPat_ = "((" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s*?" + ")";
-    public static final String rightContextPat_ = "(\\s*?(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.wordRegex + ")\\s+(" + RegexUtils.lastWordRegex + "))";
-
     /**
      * Replaces regular expressions in term with placeholders. 
      * Used in TrainingSet class (and useful for weka exports)

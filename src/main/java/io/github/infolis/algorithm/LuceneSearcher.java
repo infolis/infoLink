@@ -63,7 +63,6 @@ public class LuceneSearcher extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(LuceneSearcher.class);
     private static final String DEFAULT_FIELD_NAME = "contents";
-    private static final String ALLOWED_CHARS = "[\\s\\-–\\\\/:.,;()&_?!]";
 
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
@@ -156,26 +155,15 @@ public class LuceneSearcher extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
-    public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException {
-        // search for phrase using regex
-        // first group: left context (consisting of 5 words)
-        // second group: right context (consisting of 5 words)
-        // contexts may or may not be separated from the query by whitespace!
-        // e.g. "Eurobarometer-Daten" with "Eurobarometer" as query term
-        // pattern should be case-sensitive! Else, e.g. the study "ESS" would be found in "vergessen"...
-        // Pattern pat = Pattern.compile( leftContextPat + query + rightContextPat, Pattern.CASE_INSENSITIVE );
+    public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException, ArrayIndexOutOfBoundsException  {
         InfolisPattern infolisPat = null;
-        Pattern pat = Pattern.compile(RegexUtils.leftContextPat_ + Pattern.quote(term) + RegexUtils.rightContextPat_);
+        // extract the sentence in which term occurs + adjacent sentences, if existing
+        // note: with this regex, term may be a substring of a word
+        Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + ")?.*?" + Pattern.quote(term) + ".*(" + System.getProperty("line.separator") + ".*)?");
         String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
         LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
         List<TextualReference> contextList = new ArrayList<>();
         ltm.run();
-/*
-        if (ltm.finished() && !ltm.matched()) {
-            pat = Pattern.compile(RegexUtils.leftContextPat_ + ALLOWED_CHARS + removeSpecialCharsFromTerm(term) + RegexUtils.rightContextPat_);
-            ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
-            ltm.run();
-        }*/
 
         // these patterns are used for extracting contexts of known study titles,
         // do not confuse with patterns to detect study references -> do not post
@@ -186,44 +174,21 @@ public class LuceneSearcher extends BaseAlgorithm {
             infolisPat = new InfolisPattern(pat.toString());
         }
         while (ltm.matched()) {
-
+        	log.debug("Found context: " + ltm.group());
             Entity p = new Entity();
             p.setFile(fileName);
             outputDataStoreClient.post(Entity.class, p);
-            TextualReference sC = new TextualReference(ltm.group(1).trim(), term, ltm.group(7).trim(), fileName, infolisPat.getUri(), p.getUri());
-            contextList.add(sC);
+            try {
+            	TextualReference sC = new TextualReference(ltm.group().split(term)[0].trim(), term, ltm.group().split(term)[1].trim(), fileName, infolisPat.getUri(), p.getUri());
+            	contextList.add(sC);
+            } catch (ArrayIndexOutOfBoundsException e) {
+            	log.warn("Error: failed to split reference: \"" + term + "\"");
+            	for (String word : ltm.group().split(term))	log.warn(word);
+            	throw new ArrayIndexOutOfBoundsException();
+            } 
             ltm.run();
         }
         return contextList;
-    }
-
-    //TODO: this checks for more characters than actually replaced by currently used analyzer - not necessary and not a nice way to do it
-    // refer to normalizeQuery for a better way to do this
-    private static String removeSpecialCharsFromTerm(String term) {
-        String[] termParts = term.split("\\s+");
-        String term_normalized = "";
-        for (String part : termParts) {
-            term_normalized += Pattern.quote(
-                    part.replace("-", " ")
-                    .replace("–", " ")
-                    .replace(".", " ")
-                    .replace("<", " ")
-                    .replace(">", " ")
-                    .replace("(", " ")
-                    .replace(")", " ")
-                    .replace(":", " ")
-                    .replace(",", " ")
-                    .replace(";", " ")
-                    .replace("/", " ")
-                    .replace("\\", " ")
-                    .replace("&", " ")
-                    .replace("_", "")
-                    .replace("?", "")
-                    .replace("!", "")
-                    .trim()
-            ) + ALLOWED_CHARS;
-        }
-        return term_normalized;
     }
 
     @Override

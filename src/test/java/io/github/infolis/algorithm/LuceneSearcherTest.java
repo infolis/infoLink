@@ -9,6 +9,7 @@ import io.github.infolis.model.TextualReference;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
@@ -32,9 +33,7 @@ public class LuceneSearcherTest extends InfolisBaseTest {
     String testString6 = "Hallo , please try to find . the term . in this short text snippet . Thank you .";
     List<String> uris = new ArrayList<>();
     Execution indexerExecution;
-
-    public LuceneSearcherTest() throws Exception {
-        String[] testStrings = {
+    String[] testStrings = {
             "Hallo , please try to find the FOOBAR in this short text snippet . Thank you .",
             "Hallo , please try to find the R2 in this short text snippet . Thank you .",
             "Hallo , please try to find the D2 in this short text snippet . Thank you .",
@@ -43,6 +42,8 @@ public class LuceneSearcherTest extends InfolisBaseTest {
             "Hallo , please try to find . the term . in this short text snippet . Thank you .",
             "Hallo , please try to find the FOOBAR in this short text snippet . Thank you ."
         };
+
+    public LuceneSearcherTest() throws Exception {
         for (InfolisFile file : createTestTextFiles(100, testStrings)) {
             uris.add(file.getUri());
         }
@@ -59,9 +60,9 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         assertEquals(1, contextList3.size());
         assertEquals(testString1, contextList1.get(0).toString());
         assertEquals(1, contextList3.size());
-        assertEquals(Arrays.asList("try", "to", "find", "the", "."), contextList3.get(0).getLeftWords());
+        assertEquals(Arrays.asList("Please", "try", "to", "find", "the", "."), contextList3.get(0).getLeftWords());
         assertEquals("term", contextList3.get(0).getReference());
-        assertEquals(Arrays.asList(".", "in", "this", "short", "text"), contextList3.get(0).getRightWords());
+        assertEquals(Arrays.asList(".", "in", "this", "short", "text", "snippet", "."), contextList3.get(0).getRightWords());
         assertEquals("document", contextList1.get(0).getFile());
         assertEquals("document", contextList3.get(0).getFile());
         assertEquals("term", contextList1.get(0).getReference());
@@ -72,26 +73,26 @@ public class LuceneSearcherTest extends InfolisBaseTest {
     @Test
     public void complexSearch_getContextTest() throws Exception {
     	indexerExecution = createIndex();
-        assertEquals(29, testContexts("FOOBAR", "FOOBAR").size());
-        assertEquals(28, testContexts("term", "term").size());
+        assertEquals(29, testContexts("FOOBAR", "FOOBAR", 0).size());
+        assertEquals(28, testContexts("term", "term", 0).size());
         //assertEquals(28, testContexts(". term .", "term").size());
-        assertEquals(0, testContexts("terma", "terma").size());
+        assertEquals(0, testContexts("terma", "terma", 0).size());
         // same behaviour is expected for phrases
-        assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"").size());
+        assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"", 0).size());
         //assertEquals(28, testContexts("the term,", "\"the term\"").size());
-        assertEquals(14, testContexts(". the term .", "\"the term\"").size());
-        assertEquals(0, testContexts("the terma", "\"the term\"").size());
+        assertEquals(14, testContexts(". the term .", "\"the term\"", 0).size());
+        assertEquals(0, testContexts("the terma", "\"the term\"", 0).size());
        // assertEquals(28, testContexts("the. term?!", "\"the term\"").size());
         //assertEquals(0, testContexts("the...term?!", "\"the term\"").size());
-        List<TextualReference> contextListA = testContexts("the term", "\"the term\"");
-        assertEquals(", please try to find the term in this short text snippet", contextListA.get(0).toString());
-        assertEquals("please try to find . the term . in this short text", contextListA.get(1).toString());
+        List<TextualReference> contextListA = testContexts("the term", "\"the term\"", 0);
+        assertEquals("Hallo , please try to find the term in this short text snippet . Thank you .", contextListA.get(0).toString());
+        assertEquals(new HashSet<String>(Arrays.asList(testStrings[3], testStrings[5])), new HashSet<String>(Arrays.asList(contextListA.get(1).toString(), contextListA.get(0).toString())));
 		// ...and for wildcard phrase queries
         // this query should find all test sentences except for those having a "." before "the" and having two words covered by the wildcard
-        assertEquals(100 - 14, testContexts("", "\"to find the * in\"", 0).size());
+        assertEquals(100 - 14, testExecute(null, "\"to find the * in\"", 0).size());
         // this query should find all test sentences with ". the term ."
         assertEquals(14, testContexts(". the term .", "\"to find the * in\"", 2).size());
-     // this query should find all test sentences with ". the term ." and "the term"
+        // this query should find all test sentences with ". the term ." and "the term"
         assertEquals(28, testContexts("the term", "\"to find the * in\"", 2).size());
     }
 
@@ -103,25 +104,6 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		return execution;
 	}
-
-    private List<TextualReference> testContexts(String searchTerm, String searchQuery) throws Exception {
-        Execution exec = new Execution();
-        exec.setAlgorithm(LuceneSearcher.class);
-        exec.setSearchTerm(searchTerm);
-        exec.setSearchQuery(searchQuery);
-        exec.setPhraseSlop(0);
-        exec.setInputFiles(uris);
-        exec.setIndexDirectory(indexerExecution.getOutputDirectory());
-        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-
-
-        ArrayList<TextualReference> contextList = new ArrayList<TextualReference>();
-        for (String uri : exec.getTextualReferences()) {
-            contextList.add(dataStoreClient.get(TextualReference.class, uri));
-        }
-        return contextList;
-
-    }
     
     private List<TextualReference> testContexts(String searchTerm, String searchQuery, int phraseSlop) throws Exception {
         Execution exec = new Execution();
@@ -140,6 +122,18 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         }
         return contextList;
 
+    }
+    
+    private List<String> testExecute(String searchTerm, String searchQuery, int phraseSlop) throws Exception {
+        Execution exec = new Execution();
+        exec.setAlgorithm(LuceneSearcher.class);
+        exec.setSearchTerm(searchTerm);
+        exec.setSearchQuery(searchQuery);
+        exec.setPhraseSlop(phraseSlop);
+        exec.setInputFiles(uris);
+        exec.setIndexDirectory(indexerExecution.getOutputDirectory());
+        exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+        return exec.getMatchingFiles();
     }
 
 }

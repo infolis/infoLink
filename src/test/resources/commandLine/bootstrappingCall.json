@@ -1,0 +1,6 @@
+{
+"algorithm":"FrequencyBasedBootstrapping",
+"seeds":["ALLBUS"],
+"bootstrapStrategy":"mergeAll",
+"reliabilityThreshold":0.09
+}

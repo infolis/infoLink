@@ -22,7 +22,7 @@ public class TokenizerTest extends InfolisBaseTest {
 	List<InfolisFile> testFiles;
 	
 	public TokenizerTest() throws Exception {
-		String[] testStrings = {"On the one hand, the granularity (what is the smallest element of research data in need of description?) and the possible, aggregating intermediary steps vary widely.\nOn the other hand, ..."};
+		String[] testStrings = {"On the one hand, the granularity (what is the smallest element of research data in need of description?) and the possible, aggregating intermediary steps vary widely.\nOn the other-hand, ..."};
 		testFiles = createTestTextFiles(1, testStrings);
 	}
 	

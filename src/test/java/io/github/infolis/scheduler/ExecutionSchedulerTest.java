@@ -91,8 +91,8 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
 
         Assert.assertEquals(0, exe.getByStatus(STARTED).size());
         Assert.assertEquals(0, exe.getByStatus(PENDING).size());
-        Assert.assertEquals(2, exe.getByStatus(FINISHED).size());
-        Assert.assertEquals(0, exe.getByStatus(FAILED).size());
+        Assert.assertEquals(1, exe.getByStatus(FINISHED).size());
+        Assert.assertEquals(1, exe.getByStatus(FAILED).size());
     }
 
     public List<String> postTxtFiles(File dir) throws IOException {

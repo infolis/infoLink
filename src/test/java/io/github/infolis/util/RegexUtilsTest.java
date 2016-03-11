@@ -8,16 +8,24 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+
+import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.algorithm.LuceneSearcher;
+import io.github.infolis.model.Execution;
+import io.github.infolis.model.entity.InfolisFile;
 
 /**
  * 
  * @author kata
  *
  */
-public class RegexUtilsTest {
+public class RegexUtilsTest extends InfolisBaseTest {
 
 	@Test
 	public void testComplexNumericInfoRegex() throws Exception {
@@ -34,12 +42,43 @@ public class RegexUtilsTest {
 	}
 
 	@Test
-	public void normalizeQueryTest() {
+	public void normalizeQueryTest() throws Exception {
 		assertEquals("term", RegexUtils.normalizeQuery("term", true));
 		assertEquals("terma", RegexUtils.normalizeQuery("terma", true));
 		assertEquals("\"the term\"", RegexUtils.normalizeQuery("the term", true));
-		assertEquals("\\:term", RegexUtils.normalizeQuery(":term", true));
-		assertEquals("\"the\\: term\"", RegexUtils.normalizeQuery("the: term", true));
+		assertEquals("\\\\\\:term", RegexUtils.normalizeQuery(":term", true));
+		assertEquals("\"the\\\\\\: term\"", RegexUtils.normalizeQuery("the: term", true));
+		
+		String[] testStrings = {
+				"Hallo , please try to find the (Datenbasis: 1990 , this short snippet .",
+				"Hallo , please try to find the Datenbasis: 1990 , this short snippet .",
+				"Hallo , please try to find the ( Datenbasis: 1990 , this short snippet .",
+		};
+		List<String> uris = new ArrayList<>();
+		for (InfolisFile file : createTestTextFiles(3, testStrings)) uris.add(file.getUri());
+		
+		String pat = "(Datenbasis: 2000 ,";
+		String lucenePat = "\"\\\\\\(Datenbasis\\\\\\: * ,\"";
+		assertEquals(lucenePat, "\"" + RegexUtils.normalizeAndEscapeRegex_lucene(pat) + "\"");
+		
+		Execution exec = new Execution();
+		exec.setAlgorithm(LuceneSearcher.class);
+		exec.setSearchTerm(null);
+		exec.setSearchQuery(lucenePat);
+		exec.setPhraseSlop(0);
+		exec.setInputFiles(uris);
+		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		assertEquals(Arrays.asList(uris.get(0)), exec.getMatchingFiles());
+		
+		exec = new Execution();
+		exec.setAlgorithm(LuceneSearcher.class);
+		exec.setSearchTerm(null);
+		lucenePat = "\"Datenbasis\\\\\\: * ,\"";
+		exec.setSearchQuery(lucenePat);
+		exec.setPhraseSlop(0);
+		exec.setInputFiles(uris);
+		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		assertEquals(Arrays.asList(uris.get(1), uris.get(2)), exec.getMatchingFiles());
 	}
 
 	@Test

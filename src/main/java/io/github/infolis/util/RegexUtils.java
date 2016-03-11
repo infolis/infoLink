@@ -1,16 +1,11 @@
 package io.github.infolis.util;
 
 import io.github.infolis.InfolisConfig;
-import io.github.infolis.algorithm.Indexer;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.queryparser.classic.QueryParser;
 //import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 
@@ -121,7 +116,6 @@ public class RegexUtils {
 	 */
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
-		string = string.trim();
 		string = normalizeQuery(string, false);
 		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
 		return string;
@@ -136,8 +130,8 @@ public class RegexUtils {
 	 */
 	public static String normalizeQuery(String query, boolean quoteIfSpace)
 	{
-		query = QueryParser.escape(query.trim());
-		if (quoteIfSpace && query.trim().matches(".*\\s.*")) {
+		query = QueryParser.escape(QueryParser.escape(query.trim()));
+		if (quoteIfSpace && query.matches(".*\\s.*")) {
 			query = "\"" + query + "\"";
 		}
 		return query;

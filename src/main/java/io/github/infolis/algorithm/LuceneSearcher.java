@@ -103,6 +103,7 @@ public class LuceneSearcher extends BaseAlgorithm {
         qp.setPhraseSlop(getExecution().getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
         qp.setAllowLeadingWildcard(getExecution().isAllowLeadingWildcards());
         BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
+        qp.setAutoGeneratePhraseQueries(false);
         // throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
         // if quotes are present in absence of any whitespace inside of query
         // however, queries should be passed in correct form instead of being changed here

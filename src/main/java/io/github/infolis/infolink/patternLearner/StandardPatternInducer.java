@@ -63,8 +63,14 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
 	        if (directNeighbourLeft.matches(".*\\P{Punct}")) {
 	            leftWords_regex.set(windowSize - 1, leftWords_regex.get(windowSize - 1) + "\\s");
 	        }
+	        else { 
+	        	leftWords_lucene.set(windowSize - 1, leftWords_lucene.get(windowSize -1 ) + "*");
+	        }
 	        if (directNeighbourRight.matches("\\P{Punct}.*")) {
 	            rightWords_regex.set(0, "\\s" + rightWords_regex.get(0));
+	        }
+	        else {
+	        	rightWords_lucene.set(0, "*" + rightWords_lucene.get(0));
 	        }
 	
 	        // construct all allowed patterns

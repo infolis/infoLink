@@ -1,10 +1,7 @@
 package io.github.infolis.algorithm;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -12,25 +9,19 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.HasWord;
-import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.process.CoreLabelTokenFactory;
-import edu.stanford.nlp.process.DocumentPreprocessor;
-import edu.stanford.nlp.process.PTBTokenizer;
-import edu.stanford.nlp.process.PTBTokenizer.PTBTokenizerFactory;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
+import opennlp.tools.util.InvalidFormatException;
 
 /**
- * 
+ *  
  * @author kata
  *
  */
-public class Tokenizer extends BaseAlgorithm {
+public abstract class Tokenizer extends BaseAlgorithm {
 
 	public Tokenizer (DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -38,26 +29,15 @@ public class Tokenizer extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
-	public static List<String> getTokenizedSentences(String filename, boolean tokenizeNLs, boolean ptb3Escaping) {
-		DocumentPreprocessor dp = new DocumentPreprocessor(filename);
-		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=" + tokenizeNLs + ", ptb3Escaping=" + ptb3Escaping);
-		dp.setTokenizerFactory(tf);
-		List<String> sentences = new ArrayList<>();
-		for (List<HasWord> wordList : dp) {
-			String sentence = "";
-			for (HasWord word : wordList) {
-				sentence += " " + word.word();
-			}
-			sentences.add(sentence);
-		}
-		return sentences;
-	}
-	
-	public static void printCoreLabels(String filename) throws FileNotFoundException {
-		PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(new FileReader(filename), new CoreLabelTokenFactory(), "invertible=true, tokenizeNLs=true, ptb3Escaping=true");
-		List<CoreLabel> labels = ptbt.tokenize();
-		System.out.println(labels);
-	}
+	/**
+	 * Splits the content of filename into sentences and tokenizes each sentence.
+	 * 
+	 * @param filename
+	 * @return
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public abstract List<String> getTokenizedSentences(String filename) throws InvalidFormatException, IOException;
 	
 	public String createInfolisFile(String filename, List<String> tokenizedSentences, Set<String> tags) throws IOException {
 		InfolisFile infolisFile = new InfolisFile();
@@ -65,10 +45,7 @@ public class Tokenizer extends BaseAlgorithm {
         if (null != getExecution().getOutputDirectory()) {
             outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
         }
-        String asText = "";
-        for (String sentence : tokenizedSentences) {
-        	asText += "\n" + sentence;
-        }
+        String asText = String.join(System.getProperty("line.separator"), tokenizedSentences);
         infolisFile.setFileName(outFileName);
         infolisFile.setMediaType("text/plain");
 		infolisFile.setTags(tags);
@@ -100,7 +77,8 @@ public class Tokenizer extends BaseAlgorithm {
     	
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		InfolisFile infolisFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-    		List<String> tokenizedSentences = getTokenizedSentences(infolisFile.getFileName(), getExecution().getTokenizeNLs(), getExecution().getPtb3Escaping());
+    		// TODO update status
+    		List<String> tokenizedSentences = getTokenizedSentences(infolisFile.getFileName());
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), tokenizedSentences, tagsToSet);

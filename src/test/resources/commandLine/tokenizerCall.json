@@ -1,4 +1,4 @@
 {
-	"algorithm":"Tokenizer",
-	"outputDirectory":"/home/students/boland/subsets/txt_bibless_tokenized/dgs_empirisch-quantitativ_de_orig"
+	"algorithm":"TokenizerOpenNLP",
+	"outputDirectory":"./tokenizerOutputDir"
 }

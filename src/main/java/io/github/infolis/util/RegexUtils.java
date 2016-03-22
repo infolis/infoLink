@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.queryparser.classic.QueryParser;
-//import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+
 
 /**
  * 
@@ -63,13 +63,11 @@ public class RegexUtils {
      */
 	public static String normalizeRegex(String term)
 	{
-		Pattern yearPat = Pattern.compile(yearRegex);
+		Pattern yearPat = Pattern.compile(complexNumericInfoRegex);
 		Pattern percentPat = Pattern.compile(percentRegex);
-		Pattern numberPat = Pattern.compile(numberRegex);
 
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
-		String numberNorm = new String("<NUMBER>");
 
 		// do not change order of replacements
 		Matcher percentMatcher = percentPat.matcher(term);
@@ -77,9 +75,6 @@ public class RegexUtils {
 
 		Matcher yearMatcher = yearPat.matcher(term);
 		term = yearMatcher.replaceAll(yearNorm);
-
-		Matcher numberMatcher = numberPat.matcher(term);
-		term = numberMatcher.replaceAll(numberNorm);
 
 		return term;
 	}
@@ -95,9 +90,8 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex(String string) {
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
-		String numberNorm = new String("<NUMBER>");
 		string = normalizeRegex(string);
-		string = Pattern.quote(string).replace(yearNorm, "\\E" + yearRegex + "\\Q").replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(numberNorm, "\\E" + numberRegex + "\\Q");
+		string = Pattern.quote(string).replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(yearNorm, "\\E" + complexNumericInfoRegex + "\\Q");
 		return string;
 	}
 
@@ -113,7 +107,7 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
 		string = normalizeQuery(string, false);
-		string = string.replaceAll(yearRegex, "*").replaceAll(percentRegex, "*").replaceAll(numberRegex, "*");
+		string = string.replaceAll(percentRegex, "*").replaceAll(complexNumericInfoRegex, "*");
 		return string;
 	}
 

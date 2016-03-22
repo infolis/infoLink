@@ -101,8 +101,8 @@ public class RegexUtilsTest extends InfolisBaseTest {
 	@Test
 	public void testNormalizeAndEscapeRegex() {
 		assertEquals("\\Q\\E" + RegexUtils.percentRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2%"));
-		assertEquals("\\Q\\E" + RegexUtils.numberRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
-		assertEquals("\\Q\\E" + RegexUtils.yearRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
+		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
+		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
 	}
 	
 	//TODO may change if different values for ignoreStudy are set in the config

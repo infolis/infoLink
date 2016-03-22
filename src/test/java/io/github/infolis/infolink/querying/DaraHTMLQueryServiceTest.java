@@ -43,6 +43,7 @@ public class DaraHTMLQueryServiceTest {
 		expectedDoiTitleMap.put("10.4232/1.5126", "Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)");
 		expectedDoiTitleMap.put("10.4232/1.4208", "Studiensituation und studentische Orientierungen 2000/01 (Studierenden-Survey)");
 		expectedDoiTitleMap.put("10.4232/1.3511", "Studiensituation und studentische Orientierungen 1997/98 (Studierenden-Survey)");
+		expectedDoiTitleMap.put("10.4232/1.12494", "Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013");
 		ExpectedOutput output = new ExpectedOutput(queryService, entity, searchResultLinkerClass, expectedDoiTitleMap);
 		expectedOutput.add(output);
 		return expectedOutput;

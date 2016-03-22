@@ -237,7 +237,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           	}
 		        }
 		        if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
-		        if (nonStopwordPresent && isRelevant(candidate, candidates)) {
+		        else if (nonStopwordPresent && isRelevant(candidate, candidates)) {
 		        	candidate.setTags(getExecution().getTags());
 		          	patterns.add(candidate);
 		           	processedMinimals_iteration.add(candidate.getMinimal());
@@ -245,6 +245,9 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		           	contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
 		           	continue;
+		        }
+		        else {
+		        	log.debug("Pattern rejected - not relevant");
 		        }
     		}
 	        return patterns;

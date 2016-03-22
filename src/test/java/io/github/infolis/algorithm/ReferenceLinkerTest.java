@@ -25,7 +25,6 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 	
 	@Test
 	public void testExecute() {
-		// BestMatchLinker and MultiMatchesLinker should yield the same result in this case
 		InfolisFile infolisFile = new InfolisFile();
 		dataStoreClient.post(InfolisFile.class, infolisFile);
 		TextualReference reference = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
@@ -52,13 +51,15 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec2.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec2.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec2.getLinks();
-	    assertEquals(1, linkUris.size());
-	    link = dataStoreClient.get(EntityLink.class, linkUris.get(0));
-	    toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
-	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity.getName());
-	    assertEquals("10.4232/1.5126", toEntity.getIdentifier());
+	    assertEquals(2, linkUris.size());
+	    List<EntityLink> links = dataStoreClient.get(EntityLink.class, linkUris);
+	    Entity toEntity1 = dataStoreClient.get(Entity.class, links.get(0).getToEntity());
+	    Entity toEntity2 = dataStoreClient.get(Entity.class, links.get(1).getToEntity());
+	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity1.getName());
+	    assertEquals("10.4232/1.5126", toEntity1.getIdentifier());
+	    assertEquals("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013", toEntity2.getName());
+	    assertEquals("10.4232/1.12494", toEntity2.getIdentifier());
 	    
-	    // BestMatchRanker and MultiMatchesRanker should not yield the same result in this case
 	    Execution exec3 = new Execution();
 	    TextualReference reference2 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", infolisFile.getUri(), "pattern", infolisFile.getUri());
 		dataStoreClient.post(TextualReference.class, reference2);
@@ -71,8 +72,8 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 	    assertEquals(1, linkUris.size());
 	    link = dataStoreClient.get(EntityLink.class, linkUris.get(0));
 	    toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
-	    assertEquals("Studiensituation und studentische Orientierungen 1982/83 (Studierenden-Survey)", toEntity.getName());
-	    assertEquals("10.4232/1.1884", toEntity.getIdentifier());
+	    assertEquals("Studiensituation und studentische Orientierungen 1992/93 (Studierenden-Survey)", toEntity.getName());
+	    assertEquals("10.4232/1.3130", toEntity.getIdentifier());
 	    
 	    Execution exec4 = new Execution();
 	    exec4.setTextualReferences(Arrays.asList(reference2.getUri()));
@@ -81,7 +82,7 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec4.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec4.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec4.getLinks();
-	    assertEquals(12, linkUris.size());
+	    assertEquals(13, linkUris.size());
 	}
     
 }

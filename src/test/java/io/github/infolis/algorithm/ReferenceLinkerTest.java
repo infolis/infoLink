@@ -1,6 +1,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,10 +56,10 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 	    List<EntityLink> links = dataStoreClient.get(EntityLink.class, linkUris);
 	    Entity toEntity1 = dataStoreClient.get(Entity.class, links.get(0).getToEntity());
 	    Entity toEntity2 = dataStoreClient.get(Entity.class, links.get(1).getToEntity());
-	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity1.getName());
-	    assertEquals("10.4232/1.5126", toEntity1.getIdentifier());
-	    assertEquals("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013", toEntity2.getName());
-	    assertEquals("10.4232/1.12494", toEntity2.getIdentifier());
+	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName()).contains("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)"));
+	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName()).contains("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013"));
+	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier()).contains("10.4232/1.5126"));
+	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier()).contains("10.4232/1.12494"));
 	    
 	    Execution exec3 = new Execution();
 	    TextualReference reference2 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", infolisFile.getUri(), "pattern", infolisFile.getUri());

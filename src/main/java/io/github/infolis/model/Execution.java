@@ -419,6 +419,13 @@ public class Execution extends BaseModel {
 	 * {@link Tokenizer}
 	 */
 	private boolean ptb3Escaping = true;
+	
+	/**
+	 * Index (starting at 1 rather than 0) of the first page to extract. 
+	 * Useful to ignore title pages if present.
+	 * {@link TextExtractor}
+	 */
+	private int startPage = 1;
 
 	//
 	//
@@ -744,8 +751,15 @@ public class Execution extends BaseModel {
 	
 	public boolean getPtb3Escaping() {
 		return this.ptb3Escaping;
-	};
+	}
+	
+	public void setStartPage(int startPage) {
+		this.startPage = startPage;
+	}
 
+	public int getStartPage() {
+		return this.startPage;
+	}
     
     public List<Class<? extends QueryService>> getQueryServiceClasses() {
         return queryServiceClasses;

@@ -64,7 +64,7 @@ public class TextExtractor extends BaseAlgorithm {
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
 
-    public InfolisFile extract(InfolisFile inFile) throws IOException {
+    public InfolisFile extract(InfolisFile inFile, int startPage) throws IOException {
         String asText = null;
 
         // TODO make configurable
@@ -94,7 +94,7 @@ public class TextExtractor extends BaseAlgorithm {
 
         try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
-                asText = extractText(pdfIn);
+                asText = extractText(pdfIn, startPage);
                 if (null == asText) {
                     throw new IOException("extractText returned null!");
                 }
@@ -137,8 +137,9 @@ public class TextExtractor extends BaseAlgorithm {
      * @return text of the PDF
      * @throws IOException
      */
-    private String extractText(PDDocument pdfIn) throws IOException {
+    private String extractText(PDDocument pdfIn, int startPage) throws IOException {
         String asText;
+        stripper.setStartPage(startPage);
         asText = stripper.getText(pdfIn);
 
         if (null == asText) {
@@ -187,7 +188,7 @@ public class TextExtractor extends BaseAlgorithm {
             debug(log, "Start extracting from %s", inputFile);
             InfolisFile outputFile;
             try {                
-                outputFile = extract(inputFile);
+                outputFile = extract(inputFile, getExecution().getStartPage());
                 debug(log, "Converted to file %s", outputFile);
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox

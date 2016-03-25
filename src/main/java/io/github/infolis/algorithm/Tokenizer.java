@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -30,18 +31,32 @@ public abstract class Tokenizer extends BaseAlgorithm {
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
 	/**
-	 * Splits the content of filename into sentences and tokenizes each sentence.
+	 * Splits text into sentences and tokenizes all words.
 	 * 
-	 * @param filename
+	 * @param text
 	 * @return
 	 * @throws InvalidFormatException
 	 * @throws IOException
 	 */
-	public abstract List<String> getTokenizedSentences(String filename) throws InvalidFormatException, IOException;
+	public abstract List<String> getTokenizedSentences(String text) throws InvalidFormatException, IOException;
+	
+	/**
+	 * Splits text in file into sentences and tokenizes all words.
+	 * 
+	 * @param file
+	 * @return
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	public abstract List<String> getTokenizedSentences(File file) throws InvalidFormatException, IOException;
+	
+	public String getTokenizedText(List<String> tokenizedSentences) {
+		return String.join(System.getProperty("line.separator"), tokenizedSentences);
+	}
 	
 	public String createInfolisFile(String filename, List<String> tokenizedSentences, Set<String> tags) throws IOException {
 		InfolisFile infolisFile = new InfolisFile();
-		String outFileName = SerializationUtils.changeFileExtension(filename, "tokenized");
+		String outFileName = SerializationUtils.changeFileExtension(filename, "tokenized.txt");
         if (null != getExecution().getOutputDirectory()) {
             outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
         }

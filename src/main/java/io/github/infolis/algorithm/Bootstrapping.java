@@ -105,10 +105,14 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         }
         if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
-            throw new IllegalArgumentException("Must set at least one inputFile!");
+            throw new IllegalArgumentException("Must set at least one input file!");
         }
         if (null == exec.getBootstrapStrategy()) {
-            throw new IllegalArgumentException("Must set the bootstrap strategy");
+            throw new IllegalArgumentException("Must set the bootstrap strategy!");
+        }
+        if (null == exec.isTokenize()) {
+        	throw new IllegalArgumentException("Must specify whether input texts have to be tokenized! Note: "
+        			+ "only set to false if the input texts are in tokenized form.");
         }
     }
 
@@ -122,6 +126,15 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 
+    	if (getExecution().isTokenize()) {
+    		Execution tokenizerExec = new Execution();
+    		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
+    		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
+    		tokenizerExec.setInputFiles(getExecution().getInputFiles());
+    		// TODO always use temporary files for tokenized texts?
+    		tokenizerExec.instantiateAlgorithm(this).run();
+    		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
+    	}
     	this.indexerExecution = createIndex();
     	getExecution().setIndexDirectory(this.indexerExecution.getIndexDirectory());
     	List<TextualReference> detectedContexts = new ArrayList<>();

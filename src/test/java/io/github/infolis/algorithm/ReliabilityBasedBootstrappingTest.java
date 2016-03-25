@@ -91,6 +91,7 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 		execution.getSeeds().addAll(terms);
 		execution.setInputFiles(uris);
 		execution.setReliabilityThreshold(-0.0);
+		execution.setTokenize(false);
 		execution.setBootstrapStrategy(BootstrapStrategy.reliability);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, fileResolver);
 		algo.run();

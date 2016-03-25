@@ -171,6 +171,19 @@ public class Execution extends BaseModel {
 	 * {@link TextExtractor}
 	 */
 	private boolean removeBib = false;
+	
+	/**
+	 * Whether to tokenize text input. Bootstrapping requires tokenized 
+	 * input texts to perform well. It can either be called on tokenized 
+	 * input texts or it can be called on untokenized text or pdf files and 
+	 * perform tokenization itself. If unspecified, defaults to false for 
+	 * TextExtractor. For Bootstrapping, this field has to be set explicitly 
+	 * as this information is crucial for good performance.
+         * Default: null
+         * 
+	 * {@link TextExtractor} {@link Bootstrapping}
+	 */
+	private Boolean tokenize = null;
 
 	/**
 	 * Output directory of Indexer and TextExtractor. 
@@ -507,6 +520,14 @@ public class Execution extends BaseModel {
 
 	public void setRemoveBib(boolean removeBib) {
 		this.removeBib = removeBib;
+	}
+	
+	public Boolean isTokenize() {
+		return this.tokenize;
+	}
+	
+	public void setTokenize(boolean tokenize) {
+		this.tokenize = tokenize;
 	}
 
 	public String getOutputDirectory() {

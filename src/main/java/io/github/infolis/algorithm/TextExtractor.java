@@ -18,7 +18,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -52,8 +51,7 @@ public class TextExtractor extends BaseAlgorithm {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class
-    );
+    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
 
     private final PDFTextStripper stripper;
 
@@ -63,8 +61,14 @@ public class TextExtractor extends BaseAlgorithm {
         //TODO: Test optimal section size
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
+    
+    private String tokenizeText(String text) throws IOException {
+    	Tokenizer tokenizer = new TokenizerStanford(
+    			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+    	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
+    }
 
-    public InfolisFile extract(InfolisFile inFile, int startPage) throws IOException {
+    public InfolisFile extract(InfolisFile inFile, int startPage, boolean tokenize) throws IOException {
         String asText = null;
 
         // TODO make configurable
@@ -100,6 +104,9 @@ public class TextExtractor extends BaseAlgorithm {
                 }
                 if (getExecution().isRemoveBib()) {
                     asText = removeBibSection(asText);
+                }
+                if (getExecution().isTokenize()) {
+                	asText = tokenizeText(asText);
                 }
 
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
@@ -188,7 +195,7 @@ public class TextExtractor extends BaseAlgorithm {
             debug(log, "Start extracting from %s", inputFile);
             InfolisFile outputFile;
             try {                
-                outputFile = extract(inputFile, getExecution().getStartPage());
+                outputFile = extract(inputFile, getExecution().getStartPage(), getExecution().isTokenize());
                 debug(log, "Converted to file %s", outputFile);
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox
@@ -224,6 +231,10 @@ public class TextExtractor extends BaseAlgorithm {
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
+		if (null == exec.isTokenize()) {
+			warn(log, "\"tokenize\" field unspecified. Defaulting to \"false\".");
+			this.getExecution().setTokenize(false);
+		}
     }
 
     /**
@@ -242,6 +253,9 @@ public class TextExtractor extends BaseAlgorithm {
 
         @Option(name = "-b", usage = "remove bibliographies", metaVar = "REMOVE_BIBLIOGRAPHIES")
         private boolean removeBib = false;
+        
+        @Option(name = "-t", usage = "tokenize", metaVar = "TOKENIZE")
+        private boolean tokenize = false;
 
         @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
         private boolean overwriteTextfiles = true;
@@ -296,6 +310,7 @@ public class TextExtractor extends BaseAlgorithm {
             }
             execution.setOutputDirectory(outputPath.toString());
             execution.setRemoveBib(removeBib);
+            execution.setTokenize(tokenize);
             execution.setOverwriteTextfiles(overwriteTextfiles);
 
             algo.run();

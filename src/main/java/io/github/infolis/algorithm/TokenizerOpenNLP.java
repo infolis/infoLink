@@ -57,13 +57,17 @@ public class TokenizerOpenNLP extends Tokenizer {
 		return this.sentenizer.sentDetect(input);
 	}
 	
-	public List<String> getTokenizedSentences(String filename) throws InvalidFormatException, IOException {
-		String[] sentences = sentenize(FileUtils.readFileToString(new File(filename)));
+	public List<String> getTokenizedSentences(String text) throws InvalidFormatException, IOException {
+		String[] sentences = sentenize(text);
 		List<String> tokenizedSentences = new ArrayList<>();
 		for (String sentence : sentences) {
 			tokenizedSentences.add(tokenize(sentence));
 		}
 		return tokenizedSentences;
+	}
+	
+	public List<String> getTokenizedSentences(File file) throws InvalidFormatException, IOException {
+		return getTokenizedSentences(FileUtils.readFileToString(file));
 	}
 	
 	@Override

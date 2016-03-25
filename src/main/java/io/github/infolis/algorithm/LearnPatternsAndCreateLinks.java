@@ -70,6 +70,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 			learnExec.setAlgorithm(ReliabilityBasedBootstrapping.class);
 		}
 		else learnExec.setAlgorithm(FrequencyBasedBootstrapping.class);
+		learnExec.setTokenize(getExecution().isTokenize());
 		learnExec.setSeeds(getExecution().getSeeds());
 		learnExec.setReliabilityThreshold(getExecution().getReliabilityThreshold());
 		learnExec.instantiateAlgorithm(this).run();

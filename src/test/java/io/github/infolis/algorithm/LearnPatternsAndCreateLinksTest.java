@@ -48,6 +48,7 @@ public class LearnPatternsAndCreateLinksTest extends InfolisBaseTest {
 	public void testExecute() {
 		Execution execution = new Execution();
 		execution.setAlgorithm(LearnPatternsAndCreateLinks.class);
+		execution.setTokenize(false);
 		execution.getSeeds().addAll(terms);
 		execution.setInputFiles(uris);
 		execution.setSearchTerm(terms.get(0));

@@ -97,6 +97,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     @Test
     public void testGetContextsForSeed() throws IOException {
     	Execution e = new Execution();
+    	e.setTokenize(false);
     	e.setInputFiles(uris7);
     	Bootstrapping b = new FrequencyBasedBootstrapping(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
     	b.indexerExecution = indexerExecution;
@@ -120,6 +121,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     	Set<String> references1set= new HashSet<>(references1);
     	Execution e = new Execution();
     	e.setInputFiles(uris7);
+    	e.setTokenize(false);
     	Bootstrapping b = new FrequencyBasedBootstrapping(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
@@ -135,6 +137,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     void testBootstrapping(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> expectedStudies, Set<String> expectedPatterns, Set<String> expectedContexts) throws Exception {
     	Execution execution = new Execution();
         execution.setAlgorithm(algorithm);
+        execution.setTokenize(false);
         execution.getSeeds().addAll(terms);
         execution.setInputFiles(uris20);
         execution.setSearchTerm(terms.get(0));

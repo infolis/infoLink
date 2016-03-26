@@ -119,8 +119,12 @@ public class BibliographyExtractor extends BaseAlgorithm {
     	}
     }
 
-    public String transformFilename(String filename) {
-    	return filename.replace(".txt", "_bibless.txt");
+    public String transformFilename(String filename, String outputDir) {
+    	 String outFileName = SerializationUtils.changeFileExtension(filename, "bibless.txt");
+         if (null != outputDir && !outputDir.isEmpty()) {
+             outFileName = SerializationUtils.changeBaseDir(outFileName, outputDir);
+         }
+         return outFileName;
     }
 
 
@@ -175,7 +179,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             text = removeBibliography(inputSections);
             InfolisFile outFile = new InfolisFile();
             // creates a new file for each text document
-            outFile.setFileName(transformFilename(inputFile.getFileName()));
+            outFile.setFileName(transformFilename(inputFile.getFileName(), getExecution().getOutputDirectory()));
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");

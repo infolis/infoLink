@@ -54,12 +54,17 @@ public abstract class Tokenizer extends BaseAlgorithm {
 		return String.join(System.getProperty("line.separator"), tokenizedSentences);
 	}
 	
+	private String transformFilename(String filename, String outputDir) {
+   	 String outFileName = SerializationUtils.changeFileExtension(filename, "tokenized.txt");
+        if (null != outputDir && !outputDir.isEmpty()) {
+            outFileName = SerializationUtils.changeBaseDir(outFileName, outputDir);
+        }
+        return outFileName;
+   }
+	
 	public String createInfolisFile(String filename, List<String> tokenizedSentences, Set<String> tags) throws IOException {
 		InfolisFile infolisFile = new InfolisFile();
-		String outFileName = SerializationUtils.changeFileExtension(filename, "tokenized.txt");
-        if (null != getExecution().getOutputDirectory()) {
-            outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
-        }
+		String outFileName = transformFilename(filename, getExecution().getOutputDirectory());
         String asText = String.join(System.getProperty("line.separator"), tokenizedSentences);
         infolisFile.setFileName(outFileName);
         infolisFile.setMediaType("text/plain");

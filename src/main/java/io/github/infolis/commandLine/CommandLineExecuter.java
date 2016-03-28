@@ -136,6 +136,11 @@ public class CommandLineExecuter {
                         break;
                     }
                     
+                    if (values.getKey().equals("tokenize")) {
+                    	exec.setTokenize(Boolean.parseBoolean(values.getValue().toString()));
+                    	break;
+                    }
+                    
                     if (values.getKey().equals("searchResultLinkerClass")) {
                         String searchResultLinkerClassName = values.getValue().toString().replace("\"", "");
                         String prefix = "io.github.infolis.algorithm.";

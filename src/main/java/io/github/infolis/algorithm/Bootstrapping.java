@@ -128,6 +128,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     	if (getExecution().isTokenize()) {
     		Execution tokenizerExec = new Execution();
+    		tokenizerExec.setAlgorithm(TokenizerStanford.class);
     		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
     		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
     		tokenizerExec.setInputFiles(getExecution().getInputFiles());

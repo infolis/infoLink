@@ -1,7 +1,9 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -132,7 +134,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
     		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
     		tokenizerExec.setInputFiles(getExecution().getInputFiles());
-    		// TODO always use temporary files for tokenized texts?
     		tokenizerExec.instantiateAlgorithm(this).run();
     		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
     	}

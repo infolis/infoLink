@@ -1,8 +1,10 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -16,6 +18,7 @@ import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +132,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
 
 
     @Override
-    public void execute() {
+    public void execute() throws IOException {
     	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
@@ -137,7 +140,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
 
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-
+    	
     	int counter = 0;
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		counter++;
@@ -178,6 +181,15 @@ public class BibliographyExtractor extends BaseAlgorithm {
             List<String> inputSections = tokenizeSections(text, 10);
             text = removeBibliography(inputSections);
             InfolisFile outFile = new InfolisFile();
+            
+        	// if no output directory is given, create temporary output files
+        	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+        		 String REMOVED_BIB_DIR_PREFIX = "removedBib-";
+                 String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), REMOVED_BIB_DIR_PREFIX).toString();
+                 FileUtils.forceDeleteOnExit(new File(tempDir));
+                 getExecution().setOutputDirectory(tempDir);
+             }
+        	
             // creates a new file for each text document
             outFile.setFileName(transformFilename(inputFile.getFileName(), getExecution().getOutputDirectory()));
             outFile.setMediaType("text/plain");

@@ -1,6 +1,7 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,15 +74,13 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		Execution exec = new Execution();
 		exec.setInputFiles(inputFiles);
 		exec.setAlgorithm(BibliographyExtractor.class);
-		exec.setOutputDirectory(InfolisConfig.getTmpFilePath().toString());
 		exec.instantiateAlgorithm(dataStoreClient, dataStoreClient, FileResolverFactory.local(), fileResolver).run();
 
 		log.debug("output files: " + exec.getOutputFiles());
 		assertEquals(exec.getInputFiles().size(), exec.getOutputFiles().size());
-		assertEquals(InfolisConfig.getTmpFilePath().toString(), exec.getOutputDirectory());
+		assertTrue(Paths.get(exec.getOutputDirectory()).startsWith(InfolisConfig.getTmpFilePath()));
 		InfolisFile outFile = dataStoreClient.get(InfolisFile.class, exec.getFirstOutputFile());
-		assertEquals(InfolisConfig.getTmpFilePath(), Paths.get(outFile.getFileName()).getParent());
-		// todo: check if files are written properly
+		assertTrue(Paths.get(outFile.getFileName()).getParent().startsWith(InfolisConfig.getTmpFilePath()));
 	}
 
 	private Map<String, String> getGoldTexts() throws IOException {

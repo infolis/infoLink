@@ -3,13 +3,16 @@ package io.github.infolis.algorithm;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -94,6 +97,14 @@ public abstract class Tokenizer extends BaseAlgorithm {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
+    	// if no output directory is given, create temporary output files
+    	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+    		 String TOKENIZED_DIR_PREFIX = "tokenized-";
+             String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), TOKENIZED_DIR_PREFIX).toString();
+             FileUtils.forceDeleteOnExit(new File(tempDir));
+             getExecution().setOutputDirectory(tempDir);
+         }
     	
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		InfolisFile infolisFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);

@@ -38,9 +38,8 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         algo.run();
 
         List<SearchResult> searchResults = dataStoreClient.get(SearchResult.class, execution.getSearchResults());
-        assertEquals(1, searchResults.size());
-        assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", searchResults.get(0).getTitles().get(0));
-        assertEquals("10.4232/1.5126", searchResults.get(0).getIdentifier());
+        assertEquals(2, searchResults.size());
+        assertEquals(Arrays.asList("10.4232/1.5126", "10.4232/1.12510"), Arrays.asList(searchResults.get(0).getIdentifier(), searchResults.get(1).getIdentifier()));
     }
 
 }

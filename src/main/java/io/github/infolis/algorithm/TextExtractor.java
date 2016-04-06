@@ -65,6 +65,9 @@ public class TextExtractor extends BaseAlgorithm {
     private String tokenizeText(String text) throws IOException {
     	Tokenizer tokenizer = new TokenizerStanford(
     			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+    	Execution exec = new Execution();
+    	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
+    	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
     }
 

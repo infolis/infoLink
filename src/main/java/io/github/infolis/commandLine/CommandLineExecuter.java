@@ -313,7 +313,6 @@ public class CommandLineExecuter {
         indexerExecution.setAlgorithm(Indexer.class);
         indexerExecution.setInputFiles(exec.getInputFiles());
         indexerExecution.setPhraseSlop(0);
-        // indexerExecution.setInputDirectory(indexDir.toString());
         indexerExecution.setOutputDirectory(indexDir.toString());
         dataStoreClient.post(Execution.class, indexerExecution);
         indexerExecution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
@@ -346,7 +345,14 @@ public class CommandLineExecuter {
             if (null == textDir || !Files.exists(textDir)) {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
-                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles()));
+                    if (null == exec.isTokenize()) {
+                    	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setTokenize(true);
+                    }
+                    else {
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    }
                 } else {
                     throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
                 }
@@ -358,7 +364,14 @@ public class CommandLineExecuter {
                             + "' were specified. Overwriting text files: " + exec.getOverwriteTextfiles());
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
-                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles()));
+                    if (null == exec.isTokenize()) {
+                    	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setTokenize(true);
+                    }
+                    else {
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    }
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }
@@ -397,13 +410,16 @@ public class CommandLineExecuter {
      * @param uris URIs of the InfolisFiles
      * @return URIs of the InfolisFiles of the text versions
      */
-    private List<String> convertPDF(List<String> uris, boolean removeBib, boolean overwriteTextfiles) {
+    private List<String> convertPDF(List<String> uris, boolean removeBib, boolean overwriteTextfiles, boolean tokenize, boolean tokenizeNLs, boolean ptb3Escaping) {
         Execution convertExec = new Execution();
         convertExec.setAlgorithm(TextExtractor.class);
         convertExec.setOutputDirectory(textDir.toString());
         convertExec.setInputFiles(uris);
         convertExec.setRemoveBib(removeBib);
         convertExec.setOverwriteTextfiles(overwriteTextfiles);
+        convertExec.setTokenize(tokenize);
+        convertExec.setTokenizeNLs(tokenizeNLs);
+        convertExec.setPtb3Escaping(ptb3Escaping);
         convertExec.setTags(new HashSet<>(Arrays.asList(tag)));
         Algorithm algo = convertExec.instantiateAlgorithm(dataStoreClient, fileResolver);
         algo.run();

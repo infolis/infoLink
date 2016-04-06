@@ -44,6 +44,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
+		execution.setOutputDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
 		return execution;
@@ -135,10 +136,10 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
     		tokenizerExec.setInputFiles(getExecution().getInputFiles());
     		tokenizerExec.instantiateAlgorithm(this).run();
+    		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
     		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
     	}
     	this.indexerExecution = createIndex();
-    	getExecution().setIndexDirectory(this.indexerExecution.getIndexDirectory());
     	List<TextualReference> detectedContexts = new ArrayList<>();
         try {
         	detectedContexts = bootstrap();

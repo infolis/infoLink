@@ -2,5 +2,6 @@
 "algorithm":"io.github.infolis.algorithm.FrequencyBasedBootstrapping",
 "seeds":["ALLBUS"],
 "searchTerm":"ALLBUS",
-"bootstrapStrategy":"mergeAll"
+"bootstrapStrategy":"mergeAll",
+"tokenize":false
 }

@@ -13,6 +13,7 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.LimitedTimeMatcher;
+import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +50,7 @@ public class RegexSearcher extends BaseAlgorithm {
         return input.replaceAll("\\s+", " ");
     }
 
-    // TODO: use second lucene index here... (case-insensitive whitespaceAnalyzer)
-    private List<TextualReference> searchForPatterns(InfolisFile file)
+    private List<TextualReference> searchForPatterns(InfolisFile file, int groupOfTerm)
             throws IOException {
         String inputClean = getFileAsString(file);
 
@@ -63,21 +63,11 @@ public class RegexSearcher extends BaseAlgorithm {
             log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
-            // set upper limit for processing time - prevents stack overflow
-            // caused by monitoring process
-            // (LimitedTimeMatcher)
-            // 750000 suitable for -Xmx2g -Xms2g
-            // processing time for documents depends on size of the document.
-            // Allow 1024 milliseconds per KB
-            InputStream openInputStream = getInputFileResolver().openInputStream(file);
-            long maxTimeMillis = Math.min(75_000, openInputStream.available());
-            openInputStream.close();
-
             // call m.find() as a thread: catastrophic backtracking may occur
             // which causes application to hang
             // thus monitor runtime of threat and terminate if processing takes
             // too long
-            LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, maxTimeMillis,
+            LimitedTimeMatcher ltm = new LimitedTimeMatcher(p, inputClean, RegexUtils.maxTimeMillis,
                     file.getFileName() + "\n" + pattern.getPatternRegex());
             ltm.run();
             // thread was aborted due to long processing time
@@ -89,10 +79,11 @@ public class RegexSearcher extends BaseAlgorithm {
                 // curPat + "\n", true);
             }
             while (ltm.matched()) {
-                String context = ltm.group();
-                String studyName = ltm.group(1).trim();
                 log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
+                String studyName = ltm.group(groupOfTerm).trim();
                 log.debug("referenced study name: " + studyName);
+                String context = ltm.group();
+                
                 // if studyname contains no characters: ignore
                 // TODO: not accurate - include accents etc in match... \p{M}?
                 if (studyName.matches("\\P{L}+")) {
@@ -181,7 +172,7 @@ public class RegexSearcher extends BaseAlgorithm {
             log.trace("Start extracting from '{}'.", inputFile);
             updateProgress(counter, size);
 
-            detectedContexts.addAll(searchForPatterns(inputFile));
+            detectedContexts.addAll(searchForPatterns(inputFile, RegexUtils.studyGroupNum));
         }
 
         for (TextualReference sC : detectedContexts) {

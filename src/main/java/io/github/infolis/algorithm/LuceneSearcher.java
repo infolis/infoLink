@@ -112,6 +112,8 @@ public class LuceneSearcher extends BaseAlgorithm {
         } catch (ParseException e) {
             error(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
             getExecution().setStatus(ExecutionStatus.FAILED);
+            Indexer.createAnalyzer().close();
+            indexReader.close();
             throw new RuntimeException();
         }
 
@@ -127,6 +129,8 @@ public class LuceneSearcher extends BaseAlgorithm {
                 file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
+                Indexer.createAnalyzer().close();
+                indexReader.close();
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
                 return;
@@ -147,6 +151,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 
         }
         Indexer.createAnalyzer().close();
+        indexReader.close();
         //TODO close searcher, indexReader, FSDirectory
         if (this.getExecution().getSearchTerm() != null) {
             log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
@@ -159,9 +164,12 @@ public class LuceneSearcher extends BaseAlgorithm {
         InfolisPattern infolisPat = null;
         // extract the sentence in which term occurs + adjacent sentences, if existing
         // note: with this regex, term may be a substring of a word
-        Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + ")?.*?" + Pattern.quote(term) + ".*(" + System.getProperty("line.separator") + ".*)?");
+        //Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?" + Pattern.quote(term) + ".*(" + System.getProperty("line.separator") + "+.*)?");
+        // note: with this regex, term may not be a substring of a word
+        Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?[-—\\s/]" + Pattern.quote(term) + "[-—\\s/].*(" + System.getProperty("line.separator") + "+.*)?");
+        //Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?\\s" + Pattern.quote(term) + "\\s.*(" + System.getProperty("line.separator") + "+.*)?");
         String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, 35_000, threadName);
+        LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, RegexUtils.maxTimeMillis, threadName);
         List<TextualReference> contextList = new ArrayList<>();
         ltm.run();
 
@@ -179,11 +187,12 @@ public class LuceneSearcher extends BaseAlgorithm {
             p.setFile(fileName);
             outputDataStoreClient.post(Entity.class, p);
             try {
-            	TextualReference sC = new TextualReference(ltm.group().split(term)[0].trim(), term, ltm.group().split(term)[1].trim(), fileName, infolisPat.getUri(), p.getUri());
+            	TextualReference sC = new TextualReference(ltm.group().split(term)[0], term, ltm.group().split(term)[1], fileName, infolisPat.getUri(), p.getUri());
             	contextList.add(sC);
             } catch (ArrayIndexOutOfBoundsException e) {
             	log.warn("Error: failed to split reference: \"" + term + "\"");
-            	for (String word : ltm.group().split(term))	log.warn(word);
+            	//for (String word : ltm.group().split(term))	log.warn(word);
+            	// TODO may happen when term is at the beginning or end of input
             	throw new ArrayIndexOutOfBoundsException();
             } 
             ltm.run();

@@ -53,8 +53,13 @@ public class RegexUtils {
 	public static final String wordRegex_atomic = new String("\\S++");
 	// use greedy variant for last word - normal wordRegex would only extract first character of last word
 	public static final String lastWordRegex = new String("\\S+");
-
-    /**
+	// regex for extraction of contexts
+	public static final String leftContextRegex = "(.*?" + System.getProperty("line.separator") + "+)?.*?\\s";
+	public static final String rightContextRegex = "\\s.*(" + System.getProperty("line.separator") + "+.*)?";
+	// number of the group which contains the study. This number depends on the used studyRegex and leftContextRegex
+	public static final int studyGroupNum = 2;
+   
+	/**
      * Replaces regular expressions in term with placeholders. 
      * Used in TrainingSet class (and useful for weka exports)
      * 
@@ -151,30 +156,22 @@ public class RegexUtils {
      */
     public static boolean isStopword(String word) {
         // word consists of punctuation, whitespace and digits only
-        if (word.matches("[\\p{Punct}\\s\\d]*")) {
-            return true;
-        }
+        if (word.matches("[\\p{Punct}\\s\\d]*")) return true;
+        // word is a year or range
+        if (word.trim().matches(complexNumericInfoRegex)) return true;
         // trim word, lower case and remove all punctuation
         word = word.replaceAll("\\p{Punct}+", "").trim().toLowerCase();
 		// due to text extraction errors, whitespace is frequently added to words resulting in many single characters
         // TODO: use this as small work-around but work on better methods for automatic text correction
-        if (word.length() < 2) {
-            return true;
-        }
+        if (word.length() < 2) return true;
         List<String> stopwords = InfolisConfig.getStopwords();
-        if (stopwords.contains(word)) {
-            return true;
-        }
+        if (stopwords.contains(word)) return true;
         // treat concatenations of two stopwords as stopword
         for (String stopword : stopwords) {
         	// replace with whitespace and use trim to avoid replacing occurrences inside of word, e.g.
         	// "Daten" -> replace "at" with "" would yield "den" -> stopword
-            if (stopwords.contains(word.replace(stopword, " ").trim())) {
-                return true;
-            }
-            if (word.replace(stopword, "").isEmpty()) {
-                return true;
-            }
+            if (stopwords.contains(word.replace(stopword, " ").trim())) return true;
+            if (word.replace(stopword, "").isEmpty()) return true;
         }
         return false;
     }

@@ -28,7 +28,7 @@ public class TokenizerTest extends InfolisBaseTest {
 	List<InfolisFile> testFiles;
 	String[] testStrings = {
 			"On the one hand, the granularity (what is the smallest element of research data in need of description?) and the possible, aggregating intermediary steps vary widely." + System.getProperty("line.separator") + "On the other-hand, ...",
-			"Funktioniert der \nTokenizer auch gut für z.B. deutsch?"
+			"Funktioniert der \nTokenizer auch gut für z.B. deutsch? Und was macht er hiermit/damit, hiermit\\damit oder hiermit / damit?\n"
 			};
 	List<String> uris = new ArrayList<>();
 	

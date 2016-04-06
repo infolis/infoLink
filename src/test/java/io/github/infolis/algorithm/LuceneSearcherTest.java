@@ -48,6 +48,36 @@ public class LuceneSearcherTest extends InfolisBaseTest {
             uris.add(file.getUri());
         }
     }
+    
+    @Test
+    public void testGetContexts() throws ArrayIndexOutOfBoundsException, IOException {
+    	String test = "line1\nline2\nline3 term line3\nline4\nline5\nline6";
+    	List<TextualReference> refList = LuceneSearcher.getContexts(dataStoreClient, "filename", "term", test);
+    	assertEquals(1, refList.size());
+    	for (TextualReference ref : refList) {
+    		assertEquals("line2\nline3 ", ref.getLeftText());
+    		assertEquals(" line3\nline4", ref.getRightText());
+    	}
+    	test = "line1 term line1";
+    	refList = LuceneSearcher.getContexts(dataStoreClient, "filename", "term", test);
+    	assertEquals(1, refList.size());
+    	for (TextualReference ref : refList) {
+    		assertEquals("line1 ", ref.getLeftText());
+    		assertEquals(" line1", ref.getRightText());
+    	}
+    	test = "line1-term line1";
+    	refList = LuceneSearcher.getContexts(dataStoreClient, "filename", "term", test);
+    	assertEquals(1, refList.size());
+    	for (TextualReference ref : refList) {
+    		assertEquals("line1-", ref.getLeftText());
+    		assertEquals(" line1", ref.getRightText());
+    		assertEquals(Arrays.asList("line1-", ""), ref.getLeftWords());
+    		assertEquals(Arrays.asList(" ", "line1"), ref.getRightWords());
+    	}
+    	test = "line1-termline1";
+    	refList = LuceneSearcher.getContexts(dataStoreClient, "filename", "term", test);
+    	assertEquals(0, refList.size());
+    }
 
     @Test
     public void getContextTest() throws IOException {
@@ -60,9 +90,11 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         assertEquals(1, contextList3.size());
         assertEquals(testString1, contextList1.get(0).toString());
         assertEquals(1, contextList3.size());
-        assertEquals(Arrays.asList("Please", "try", "to", "find", "the", "."), contextList3.get(0).getLeftWords());
+        assertEquals("Please try to find the . ", contextList3.get(0).getLeftText());
+        assertEquals(Arrays.asList("Please", "try", "to", "find", "the", ".", " "), contextList3.get(0).getLeftWords());
         assertEquals("term", contextList3.get(0).getReference());
-        assertEquals(Arrays.asList(".", "in", "this", "short", "text", "snippet", "."), contextList3.get(0).getRightWords());
+        assertEquals(" . in this short text snippet .", contextList3.get(0).getRightText());
+        assertEquals(Arrays.asList(" ", ".", "in", "this", "short", "text", "snippet", "."), contextList3.get(0).getRightWords());
         assertEquals("document", contextList1.get(0).getFile());
         assertEquals("document", contextList3.get(0).getFile());
         assertEquals("term", contextList1.get(0).getReference());

@@ -32,14 +32,14 @@ public class RegexSearcherTest extends InfolisBaseTest {
 	// right context: in <word> <word> <word> <word>
 	// where word is an arbitrary string consisting of at least one character
 	private final static InfolisPattern testPattern = new InfolisPattern(""
-			+ "\\S++\\s\\S++"
+			+ "(\\S++\\s\\S++"
 			+ "\\s\\Qto\\E"
 			+ "\\s\\Qfind\\E"
 			+ "\\s\\Qthe\\E"
-			+ "\\s\\s?"
-			+ "(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?"
+			+ "\\s\\s?)"
+			+ "(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)(\\s?"
 			+ "\\s\\Qin\\E"
-			+ "\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
+			+ "\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+)");
 
 	String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",

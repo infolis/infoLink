@@ -127,7 +127,8 @@ public abstract class BaseAlgorithm implements Algorithm {
     }
 
     private String log(Logger log, String fmt, String level, Object... args) {
-    	final String str = String.format(fmt.replaceAll("%", "\\%").replaceAll("\\{\\}", "%s"), args);
+    	fmt = fmt.replaceAll("%", "%%");
+    	final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
         switch (level.toLowerCase()) {
             case "trace":
                 log.trace(str);

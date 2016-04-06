@@ -13,9 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,16 +42,15 @@ public class InfolisPattern extends BaseModel {
     private String patternRegex;
     private String luceneQuery;
     private String minimal;
-    private List<String> words = new ArrayList<>();
+    private Set<String> words = new HashSet<>();
     private double threshold;
     private double reliability;
     private Set<String> tags = new HashSet<>();
-    // TODO @bolandka Make this a class so it can be persisted
     private Map<String, Double> associations = new HashMap<>();
-    //TODO: change to URI -> string
+    //TODO: change to URI -> string?
     private Collection<TextualReference> textualReferences;
 
-    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
+    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, Set<String> words, double threshold) {
         this.setLuceneQuery(luceneQuery);
         this.setPatternRegex(patternRegex);
         this.setMinimal(minimal);
@@ -93,7 +90,7 @@ public class InfolisPattern extends BaseModel {
     /**
      * @return the words
      */
-    public List<String> getWords() {
+    public Set<String> getWords() {
         return words;
     }
 
@@ -123,7 +120,7 @@ public class InfolisPattern extends BaseModel {
      *
      * @param words the words to set
      */
-    public void setWords(List<String> words) {
+    public void setWords(Set<String> words) {
         this.words = words;
     }
     

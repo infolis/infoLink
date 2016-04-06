@@ -37,13 +37,13 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	private List<String> uris = new ArrayList<>();
 	private final static String term = "FOOBAR";
 	private final static List<String> terms = Arrays.asList(term);
-	private String[] testStrings = {
+	private static String[] testStrings = {
 			"Hallo , please try to find the FOOBAR in this short text snippet . Thank you .",
 			"Hallo , please try to find the R2 in this short text snippet . Thank you .",
 			"Hallo , please try to find the D2 in this short text snippet . Thank you .",
 			"Hallo , please try to find the term in this short text snippet . Thank you .",
 			"Hallo , please try to find the _ in this short text snippet . Thank you .",
-			"Hallo , please try to find . the term . in this short text snippet . Thank you .",
+			"Hallo , please try to find the term . in this short text snippet . Thank you .",
 			"Hallo , please try to find the FOOBAR in this short text snippet . Thank you ."
 	};
 
@@ -69,6 +69,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 		execution.setSearchTerm(terms.get(0));
 		execution.setReliabilityThreshold(0.0);
 		execution.setBootstrapStrategy(strategy);
+		execution.setTokenize(false);
 
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
@@ -99,41 +100,45 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	// find all contexts for terms "FOOBAR" and "term"
     	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least
     	// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)
-    	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
+    	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet",
-    			"please try to find the FOOBAR in this short text snippet",
-    			"try to find . the term . in this short text"));
-    	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
+    			testStrings[3],
+    			testStrings[0],
+    			testStrings[5]));
+    	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
+    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet",
-    			"please try to find the FOOBAR in this short text snippet"));
-    	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
+    			testStrings[3],
+    			testStrings[0],
+    			testStrings[5]));
+    	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Q.\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet",
-    			"please try to find the FOOBAR in this short text snippet",
-    			"try to find . the term . in this short text"));
-    	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR"));
+    			testStrings[3],
+    			testStrings[0],
+    			testStrings[5]));
+    	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
-    			"\\Qfind\\E\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E"));
+    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
-    			"please try to find the term in this short text snippet",
-    			"please try to find the FOOBAR in this short text snippet"));
+    			testStrings[3],
+    			testStrings[0],
+    			testStrings[5]));
 
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.separate, 0.45, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeCurrent, 0.45, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeNew, 0.45, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
-    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeAll, 0.45, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.separate, 0.25, expectedStudies_separate, expectedPatterns_separate, expectedContexts_separate),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeCurrent, 0.25, expectedStudies_mergeCurrent, expectedPatterns_mergeCurrent, expectedContexts_mergeCurrent),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeNew, 0.25, expectedStudies_mergeNew, expectedPatterns_mergeNew, expectedContexts_mergeNew),
+    			new ExpectedOutput(FrequencyBasedBootstrapping.class, BootstrapStrategy.mergeAll, 0.25, expectedStudies_mergeAll, expectedPatterns_mergeAll, expectedContexts_mergeAll)
     	));
     	return expectedOutput;
 	}

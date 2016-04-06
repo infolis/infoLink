@@ -81,7 +81,7 @@ public class TextualReference extends BaseModel {
 
 	@Override
 	public String toString() {
-		return this.getLeftText() + " " + this.getReference() + " " + this.getRightText();
+		return this.getLeftText() + this.getReference() + this.getRightText();
 	}
 
 	@JsonIgnore
@@ -109,18 +109,35 @@ public class TextualReference extends BaseModel {
 		return leftText;
 	}
 
+	// split words on whitespace but keep information on whether text was separated from term by whitespace or not
 	public void setLeftText(String leftText) {
 		this.leftText = leftText;
-                setLeftWords(Arrays.asList(leftText.split("\\s+")));
+        String[] leftWordsArray = leftText.split("\\s+");
+        String lastChar = leftText.substring(leftText.length() -1, leftText.length());
+        List<String> leftWords;
+        String[]_leftWordsArray = new String[leftWordsArray.length + 1];
+        System.arraycopy(leftWordsArray, 0, _leftWordsArray, 0, leftWordsArray.length);
+        if (lastChar.matches("\\s")) _leftWordsArray[_leftWordsArray.length -1] = lastChar;
+        else _leftWordsArray[_leftWordsArray.length -1] = "";
+        leftWords = (Arrays.asList(_leftWordsArray));
+        setLeftWords(leftWords);
 	}
 
 	public String getRightText() {
 		return rightText;
 	}
-
+	// split words on whitespace but keep information on whether text was separated from term by whitespace or not// split words on whitespace but keep whitespace separating text from term
 	public void setRightText(String rightText) {
 		this.rightText = rightText;
-                setRightWords(Arrays.asList(rightText.split("\\s+")));
+		String[] rightWordsArray = rightText.trim().split("\\s+");
+		String firstChar = rightText.substring(0, 1);
+        List<String> rightWords;
+        String[]_rightWordsArray = new String[rightWordsArray.length + 1];
+        System.arraycopy(rightWordsArray, 0, _rightWordsArray, 1, rightWordsArray.length);
+        if (firstChar.matches("\\s")) _rightWordsArray[0] = firstChar;
+        else _rightWordsArray[0] = "";
+        rightWords = (Arrays.asList(_rightWordsArray));
+        setRightWords(rightWords);
 	}
 
 	public String getReference() {

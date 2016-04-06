@@ -45,7 +45,7 @@ public class BootstrappingTest extends InfolisBaseTest {
 			"Hallo , please try to find the D2 in this short text snippet . Thank you .",
 			"Hallo , please try to find the term in this short text snippet . Thank you .",
 			"Hallo , please try to find the _ in this short text snippet . Thank you .",
-			"Hallo , please try to find . the term . in this short text snippet . Thank you .",
+			"Hallo , please try to find the term . in this short text snippet . Thank you .",
 			"Hallo , please try to find the FOOBAR in this short text snippet . Thank you ."
 	};
 
@@ -103,8 +103,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
     	List<TextualReference> refs = b.getContextsForSeed("term");
-    	assertEquals(new HashSet<String>(Arrays.asList(testStrings[3],
-    			testStrings[5])),
+    	assertEquals(new HashSet<String>(Arrays.asList(testStrings[3], testStrings[5])),
     			new HashSet<String>(TextualReference.getContextStrings(refs)));
     }
 
@@ -133,7 +132,6 @@ public class BootstrappingTest extends InfolisBaseTest {
     
     
     // test all bootstrapping algorithms 
-    
     void testBootstrapping(Class<? extends Algorithm> algorithm, BootstrapStrategy strategy, double threshold, Set<String> expectedStudies, Set<String> expectedPatterns, Set<String> expectedContexts) throws Exception {
     	Execution execution = new Execution();
         execution.setAlgorithm(algorithm);
@@ -165,7 +163,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     	Set<String> contextSet = new HashSet<String>();
     	for (String uri : contextURIs) {
     		TextualReference infolisContext = dataStoreClient.get(TextualReference.class, uri);
-    		contextSet.add(infolisContext.getLeftText() + " " + infolisContext.getReference() + " " + infolisContext.getRightText());
+    		contextSet.add(infolisContext.getLeftText() + infolisContext.getReference() + infolisContext.getRightText());
     	}
     	return contextSet;
     }

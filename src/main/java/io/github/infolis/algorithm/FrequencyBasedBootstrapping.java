@@ -168,7 +168,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	            	newSeedTermsIteration.add(studyContext.getReference());
 	            }
             }
-            debug(log, "Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration);
+            debug(log, String.format("Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration));
             numIter++;
 
             persistExecution();
@@ -200,7 +200,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     	double threshold = getExecution().getReliabilityThreshold();
     	for (TextualReference context : contexts) {
     		n++;
-    		log.debug("Inducing relevant patterns for context " + n + " of " + contexts.size());
+    		log.debug("Inducing patterns for context " + n + " of " + contexts.size());
     		Double[] thresholds = {threshold, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08, threshold - 0.02, threshold - 0.04, threshold - 0.06, threshold - 0.08};
     		patterns.addAll(getPatternInducer().induce(context, thresholds));
     	}

@@ -52,7 +52,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
     @Test
     public void testScheduler() throws IOException, InterruptedException {
         File txtDir = new File(getClass().getResource("/examples/txts").getFile());
-        File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
+        File patternFile = new File(getClass().getResource("/examples/patterns.txt").getFile());
 
         //post all important stuff
         List<String> pattern = postPattern(patternFile);
@@ -91,8 +91,8 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
 
         Assert.assertEquals(0, exe.getByStatus(STARTED).size());
         Assert.assertEquals(0, exe.getByStatus(PENDING).size());
-        Assert.assertEquals(1, exe.getByStatus(FINISHED).size());
-        Assert.assertEquals(1, exe.getByStatus(FAILED).size());
+        Assert.assertEquals(2, exe.getByStatus(FINISHED).size());
+        Assert.assertEquals(0, exe.getByStatus(FAILED).size());
     }
 
     public List<String> postTxtFiles(File dir) throws IOException {

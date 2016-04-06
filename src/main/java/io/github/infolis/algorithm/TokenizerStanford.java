@@ -51,7 +51,7 @@ public class TokenizerStanford extends Tokenizer {
 	}
 	
 	private static List<String> applyPTBTokenizer(DocumentPreprocessor dp, boolean tokenizeNLs, boolean ptb3Escaping) {
-		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=" + tokenizeNLs + ", ptb3Escaping=" + ptb3Escaping + "asciiQuotes=true");
+		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=" + tokenizeNLs + ",ptb3Escaping=" + ptb3Escaping + ",asciiQuotes=true");
 		dp.setTokenizerFactory(tf);
 		List<String> sentences = new ArrayList<>();
 		for (List<HasWord> wordList : dp) {

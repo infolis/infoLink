@@ -347,11 +347,11 @@ public class CommandLineExecuter {
                     Files.createDirectories(textDir);
                     if (null == exec.isTokenize()) {
                     	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     	exec.setTokenize(true);
                     }
                     else {
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     }
                 } else {
                     throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
@@ -366,11 +366,11 @@ public class CommandLineExecuter {
                     System.in.read();
                     if (null == exec.isTokenize()) {
                     	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     	exec.setTokenize(true);
                     }
                     else {
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     }
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
@@ -410,11 +410,12 @@ public class CommandLineExecuter {
      * @param uris URIs of the InfolisFiles
      * @return URIs of the InfolisFiles of the text versions
      */
-    private List<String> convertPDF(List<String> uris, boolean removeBib, boolean overwriteTextfiles, boolean tokenize, boolean tokenizeNLs, boolean ptb3Escaping) {
+    private List<String> convertPDF(List<String> uris, int startPage, boolean removeBib, boolean overwriteTextfiles, boolean tokenize, boolean tokenizeNLs, boolean ptb3Escaping) {
         Execution convertExec = new Execution();
         convertExec.setAlgorithm(TextExtractor.class);
         convertExec.setOutputDirectory(textDir.toString());
         convertExec.setInputFiles(uris);
+        convertExec.setStartPage(startPage);
         convertExec.setRemoveBib(removeBib);
         convertExec.setOverwriteTextfiles(overwriteTextfiles);
         convertExec.setTokenize(tokenize);

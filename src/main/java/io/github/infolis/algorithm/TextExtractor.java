@@ -91,7 +91,7 @@ public class TextExtractor extends BaseAlgorithm {
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {
-                debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
+                debug(log, "File exists: {}, skipping text extraction for {}", _outFile, inFile);
                 asText = FileUtils.readFileToString(_outFile, "utf-8");
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
@@ -99,7 +99,10 @@ public class TextExtractor extends BaseAlgorithm {
             }
         }
 
-        try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
+        InputStream inStream = null;
+        OutputStream outStream = null;
+        try {
+        	inStream = getInputFileResolver().openInputStream(inFile);
             try (PDDocument pdfIn = PDDocument.load(inStream)) {
                 asText = extractText(pdfIn, startPage);
                 if (null == asText) {
@@ -115,7 +118,8 @@ public class TextExtractor extends BaseAlgorithm {
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
-                try (OutputStream outStream = getOutputFileResolver().openOutputStream(outFile)) {
+                try {
+                	outStream = getOutputFileResolver().openOutputStream(outFile);
                     try {
                         IOUtils.write(asText, outStream);
                     } catch (IOException e) {
@@ -137,6 +141,9 @@ public class TextExtractor extends BaseAlgorithm {
         } catch (Exception e) {
             warn(log, "Error converting PDF to text: " + e);
             throw e;
+        } finally {
+        	inStream.close();
+        	outStream.close();
         }
     }
 
@@ -195,11 +202,11 @@ public class TextExtractor extends BaseAlgorithm {
                 persistExecution();
                 return;
             }
-            debug(log, "Start extracting from %s", inputFile);
+            debug(log, "Start extracting from {}", inputFile);
             InfolisFile outputFile;
             try {                
                 outputFile = extract(inputFile, getExecution().getStartPage(), getExecution().isTokenize());
-                debug(log, "Converted to file %s", outputFile);
+                debug(log, "Converted to file {}", outputFile);
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox
                 // log warning, skip file and continue with next file
@@ -222,7 +229,7 @@ public class TextExtractor extends BaseAlgorithm {
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }
         }
-        debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
+        debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
         persistExecution();
     }

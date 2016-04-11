@@ -167,15 +167,19 @@ public class BibliographyExtractor extends BaseAlgorithm {
                 return;
             }
 
-            debug(log, "Start removing bib from %s", inputFile);
+            debug(log, "Start removing bib from {}", inputFile);
             String text;
-			try ( InputStream is =  getInputFileResolver().openInputStream(inputFile)) {
+            InputStream is = null;
+			try {
+				is =  getInputFileResolver().openInputStream(inputFile);
 				text = IOUtils.toString(is);
 			} catch (IOException e) {
 				fatal(log, "Error reading text file: " + e);
 				getExecution().setStatus(ExecutionStatus.FAILED);
 				persistExecution();
 				return;
+			} finally {
+				is.close();
 			}
             //TODO: Test optimal section size
             List<String> inputSections = tokenizeSections(text, 10);
@@ -197,23 +201,26 @@ public class BibliographyExtractor extends BaseAlgorithm {
             outFile.setFileStatus("AVAILABLE");
             outFile.setTags(getExecution().getTags());
 
+            OutputStream outStream = null;
             try {
-            	OutputStream outStream = getOutputFileResolver().openOutputStream(outFile);
+            	outStream = getOutputFileResolver().openOutputStream(outFile);
             	IOUtils.write(text, outStream);
             } catch (IOException e) {
             	error(log, "Error copying text to output stream: " + e);
             	getExecution().setStatus(ExecutionStatus.FAILED);
             	persistExecution();
             	return;
+            } finally {
+            	outStream.close();
             }
 
             updateProgress(counter, getExecution().getInputFiles().size());
 
-            debug(log, "Removed bibliography from file %s", outFile);
+            debug(log, "Removed bibliography from file {}", outFile);
             getOutputDataStoreClient().post(InfolisFile.class, outFile);
             getExecution().getOutputFiles().add(outFile.getUri());
         }
-        debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
+        debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
         persistExecution();
     }

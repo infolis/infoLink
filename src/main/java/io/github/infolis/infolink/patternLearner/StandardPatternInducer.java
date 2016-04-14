@@ -14,6 +14,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +32,8 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(StandardPatternInducer.class);
 	// TODO derive from windowsize
 	public final static int patternsPerContext = 9;
+	Pattern leadingWildcards = Pattern.compile("\"(\\*\\s)+");
+	Pattern trailingWildcards = Pattern.compile("(\\s\\*)+\"");
 	
 	public StandardPatternInducer() {}
 	
@@ -50,7 +54,11 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
 		
 		String luceneQuery = "\"" + String.join(" ", lucene_left_copy) + delimiter_left + "*" + delimiter_right + String.join(" ", lucene_right) + "\"";
 		// TODO optimize: wildcards are necessary between words but not at the beginning or end of the query
-				
+		Matcher leadingWildcardMatcher = leadingWildcards.matcher(luceneQuery);
+		Matcher trailingWildcardMatcher = trailingWildcards.matcher(luceneQuery);
+		if (leadingWildcardMatcher.find()) luceneQuery = leadingWildcardMatcher.replaceAll("\"");
+		if (trailingWildcardMatcher.find()) luceneQuery = trailingWildcardMatcher.replaceAll("\"");
+		
 		if (delimiter_left.matches("\\s")) delimiter_left = "\\s";
 		else if (delimiter_left.matches("")) delimiter_left = "\\s?";
 		if (delimiter_right.matches("\\s")) delimiter_right = "\\s";

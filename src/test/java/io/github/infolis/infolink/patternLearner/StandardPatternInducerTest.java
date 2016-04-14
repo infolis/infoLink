@@ -28,16 +28,22 @@ public class StandardPatternInducerTest {
 	@Test
 	public void testInduce() {
 		StandardPatternInducer inducer = new StandardPatternInducer();
+		Double[] thresholds = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		
+		TextualReference ref = new TextualReference("15757 41727 5743 10877 10014 30850 Sozialstaatssurvey/", "ALLBUS", " .", "textfile", "pattern", "mentionsReference");
+		List<InfolisPattern> patterns = inducer.induce(ref, thresholds);
+		assertEquals("\"Sozialstaatssurvey\\\\\\/* .\"", patterns.get(0).getLuceneQuery());
+		//assertEquals("\"Sozialstaatssurvey\\\\\\/* .\"", patterns.get(5).getLuceneQuery());
 		
 		TextualReference ref0 = new TextualReference("this is a ref 1998 1999 2000 ", "ALLBUS", " dataset .", "textfile", "pattern", "mentionsReference");
-		Double[] thresholds = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-		List<InfolisPattern> patterns = inducer.induce(ref0, thresholds);
-		assertEquals("\"* * dataset\"", patterns.get(0).getLuceneQuery());
+		patterns = inducer.induce(ref0, thresholds);
+		assertEquals("\"dataset\"", patterns.get(0).getLuceneQuery());
+		assertEquals("\"dataset\"", patterns.get(3).getLuceneQuery());
 		assertEquals("\"ref * * * * dataset\"", patterns.get(5).getLuceneQuery());
 		
 		TextualReference ref1 = new TextualReference("this is a ref to the 2000 ", "ALLBUS", " dataset .", "textfile", "pattern", "mentionsReference");
 		patterns = inducer.induce(ref1, thresholds);
-		assertEquals("\"* * dataset\"", patterns.get(0).getLuceneQuery());
+		assertEquals("\"dataset\"", patterns.get(0).getLuceneQuery());
 		assertEquals(new HashSet<String>(Arrays.asList("2000", "dataset")), patterns.get(0).getWords());
 		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E\\s" + RegexUtils.studyRegex_ngram + "\\s\\Qdataset\\E", patterns.get(0).getMinimal());
 		assertEquals(null, patterns.get(2).getLuceneQuery());

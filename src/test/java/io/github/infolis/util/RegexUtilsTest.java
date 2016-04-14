@@ -36,9 +36,10 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		assertThat(pat.matcher("1995 bis 1998").matches(), is(true));
 		assertThat(pat.matcher("1995 to 1998").matches(), is(true));
 		assertThat(pat.matcher("1995       till '98").matches(), is(true));
-
+		assertThat(pat.matcher("19988").matches(), is(true));
+		
 		assertThat(pat.matcher("NaN").matches(), is(false));
-		assertThat(pat.matcher("(1998)").matches(), is(false));
+		assertThat(pat.matcher("(1998)").matches(), is(false));	
 	}
 
 	@Test
@@ -88,6 +89,8 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		assertTrue(RegexUtils.isStopword("tothe"));
 		assertTrue(RegexUtils.isStopword("e"));
 		assertTrue(RegexUtils.isStopword("."));
+		assertTrue(RegexUtils.isStopword("--"));
+		assertTrue(RegexUtils.isStopword("-LRB-"));
 		assertTrue(RegexUtils.isStopword(".the"));
 		assertTrue(RegexUtils.isStopword("142"));
 		assertTrue(RegexUtils.isStopword("142."));
@@ -117,6 +120,13 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		assertFalse(RegexUtils.ignoreStudy("ALLBUS"));
 		assertFalse(RegexUtils.ignoreStudy("eigene Berechnung; ALLBUS"));
 		assertFalse(RegexUtils.ignoreStudy("ALLBUS; eigene Berechnung"));
+	}
+	
+	@Test
+	public void testNormalizeAndEscapeRegex_lucene() {
+		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("30850"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1836"));
+		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990-1992"));
 	}
 
 

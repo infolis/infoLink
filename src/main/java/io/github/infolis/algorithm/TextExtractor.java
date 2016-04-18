@@ -68,6 +68,7 @@ public class TextExtractor extends BaseAlgorithm {
     	Execution exec = new Execution();
     	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
+    	tokenizer.setExecution(exec);
     	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
     }
 
@@ -101,9 +102,11 @@ public class TextExtractor extends BaseAlgorithm {
 
         InputStream inStream = null;
         OutputStream outStream = null;
+        PDDocument pdfIn = null;
         try {
         	inStream = getInputFileResolver().openInputStream(inFile);
-            try (PDDocument pdfIn = PDDocument.load(inStream)) {
+            try {
+            	pdfIn = PDDocument.load(inStream);
                 asText = extractText(pdfIn, startPage);
                 if (null == asText) {
                     throw new IOException("extractText returned null!");
@@ -125,11 +128,11 @@ public class TextExtractor extends BaseAlgorithm {
                     } catch (IOException e) {
                         warn(log, "Error copying text to output stream: " + e);
                         throw e;
-                    }
+                    } 
                 } catch (IOException e) {
                     warn(log, "Error opening output stream to text file: " + e);
                     throw e;
-                }
+                } 
                 return outFile;
             } catch (Exception e) {
                 warn(log, "Error reading PDF from stream: " + e);
@@ -142,8 +145,9 @@ public class TextExtractor extends BaseAlgorithm {
             warn(log, "Error converting PDF to text: " + e);
             throw e;
         } finally {
-        	inStream.close();
-        	outStream.close();
+        	if (null != outStream) outStream.close();
+        	if (null != inStream) inStream.close();
+        	if (null != pdfIn) pdfIn.close();
         }
     }
 
@@ -158,7 +162,6 @@ public class TextExtractor extends BaseAlgorithm {
         String asText;
         stripper.setStartPage(startPage);
         asText = stripper.getText(pdfIn);
-
         if (null == asText) {
             throw new IOException("PdfStripper returned null!");
         }
@@ -210,20 +213,20 @@ public class TextExtractor extends BaseAlgorithm {
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox
                 // log warning, skip file and continue with next file
-                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                warn(log, "Extraction caused exception in file {} - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n{}", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             } catch (RuntimeException e) {
                 // warn but not error: do not terminate execution but continue with next file.
                 // RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
                 // pdfBox cannot handle a (valid) pdf file due to its encoding
-                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file due to its encoding or similar issues: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                warn(log, "Extraction caused exception in file {} - PdfBox cannot extract from this file due to its encoding or similar issues: \n{}", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             }
             updateProgress(counter, getExecution().getInputFiles().size());
             if (null == outputFile) {
-                warn(log, "Conversion failed for input file %s", inputFileURI);
+                warn(log, "Conversion failed for input file {}", inputFileURI);
             } else {
                 getOutputDataStoreClient().post(InfolisFile.class, outputFile);
                 getExecution().getOutputFiles().add(outputFile.getUri());

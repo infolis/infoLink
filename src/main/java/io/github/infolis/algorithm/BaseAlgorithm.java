@@ -172,7 +172,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             validate();
         } catch (IllegalAlgorithmArgumentException | RuntimeException e) {
             getExecution().setStatus(ExecutionStatus.FAILED);
-            error(log, "Validation threw an Exception: %s", e);
+            error(log, "Validation threw an Exception: {}", e);
             e.printStackTrace();
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
@@ -185,7 +185,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
         } catch (Exception e) {
-            error(log, "Execution threw an Exception: %s", e);
+            error(log, "Execution threw an Exception: {}", e);
             e.printStackTrace();
             getExecution().setStatus(ExecutionStatus.FAILED);
             getExecution().setEndTime(new Date());

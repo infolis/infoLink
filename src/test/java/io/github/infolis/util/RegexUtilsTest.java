@@ -11,6 +11,7 @@ import static org.junit.Assert.assertFalse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
@@ -32,11 +33,14 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		Pattern pat = Pattern.compile(RegexUtils.complexNumericInfoRegex);
 		assertThat(pat, is(not(nullValue())));
 		assertThat(pat.matcher("1995").matches(), is(true));
-		assertThat(pat.matcher("1995-1998").matches(), is(true));
 		assertThat(pat.matcher("1995 bis 1998").matches(), is(true));
+		assertThat(pat.matcher("1995-1998").matches(), is(true));		
 		assertThat(pat.matcher("1995 to 1998").matches(), is(true));
 		assertThat(pat.matcher("1995       till '98").matches(), is(true));
-		assertThat(pat.matcher("19988").matches(), is(true));
+		
+		Matcher m = pat.matcher("30850");
+		assertThat(m.find(), is(true));
+		assertEquals("30850", m.group());
 		
 		assertThat(pat.matcher("NaN").matches(), is(false));
 		assertThat(pat.matcher("(1998)").matches(), is(false));	
@@ -124,9 +128,9 @@ public class RegexUtilsTest extends InfolisBaseTest {
 	
 	@Test
 	public void testNormalizeAndEscapeRegex_lucene() {
-		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("30850"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("30850"));
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1836"));
-		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990-1992"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 until 1992"));//& / \\ - 
 	}
 
 

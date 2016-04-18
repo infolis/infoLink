@@ -19,18 +19,20 @@ public class RegexUtils {
 	// TODO set maxTimeMillis in config - its optimal value depends on granted stack size
 	public static final long maxTimeMillis = 750000;
 	// basic regex for extraction of numeric information
-	public static final String percentRegex = new String("\\d+[.,]?\\d*%");
+	public static final String percentRegex = new String("\\d+[.,]?\\d*\\s*%");
     public static final String enumRegex = "(([,;/&\\\\])|(and)|(und))";
     public static final String yearRegex = "(\\d{4})";
     public static final String yearAbbrRegex = "('\\d\\d)";
     public static final String numberRegex = "(\\d+[.,]?\\d*)"; // this includes yearRegex
-    public static final String rangeRegex = "(([-–])|(bis)|(to)|(till)|(until))";
+    public static final String numRegex = "('?\\d+[.,]?\\d*)"; // this includes yearRegex and yearAbbrRegex
+    public static final String rangeRegex = "((-)|(–)|(bis)|(to)|(till)|(until))";
 	public static final Pattern patternNumeric = Pattern.compile("\\d+");
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
     // complex regex for extraction of numeric information
     public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
     public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
-    public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
+    public static final String complexNumericInfoRegex = "((" + numRegex + "(\\s*" + enumRangeRegex + "\\s*" + numRegex + ")?))";
+    //public static final String complexNumericInfoRegex = "(" + numericInfoRegex + "(\\s*" + enumRangeRegex + "\\s*" + numericInfoRegex + ")*)";
     // sorted list of regex for extraction of numeric information (sorted by priority)
 	public static final Pattern[] patterns = getContextMinerYearPatterns();
 	// list of symbols to be treated as enumerators. Useful for querying textual references

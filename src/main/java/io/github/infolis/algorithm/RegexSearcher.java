@@ -94,7 +94,8 @@ public class RegexSearcher extends BaseAlgorithm {
                 // a study name is supposed to be a named entity and thus should
                 // contain at least one upper-case character
                 if (this.getExecution().isUpperCaseConstraint()) {
-                    if (studyName.toLowerCase().equals(studyName)) {
+                	// do not treat -RRB-, -LRB- and *NL* tokens as uppercase words
+                    if (studyName.replaceAll("-RRB-", "").replaceAll("-LRB-", "").replaceAll("\\*NL\\*", "").toLowerCase().equals(studyName.replaceAll("-RRB-", "").replaceAll("-LRB-", "").replaceAll("\\*NL\\*", ""))) {
                         ltm.run();
                         log.debug("Match does not satisfy uppercase-constraint \"" + studyName
                                 + "\". Processing new match...");

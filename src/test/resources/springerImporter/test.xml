@@ -1,0 +1,2538 @@
+<?xml-stylesheet type="text/xsl" href="/resources/spdi-open-app.xsl"?>
+
+<response>
+   <query>doi:10.1186/s40878-015-0020-9</query>
+
+   <apiKey>a73b32d58b4eef64eb82ea41c3db2bbd</apiKey>
+
+   <result>
+      <total>1</total>
+
+      <start>1</start>
+
+      <pageLength>10</pageLength>
+
+      <recordsDisplayed>1</recordsDisplayed>
+
+   </result>
+
+   <records>
+
+      <result>
+
+         <Publisher xml:lang="en">
+            <PublisherInfo>
+    
+               <PublisherName>Springer International Publishing</PublisherName>
+
+    
+               <PublisherLocation>Cham</PublisherLocation>
+
+    
+               <PublisherImprintName>Springer</PublisherImprintName>
+
+  
+            </PublisherInfo>
+
+            <Journal OutputMedium="Online">
+    
+
+               <JournalInfo JournalProductType="ArchiveJournal" NumberingStyle="Unnumbered">
+      
+                  <JournalID>40878</JournalID>
+
+      
+                  <JournalElectronicISSN>2214-594X</JournalElectronicISSN>
+
+      
+                  <JournalTitle>Comparative Migration Studies</JournalTitle>
+
+      
+                  <JournalAbbreviatedTitle>CMS</JournalAbbreviatedTitle>
+
+      
+                  <JournalSubjectGroup>
+        
+                     <JournalSubject Code="SCX" Type="Primary">Social Sciences</JournalSubject>
+
+        
+                     <JournalSubject Code="SCX24000" Priority="1" Type="Secondary">Migration</JournalSubject>
+
+        
+                     <JournalSubject Code="SCX22000" Priority="2" Type="Secondary">Sociology, general</JournalSubject>
+
+        
+                     <JournalSubject Code="SCW38000" Priority="3" Type="Secondary">Population Economics</JournalSubject>
+
+        
+                     <SubjectCollection Code="Social Sciences">SC9</SubjectCollection>
+
+      
+                  </JournalSubjectGroup>
+
+    
+               </JournalInfo>
+
+    
+               <Volume OutputMedium="Online">
+      
+
+                  <VolumeInfo TocLevels="0" VolumeType="Regular">
+        
+                     <VolumeIDStart>4</VolumeIDStart>
+
+        
+                     <VolumeIDEnd>4</VolumeIDEnd>
+
+        
+                     <VolumeIssueCount>1</VolumeIssueCount>
+
+      
+                  </VolumeInfo>
+
+      
+                  <Issue IssueType="Regular" OutputMedium="Online">
+        
+
+                     <IssueInfo IssueType="Regular" TocLevels="0">
+          
+                        <IssueIDStart>1</IssueIDStart>
+
+          
+                        <IssueIDEnd>1</IssueIDEnd>
+
+          
+                        <IssueArticleCount>0</IssueArticleCount>
+
+          
+                        <IssueHistory>
+            
+                           <CoverDate>
+              
+                              <Year>2016</Year>
+
+              
+                              <Month>12</Month>
+
+            
+                           </CoverDate>
+
+            
+                           <PricelistYear>2016</PricelistYear>
+
+          
+                        </IssueHistory>
+
+          
+                        <IssueCopyright>
+            
+                           <CopyrightHolderName>The Author(s)</CopyrightHolderName>
+
+            
+                           <CopyrightYear>2016</CopyrightYear>
+
+          
+                        </IssueCopyright>
+
+        
+                     </IssueInfo>
+
+        
+                     <Article ID="s40878-015-0020-9" OutputMedium="Online">
+          
+
+                        <ArticleInfo ArticleType="OriginalPaper" ContainsESM="No" Language="En" NumberingStyle="Unnumbered" TocLevels="0">
+            
+                           <ArticleID>20</ArticleID>
+
+            
+                           <ArticleDOI>10.1186/s40878-015-0020-9</ArticleDOI>
+
+            
+                           <ArticleCitationID>2</ArticleCitationID>
+
+            
+                           <ArticleSequenceNumber>2</ArticleSequenceNumber>
+
+            
+                           <ArticleTitle Language="En" OutputMedium="All">Pragmatism, moral responsibility or policy change: the Syrian refugee crisis and selective humanitarianism in the Turkish refugee regime</ArticleTitle>
+
+            
+                           <ArticleCategory>Original Article</ArticleCategory>
+
+            
+                           <ArticleFirstPage>1</ArticleFirstPage>
+
+            
+                           <ArticleLastPage>20</ArticleLastPage>
+
+            
+                           <ArticleHistory>
+              
+                              <RegistrationDate>
+                
+                                 <Year>2015</Year>
+
+                
+                                 <Month>12</Month>
+
+                
+                                 <Day>28</Day>
+
+              
+                              </RegistrationDate>
+
+              
+                              <Received>
+                
+                                 <Year>2015</Year>
+
+                
+                                 <Month>6</Month>
+
+                
+                                 <Day>21</Day>
+
+              
+                              </Received>
+
+              
+                              <Accepted>
+                
+                                 <Year>2015</Year>
+
+                
+                                 <Month>12</Month>
+
+                
+                                 <Day>24</Day>
+
+              
+                              </Accepted>
+
+              
+                              <OnlineDate>
+                
+                                 <Year>2016</Year>
+
+                
+                                 <Month>3</Month>
+
+                
+                                 <Day>2</Day>
+
+              
+                              </OnlineDate>
+
+            
+                           </ArticleHistory>
+
+            
+                           <ArticleFundingInformation>
+              
+                              <Fund>
+                
+                                 <FunderName>Carnegie Trust for the Universities of Scotland</FunderName>
+
+              
+                              </Fund>
+
+            
+                           </ArticleFundingInformation>
+
+            
+                           <ArticleCopyright>
+              
+                              <CopyrightHolderName>The Author(s)</CopyrightHolderName>
+
+              
+                              <CopyrightYear>2016</CopyrightYear>
+
+              
+                              <License SubType="CC BY" Type="OpenAccess" Version="4.0">
+                
+                                 <SimplePara>
+                           
+                                    <Emphasis Type="Bold">Open Access</Emphasis>
+This article is distributed under the terms of the Creative Commons Attribution 4.0 International License (
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://creativecommons.org/licenses/by/4.0/</RefSource>
+
+                    
+                                       <RefTarget Address="http://creativecommons.org/licenses/by/4.0/" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+), which permits unrestricted use, distribution, and reproduction in any medium, provided you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons license, and indicate if changes were made.
+                                 </SimplePara>
+
+              
+                              </License>
+
+            
+                           </ArticleCopyright>
+
+            
+                           <ArticleGrants Type="OpenChoice">
+              
+                              <MetadataGrant Grant="OpenAccess" />
+
+              
+                              <AbstractGrant Grant="OpenAccess" />
+
+              
+                              <BodyPDFGrant Grant="OpenAccess" />
+
+              
+                              <BodyHTMLGrant Grant="OpenAccess" />
+
+              
+                              <BibliographyGrant Grant="OpenAccess" />
+
+              
+                              <ESMGrant Grant="OpenAccess" />
+
+            
+                           </ArticleGrants>
+
+          
+                        </ArticleInfo>
+
+          
+                        <ArticleHeader>
+            
+                           <AuthorGroup>
+              
+                              <Author AffiliationIDS="Aff1" CorrespondingAffiliationID="Aff1" ID="Au1">
+                
+                                 <AuthorName DisplayOrder="Western">
+                  
+                                    <GivenName>Umut</GivenName>
+
+                  
+                                    <FamilyName>Korkut</FamilyName>
+
+                
+                                 </AuthorName>
+
+                
+                                 <Contact>
+                  
+                                    <Email>Umut.korkut@gcu.ac.uk</Email>
+
+                
+                                 </Contact>
+
+              
+                              </Author>
+
+              
+                              <Affiliation ID="Aff1">
+                
+                                 <OrgName>Glasgow Caledonian University, Glasgow School for Business and Society</OrgName>
+
+                
+                                 <OrgAddress>
+                  
+                                    <Street>Cowcaddens Road</Street>
+
+                  
+                                    <Postcode>G4 0BA</Postcode>
+
+                  
+                                    <City>Glasgow</City>
+
+                  
+                                    <Country Code="GB">UK</Country>
+
+                
+                                 </OrgAddress>
+
+              
+                              </Affiliation>
+
+            
+                           </AuthorGroup>
+
+          
+                        </ArticleHeader>
+
+          
+                        <Body>
+            
+                           <Section1 ID="Sec1">
+              
+<Heading>Introduction</Heading>
+<Para ID="0">This is the text of the article.</Para>
+
+                            </Section1>
+          
+                        </Body>
+
+          
+                        <BodyRef FileRef="BodyRef/PDF/40878_2015_Article_20.pdf" TargetType="OnlinePDF" />
+
+          
+                        <ArticleBackmatter>
+            
+                           <ArticleNote Type="Misc">
+              
+                              <Heading>Competing interests</Heading>
+
+              
+                              <SimplePara>The author declares no competing interests.</SimplePara>
+
+            
+                           </ArticleNote>
+
+            
+                           <ArticleNote Type="Misc">
+              
+                              <Heading>Authors’ information</Heading>
+
+              
+                              <SimplePara>Umut Korkut is a Reader in Politics at Glasgow School 
+                                 <Emphasis Type="Italic">for</Emphasis>
+ Business and Society Glasgow Caledonian University.
+                              </SimplePara>
+
+            
+                           </ArticleNote>
+
+            
+                           <Acknowledgments>
+              
+                              <Heading>Acknowledgments</Heading>
+
+              
+                              <SimplePara>I am indebted to the anonymous referees for their insightful comments. This work was supported by The Carnegie Trust for the University of Scotland. I also wish to thank Slavic-Eurasian Research Center, Hokkaido University for offering me the 2015/2016 foreign visiting fellowship that brought this article to conclusion.</SimplePara>
+
+            
+                           </Acknowledgments>
+
+            
+                           <Bibliography ID="Bib1">
+              
+                              <Heading>References</Heading>
+
+              
+                              <Citation ID="CR1">
+                
+                                 <BibUnstructured>AFAD. (2014). 
+                                    <Emphasis Type="Italic">AFAD Basın Açıklaması</Emphasis>
+ [Press Release of AFAD]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>https://www.afad.gov.tr/tr/HaberDetay.aspx?ID=12&amp;IcerikID=3024</RefSource>
+
+                    
+                                       <RefTarget Address="https://www.afad.gov.tr/tr/HaberDetay.aspx?ID=12&amp;IcerikID=3024" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 7 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR2">
+                
+                                 <BibUnstructured>AKP. (2011). Suriye meselesi bizim iç meselemizdir [Syria is our internal affair]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>https://www.akparti.org.tr/site/haberler/suriye-meselesi-bizim-ic-meselemizdir/11521#1</RefSource>
+
+                    
+                                       <RefTarget Address="https://www.akparti.org.tr/site/haberler/suriye-meselesi-bizim-ic-meselemizdir/11521#1" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 2 December 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR3">
+                
+                                 <BibUnstructured>AINA News. (2014). Syria's Assyrian Christians Find Refuge With Turkish Neighbours. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.aina.org/news/20140127171559.htm</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.aina.org/news/20140127171559.htm" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR4">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>AINA</Initials>
+
+                    
+                                       <FamilyName>News</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2015</Year>
+
+                  
+                                    <BookTitle>As Assyrian Hostages in Syria Spike</BookTitle>
+
+                  
+                                    <PublisherName>Closed to Refugees</PublisherName>
+
+                  
+                                    <PublisherLocation>Turkish Border</PublisherLocation>
+
+                  
+                                    <BibComments>http://aina.org/news/20150227141914.htm. Accessed 20 May 2015</BibComments>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>AINA News. (2015). As Assyrian Hostages in Syria Spike, Turkish Border Closed to Refugees. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://aina.org/news/20150227141914.htm</RefSource>
+
+                    
+                                       <RefTarget Address="http://aina.org/news/20150227141914.htm" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR5">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>B</Initials>
+
+                    
+                                       <FamilyName>Aras</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2004</Year>
+
+                  
+                                    <BookTitle>Turkey and the Greater Middle East</BookTitle>
+
+                  
+                                    <PublisherName>Tasam Publications</PublisherName>
+
+                  
+                                    <PublisherLocation>Istanbul</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Aras, B. (2004). 
+                                    <Emphasis Type="Italic">Turkey and the Greater Middle East</Emphasis>
+. Istanbul: Tasam Publications
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR6">
+                
+                                 <BibUnstructured>Asylum and Migration Legislation (2005). Ankara.</BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR7">
+                
+                                 <BibUnstructured>Baydar Aydıngün A. (1998–1999). A Deported Nationality: The Ahıska Turks. 
+                                    <Emphasis Type="Italic">Perceptions</Emphasis>
+, III, (4). 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://sam.gov.tr/wp-content/uploads/2012/02/AyesegulBaydarAydingun.pdf</RefSource>
+
+                    
+                                       <RefTarget Address="http://sam.gov.tr/wp-content/uploads/2012/02/AyesegulBaydarAydingun.pdf" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 16 December 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR8">
+                
+                                 <BibUnstructured>BBC. (2014). Turkey protest in Istanbul over Syrian refugees, BBC News. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.bbc.co.uk/news/world-europe-28926956</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.bbc.co.uk/news/world-europe-28926956" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 26 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR9">
+                
+                                 <BibUnstructured>BGST. (2015). Türkiye Artık Göçmenler Ülkesi [Already Turkey is an migrant destination]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://bgst.org/ulke-gundem/turkiye-artik-gocmenler-ulkesi-panel-metni</RefSource>
+
+                    
+                                       <RefTarget Address="http://bgst.org/ulke-gundem/turkiye-artik-gocmenler-ulkesi-panel-metni" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR10">
+                
+                                 <BibUnstructured>Bhatia, V, &amp; Orsini, M. (2014). Narrating Sustainability in Canadian Health Policy Discourse. 
+                                    <Emphasis Type="Italic">Social Policy and Administration</Emphasis>
+. doi:
+                                    <ExternalRef>
+                    
+                                       <RefSource>10.1111/spol.12103</RefSource>
+
+                    
+                                       <RefTarget Address="10.1111/spol.12103" TargetType="DOI" />
+
+                  
+                                    </ExternalRef>
+
+                        
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR11">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>J</Initials>
+
+                    
+                                       <FamilyName>Bruner</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1996</Year>
+
+                  
+                                    <BookTitle>The Culture of Education</BookTitle>
+
+                  
+                                    <PublisherName>Harvard University Press</PublisherName>
+
+                  
+                                    <PublisherLocation>Cambridge, Mass</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Bruner, J. (1996). 
+                                    <Emphasis Type="Italic">The Culture of Education</Emphasis>
+. Cambridge, Mass: Harvard University Press.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR12">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>S</Initials>
+
+                    
+                                       <FamilyName>Castles</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2000</Year>
+
+                  
+                                    <ArticleTitle Language="En">International Migration at the beginning of the twenty-first century: global trends and issues</ArticleTitle>
+
+                  
+                                    <JournalTitle>International Social Science Journal</JournalTitle>
+
+                  
+                                    <VolumeID>52</VolumeID>
+
+                  
+                                    <IssueID>165</IssueID>
+
+                  
+                                    <FirstPage>269</FirstPage>
+
+                  
+                                    <LastPage>281</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1111/1468-2451.00258</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Castles, S. (2000). International Migration at the beginning of the twenty-first century: global trends and issues. 
+                                    <Emphasis Type="Italic">International Social Science Journal, 52</Emphasis>
+(165), 269–281.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR13">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>RH</Initials>
+
+                    
+                                       <FamilyName>Cox</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>D</Initials>
+
+                    
+                                       <FamilyName>Béland</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ArticleTitle Language="En">Valence, Policy Ideas, and the Rise of Sustainability</ArticleTitle>
+
+                  
+                                    <JournalTitle>Governance</JournalTitle>
+
+                  
+                                    <VolumeID>26</VolumeID>
+
+                  
+                                    <IssueID>2</IssueID>
+
+                  
+                                    <FirstPage>307</FirstPage>
+
+                  
+                                    <LastPage>328</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1111/gove.12003</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Cox, R. H., &amp; Béland, D. (2013). Valence, Policy Ideas, and the Rise of Sustainability. 
+                                    <Emphasis Type="Italic">Governance, 26</Emphasis>
+(2), 307–328.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR14">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>A</Initials>
+
+                    
+                                       <FamilyName>Davutoğlu</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ArticleTitle Language="En">Turkey's humanitarian diplomacy: objectives, challenges and prospects</ArticleTitle>
+
+                  
+                                    <JournalTitle>Nationalities Papers: The Journal of Nationalism and Ethnicity</JournalTitle>
+
+                  
+                                    <VolumeID>41</VolumeID>
+
+                  
+                                    <IssueID>6</IssueID>
+
+                  
+                                    <FirstPage>865</FirstPage>
+
+                  
+                                    <LastPage>870</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1080/00905992.2013.857299</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Davutoğlu, A. (2013). Turkey's humanitarian diplomacy: objectives, challenges and prospects. 
+                                    <Emphasis Type="Italic">Nationalities Papers: The Journal of Nationalism and Ethnicity, 41</Emphasis>
+(6), 865–870.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR15">
+                
+                                 <BibChapter>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>H</Initials>
+
+                    
+                                       <FamilyName>Eslen-Ziya</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>U</Initials>
+
+                    
+                                       <FamilyName>Korkut</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ChapterTitle Language="En">Domestic work, gender and migration in Turkey: Legal framework enabling social reality</ChapterTitle>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>U</Initials>
+
+                    
+                                       <FamilyName>Korkut</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>G</Initials>
+
+                    
+                                       <FamilyName>Bucken-Knapp</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>A</Initials>
+
+                    
+                                       <FamilyName>McGarry</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>J</Initials>
+
+                    
+                                       <FamilyName>Hinnfors</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>H</Initials>
+
+                    
+                                       <FamilyName>Drake</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <Eds />
+
+                  
+                                    <BookTitle>The Politics and Discourses of Migration in Europe</BookTitle>
+
+                  
+                                    <PublisherName>Palgrave/Europe in Transition: The NYU European Studies Series</PublisherName>
+
+                  
+                                    <PublisherLocation>New York</PublisherLocation>
+
+                  
+                                    <FirstPage>37</FirstPage>
+
+                  
+                                    <LastPage>52</LastPage>
+
+                
+                                 </BibChapter>
+
+                
+                                 <BibUnstructured>Eslen-Ziya, H., &amp; Korkut, U. (2013). Domestic work, gender and migration in Turkey: Legal framework enabling social reality. In U. Korkut, G. Bucken-Knapp, A. McGarry, J. Hinnfors, &amp; H. Drake (Eds.), 
+                                    <Emphasis Type="Italic">The Politics and Discourses of Migration in Europe</Emphasis>
+ (pp. 37–52). New York: Palgrave/Europe in Transition: The NYU European Studies Series.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR16">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>GT</Initials>
+
+                    
+                                       <FamilyName>Fairhurst</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2009</Year>
+
+                  
+                                    <ArticleTitle Language="En">Considering context in discursive leadership research</ArticleTitle>
+
+                  
+                                    <JournalTitle>Human Relations</JournalTitle>
+
+                  
+                                    <VolumeID>62</VolumeID>
+
+                  
+                                    <IssueID>11</IssueID>
+
+                  
+                                    <FirstPage>1607</FirstPage>
+
+                  
+                                    <LastPage>1633</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1177/0018726709346379</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Fairhurst, G. T. (2009). Considering context in discursive leadership research. 
+                                    <Emphasis Type="Italic">Human Relations, 62</Emphasis>
+(11), 1607–1633.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR17">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>N</Initials>
+
+                    
+                                       <FamilyName>Fait</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ArticleTitle Language="En">African migrations toward Turkey: Beyond the stepping stone</ArticleTitle>
+
+                  
+                                    <JournalTitle>Ankara Üniversitesi SBF Dergisi</JournalTitle>
+
+                  
+                                    <VolumeID>68</VolumeID>
+
+                  
+                                    <IssueID>1</IssueID>
+
+                  
+                                    <FirstPage>21</FirstPage>
+
+                  
+                                    <LastPage>38</LastPage>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Fait, N. (2013). African migrations toward Turkey: Beyond the stepping stone. 
+                                    <Emphasis Type="Italic">Ankara Üniversitesi SBF Dergisi, 68</Emphasis>
+(1), 21–38.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR18">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>F</Initials>
+
+                    
+                                       <FamilyName>Fischer</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>H</Initials>
+
+                    
+                                       <FamilyName>Gottweis</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ArticleTitle Language="En">The argumentative turn in public policy revisited: twenty years later</ArticleTitle>
+
+                  
+                                    <JournalTitle>Critical Policy Studies</JournalTitle>
+
+                  
+                                    <VolumeID>7</VolumeID>
+
+                  
+                                    <IssueID>4</IssueID>
+
+                  
+                                    <FirstPage>425</FirstPage>
+
+                  
+                                    <LastPage>433</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1080/19460171.2013.851164</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Fischer, F., &amp; Gottweis, H. (2013). The argumentative turn in public policy revisited: twenty years later. 
+                                    <Emphasis Type="Italic">Critical Policy Studies, 7</Emphasis>
+(4), 425–433.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR19">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>W</Initials>
+
+                    
+                                       <FamilyName>Gamson</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1992</Year>
+
+                  
+                                    <BookTitle>
+                    
+                                       <Emphasis Type="Italic">Talking Politics</Emphasis>
+
+                  
+                                    </BookTitle>
+
+                  
+                                    <PublisherName>Cambridge University Press</PublisherName>
+
+                  
+                                    <PublisherLocation>Cambridge</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Gamson, W. (1992). 
+                                    <Emphasis Type="Italic">Talking Politics</Emphasis>
+. Cambridge: Cambridge University Press.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR20">
+                
+                                 <BibUnstructured>Göç İdaresi Genel Müdürlüğü. (n.d.). Law on Foreigners and International Protection. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.goc.gov.tr/icerik6/laws913980981icerik</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.goc.gov.tr/icerik6/laws913980981icerik" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR21">
+                
+                                 <BibUnstructured>Gürsel, K. (2012). Milletin meselesi nasıl milli mesele olur? [How does public affair become national affair?]. 
+                                    <Emphasis Type="Italic">Milliyet</Emphasis>
+, 28 June.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR22">
+                
+                                 <BibUnstructured>Haber7. (2014). Cumhurbaşkanı Erdoğan: Bizler Ensar sizler muhacir [The President Erdoğan: We are Ensar you are muhacir]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.haber7.com/ic-politika/haber/1208342-cumhurbaskani-erdogan-bizler-ensar-sizler-muhacir</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.haber7.com/ic-politika/haber/1208342-cumhurbaskani-erdogan-bizler-ensar-sizler-muhacir" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 7 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR23">
+                
+                                 <BibChapter>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>AK</Initials>
+
+                    
+                                       <FamilyName>Han</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <ChapterTitle Language="En">Paradise Lost: A Neoclassical Realist Analysis of Turkish Foreign Policy and the Case of Turkish-Syrian Relations</ChapterTitle>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>R</Initials>
+
+                    
+                                       <FamilyName>Hinnebusch</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>Ö</Initials>
+
+                    
+                                       <FamilyName>Tür</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <Eds />
+
+                  
+                                    <BookTitle>
+                    
+                                       <Emphasis Type="Italic">Turkey-Syria Relations. Between Enmity and Amity</Emphasis>
+
+                  
+                                    </BookTitle>
+
+                  
+                                    <PublisherName>Ashgate</PublisherName>
+
+                  
+                                    <PublisherLocation>Aldershot</PublisherLocation>
+
+                  
+                                    <FirstPage>55</FirstPage>
+
+                  
+                                    <LastPage>70</LastPage>
+
+                
+                                 </BibChapter>
+
+                
+                                 <BibUnstructured>Han, A. K. (2013). Paradise Lost: A Neoclassical Realist Analysis of Turkish Foreign Policy and the Case of Turkish-Syrian Relations. In R. Hinnebusch &amp; Ö. Tür (Eds.), 
+                                    <Emphasis Type="Italic">Turkey-Syria Relations. Between Enmity and Amity</Emphasis>
+ (pp. 55–70). Aldershot: Ashgate.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR24">
+                
+                                 <BibBook>
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>R</Initials>
+
+                    
+                                       <FamilyName>Hinnebusch</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>Ö</Initials>
+
+                    
+                                       <FamilyName>Tür</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <Eds />
+
+                  
+                                    <Year>2013</Year>
+
+                  
+                                    <BookTitle>Turkey-Syria Relations. Between Enmity and Amity</BookTitle>
+
+                  
+                                    <PublisherName>Ashgate</PublisherName>
+
+                  
+                                    <PublisherLocation>Aldershot</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Hinnebusch, R., &amp; Tür, Ö. (Eds.). (2013). 
+                                    <Emphasis Type="Italic">Turkey-Syria Relations. Between Enmity and Amity</Emphasis>
+. Aldershot: Ashgate.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR25">
+                
+                                 <BibUnstructured>Ilgıt, A, &amp; Davis, R. (2013). The Many Roles of Turkey in the Syrian Crisis. Middle East Research and Information Project, 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://ns2.merip.org/mero/mero012813</RefSource>
+
+                    
+                                       <RefTarget Address="http://ns2.merip.org/mero/mero012813" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 16 December 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR26">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>M</Initials>
+
+                    
+                                       <FamilyName>Iszatt-White</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2011</Year>
+
+                  
+                                    <ArticleTitle Language="En">Methodological crises and contextual solutions: An ethnomethodologically informed approach to understanding relationship</ArticleTitle>
+
+                  
+                                    <JournalTitle>Leadership</JournalTitle>
+
+                  
+                                    <VolumeID>7</VolumeID>
+
+                  
+                                    <IssueID>2</IssueID>
+
+                  
+                                    <FirstPage>119</FirstPage>
+
+                  
+                                    <LastPage>135</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1177/1742715010394734</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Iszatt-White, M. (2011). Methodological crises and contextual solutions: An ethnomethodologically informed approach to understanding relationship. 
+                                    <Emphasis Type="Italic">Leadership, 7</Emphasis>
+(2), 119–135.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR27">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>U</Initials>
+
+                    
+                                       <FamilyName>Korkut</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2014</Year>
+
+                  
+                                    <ArticleTitle Language="En">The migration myth in the absence of immigrants: How does the conservative right in Hungary and Turkey grapple with immigration?</ArticleTitle>
+
+                  
+                                    <JournalTitle>Comparative European Politics</JournalTitle>
+
+                  
+                                    <VolumeID>12</VolumeID>
+
+                  
+                                    <FirstPage>620</FirstPage>
+
+                  
+                                    <LastPage>636</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1057/cep.2014.23</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Korkut, U. (2014). The migration myth in the absence of immigrants: How does the conservative right in Hungary and Turkey grapple with immigration? 
+                                    <Emphasis Type="Italic">Comparative European Politics, 12</Emphasis>
+, 620–636.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR28">
+                
+                                 <BibBook>
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>U</Initials>
+
+                    
+                                       <FamilyName>Korkut</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>K</Initials>
+
+                    
+                                       <FamilyName>Mahendran</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>G</Initials>
+
+                    
+                                       <FamilyName>Bucken-Knapp</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <BibEditorName>
+                    
+                                       <Initials>RH</Initials>
+
+                    
+                                       <FamilyName>Cox</FamilyName>
+
+                  
+                                    </BibEditorName>
+
+                  
+                                    <Eds />
+
+                  
+                                    <Year>2015</Year>
+
+                  
+                                    <BookTitle>Discursive Governance in Politics, Policy, and the Public Sphere</BookTitle>
+
+                  
+                                    <PublisherName>Palgrave Macmillan</PublisherName>
+
+                  
+                                    <PublisherLocation>New York</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Korkut, U., Mahendran, K., Bucken-Knapp, G., &amp; Cox, R. H. (Eds.). (2015). 
+                                    <Emphasis Type="Italic">Discursive Governance in Politics, Policy, and the Public Sphere</Emphasis>
+. New York: Palgrave Macmillan.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR29">
+                
+                                 <BibUnstructured>Küçük, B. (2010). Diversity and the European Public Sphere: The Case of Turkey. Eurosphere Country Report No. 4, 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://eurospheres.org/files/2010/06/Turkey.pdf</RefSource>
+
+                    
+                                       <RefTarget Address="http://eurospheres.org/files/2010/06/Turkey.pdf" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 16 December 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR30">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>G</Initials>
+
+                    
+                                       <FamilyName>Lakoff</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>M</Initials>
+
+                    
+                                       <FamilyName>Johnson</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1980</Year>
+
+                  
+                                    <BookTitle>Metaphors We Live By</BookTitle>
+
+                  
+                                    <PublisherName>University of Chicago Press</PublisherName>
+
+                  
+                                    <PublisherLocation>Chicago, IL.</PublisherLocation>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Lakoff, G., &amp; Johnson, M. (1980). 
+                                    <Emphasis Type="Italic">Metaphors We Live By</Emphasis>
+. Chicago, IL.: University of Chicago Press.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR31">
+                
+                                 <BibUnstructured>Milliyet. (2014). İkitelli'de tehlikeli gerginlik! [Friction at Ikitelli]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.milliyet.com.tr/ikitelli-de-tehlikeli-gerginlik--gundem-1930400</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.milliyet.com.tr/ikitelli-de-tehlikeli-gerginlik--gundem-1930400" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 26 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR32">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>D</Initials>
+
+                    
+                                       <FamilyName>Nimmo</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>J</Initials>
+
+                    
+                                       <FamilyName>Combs</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1980</Year>
+
+                  
+                                    <BookTitle>Myths and Myth Makers in America</BookTitle>
+
+                  
+                                    <PublisherName>Prentice Hall</PublisherName>
+
+                  
+                                    <PublisherLocation>Englewood Cliffs, NJ</PublisherLocation>
+
+                  
+                                    <BibComments>Subliminal Politics</BibComments>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Nimmo, D., &amp; Combs, J. (1980). 
+                                    <Emphasis Type="Italic">Myths and Myth Makers in America</Emphasis>
+. Englewood Cliffs, NJ: Prentice Hall. Subliminal Politics.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR33">
+                
+                                 <BibUnstructured>Öniş, Z. (2014). Turkey and the Arab Revolutions: Boundaries of Regional Power Influence in a Turbulent Middle East. 
+                                    <Emphasis Type="Italic">Mediterranean Politics.</Emphasis>
+ doi:
+                                    <ExternalRef>
+                    
+                                       <RefSource>10.1080/13629395.2013.868392</RefSource>
+
+                    
+                                       <RefTarget Address="10.1080/13629395.2013.868392" TargetType="DOI" />
+
+                  
+                                    </ExternalRef>
+
+                        
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR34">
+                
+                                 <BibUnstructured>Özden, Ş. (2013). 
+                                    <Emphasis Type="Italic">Syrian Refugees in Turkey</Emphasis>
+. European University Institute Migration Policy Centre. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.migrationpolicycentre.eu/docs/MPC-RR-2013-05.pdf</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.migrationpolicycentre.eu/docs/MPC-RR-2013-05.pdf" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 16 December 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR35">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>M</Initials>
+
+                    
+                                       <FamilyName>Patterson</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>KR</Initials>
+
+                    
+                                       <FamilyName>Monroe</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1998</Year>
+
+                  
+                                    <ArticleTitle Language="En">Narrative in political science</ArticleTitle>
+
+                  
+                                    <JournalTitle>Annual Review of Political Science</JournalTitle>
+
+                  
+                                    <VolumeID>1</VolumeID>
+
+                  
+                                    <FirstPage>315</FirstPage>
+
+                  
+                                    <LastPage>331</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1146/annurev.polisci.1.1.315</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Patterson, M., &amp; Monroe, K. R. (1998). Narrative in political science. 
+                                    <Emphasis Type="Italic">Annual Review of Political Science, 1</Emphasis>
+, 315–331.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR36">
+                
+                                 <BibUnstructured>Radikal. (2014). Arınç'tan göç dalgası uyarısı [Arınç warns about waves of migration]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.radikal.com.tr/politika/arinctan_goc_dalgasi_uyarisi-1213822</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.radikal.com.tr/politika/arinctan_goc_dalgasi_uyarisi-1213822" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 19 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR37">
+                
+                                 <BibUnstructured>Radikal. (2015). Asker Ezidilerin kampına girdi [The soldiers have entered Yazidi camps]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.radikal.com.tr/turkiye/asker_ezidilerin_kampina_girdi-1266515</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.radikal.com.tr/turkiye/asker_ezidilerin_kampina_girdi-1266515" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR38">
+                
+                                 <BibUnstructured>Salih, C. &amp; Stein, A. (2015). How Turkey misread Kurds. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.aljazeera.com/indepth/opinion/2015/01/how-turkey-misread-kurds-201511910421859659.html</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.aljazeera.com/indepth/opinion/2015/01/how-turkey-misread-kurds-201511910421859659.html" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 2 June 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR39">
+                
+                                 <BibBook>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>JR</Initials>
+
+                    
+                                       <FamilyName>Searle</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2010</Year>
+
+                  
+                                    <BookTitle>Making the Social World – The Structure of Human Civilization</BookTitle>
+
+                  
+                                    <PublisherName>Oxford University Press</PublisherName>
+
+                  
+                                    <PublisherLocation>Oxford</PublisherLocation>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1093/acprof:osobl/9780195396171.001.0001</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibBook>
+
+                
+                                 <BibUnstructured>Searle, J. R. (2010). 
+                                    <Emphasis Type="Italic">Making the Social World – The Structure of Human Civilization</Emphasis>
+. Oxford: Oxford University Press.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR40">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>EA</Initials>
+
+                    
+                                       <FamilyName>Shanahan</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>MK</Initials>
+
+                    
+                                       <FamilyName>McBeth</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>PL</Initials>
+
+                    
+                                       <FamilyName>Hathaway</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>2011</Year>
+
+                  
+                                    <ArticleTitle Language="En">Narrative Policy Framework: The Influence of Media Policy Narratives on Public Opinion</ArticleTitle>
+
+                  
+                                    <JournalTitle>Politics &amp; Policy</JournalTitle>
+
+                  
+                                    <VolumeID>39</VolumeID>
+
+                  
+                                    <IssueID>3</IssueID>
+
+                  
+                                    <FirstPage>373</FirstPage>
+
+                  
+                                    <LastPage>400</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1111/j.1747-1346.2011.00295.x</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Shanahan, E. A., McBeth, M. K., &amp; Hathaway, P. L. (2011). Narrative Policy Framework: The Influence of Media Policy Narratives on Public Opinion. 
+                                    <Emphasis Type="Italic">Politics &amp; Policy, 39</Emphasis>
+(3), 373–400.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR41">
+                
+                                 <BibUnstructured>T24. (2014) Şengal'den gelenler sağlık hizmetinden yararlanamayacak mı? [Will Sengal refugees have an access to healthcare?]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://t24.com.tr/haber/sengalden-gelenler-saglik-hizmetinden-yararlanamayacak-mi,281466</RefSource>
+
+                    
+                                       <RefTarget Address="http://t24.com.tr/haber/sengalden-gelenler-saglik-hizmetinden-yararlanamayacak-mi,281466" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 8 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR42">
+                
+                                 <BibUnstructured>T24. (2015a) Suriye'den Türkiye'ye gelen işçiler hastalığa yakalanıyor [The workers form Syria caught illnesses]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://t24.com.tr/haber/suriyeden-turkiyeye-gelen-isciler-hastaliga-yakalaniyor,301703</RefSource>
+
+                    
+                                       <RefTarget Address="http://t24.com.tr/haber/suriyeden-turkiyeye-gelen-isciler-hastaliga-yakalaniyor,301703" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 7 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR43">
+                
+                                 <BibUnstructured>T24. (2015b) Bodrum'da esnaf şikayet etti, 40 Suriyeli Türkmen Aydın'a sürüldü! [The shop owners in Bodrum complained, 40 Turkomans from Syria were taken to Aydin]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://t24.com.tr/haber/bodrumda-esnaf-sikayet-etti-40-suriyeli-turkmen-aydina-suruldu,297784</RefSource>
+
+                    
+                                       <RefTarget Address="http://t24.com.tr/haber/bodrumda-esnaf-sikayet-etti-40-suriyeli-turkmen-aydina-suruldu,297784" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 26 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR44">
+                
+                                 <BibUnstructured>T24. (2015c) Milli Gazete: Türkiye, Filistinlilere 'one minute' çekiyor, vize vermiyor [Milli Gazete: Turkey rejects visa applications from Palestians]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://t24.com.tr/haber/milli-gazete-turkiye-filistinlilere-one-munute-cekiyor-vize-vermiyor,284852</RefSource>
+
+                    
+                                       <RefTarget Address="http://t24.com.tr/haber/milli-gazete-turkiye-filistinlilere-one-munute-cekiyor-vize-vermiyor,284852" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 20 May 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR45">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>MS</Initials>
+
+                    
+                                       <FamilyName>Teitelbaum</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1984</Year>
+
+                  
+                                    <ArticleTitle Language="En">Immigration, refugees, and foreign policy</ArticleTitle>
+
+                  
+                                    <JournalTitle>International Organization</JournalTitle>
+
+                  
+                                    <VolumeID>38</VolumeID>
+
+                  
+                                    <IssueID>3</IssueID>
+
+                  
+                                    <FirstPage>429</FirstPage>
+
+                  
+                                    <LastPage>450</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.1017/S0020818300026801</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Teitelbaum, M. S. (1984). Immigration, refugees, and foreign policy. 
+                                    <Emphasis Type="Italic">International Organization, 38</Emphasis>
+(3), 429–450.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR46">
+                
+                                 <BibUnstructured>UNHCR. (2013). Global Report Turkey, 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.unhcr.org/539809ff0.html</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.unhcr.org/539809ff0.html" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 5 January 2016
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR47">
+                
+                                 <BibUnstructured>UNHCR. (2014). Syria Regional Response Plan – Turkey.</BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR48">
+                
+                                 <BibUnstructured>UNCHR. (2015). UNHCR Country Operations Profile – Turkey.</BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR49">
+                
+                                 <BibUnstructured>UNCHR. (n.d.). Frequently Asked Questions Syrian Refugees in Turkey. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.unhcr.org.tr/uploads/root/faqenglish.pdf</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.unhcr.org.tr/uploads/root/faqenglish.pdf" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 2 June 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR50">
+                
+                                 <BibUnstructured>Zaman. (2014). Türkiye'deki Afgan Mülteciler [Afghan migrants in Turkey]. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.zaman.com.tr/yorum_turkiyedeki-afgan-multeciler_2225119.html</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.zaman.com.tr/yorum_turkiyedeki-afgan-multeciler_2225119.html" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 7 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR51">
+                
+                                 <BibUnstructured>Zaman. (2015). Suriyeli Türkmenler, sınırı mayınlı bölgelerden geçmeye zorlanıyor. 
+                                    <ExternalRef>
+                    
+                                       <RefSource>http://www.zaman.com.tr/dunya_suriyeli-turkmenler-siniri-mayinli-bolgelerden-gecmeye-zorlaniyor_2298541.html</RefSource>
+
+                    
+                                       <RefTarget Address="http://www.zaman.com.tr/dunya_suriyeli-turkmenler-siniri-mayinli-bolgelerden-gecmeye-zorlaniyor_2298541.html" TargetType="URL" />
+
+                  
+                                    </ExternalRef>
+. Accessed 8 July 2015
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR52">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>A</Initials>
+
+                    
+                                       <FamilyName>Zolberg</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1989</Year>
+
+                  
+                                    <ArticleTitle Language="En">The Next Waves: Migration Theory for a Changing World</ArticleTitle>
+
+                  
+                                    <JournalTitle>The International Migration Review</JournalTitle>
+
+                  
+                                    <VolumeID>23</VolumeID>
+
+                  
+                                    <IssueID>3</IssueID>
+
+                  
+                                    <FirstPage>403</FirstPage>
+
+                  
+                                    <LastPage>450</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.2307/2546422</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Zolberg, A. (1989). The Next Waves: Migration Theory for a Changing World. 
+                                    <Emphasis Type="Italic">The International Migration Review, 23</Emphasis>
+(3), 403–450.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+              
+                              <Citation ID="CR53">
+                
+                                 <BibArticle>
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>A</Initials>
+
+                    
+                                       <FamilyName>Zolberg</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>A</Initials>
+
+                    
+                                       <FamilyName>Suhrke</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <BibAuthorName>
+                    
+                                       <Initials>S</Initials>
+
+                    
+                                       <FamilyName>Aguayo</FamilyName>
+
+                  
+                                    </BibAuthorName>
+
+                  
+                                    <Year>1986</Year>
+
+                  
+                                    <ArticleTitle Language="En">International Factors in the Formation of Refugee Movements</ArticleTitle>
+
+                  
+                                    <JournalTitle>The International Migration Review</JournalTitle>
+
+                  
+                                    <VolumeID>20</VolumeID>
+
+                  
+                                    <IssueID>2</IssueID>
+
+                  
+                                    <FirstPage>151</FirstPage>
+
+                  
+                                    <LastPage>169</LastPage>
+
+                  
+                                    <Occurrence Type="DOI">
+                    
+                                       <Handle>10.2307/2546029</Handle>
+
+                  
+                                    </Occurrence>
+
+                
+                                 </BibArticle>
+
+                
+                                 <BibUnstructured>Zolberg, A., Suhrke, A., &amp; Aguayo, S. (1986). International Factors in the Formation of Refugee Movements. 
+                                    <Emphasis Type="Italic">The International Migration Review, 20</Emphasis>
+(2), 151–169.
+                                 </BibUnstructured>
+
+              
+                              </Citation>
+
+            
+                           </Bibliography>
+
+          
+                        </ArticleBackmatter>
+
+        
+                     </Article>
+
+      
+                  </Issue>
+
+    
+               </Volume>
+
+  
+            </Journal>
+
+            <meta:Info>
+               <meta:DateLoaded>2016-03-03T15:54:36.967137+01:00</meta:DateLoaded>
+
+               <meta:Authors>
+                  <meta:Author>Korkut, Umut</meta:Author>
+
+               </meta:Authors>
+
+               <meta:Institutions>
+                  <meta:Institution>
+                     <meta:OrgName>Glasgow Caledonian University, Glasgow School for Business and Society</meta:OrgName>
+
+                     <meta:Country>United Kingdom</meta:Country>
+
+                  </meta:Institution>
+
+               </meta:Institutions>
+
+               <meta:Date>2016-03-02</meta:Date>
+
+               <meta:Type>Article</meta:Type>
+
+               <meta:DOI>10.1186/s40878-015-0020-9</meta:DOI>
+
+               <meta:Title>Pragmatism, moral responsibility or policy change: the Syrian refugee crisis and selective humanitarianism in the Turkish refugee regime</meta:Title>
+
+               <meta:ISXN>2214-594X</meta:ISXN>
+
+               <meta:PubName>Springer</meta:PubName>
+
+               <meta:Journal>Comparative Migration Studies</meta:Journal>
+
+               <meta:Publication>Comparative Migration Studies</meta:Publication>
+
+               <meta:PublicationType>Journal</meta:PublicationType>
+
+               <meta:SubjectGroup>
+                  <meta:Subject Code="SCX" Type="Primary">Social Sciences</meta:Subject>
+
+                  <meta:Subject Code="SCX24000" Priority="1" Type="Secondary">Migration</meta:Subject>
+
+                  <meta:Subject Code="SCX22000" Priority="2" Type="Secondary">Sociology, general</meta:Subject>
+
+                  <meta:Subject Code="SCW38000" Priority="3" Type="Secondary">Population Economics</meta:Subject>
+
+               </meta:SubjectGroup>
+
+               <meta:VolumeId>4</meta:VolumeId>
+
+               <meta:IssueId>1</meta:IssueId>
+
+               <meta:ArticleSequenceNumber>2</meta:ArticleSequenceNumber>
+
+               <meta:Affiliations>
+                  <meta:Affiliation>
+                     <meta:OrgName>Glasgow Caledonian University, Glasgow School for Business and Society</meta:OrgName>
+
+                     <meta:OrgAddress>
+                        <meta:Street>Cowcaddens Road</meta:Street>
+
+                        <meta:Postcode>G4 0BA</meta:Postcode>
+
+                        <meta:City>Glasgow</meta:City>
+
+                        <meta:Country>UK</meta:Country>
+
+                  
+                  
+                  
+                  
+                
+                     </meta:OrgAddress>
+
+                     <meta:Authors>
+                        <meta:Author>
+                           <meta:AuthorName>
+                              <meta:GivenName>Umut</meta:GivenName>
+
+                              <meta:FamilyName>Korkut</meta:FamilyName>
+
+                  
+                  
+                
+                           </meta:AuthorName>
+
+                           <meta:CompleteName>Umut Korkut</meta:CompleteName>
+
+                        </meta:Author>
+
+                     </meta:Authors>
+
+                  </meta:Affiliation>
+
+               </meta:Affiliations>
+
+            </meta:Info>
+
+         </Publisher>
+
+      </result>
+
+   </records>
+
+   <facets>
+
+      <facet name="subject">
+         <facet-value count="1">Migration</facet-value>
+
+         <facet-value count="1">Population Economics</facet-value>
+
+         <facet-value count="1">Social Sciences</facet-value>
+
+         <facet-value count="1">Sociology, general</facet-value>
+
+      </facet>
+
+      <facet name="pub">
+         <facet-value count="1">Comparative Migration Studies</facet-value>
+
+      </facet>
+
+      <facet name="year">
+         <facet-value count="1">2016</facet-value>
+
+      </facet>
+
+      <facet name="type">
+         <facet-value count="1">Journal</facet-value>
+
+      </facet>
+
+      <facet name="country">
+         <facet-value count="1">UK</facet-value>
+
+         <facet-value count="1">United Kingdom</facet-value>
+
+      </facet>
+
+      <facet name="keyword" />
+
+   </facets>
+
+</response>
+

@@ -9,6 +9,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisPattern;
 
 import java.io.IOException;
@@ -17,8 +18,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.MissingFormatArgumentException;
 import java.util.UnknownFormatConversionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.apache.lucene.search.BooleanQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,11 +58,11 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	return patternUris;
     }
     
-    private Multimap<String, InfolisPattern> getFilenamesForPatterns(Collection<InfolisPattern> patterns) {
-        HashMultimap<String, InfolisPattern> patternToFilename = HashMultimap.create();
+    private Multimap<InfolisPattern, String> getTextRefsForLuceneQueries(Collection<InfolisPattern> patterns) {
+        HashMultimap<InfolisPattern, String> textRefsForPatterns = HashMultimap.create();
         for (InfolisPattern curPat : patterns) {
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
-			try { debug(log, "Regex: " + curPat.getPatternRegex()); }
+			try { debug(log, "Regex: " + curPat.getMinimal()); }
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
@@ -71,37 +73,69 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
             stpExecution.setMaxClauseCount(getExecution().getMaxClauseCount());
     		stpExecution.setSearchQuery(curPat.getLuceneQuery());
     		stpExecution.setInputFiles(getExecution().getInputFiles());
-    		// with empty searchTerm, LuceneSearcher does not post any textual references
-    		// thus, no need to create temporary file resolver / data store client here
+    		// TODO LuceneSearcher posts textual references but they are temporary
+    		// thus, create temporary file resolver / data store client here
     		stpExecution.instantiateAlgorithm(this).run();
-    		for (String fileUri : stpExecution.getMatchingFiles()) {
-    		    patternToFilename.put(fileUri, curPat);
+    		for (String textRefUri : stpExecution.getTextualReferences()) {
+    			textRefsForPatterns.put(curPat, textRefUri);
     		}
         }
-        return patternToFilename;
+        return textRefsForPatterns;
+    }
+    
+    private static String getReference(String text, String regex) {
+    	Pattern p = Pattern.compile(regex);
+    	Matcher m = p.matcher(text);
+    	if (m.find()) return m.group(1);
+    	return "";
+    }
+
+    private static boolean satisfiesUpperCaseConstraint(String string) {
+    	// do not treat -RRB-, -LRB- and *NL* tokens as uppercase words
+    	return !(string.replaceAll("-RRB-", "").replaceAll("-LRB-", "")
+    			.replaceAll("\\*NL\\*", "").toLowerCase()
+    			.equals(string.replaceAll("-RRB-", "")
+    					.replaceAll("-LRB-", "")
+    					.replaceAll("\\*NL\\*", "")));
     }
     
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
     	// for all patterns, retrieve documents in which they occur (using lucene)
-    	Multimap<String, InfolisPattern> filenamesForPatterns = getFilenamesForPatterns(patterns);
-    	List<String> textualReferences = new ArrayList<>();
-    	// open each file once and search for all regex for which a corresponding (but more general)
-    	// lucene pattern has been found in it
-    	for (String fileUri : filenamesForPatterns.keySet()) {
-    	    Collection<InfolisPattern> patternList = filenamesForPatterns.get(fileUri);
-    		List<String> patternURIs = getPatternUris(patternList);
-    		
-    		Execution regexExec = new Execution();
-        	regexExec.getInputFiles().add(fileUri);
-        	regexExec.setPatterns(patternURIs);
-        	regexExec.setTags(getExecution().getTags());
-        	regexExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-        	regexExec.setAlgorithm(RegexSearcher.class);
-        	regexExec.instantiateAlgorithm(this).run();
-        	getExecution().setTextualReferences(regexExec.getTextualReferences());
-            textualReferences.addAll(regexExec.getTextualReferences());
+    	Multimap<InfolisPattern, String> textRefsForPatterns = getTextRefsForLuceneQueries(
+    			patterns);
+    	List<String> validatedTextualReferences = new ArrayList<>();
+    	// open each reference once and validate with the corresponding regular expression: 
+    	// a lucene query may be more general having wildcards for e.g. numbers. 
+    	// Words found by wildcards must match the corresponding regex 
+    	for (InfolisPattern pattern : textRefsForPatterns.keySet()) {
+    	    Collection<String> textualReferenceUris = textRefsForPatterns.get(pattern);
+    		Collection<TextualReference> textualReferences = getInputDataStoreClient().get(
+    				TextualReference.class, textRefsForPatterns.get(pattern));
+    		for (TextualReference textRef : textualReferences) {
+    			// textual reference does not match regex
+    			String referencedTerm = getReference(textRef.getLeftText(), pattern.getMinimal());
+	    		if ("".equals(referencedTerm)) {
+	    			log.debug("Textual reference does not match regex: " + pattern.getMinimal());
+	    			continue;
+	    		}
+	    		if ((getExecution().isUpperCaseConstraint() && 
+	    				!satisfiesUpperCaseConstraint(referencedTerm))) {
+	    			log.debug("Referenced term does not satisfy uppercase-constraint \"" + 
+	    					referencedTerm + "\"");
+	    			continue;
+	    		}
+	    		// if referencedTerm contains no characters: ignore
+                // TODO: not accurate - include accents etc in match... \p{M}?
+                if (referencedTerm.matches("\\P{L}+")) {
+                    log.debug("Invalid referenced term \"" + referencedTerm + "\"");
+                    continue;
+                }
+                TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
+                getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
+                validatedTextualReferences.add(validatedTextRef.getUri());
+    		}
     	}
-        return textualReferences;
+        return validatedTextualReferences;
     }
 
     Execution createIndex() throws IOException {

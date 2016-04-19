@@ -19,9 +19,9 @@ gretty {
 
 dependencies {
     compile 'nz.ac.waikato.cms.weka:weka-stable:3.6.6'
-    compile 'org.apache.lucene:lucene-core:5.5.0'
-    compile 'org.apache.lucene:lucene-analyzers-common:5.5.0'
-    compile 'org.apache.lucene:lucene-queryparser:5.5.0'
+    compile 'org.apache.lucene:lucene-queryparser:6.0.0'
+    compile 'org.apache.lucene:lucene-highlighter:6.0.0'
+    compile 'org.apache.lucene:lucene-memory:6.0.0'
     compile 'org.apache.pdfbox:pdfbox:1.8.8'
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
     compile 'args4j:args4j:2.0.29'

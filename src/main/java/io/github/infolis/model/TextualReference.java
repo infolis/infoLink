@@ -48,13 +48,19 @@ public class TextualReference extends BaseModel {
 
 
     public TextualReference() {
+    	this.leftWords = new ArrayList<>();
+        this.rightWords = new ArrayList<>();
+        this.leftText = " ";
+        this.rightText = " ";
     }
 
+    // TODO set reference, term param is ignored...
     public TextualReference(String term) {
         this.leftText = "";
         this.rightText = "";
         this.leftWords = new ArrayList<>();
         this.rightWords = new ArrayList<>();
+        //this.reference = term;
         this.textFile = "";
         this.pattern = "";
         this.mentionsReference = "";

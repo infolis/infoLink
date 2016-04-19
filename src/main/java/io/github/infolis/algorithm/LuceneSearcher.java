@@ -19,18 +19,30 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.complexPhrase.ComplexPhraseQueryParser;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.highlight.Fragmenter;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.QueryTermScorer;
+import org.apache.lucene.search.highlight.Scorer;
+import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
+import org.apache.lucene.search.highlight.TokenSources;
+import org.apache.lucene.search.postingshighlight.PostingsHighlighter;
 import org.apache.lucene.store.FSDirectory;
+
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +51,8 @@ import org.slf4j.LoggerFactory;
  *
  * Difference between search term and search query: a search term represents the
  * entity to retrieve, e.g. the name of a dataset, while the complete query may
- * include additional information, e.g. allowed characters surrounding the term
- * to retrieve.
+ * include additional information, e.g. required words surrounding the term
+ * to retrieve. Search term must be included in search query. 
  *
  * Example: when searching for datasets of the study "Eurobarometer", entities
  * like "Eurobarometer-Datensatz" shall be found as well but only
@@ -71,6 +83,14 @@ public class LuceneSearcher extends BaseAlgorithm {
         execution.instantiateAlgorithm(this).run();
 		return execution;
 	}
+    
+    public static TextualReference getContext(String term, String text, String fileUri, String patternUri, String entityUri) {
+    	// do not treat term as regex when splitting
+       	String[] contexts = text.split(Pattern.quote(term));
+       	TextualReference textRef = new TextualReference(contexts[0], term, 
+       			contexts[1], fileUri, patternUri, entityUri);
+       	return textRef;
+    }
 
     /**
      * Searches for this query in this index using a ComplexPhraseQueryParser.
@@ -80,6 +100,7 @@ public class LuceneSearcher extends BaseAlgorithm {
      * @param append	if set, contexts will be appended to file, else file will
      * be overwritten
      * @throws IOException
+     * @throws InvalidTokenOffsetsException 
      */
     @Override
     public void execute() throws IOException {
@@ -97,13 +118,15 @@ public class LuceneSearcher extends BaseAlgorithm {
     	IndexReader indexReader = DirectoryReader.open(FSDirectory.open(Paths.get(getExecution().getIndexDirectory())));
     	log.debug("Reading index at " + getExecution().getIndexDirectory() );
         IndexSearcher searcher = new IndexSearcher(indexReader);
-        QueryParser qp = new ComplexPhraseQueryParser(DEFAULT_FIELD_NAME, Indexer.createAnalyzer());
+        Analyzer analyzer = Indexer.createAnalyzer();
+        ComplexPhraseQueryParser qp = new ComplexPhraseQueryParser(DEFAULT_FIELD_NAME, analyzer);
         // set phrase slop because dataset titles may consist of more than one word
         qp.setPhraseSlop(getExecution().getPhraseSlop()); // 0 requires exact match, 5 means that up to 5 edit operations may be carried out...
         qp.setAllowLeadingWildcard(getExecution().isAllowLeadingWildcards());
         BooleanQuery.setMaxClauseCount(getExecution().getMaxClauseCount());
         qp.setAutoGeneratePhraseQueries(false);
-        // throws java.lang.IllegalArgumentException: Unknown query type "org.apache.lucene.search.WildcardQuery"
+        // throws java.lang.IllegalArgumentException: Unknown query type 
+        // "org.apache.lucene.search.WildcardQuery"
         // if quotes are present in absence of any whitespace inside of query
         // however, queries should be passed in correct form instead of being changed here
         Query q;
@@ -112,7 +135,7 @@ public class LuceneSearcher extends BaseAlgorithm {
         } catch (ParseException e) {
             error(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
             getExecution().setStatus(ExecutionStatus.FAILED);
-            Indexer.createAnalyzer().close();
+            analyzer.close();
             indexReader.close();
             throw new RuntimeException();
         }
@@ -136,23 +159,72 @@ public class LuceneSearcher extends BaseAlgorithm {
                 return;
             }
 
-            if (this.getExecution().getSearchTerm() != null) {
-                InputStream openInputStream = this.getInputFileResolver().openInputStream(file);
-                String text = IOUtils.toString(openInputStream);
-                openInputStream.close();
-                for (TextualReference sC : getContexts(getInputDataStoreClient(), file.getUri(), getExecution().getSearchTerm(), text)) {
-                    // note that the URI changes if inputDataStoreClient != outputDataStoreClient!
-                    getOutputDataStoreClient().post(TextualReference.class, sC);
-                    getExecution().getTextualReferences().add(sC.getUri());
-                }
+            String term = getExecution().getSearchTerm();
+            
+            // extract contexts
+            QueryScorer scorer = new QueryScorer(q, DEFAULT_FIELD_NAME);
+            //PostingsHighlighter highlighter = new PostingsHighlighter();
+            Highlighter highlighter = new Highlighter(scorer);
+            TokenStream stream = TokenSources.getAnyTokenStream(searcher
+            	          .getIndexReader(), td.scoreDocs[i].doc, DEFAULT_FIELD_NAME, 
+            	          doc, analyzer);
+            // TODO make sure fragments contain whole words only
+            Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 1000);
+            highlighter.setTextFragmenter(fragmenter);
+            highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
+            try {
+            	String[] fragments = highlighter.getBestFragments(stream, doc.get(DEFAULT_FIELD_NAME), 
+            			1000, "--@@--").split("--@@--");
+	           	for (String fragment: fragments) {
+		           	log.trace("Fragment: " + fragment);
+		            	
+		            Entity e = new Entity();
+		            e.setFile(file.getUri());
+		            getOutputDataStoreClient().post(Entity.class, e);
+		            // remove tags inserted by the highlighter
+		            fragment = fragment.replaceAll("</?B>", "").trim();
+		            if (term != null) {
+		            	try {
+		            		// term search, thus no pattern URI in textRef
+		            		TextualReference textRef = getContext(term, fragment, file.getUri(), 
+		            				"", e.getUri());
+		            		// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
+		                   	// TODO those textual references should be temporary - check
+			               	getOutputDataStoreClient().post(TextualReference.class, textRef);
+			                getExecution().getTextualReferences().add(textRef.getUri());
+			            } catch (ArrayIndexOutOfBoundsException aioobe) {
+			               	log.warn("Error: failed to split reference: \"" + term + "\"");
+			               	// TODO may happen when term is at the beginning or end of input
+			               	throw new ArrayIndexOutOfBoundsException();
+			            } 
+		            }
+		            else {
+		            	TextualReference textRef = new TextualReference();
+		            	textRef.setLeftText(fragment);
+		            	textRef.setFile(file.getUri());
+		            	textRef.setMentionsReference(e.getUri());
+		            	// TODO those textual references should be temporary if validation 
+		            	// by regex is to be performed - check
+		               	getOutputDataStoreClient().post(TextualReference.class, textRef);
+		                getExecution().getTextualReferences().add(textRef.getUri());
+		            }
+	           	}
+            } catch (InvalidTokenOffsetsException e) {
+            	log.warn(e.getMessage());
+            	analyzer.close();
+                indexReader.close();
+            	throw new IOException();
+            } finally {
+                stream.close();
             }
+            // TODO matchingFiles are not needed anymore
+            // TODO moreover, outputFiles could be used instead
             getExecution().getMatchingFiles().add(file.getUri());
             updateProgress(i, scoreDocs.length);
-
         }
-        Indexer.createAnalyzer().close();
+        analyzer.close();
         indexReader.close();
-        //TODO close searcher, indexReader, FSDirectory
+        
         if (this.getExecution().getSearchTerm() != null) {
             log.debug("number of extracted contexts: " + getExecution().getTextualReferences().size());
         }
@@ -160,45 +232,7 @@ public class LuceneSearcher extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 
-    public static List<TextualReference> getContexts(DataStoreClient outputDataStoreClient, String fileName, String term, String text) throws IOException, ArrayIndexOutOfBoundsException  {
-        InfolisPattern infolisPat = null;
-        // extract the sentence in which term occurs + adjacent sentences, if existing
-        // note: with this regex, term may be a substring of a word
-        //Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?" + Pattern.quote(term) + ".*(" + System.getProperty("line.separator") + "+.*)?");
-        // note: with this regex, term may not be a substring of a word
-        Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?[-—\\s/]" + Pattern.quote(term) + "[-—\\s/].*(" + System.getProperty("line.separator") + "+.*)?");
-        //Pattern pat = Pattern.compile("(.*?" + System.getProperty("line.separator") + "+)?.*?\\s" + Pattern.quote(term) + "\\s.*(" + System.getProperty("line.separator") + "+.*)?");
-        String threadName = String.format("For '%s' in '%s...'", pat, text.substring(0, Math.min(100, text.length())));
-        LimitedTimeMatcher ltm = new LimitedTimeMatcher(pat, text, RegexUtils.maxTimeMillis, threadName);
-        List<TextualReference> contextList = new ArrayList<>();
-        ltm.run();
 
-        // these patterns are used for extracting contexts of known study titles,
-        // do not confuse with patterns to detect study references -> do not post
-        if (!ltm.finished()) {
-            throw new IOException("Matcher timed out!");
-        }
-        if (ltm.finished() && ltm.matched()) {
-            infolisPat = new InfolisPattern(pat.toString());
-        }
-        while (ltm.matched()) {
-        	log.debug("Found context: " + ltm.group());
-            Entity p = new Entity();
-            p.setFile(fileName);
-            outputDataStoreClient.post(Entity.class, p);
-            try {
-            	TextualReference sC = new TextualReference(ltm.group().split(term)[0], term, ltm.group().split(term)[1], fileName, infolisPat.getUri(), p.getUri());
-            	contextList.add(sC);
-            } catch (ArrayIndexOutOfBoundsException e) {
-            	log.warn("Error: failed to split reference: \"" + term + "\"");
-            	//for (String word : ltm.group().split(term))	log.warn(word);
-            	// TODO may happen when term is at the beginning or end of input
-            	throw new ArrayIndexOutOfBoundsException();
-            } 
-            ltm.run();
-        }
-        return contextList;
-    }
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {

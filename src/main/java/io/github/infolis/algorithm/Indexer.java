@@ -39,8 +39,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -80,7 +80,6 @@ public class Indexer extends BaseAlgorithm {
             FileUtils.forceDeleteOnExit(new File(indexPath));
         }
         log.debug("Indexing to: " + indexPath);
-        //getExecution().setOutputDirectory(indexDir.getAbsolutePath().toString());
         getExecution().setOutputDirectory(indexPath);
 
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(createAnalyzer());
@@ -97,6 +96,7 @@ public class Indexer extends BaseAlgorithm {
                 error(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 persistExecution();
+                fsIndexDir.close();
                 return;
             }
         }
@@ -122,9 +122,9 @@ public class Indexer extends BaseAlgorithm {
             log.debug("Merging all Lucene segments ...");
             writer.forceMerge(1);
             writer.close();
+            fsIndexDir.close();
         }
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        fsIndexDir.close();
         log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
     }
 
@@ -146,8 +146,8 @@ public class Indexer extends BaseAlgorithm {
      * words.</li>
      * <li>The contents of the file are added to a field named "contents". A
      * reader is specified so that the text of the file is tokenized and
-     * indexed, but not stored. Note that FileReader expects the file to be in
-     * the system's default encoding. If that's not the case searching for
+     * indexed, but not stored. Note that the file is expected to be in
+     * UTF-8 encoding. If that's not the case, searching for
      * special characters will fail.</li>
      * <li>Content (text files) is saved in the index along with position and
      * offset information.</li>
@@ -168,37 +168,17 @@ public class Indexer extends BaseAlgorithm {
         reader.close();
         isr.close();
         text = new String(contents);
-
-        // make a new, empty document
+        
         Document doc = new Document();
-
-        // Add the path of the file as a field named "path".  Use a field that is
-        // indexed (i.e. searchable), but don't tokenize the field into words.
-        /*doc.add(new Field("path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED));*/
         doc.add(new StringField("path", f.getUri(), Field.Store.YES));
-        /*doc.add(new Field("fileName", f.getFileName(), Field.Store.YES, Field.Index.ANALYZED));*/
         doc.add(new StringField("fileName", f.getFileName(), Field.Store.YES));
-
-        // Add the last modified date of the file a field named "modified".  Use
-        // a field that is indexed (i.e. searchable), but don't tokenize the field
-        // into words.
         // TODO kba: Add modified to InfolisFile
-//      doc.add( new Field( "modified",
-//    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
-//    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
-        // save the content (text files) in the index
-        // Add the contents of the file to a field named "contents".  Specify a Reader,
-        // so that the text of the file is tokenized and indexed, but not stored.
-        // Note that FileReader expects the file to be in the system's default encoding.
+        //doc.add(new LongField("modified", lastModified, Field.Store.NO));
+        
+        // file is expected to be in UTF-8 encoding.
         // If that's not the case searching for special characters will fail.
-        //Store both position and offset information
-        // TextFilesContent = readTextFiles(f.getPath()) + " ";
-        doc.add(new Field("contents", text, Field.Store.YES, Field.Index.ANALYZED,
-                Field.TermVector.WITH_POSITIONS_OFFSETS));
-        //doc.add(new StoredField("contents", text));
-
-        // return the document
-        //cd.close();
+        Field contentField = new Field("contents", text, TextField.TYPE_STORED);
+        doc.add(contentField);
         return doc;
     }
 }

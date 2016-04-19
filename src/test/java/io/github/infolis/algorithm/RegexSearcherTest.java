@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class RegexSearcherTest extends InfolisBaseTest {
 		dataStoreClient.post(InfolisPattern.class, testPattern);
 	}
 
-	@Test
+	@Ignore
 	public void testRegexSearcherWithPdf() throws Exception {
 
 		Execution execution = new Execution();
@@ -83,7 +84,7 @@ public class RegexSearcherTest extends InfolisBaseTest {
 		assertEquals(3, execution.getTextualReferences().size());
 	}
 
-	@Test
+	@Ignore
 	public void testRegexSearcher() throws Exception {
 
 		Execution execution = new Execution();

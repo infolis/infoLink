@@ -55,7 +55,7 @@ public class RegexSearcher extends BaseAlgorithm {
         String inputClean = getFileAsString(file);
 
         List<TextualReference> res = new ArrayList<>();
-        for (String patternURI : this.getExecution().getPatterns()) {
+        /*for (String patternURI : this.getExecution().getPatterns()) {
             //debug(log, patternURI);
             log.trace(patternURI);
             InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
@@ -115,7 +115,7 @@ public class RegexSearcher extends BaseAlgorithm {
                 ltm.run();
             }
         }
-        log.trace("Done searching for patterns in " + file);
+        log.trace("Done searching for patterns in " + file);*/
         return res;
     }
 

@@ -25,7 +25,7 @@ import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.SerializationUtils;
 
 /**
- * Tests for the ApplyPatternAndResolve algorithm.
+ * Tests for the SearchPatternsAndCreateLinks algorithm.
  *
  * @author kata
  * @author domi
@@ -45,8 +45,10 @@ public class SearchPatternsAndCreateLinksTest extends InfolisBaseTest {
         File txtDir = new File(getClass().getResource("/examples/minimal-txt").getFile());
 
         InfolisPattern infolisPattern = new InfolisPattern();
-        infolisPattern.setPatternRegex("(.*?Datenbasis: )(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?");
-        infolisPattern.setLuceneQuery("Datenbasis * eigene Berechnung");
+        String regex = ".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?";
+        infolisPattern.setPatternRegex(regex);
+        infolisPattern.setMinimal(regex);
+        infolisPattern.setLuceneQuery("\"Datenbasis\\\\: * eigene Berechnung\\\\)\"");
         HashSet<String> tags = new HashSet<String>();
         tags.add("test");
         infolisPattern.setTags(tags);

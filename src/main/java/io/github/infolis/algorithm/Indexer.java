@@ -39,8 +39,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -177,7 +179,9 @@ public class Indexer extends BaseAlgorithm {
         
         // file is expected to be in UTF-8 encoding.
         // If that's not the case searching for special characters will fail.
-        Field contentField = new Field("contents", text, TextField.TYPE_STORED);
+        FieldType offsetsType = new FieldType(TextField.TYPE_STORED);
+        offsetsType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+        Field contentField = new Field("contents", text, offsetsType);
         doc.add(contentField);
         return doc;
     }

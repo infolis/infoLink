@@ -87,7 +87,9 @@ public class BootstrappingTest extends InfolisBaseTest {
     	b.indexerExecution = indexerExecution;
     	b.setExecution(e);
     	List<TextualReference> refs = b.getContextsForSeed("term");
-    	assertEquals(new HashSet<String>(Arrays.asList(testStrings[3], testStrings[5])),
+    	assertEquals(new HashSet<String>(Arrays.asList(
+    			"Hallo , please try to find the term in this short text snippet .",
+    			"Hallo , please try to find the term . in this short text snippet .")),
     			new HashSet<String>(TextualReference.getContextStrings(refs)));
     }
 

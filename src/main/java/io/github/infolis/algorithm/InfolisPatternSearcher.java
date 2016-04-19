@@ -6,6 +6,8 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -48,16 +50,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	return patterns;
     }
     
-    private List<String> getPatternUris(Collection<InfolisPattern> patternList) {
-    	List<String> patternUris = new ArrayList<String>();
-    	for (InfolisPattern curPat : patternList) {
-	    	if (curPat.getUri() == null)
-	    		throw new RuntimeException("Pattern does not have a URI!");
-	    	patternUris.add(curPat.getUri());
-    	}
-    	return patternUris;
-    }
-    
     private Multimap<InfolisPattern, String> getTextRefsForLuceneQueries(Collection<InfolisPattern> patterns) {
         HashMultimap<InfolisPattern, String> textRefsForPatterns = HashMultimap.create();
         for (InfolisPattern curPat : patterns) {
@@ -66,17 +58,18 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
 			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
 			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
 
-        	Execution stpExecution = getExecution().createSubExecution(LuceneSearcher.class);
-            stpExecution.setIndexDirectory(getExecution().getIndexDirectory());
-            stpExecution.setPhraseSlop(getExecution().getPhraseSlop());
-            stpExecution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-            stpExecution.setMaxClauseCount(getExecution().getMaxClauseCount());
-    		stpExecution.setSearchQuery(curPat.getLuceneQuery());
-    		stpExecution.setInputFiles(getExecution().getInputFiles());
+        	Execution exec = getExecution().createSubExecution(LuceneSearcher.class);
+        	exec.setIndexDirectory(getExecution().getIndexDirectory());
+        	exec.setPhraseSlop(getExecution().getPhraseSlop());
+        	exec.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+        	exec.setMaxClauseCount(getExecution().getMaxClauseCount());
+        	exec.setSearchQuery(curPat.getLuceneQuery());
+        	exec.setInputFiles(getExecution().getInputFiles());
     		// TODO LuceneSearcher posts textual references but they are temporary
     		// thus, create temporary file resolver / data store client here
-    		stpExecution.instantiateAlgorithm(this).run();
-    		for (String textRefUri : stpExecution.getTextualReferences()) {
+        	//DataStoreClient tempClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
+        	exec.instantiateAlgorithm(this).run();
+    		for (String textRefUri : exec.getTextualReferences()) {
     			textRefsForPatterns.put(curPat, textRefUri);
     		}
         }
@@ -108,7 +101,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	// a lucene query may be more general having wildcards for e.g. numbers. 
     	// Words found by wildcards must match the corresponding regex 
     	for (InfolisPattern pattern : textRefsForPatterns.keySet()) {
-    	    Collection<String> textualReferenceUris = textRefsForPatterns.get(pattern);
     		Collection<TextualReference> textualReferences = getInputDataStoreClient().get(
     				TextualReference.class, textRefsForPatterns.get(pattern));
     		for (TextualReference textRef : textualReferences) {
@@ -116,6 +108,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     			String referencedTerm = getReference(textRef.getLeftText(), pattern.getMinimal());
 	    		if ("".equals(referencedTerm)) {
 	    			log.debug("Textual reference does not match regex: " + pattern.getMinimal());
+	    			log.debug("Textual reference: " + textRef.getLeftText());
 	    			continue;
 	    		}
 	    		if ((getExecution().isUpperCaseConstraint() && 

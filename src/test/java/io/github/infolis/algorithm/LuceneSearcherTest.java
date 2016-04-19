@@ -25,11 +25,11 @@ public class LuceneSearcherTest extends InfolisBaseTest {
 
     Logger log = LoggerFactory.getLogger(LuceneSearcherTest.class);
 
-    String testString1 = "Please try to find the term in this short text snippet";
+    String testString1 = "Please try to find the term in this short text snippet .";
     String testString2 = "Please try to find the _ in this short text snippet .";
     String testString3 = "Please try to find the . term . in this short text snippet .";
     String testString4 = "Hallo , please try to find the term in this short text snippet . Thank you .";
-    String testString5 = "Hallo , please try to find the _ in this short text snippet. Thank you .";
+    String testString5 = "Hallo , please try to find the _ in this short text snippet . Thank you .";
     String testString6 = "Hallo , please try to find . the term . in this short text snippet . Thank you .";
     List<String> uris = new ArrayList<>();
     Execution indexerExecution;
@@ -112,8 +112,11 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"", 0).size());
         assertEquals(28, testContexts("term", "\"the term\"", 0).size());
         List<TextualReference> contextListA = testContexts("the term", "\"the term\"", 0);
-        assertEquals("Hallo , please try to find the term in this short text snippet . Thank you .", contextListA.get(0).toString().trim());
-        assertEquals(new HashSet<String>(Arrays.asList(testStrings[3], testStrings[5])), new HashSet<String>(Arrays.asList(contextListA.get(1).toString().trim(), contextListA.get(0).toString().trim())));
+        assertEquals("Hallo , please try to find the term in this short text snippet .", contextListA.get(0).toString().trim());
+        // current context extraction method extracts the one sentence in which the term is found. 
+     	String testSentence3 = "Hallo , please try to find the term in this short text snippet .";
+     	String testSentence5 = "Hallo , please try to find . the term . in this short text snippet .";
+        assertEquals(new HashSet<String>(Arrays.asList(testSentence3, testSentence5)), new HashSet<String>(Arrays.asList(contextListA.get(1).toString().trim(), contextListA.get(0).toString().trim())));
 		// ...and for wildcard phrase queries
         // this query should find all test sentences except for those having a "." before "the" and having two words covered by the wildcard
         assertEquals(100 - 14, testExecute(null, "\"to find the * in\"", 0).size());

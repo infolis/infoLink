@@ -7,20 +7,12 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
-import io.github.infolis.model.entity.InfolisPattern;
-import io.github.infolis.util.LimitedTimeMatcher;
-import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -31,14 +23,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.highlight.Fragmenter;
-import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
-import org.apache.lucene.search.highlight.QueryScorer;
-import org.apache.lucene.search.highlight.QueryTermScorer;
-import org.apache.lucene.search.highlight.Scorer;
-import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
-import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.search.postingshighlight.PostingsHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
@@ -144,7 +129,7 @@ public class LuceneSearcher extends BaseAlgorithm {
         TopDocs td = searcher.search(q, 10000);
         debug(log, "Number of hits (documents): " + td.totalHits);
         ScoreDoc[] scoreDocs = td.scoreDocs;
-
+        TopDocs[] shardHits = { td };	
         for (int i = 0; i < scoreDocs.length; i++) {
             Document doc = searcher.doc(scoreDocs[i].doc);
             InfolisFile file;
@@ -158,31 +143,23 @@ public class LuceneSearcher extends BaseAlgorithm {
                 persistExecution();
                 return;
             }
-
+        
             String term = getExecution().getSearchTerm();
             
             // extract contexts
-            QueryScorer scorer = new QueryScorer(q, DEFAULT_FIELD_NAME);
-            //PostingsHighlighter highlighter = new PostingsHighlighter();
-            Highlighter highlighter = new Highlighter(scorer);
-            TokenStream stream = TokenSources.getAnyTokenStream(searcher
-            	          .getIndexReader(), td.scoreDocs[i].doc, DEFAULT_FIELD_NAME, 
-            	          doc, analyzer);
-            // TODO make sure fragments contain whole words only
-            Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 1000);
-            highlighter.setTextFragmenter(fragmenter);
-            highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
-            try {
-            	String[] fragments = highlighter.getBestFragments(stream, doc.get(DEFAULT_FIELD_NAME), 
-            			1000, "--@@--").split("--@@--");
-	           	for (String fragment: fragments) {
+            // TODO write own subclass to set length and scoring of fragments
+            PostingsHighlighter highlighter = new PostingsHighlighter(Integer.MAX_VALUE - 1);
+            
+            TopDocs currentDoc = TopDocs.merge(i, 1, shardHits);
+            String highlights[] = highlighter.highlight(DEFAULT_FIELD_NAME, q, searcher, currentDoc);
+
+            for (String fragment: highlights) {
 		           	log.trace("Fragment: " + fragment);
-		            	
 		            Entity e = new Entity();
 		            e.setFile(file.getUri());
 		            getOutputDataStoreClient().post(Entity.class, e);
 		            // remove tags inserted by the highlighter
-		            fragment = fragment.replaceAll("</?B>", "").trim();
+		            fragment = fragment.replaceAll("</?b>", "").trim();
 		            if (term != null) {
 		            	try {
 		            		// term search, thus no pattern URI in textRef
@@ -193,9 +170,9 @@ public class LuceneSearcher extends BaseAlgorithm {
 			               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 			                getExecution().getTextualReferences().add(textRef.getUri());
 			            } catch (ArrayIndexOutOfBoundsException aioobe) {
-			               	log.warn("Error: failed to split reference: \"" + term + "\"");
-			               	// TODO may happen when term is at the beginning or end of input
-			               	throw new ArrayIndexOutOfBoundsException();
+			               	log.warn("Error: failed to split reference \"" + term + "\" in " + fragment);
+			               	// may happen when term is at the beginning or end of input
+			               	//throw new ArrayIndexOutOfBoundsException();
 			            } 
 		            }
 		            else {
@@ -203,20 +180,11 @@ public class LuceneSearcher extends BaseAlgorithm {
 		            	textRef.setLeftText(fragment);
 		            	textRef.setFile(file.getUri());
 		            	textRef.setMentionsReference(e.getUri());
-		            	// TODO those textual references should be temporary if validation 
-		            	// by regex is to be performed - check
+		            	// TODO those textual references should be temporary if validation by regex is to be performed - check
 		               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 		                getExecution().getTextualReferences().add(textRef.getUri());
 		            }
 	           	}
-            } catch (InvalidTokenOffsetsException e) {
-            	log.warn(e.getMessage());
-            	analyzer.close();
-                indexReader.close();
-            	throw new IOException();
-            } finally {
-                stream.close();
-            }
             // TODO matchingFiles are not needed anymore
             // TODO moreover, outputFiles could be used instead
             getExecution().getMatchingFiles().add(file.getUri());

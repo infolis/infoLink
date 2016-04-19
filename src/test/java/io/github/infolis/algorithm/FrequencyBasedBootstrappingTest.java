@@ -97,6 +97,10 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	// set expected output to test this bootstrapping algorithm with its current configuration 
 	// in BoostrappingTest
 	public static Set<BootstrappingTest.ExpectedOutput> getExpectedOutput() {
+		// current context extraction method extracts the one sentence in which the term is found. 
+		String testSentence3 = "Hallo , please try to find the term in this short text snippet .";
+		String testSentence0 = "Hallo , please try to find the FOOBAR in this short text snippet .";
+		String testSentence5 = "Hallo , please try to find the term . in this short text snippet .";
     	// find all contexts for terms "FOOBAR" and "term"
     	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least
     	// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)
@@ -105,33 +109,33 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
-    			testStrings[3],
-    			testStrings[0],
-    			testStrings[5]));
+    			testSentence3,
+    			testSentence0,
+    			testSentence5));
     	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
     			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			testStrings[3],
-    			testStrings[0],
-    			testStrings[5]));
+    			testSentence3,
+    			testSentence0,
+    			testSentence5));
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
-    			testStrings[3],
-    			testStrings[0],
-    			testStrings[5]));
+    			testSentence3,
+    			testSentence0,
+    			testSentence5));
     	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
     			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
-    			testStrings[3],
-    			testStrings[0],
-    			testStrings[5]));
+    			testSentence3,
+    			testSentence0,
+    			testSentence5));
 
     	Set<ExpectedOutput> expectedOutput = new HashSet<ExpectedOutput>();
     	expectedOutput.addAll(Arrays.asList(

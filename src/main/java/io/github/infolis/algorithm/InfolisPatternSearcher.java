@@ -66,8 +66,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
         	exec.setSearchQuery(curPat.getLuceneQuery());
         	exec.setInputFiles(getExecution().getInputFiles());
     		// TODO LuceneSearcher posts textual references but they are temporary
-    		// thus, create temporary file resolver / data store client here
-        	//DataStoreClient tempClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
         	exec.instantiateAlgorithm(this).run();
     		for (String textRefUri : exec.getTextualReferences()) {
     			textRefsForPatterns.put(curPat, textRefUri);
@@ -92,14 +90,29 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     					.replaceAll("\\*NL\\*", "")));
     }
     
-    List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
+    /**
+     * Retrieves contexts for InfolisPatterns using LuceneSearcher and validates them using 
+     * the patterns' regular expressions. Validation is necessary because 
+     * <ul>
+     * <li>lucene queries in the InfolisPatterns may have wildcards for words that must match 
+     * a regular expression, e.g. consist of digits only</li>
+     * <li>finding named entities consisting of more than one word is enabled using lucene's 
+     * phraseSlop parameter. This fuzzy matching may cause text snippets to match that are 
+     * not supposed to match</li>
+     * <li>lucene's Highlighters perform approximate matching of queries and text. Highlighted 
+     * snippets may not always truely contain a match</li>
+     * </ul>
+     * @param patterns
+     * @return
+     */
+    private List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
+        int counter = 0, size = patterns.size();
+        log.debug("number of patterns to search for: " + size);
     	// for all patterns, retrieve documents in which they occur (using lucene)
     	Multimap<InfolisPattern, String> textRefsForPatterns = getTextRefsForLuceneQueries(
     			patterns);
     	List<String> validatedTextualReferences = new ArrayList<>();
-    	// open each reference once and validate with the corresponding regular expression: 
-    	// a lucene query may be more general having wildcards for e.g. numbers. 
-    	// Words found by wildcards must match the corresponding regex 
+    	// open each reference once and validate with the corresponding regular expression
     	for (InfolisPattern pattern : textRefsForPatterns.keySet()) {
     		Collection<TextualReference> textualReferences = getInputDataStoreClient().get(
     				TextualReference.class, textRefsForPatterns.get(pattern));
@@ -126,7 +139,10 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                 TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
                 getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
                 validatedTextualReferences.add(validatedTextRef.getUri());
+                //TODO delete textRef!
     		}
+    		counter++;
+    		updateProgress(counter, size);
     	}
         return validatedTextualReferences;
     }
@@ -154,9 +170,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     		Execution indexerExecution = createIndex();
     		getExecution().setIndexDirectory(indexerExecution.getOutputDirectory());
     	}
-        //int counter = 0, size = getExecution().getInputFiles().size();
-        //log.debug("number of input files: " + size);
-        //updateProgress(counter, size);
     	log.debug("started");
         getExecution().setTextualReferences(getContextsForPatterns(getInfolisPatterns(getExecution().getPatterns())));
         log.debug("No. contexts found: {}", getExecution().getTextualReferences().size());

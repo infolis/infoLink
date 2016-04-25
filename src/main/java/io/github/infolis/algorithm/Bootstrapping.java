@@ -45,19 +45,27 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
 		execution.setOutputDirectory(getExecution().getIndexDirectory());
-        getOutputDataStoreClient().post(Execution.class, execution);
         execution.instantiateAlgorithm(this).run();
+        getOutputDataStoreClient().post(Execution.class, execution);
 		return execution;
 	}
+    
+    private String quoteIfSpacePresent(String query) {
+    	if (query.matches(".*\\s.*")) {
+			query = "\"" + query + "\"";
+		}
+    	return query;
+    }
 
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
         Execution execution = getExecution().createSubExecution(LuceneSearcher.class);
         execution.setIndexDirectory(indexerExecution.getOutputDirectory());
-        execution.setPhraseSlop(getExecution().getPhraseSlop());
-        execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+        execution.setPhraseSlop(0);
+        execution.setAllowLeadingWildcards(true);
         execution.setMaxClauseCount(getExecution().getMaxClauseCount());
         execution.setSearchTerm(seed);
+        //execution.setSearchQuery(quoteIfSpacePresent("*" + RegexUtils.normalizeQuery(seed, false) + "*"));
         execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
         execution.setInputFiles(getExecution().getInputFiles());
         execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
@@ -91,7 +99,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	applierExec.setPatterns(getPatternUris(patterns));
     	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
     	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
-    	// TODO this need not be a parameter for execution
     	applierExec.setAllowLeadingWildcards(true);
     	// TODO this need not be a parameter for execution
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
@@ -149,7 +156,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         }
 
         for (TextualReference sC : detectedContexts) {
-            getOutputDataStoreClient().post(TextualReference.class, sC);
+            //getOutputDataStoreClient().post(TextualReference.class, sC);
             this.getExecution().getTextualReferences().add(sC.getUri());
             this.getExecution().getPatterns().add(sC.getPattern());
         }

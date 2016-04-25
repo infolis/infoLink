@@ -118,7 +118,7 @@ public class LuceneSearcher extends BaseAlgorithm {
         try {
             q = qp.parse(getExecution().getSearchQuery().trim());
         } catch (ParseException e) {
-            error(log, "Could not parse searchquery '%s'", getExecution().getSearchQuery());
+            error(log, "Could not parse searchquery '{}'", getExecution().getSearchQuery());
             getExecution().setStatus(ExecutionStatus.FAILED);
             analyzer.close();
             indexReader.close();
@@ -140,7 +140,6 @@ public class LuceneSearcher extends BaseAlgorithm {
                 Indexer.createAnalyzer().close();
                 indexReader.close();
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
         
@@ -153,11 +152,12 @@ public class LuceneSearcher extends BaseAlgorithm {
             TopDocs currentDoc = TopDocs.merge(i, 1, shardHits);
             String highlights[] = highlighter.highlight(DEFAULT_FIELD_NAME, q, searcher, currentDoc);
 
+            Entity e = new Entity();
+            e.setFile(file.getUri());
+            getOutputDataStoreClient().post(Entity.class, e);
+            
             for (String fragment: highlights) {
 		           	log.trace("Fragment: " + fragment);
-		            Entity e = new Entity();
-		            e.setFile(file.getUri());
-		            getOutputDataStoreClient().post(Entity.class, e);
 		            // remove tags inserted by the highlighter
 		            fragment = fragment.replaceAll("</?b>", "").trim();
 		            if (term != null) {
@@ -165,8 +165,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 		            		// term search, thus no pattern URI in textRef
 		            		TextualReference textRef = getContext(term, fragment, file.getUri(), 
 		            				"", e.getUri());
-		            		// note that the URI changes if inputDataStoreClient != outputDataStoreClient!
-		                   	// TODO those textual references should be temporary - check
+		                   	// those textual references should be temporary - call with temp client
 			               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 			                getExecution().getTextualReferences().add(textRef.getUri());
 			            } catch (ArrayIndexOutOfBoundsException aioobe) {
@@ -180,7 +179,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 		            	textRef.setLeftText(fragment);
 		            	textRef.setFile(file.getUri());
 		            	textRef.setMentionsReference(e.getUri());
-		            	// TODO those textual references should be temporary if validation by regex is to be performed - check
+		            	// those textual references should be temporary if validation by regex is to be performed - check
 		               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 		                getExecution().getTextualReferences().add(textRef.getUri());
 		            }

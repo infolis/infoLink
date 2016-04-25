@@ -264,6 +264,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                         //contexts_pattern = candidatePattern.getTextualReferences();
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
+                    	// TODO post temp patterns to temp datastore
                         getOutputDataStoreClient().post(InfolisPattern.class, candidate);
                         // TODO: use on set of candidates instead of on single candidate
                         candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate))));

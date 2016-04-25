@@ -6,13 +6,12 @@
 package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
-import io.github.infolis.datastore.DataStoreClientFactory;
-import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.entity.Entity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,7 +49,8 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	return patterns;
     }
     
-    private Multimap<InfolisPattern, String> getTextRefsForLuceneQueries(Collection<InfolisPattern> patterns) {
+    private Multimap<InfolisPattern, String> getTextRefsForLuceneQueries(
+    		Collection<InfolisPattern> patterns, DataStoreClient client) {
         HashMultimap<InfolisPattern, String> textRefsForPatterns = HashMultimap.create();
         for (InfolisPattern curPat : patterns) {
     		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
@@ -65,8 +65,9 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
         	exec.setMaxClauseCount(getExecution().getMaxClauseCount());
         	exec.setSearchQuery(curPat.getLuceneQuery());
         	exec.setInputFiles(getExecution().getInputFiles());
-    		// TODO LuceneSearcher posts textual references but they are temporary
-        	exec.instantiateAlgorithm(this).run();
+    		// LuceneSearcher posts textual references but they are temporary
+        	exec.instantiateAlgorithm(this.getInputDataStoreClient(), client,
+        			this.getInputFileResolver(), this.getOutputFileResolver()).run();
     		for (String textRefUri : exec.getTextualReferences()) {
     			textRefsForPatterns.put(curPat, textRefUri);
     		}
@@ -108,13 +109,14 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     private List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
         int counter = 0, size = patterns.size();
         log.debug("number of patterns to search for: " + size);
+        DataStoreClient tempClient = this.getTempDataStoreClient();
     	// for all patterns, retrieve documents in which they occur (using lucene)
     	Multimap<InfolisPattern, String> textRefsForPatterns = getTextRefsForLuceneQueries(
-    			patterns);
+    			patterns, tempClient);
     	List<String> validatedTextualReferences = new ArrayList<>();
     	// open each reference once and validate with the corresponding regular expression
     	for (InfolisPattern pattern : textRefsForPatterns.keySet()) {
-    		Collection<TextualReference> textualReferences = getInputDataStoreClient().get(
+    		Collection<TextualReference> textualReferences = tempClient.get(
     				TextualReference.class, textRefsForPatterns.get(pattern));
     		for (TextualReference textRef : textualReferences) {
     			// textual reference does not match regex
@@ -136,14 +138,17 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                     log.debug("Invalid referenced term \"" + referencedTerm + "\"");
                     continue;
                 }
-                TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
+                Entity e = tempClient.get(Entity.class, textRef.getMentionsReference());
+                getOutputDataStoreClient().post(Entity.class, e);
+                getOutputDataStoreClient().post(InfolisPattern.class, pattern);
+                TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
                 getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
                 validatedTextualReferences.add(validatedTextRef.getUri());
-                //TODO delete textRef!
     		}
     		counter++;
     		updateProgress(counter, size);
     	}
+    	tempClient.clear();
         return validatedTextualReferences;
     }
 

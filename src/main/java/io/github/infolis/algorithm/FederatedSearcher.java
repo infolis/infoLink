@@ -79,7 +79,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                 e.printStackTrace();
             }
         }
-        getOutputDataStoreClient().post(SearchResult.class, allResults);
+        getInputDataStoreClient().post(SearchResult.class, allResults);
         List<String> searchResultUris = new ArrayList<>();
         for (SearchResult sr : allResults) {
             searchResultUris.add(sr.getUri());

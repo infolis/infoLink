@@ -47,7 +47,6 @@ public class MetaDataExtractor extends BaseAlgorithm {
         getOutputDataStoreClient().post(Entity.class, entity);
         getExecution().setLinkedEntities(Arrays.asList(entity.getUri()));
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
     }
     
     /**

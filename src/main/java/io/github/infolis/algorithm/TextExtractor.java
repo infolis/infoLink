@@ -190,19 +190,16 @@ public class TextExtractor extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile) {
                 error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals(MediaType.PDF.toString())) {
                 error(log, "File is not a PDF: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             debug(log, "Start extracting from {}", inputFile);
@@ -234,7 +231,6 @@ public class TextExtractor extends BaseAlgorithm {
         }
         debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
     }
 
     @Override

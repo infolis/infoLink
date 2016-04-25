@@ -141,7 +141,6 @@ public class RegexSearcher extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile) {

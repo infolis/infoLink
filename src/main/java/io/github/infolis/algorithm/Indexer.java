@@ -97,7 +97,6 @@ public class Indexer extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 fsIndexDir.close();
                 return;
             }

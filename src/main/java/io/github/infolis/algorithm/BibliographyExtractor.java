@@ -151,19 +151,16 @@ public class BibliographyExtractor extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile) {
                 error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals("text/plain")) {
                 error(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
 
@@ -176,7 +173,6 @@ public class BibliographyExtractor extends BaseAlgorithm {
 			} catch (IOException e) {
 				fatal(log, "Error reading text file: " + e);
 				getExecution().setStatus(ExecutionStatus.FAILED);
-				persistExecution();
 				return;
 			} finally {
 				is.close();
@@ -208,7 +204,6 @@ public class BibliographyExtractor extends BaseAlgorithm {
             } catch (IOException e) {
             	error(log, "Error copying text to output stream: " + e);
             	getExecution().setStatus(ExecutionStatus.FAILED);
-            	persistExecution();
             	return;
             } finally {
             	outStream.close();
@@ -222,7 +217,6 @@ public class BibliographyExtractor extends BaseAlgorithm {
         }
         debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
     }
 
 }

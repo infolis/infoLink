@@ -77,13 +77,11 @@ public class SpringerImporter extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inFile) {
                 error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inFile.getMediaType() || !inFile.getMediaType().equals(MediaType.XML_UTF_8.toString())) {
@@ -91,7 +89,6 @@ public class SpringerImporter extends BaseAlgorithm {
                 error(log, "file type: \"{}\"", inFile.getMediaType());
                 log.debug(MediaType.XML_UTF_8.toString());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             debug(log, "Start extracting from {}", inFile);
@@ -140,8 +137,6 @@ public class SpringerImporter extends BaseAlgorithm {
         }
         debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
-		
 	}
 
 	@Override

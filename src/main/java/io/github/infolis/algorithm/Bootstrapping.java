@@ -1,9 +1,7 @@
 package io.github.infolis.algorithm;
 
-import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
@@ -13,6 +11,7 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -65,18 +64,23 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         execution.setAllowLeadingWildcards(true);
         execution.setMaxClauseCount(getExecution().getMaxClauseCount());
         execution.setSearchTerm(seed);
-        //execution.setSearchQuery(quoteIfSpacePresent("*" + RegexUtils.normalizeQuery(seed, false) + "*"));
-        execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
+        //InfolisPattern termPattern = new InfolisPattern(quoteIfSpacePresent(RegexUtils.normalizeQuery(seed, false) + "*"));
+        InfolisPattern termPattern = new InfolisPattern(RegexUtils.normalizeQuery(seed, true));
+        DataStoreClient tempClient = getTempDataStoreClient();
+        tempClient.put(InfolisPattern.class, termPattern);
+        execution.setPatterns(Arrays.asList(termPattern.getUri()));
         execution.setInputFiles(getExecution().getInputFiles());
         execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
-        Algorithm algo = execution.instantiateAlgorithm(this);
-        getOutputDataStoreClient().post(Execution.class, execution);
+        Algorithm algo = execution.instantiateAlgorithm(
+        		getInputDataStoreClient(), tempClient, getInputFileResolver(), getOutputFileResolver());
         algo.run();
+        getOutputDataStoreClient().post(Execution.class, execution);
         getExecution().getLog().addAll(execution.getLog());
         List<TextualReference> textualReferences = new ArrayList<>();
-            for (String uri : execution.getTextualReferences()) {
-            	textualReferences.add(getOutputDataStoreClient().get(TextualReference.class, uri));
-            }
+        for (String uri : execution.getTextualReferences()) {
+           	textualReferences.add(tempClient.get(TextualReference.class, uri));
+        }
+        tempClient.clear();
         return textualReferences;
     }
 
@@ -100,7 +104,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
     	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
     	applierExec.setAllowLeadingWildcards(true);
-    	// TODO this need not be a parameter for execution
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
     	applierExec.setTags(getExecution().getTags());
     	applierExec.instantiateAlgorithm(this).run();

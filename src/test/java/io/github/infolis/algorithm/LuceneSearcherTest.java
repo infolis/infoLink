@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 
 import java.io.IOException;
@@ -112,10 +113,10 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         assertEquals(29, testContexts("the FOOBAR", "\"the FOOBAR\"", 0).size());
         assertEquals(28, testContexts("term", "\"the term\"", 0).size());
         List<TextualReference> contextListA = testContexts("the term", "\"the term\"", 0);
-        assertEquals("Hallo , please try to find the term in this short text snippet .", contextListA.get(0).toString().trim());
+        assertEquals(testStrings[3], contextListA.get(0).toString().trim());
         // current context extraction method extracts the one sentence in which the term is found. 
-     	String testSentence3 = "Hallo , please try to find the term in this short text snippet .";
-     	String testSentence5 = "Hallo , please try to find . the term . in this short text snippet .";
+     	String testSentence3 = testStrings[3];
+     	String testSentence5 = testStrings[5];
         assertEquals(new HashSet<String>(Arrays.asList(testSentence3, testSentence5)), new HashSet<String>(Arrays.asList(contextListA.get(1).toString().trim(), contextListA.get(0).toString().trim())));
 		// ...and for wildcard phrase queries
         // this query should find all test sentences except for those having a "." before "the" and having two words covered by the wildcard
@@ -138,7 +139,9 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         Execution exec = new Execution();
         exec.setAlgorithm(LuceneSearcher.class);
         exec.setSearchTerm(searchTerm);
-        exec.setSearchQuery(searchQuery);
+        InfolisPattern pat = new InfolisPattern(searchQuery);
+        dataStoreClient.post(InfolisPattern.class, pat);
+        exec.setPatterns(Arrays.asList(pat.getUri()));
         exec.setPhraseSlop(phraseSlop);
         exec.setInputFiles(uris);
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());
@@ -157,7 +160,9 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         Execution exec = new Execution();
         exec.setAlgorithm(LuceneSearcher.class);
         exec.setSearchTerm(searchTerm);
-        exec.setSearchQuery(searchQuery);
+        InfolisPattern pat = new InfolisPattern(searchQuery);
+        dataStoreClient.post(InfolisPattern.class, pat);
+        exec.setPatterns(Arrays.asList(pat.getUri()));
         exec.setPhraseSlop(phraseSlop);
         exec.setInputFiles(uris);
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());

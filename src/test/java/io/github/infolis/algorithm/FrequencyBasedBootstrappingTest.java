@@ -97,10 +97,9 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 	// set expected output to test this bootstrapping algorithm with its current configuration 
 	// in BoostrappingTest
 	public static Set<BootstrappingTest.ExpectedOutput> getExpectedOutput() {
-		// current context extraction method extracts the one sentence in which the term is found. 
-		String testSentence3 = "Hallo , please try to find the term in this short text snippet .";
-		String testSentence0 = "Hallo , please try to find the FOOBAR in this short text snippet .";
-		String testSentence5 = "Hallo , please try to find the term . in this short text snippet .";
+		String testSentence3 = testStrings[3];
+		String testSentence0 = testStrings[0];
+		String testSentence5 = testStrings[5];
     	// find all contexts for terms "FOOBAR" and "term"
     	// "R2", "D2" and "_" are to be rejected: study titles must consist of at least
     	// 3 letters (as currently defined in study regex. Change regex to alter this behaviour)

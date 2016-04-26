@@ -58,8 +58,8 @@ public class InfolisPattern extends BaseModel {
         this.setThreshold(threshold);
     }
 
-    public InfolisPattern(String patternRegex) {
-        this.setPatternRegex(patternRegex);
+    public InfolisPattern(String luceneQuery) {
+        this.luceneQuery = luceneQuery;
     }
 
     public InfolisPattern() {

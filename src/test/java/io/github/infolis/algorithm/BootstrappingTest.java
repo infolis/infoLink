@@ -88,8 +88,8 @@ public class BootstrappingTest extends InfolisBaseTest {
     	b.setExecution(e);
     	List<TextualReference> refs = b.getContextsForSeed("term");
     	assertEquals(new HashSet<String>(Arrays.asList(
-    			"Hallo , please try to find the term in this short text snippet .",
-    			"Hallo , please try to find the term . in this short text snippet .")),
+    			testStrings[3],
+    			testStrings[5])),
     			new HashSet<String>(TextualReference.getContextStrings(refs)));
     }
 
@@ -100,7 +100,6 @@ public class BootstrappingTest extends InfolisBaseTest {
         execution.setTokenize(false);
         execution.getSeeds().addAll(terms);
         execution.setInputFiles(uris20);
-        execution.setSearchTerm(terms.get(0));
         execution.setReliabilityThreshold(threshold);
         execution.setBootstrapStrategy(strategy);
         execution.setUpperCaseConstraint(false);

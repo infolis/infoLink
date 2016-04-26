@@ -17,16 +17,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.MissingFormatArgumentException;
-import java.util.UnknownFormatConversionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  *
@@ -49,30 +44,19 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	return patterns;
     }
     
-    private Multimap<InfolisPattern, String> getTextRefsForLuceneQueries(
-    		Collection<InfolisPattern> patterns, DataStoreClient client) {
-        HashMultimap<InfolisPattern, String> textRefsForPatterns = HashMultimap.create();
-        for (InfolisPattern curPat : patterns) {
-    		debug(log, "Lucene pattern: " + curPat.getLuceneQuery());
-			try { debug(log, "Regex: " + curPat.getMinimal()); }
-			catch (UnknownFormatConversionException e) { debug(log, e.getMessage()); }
-			catch (MissingFormatArgumentException e) { debug(log, e.getMessage()); }
-
-        	Execution exec = getExecution().createSubExecution(LuceneSearcher.class);
-        	exec.setIndexDirectory(getExecution().getIndexDirectory());
-        	exec.setPhraseSlop(getExecution().getPhraseSlop());
-        	exec.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
-        	exec.setMaxClauseCount(getExecution().getMaxClauseCount());
-        	exec.setSearchQuery(curPat.getLuceneQuery());
-        	exec.setInputFiles(getExecution().getInputFiles());
-    		// LuceneSearcher posts textual references but they are temporary
-        	exec.instantiateAlgorithm(this.getInputDataStoreClient(), client,
-        			this.getInputFileResolver(), this.getOutputFileResolver()).run();
-    		for (String textRefUri : exec.getTextualReferences()) {
-    			textRefsForPatterns.put(curPat, textRefUri);
-    		}
-        }
-        return textRefsForPatterns;
+    private List<String> getTextRefsForLuceneQueries(
+    		List<String> patternUris, DataStoreClient client) {
+        Execution exec = getExecution().createSubExecution(LuceneSearcher.class);
+        exec.setIndexDirectory(getExecution().getIndexDirectory());
+        exec.setPhraseSlop(getExecution().getPhraseSlop());
+        exec.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+        exec.setMaxClauseCount(getExecution().getMaxClauseCount());
+        exec.setPatterns(patternUris);
+        exec.setInputFiles(getExecution().getInputFiles());
+    	// LuceneSearcher posts textual references but they are temporary
+        exec.instantiateAlgorithm(this.getInputDataStoreClient(), client,
+        		this.getInputFileResolver(), this.getOutputFileResolver()).run();
+    	return exec.getTextualReferences();
     }
     
     private static String getReference(String text, String regex) {
@@ -106,45 +90,52 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
      * @param patterns
      * @return
      */
-    private List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
-        int counter = 0, size = patterns.size();
+    private List<String> getContextsForPatterns(List<String> patternUris) {
+        int counter = 0, size = patternUris.size();
         log.debug("number of patterns to search for: " + size);
         DataStoreClient tempClient = this.getTempDataStoreClient();
     	// for all patterns, retrieve documents in which they occur (using lucene)
-    	Multimap<InfolisPattern, String> textRefsForPatterns = getTextRefsForLuceneQueries(
-    			patterns, tempClient);
+        List<String> tempPatternUris = tempClient.post(InfolisPattern.class, getInfolisPatterns(patternUris));
+    	List<String> textRefsForPatterns = getTextRefsForLuceneQueries(
+    			tempPatternUris, tempClient);
     	List<String> validatedTextualReferences = new ArrayList<>();
     	// open each reference once and validate with the corresponding regular expression
-    	for (InfolisPattern pattern : textRefsForPatterns.keySet()) {
-    		Collection<TextualReference> textualReferences = tempClient.get(
-    				TextualReference.class, textRefsForPatterns.get(pattern));
-    		for (TextualReference textRef : textualReferences) {
-    			// textual reference does not match regex
-    			String referencedTerm = getReference(textRef.getLeftText(), pattern.getMinimal());
-	    		if ("".equals(referencedTerm)) {
-	    			log.debug("Textual reference does not match regex: " + pattern.getMinimal());
-	    			log.debug("Textual reference: " + textRef.getLeftText());
-	    			continue;
-	    		}
-	    		if ((getExecution().isUpperCaseConstraint() && 
-	    				!satisfiesUpperCaseConstraint(referencedTerm))) {
-	    			log.debug("Referenced term does not satisfy uppercase-constraint \"" + 
-	    					referencedTerm + "\"");
-	    			continue;
-	    		}
-	    		// if referencedTerm contains no characters: ignore
-                // TODO: not accurate - include accents etc in match... \p{M}?
-                if (referencedTerm.matches("\\P{L}+")) {
-                    log.debug("Invalid referenced term \"" + referencedTerm + "\"");
-                    continue;
-                }
-                Entity e = tempClient.get(Entity.class, textRef.getMentionsReference());
-                getOutputDataStoreClient().post(Entity.class, e);
-                getOutputDataStoreClient().post(InfolisPattern.class, pattern);
-                TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
-                getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
+    	for (String textRefUri : textRefsForPatterns) {
+    		TextualReference textRef = tempClient.get(TextualReference.class, textRefUri);
+    		InfolisPattern pattern = tempClient.get(InfolisPattern.class, textRef.getPattern());
+    		// textual reference does not match regex
+    		log.debug(pattern.getMinimal());
+    		log.debug(textRef.getLeftText());
+    		String referencedTerm = getReference(textRef.getLeftText(), pattern.getMinimal());
+	    	if ("".equals(referencedTerm)) {
+	    		log.debug("Textual reference does not match regex: " + pattern.getMinimal());
+	    		log.debug("Textual reference: " + textRef.getLeftText());
+	    		continue;
+	    	}
+	    	if ((getExecution().isUpperCaseConstraint() && 
+	    			!satisfiesUpperCaseConstraint(referencedTerm))) {
+	    		log.debug("Referenced term does not satisfy uppercase-constraint \"" + 
+	    				referencedTerm + "\"");
+	    		continue;
+	    	}
+	    	// if referencedTerm contains no characters: ignore
+            // TODO: not accurate - include accents etc in match... \p{M}?
+            if (referencedTerm.matches("\\P{L}+")) {
+                log.debug("Invalid referenced term \"" + referencedTerm + "\"");
+                continue;
+            }
+            Entity e = tempClient.get(Entity.class, textRef.getMentionsReference());
+            getOutputDataStoreClient().post(Entity.class, e);
+            getOutputDataStoreClient().post(InfolisPattern.class, pattern);
+            try {
+              	TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
+               	getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
                 validatedTextualReferences.add(validatedTextRef.getUri());
-    		}
+            } catch (StringIndexOutOfBoundsException sioobe) { 
+	        	log.warn(sioobe.getMessage());
+	        	log.warn("(this is not an error if term is the first or last word in the input)");
+	        	log.warn("\"" + referencedTerm + "\" in \"" + textRef.getLeftText() + "\"");
+	        }
     		counter++;
     		updateProgress(counter, size);
     	}
@@ -176,7 +167,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     		getExecution().setIndexDirectory(indexerExecution.getOutputDirectory());
     	}
     	log.debug("started");
-        getExecution().setTextualReferences(getContextsForPatterns(getInfolisPatterns(getExecution().getPatterns())));
+        getExecution().setTextualReferences(getContextsForPatterns(getExecution().getPatterns()));
         log.debug("No. contexts found: {}", getExecution().getTextualReferences().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }

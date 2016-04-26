@@ -20,6 +20,7 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
 
 /**
  * 
@@ -65,11 +66,13 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		String pat = "(Datenbasis: 2000 ,";
 		String lucenePat = "\"\\\\\\(Datenbasis\\\\\\: * ,\"";
 		assertEquals(lucenePat, "\"" + RegexUtils.normalizeAndEscapeRegex_lucene(pat) + "\"");
+		InfolisPattern p = new InfolisPattern(lucenePat);
+		dataStoreClient.post(InfolisPattern.class, p);
 		
 		Execution exec = new Execution();
 		exec.setAlgorithm(LuceneSearcher.class);
 		exec.setSearchTerm(null);
-		exec.setSearchQuery(lucenePat);
+		exec.setPatterns(Arrays.asList(p.getUri()));
 		exec.setPhraseSlop(0);
 		exec.setInputFiles(uris);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
@@ -79,7 +82,9 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		exec.setAlgorithm(LuceneSearcher.class);
 		exec.setSearchTerm(null);
 		lucenePat = "\"Datenbasis\\\\\\: * ,\"";
-		exec.setSearchQuery(lucenePat);
+		p = new InfolisPattern(lucenePat);
+		dataStoreClient.post(InfolisPattern.class, p);
+		exec.setPatterns(Arrays.asList(p.getUri()));
 		exec.setPhraseSlop(0);
 		exec.setInputFiles(uris);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();

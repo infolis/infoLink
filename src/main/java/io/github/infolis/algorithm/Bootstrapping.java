@@ -139,6 +139,15 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 
+    	if (getExecution().isRemoveBib()) {
+    		Execution bibRemoverExec = new Execution();
+    		bibRemoverExec.setAlgorithm(BibliographyExtractor.class);
+    		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
+    		bibRemoverExec.instantiateAlgorithm(this).run();
+    		debug(log, "Removed bibliographies of input files");
+    		getExecution().setInputFiles(bibRemoverExec.getOutputFiles());
+    	}
+    	
     	if (getExecution().isTokenize()) {
     		Execution tokenizerExec = new Execution();
     		tokenizerExec.setAlgorithm(TokenizerStanford.class);
@@ -149,6 +158,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
     		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
     	}
+    	
     	this.indexerExecution = createIndex();
     	List<TextualReference> detectedContexts = new ArrayList<>();
         try {

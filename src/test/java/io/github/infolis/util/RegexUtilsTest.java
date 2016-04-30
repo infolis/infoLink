@@ -76,7 +76,7 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		exec.setPhraseSlop(0);
 		exec.setInputFiles(uris);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		assertEquals(Arrays.asList(uris.get(0)), exec.getMatchingFiles());
+		assertEquals(Arrays.asList(uris.get(0)), exec.getOutputFiles());
 		
 		exec = new Execution();
 		exec.setAlgorithm(LuceneSearcher.class);
@@ -88,7 +88,7 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		exec.setPhraseSlop(0);
 		exec.setInputFiles(uris);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		assertEquals(Arrays.asList(uris.get(1), uris.get(2)), exec.getMatchingFiles());
+		assertEquals(Arrays.asList(uris.get(1), uris.get(2)), exec.getOutputFiles());
 	}
 
 	@Test

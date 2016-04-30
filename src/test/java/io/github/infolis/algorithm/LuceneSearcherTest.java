@@ -167,7 +167,7 @@ public class LuceneSearcherTest extends InfolisBaseTest {
         exec.setInputFiles(uris);
         exec.setIndexDirectory(indexerExecution.getOutputDirectory());
         exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        return exec.getMatchingFiles();
+        return exec.getOutputFiles();
     }
 
 }

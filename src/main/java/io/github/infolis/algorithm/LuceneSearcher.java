@@ -210,9 +210,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			                getExecution().getTextualReferences().add(textRef.getUri());
 			            }
 		           	}
-	            // TODO matchingFiles are not needed anymore
-	            // TODO moreover, outputFiles could be used instead
-	            getExecution().getMatchingFiles().add(file.getUri());
+	            getExecution().getOutputFiles().add(file.getUri());
 	            updateProgress(i, scoreDocs.length);
 	        }
         }

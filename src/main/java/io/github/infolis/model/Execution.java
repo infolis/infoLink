@@ -262,13 +262,6 @@ public class Execution extends BaseModel {
 	 */
 	private List<String> textualReferences = new ArrayList<>();
 
-        //TODO: necessary? can't we used the outputFiles?
-	/**
-         * 
-	 * {@link LuceneSearcher}
-	 */
-	private List<String> matchingFiles = new ArrayList<>();
-
 	/**
          * A list of patterns (internally expressed as regular expression) 
          * that can be applied on texts, e.g. to find links to research data. 
@@ -616,14 +609,6 @@ public class Execution extends BaseModel {
 
 	public void setTextualReferences(List<String> textualReferences) {
 		this.textualReferences = textualReferences;
-	}
-
-	public List<String> getMatchingFiles() {
-		return matchingFiles;
-	}
-
-	public void setMatchingFiles(List<String> matchingFilenUris) {
-		this.matchingFiles = matchingFilenUris;
 	}
 
 	public List<String> getPatterns() {

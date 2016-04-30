@@ -255,7 +255,7 @@ public class CommandLineExecuter {
             exec.setSearchQuery(normalizeQuery);
 		    dataStoreClient.post(Execution.class, exec);
 		    exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		    for (InfolisFile f: dataStoreClient.get(InfolisFile.class, exec.getMatchingFiles())) {
+		    for (InfolisFile f: dataStoreClient.get(InfolisFile.class, exec.getOutputFiles())) {
 		        String filename = FilenameUtils.getBaseName(f.getFileName());
 		        allMatchingFiles.add(filename);
 		        matchingFilesByQuery.get(normalizeQuery).add(filename);

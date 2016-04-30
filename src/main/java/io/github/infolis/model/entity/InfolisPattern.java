@@ -41,7 +41,6 @@ public class InfolisPattern extends BaseModel {
     // TODO can this be final?
     private String patternRegex;
     private String luceneQuery;
-    private String minimal;
     private Set<String> words = new HashSet<>();
     private double threshold;
     private double reliability;
@@ -50,10 +49,9 @@ public class InfolisPattern extends BaseModel {
     //TODO: change to URI -> string?
     private Collection<TextualReference> textualReferences;
 
-    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, Set<String> words, double threshold) {
+    public InfolisPattern(String patternRegex, String luceneQuery, Set<String> words, double threshold) {
         this.setLuceneQuery(luceneQuery);
         this.setPatternRegex(patternRegex);
-        this.setMinimal(minimal);
         this.setWords(words);
         this.setThreshold(threshold);
     }
@@ -100,20 +98,6 @@ public class InfolisPattern extends BaseModel {
 
     public void setLuceneQuery(String luceneQuery) {
         this.luceneQuery = luceneQuery;
-    }
-
-    /**
-     * @return the minimal
-     */
-    public String getMinimal() {
-        return minimal;
-    }
-
-    /**
-     * @param minimal the minimal to set
-     */
-    public void setMinimal(String minimal) {
-        this.minimal = minimal;
     }
 
     /**
@@ -228,7 +212,7 @@ public class InfolisPattern extends BaseModel {
 
     public boolean addAssociation(String entityName, double score) {
         if (this.getAssociations().containsKey(entityName)) {
-            log.debug("association between entity " + this.getMinimal()
+            log.debug("association between entity " + this.getPatternRegex()
                     + " and entity " + entityName
                     + " already known, overwriting previously saved score.");
         }

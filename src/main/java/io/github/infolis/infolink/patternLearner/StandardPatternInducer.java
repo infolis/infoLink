@@ -64,9 +64,8 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
 		if (delimiter_right.matches("\\s")) delimiter_right = "\\s";
 		else if (delimiter_right.matches("")) delimiter_right = "\\s?";
 		
-	    String minimal = String.join("\\s", regex_left_copy) + delimiter_left + RegexUtils.studyRegex_ngram + delimiter_right + String.join("\\s", regex_right);
-	    String regex = RegexUtils.leftContextRegex + minimal + RegexUtils.rightContextRegex;
-		InfolisPattern pattern = new InfolisPattern(regex, luceneQuery, minimal, words, threshold);
+	    String regex = String.join("\\s", regex_left_copy) + delimiter_left + RegexUtils.studyRegex_ngram + delimiter_right + String.join("\\s", regex_right);
+		InfolisPattern pattern = new InfolisPattern(regex, luceneQuery, words, threshold);
 		return pattern;
 	}
 	

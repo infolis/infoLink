@@ -104,11 +104,11 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     		TextualReference textRef = tempClient.get(TextualReference.class, textRefUri);
     		InfolisPattern pattern = tempClient.get(InfolisPattern.class, textRef.getPattern());
     		// textual reference does not match regex
-    		log.debug(pattern.getMinimal());
+    		log.debug(pattern.getPatternRegex());
     		log.debug(textRef.getLeftText());
-    		String referencedTerm = getReference(textRef.getLeftText(), pattern.getMinimal());
+    		String referencedTerm = getReference(textRef.getLeftText(), pattern.getPatternRegex());
 	    	if ("".equals(referencedTerm)) {
-	    		log.debug("Textual reference does not match regex: " + pattern.getMinimal());
+	    		log.debug("Textual reference does not match regex: " + pattern.getPatternRegex());
 	    		log.debug("Textual reference: " + textRef.getLeftText());
 	    		continue;
 	    	}

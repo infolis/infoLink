@@ -150,7 +150,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             // POST the patterns
             getOutputDataStoreClient().post(InfolisPattern.class, newPatterns);
             for (InfolisPattern pattern : newPatterns) {
-            	processedPatterns.add(pattern.getMinimal());
+            	processedPatterns.add(pattern.getPatternRegex());
             }
 
             debug(log, "Pattern Selection completed.");//info
@@ -209,17 +209,17 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 
     class FrequencyPatternRanker extends Bootstrapping.PatternRanker {
 
-    	protected Set<InfolisPattern> getBestPatterns(List<InfolisPattern> candidates, List<String> processedMinimals, Set<Entity> reliableSeeds) {
+    	protected Set<InfolisPattern> getBestPatterns(List<InfolisPattern> candidates, List<String> processedRegex, Set<Entity> reliableSeeds) {
 	        Set<InfolisPattern> patterns = new HashSet<>();
-	        Set<String> processedMinimals_iteration = new HashSet<>();
+	        Set<String> processedRegex_iteration = new HashSet<>();
 	        // constraint for patterns: at least one component not be a stopword
 	        // prevent induction of patterns less general than already known patterns:
 	        // check whether pattern is known before continuing
 		    for (int contextNo = 0; contextNo < candidates.size(); contextNo++) {
 		    	InfolisPattern candidate = candidates.get(contextNo);
 		    	log.debug("Processing context no. " + String.valueOf(contextNo));
-		      	log.debug("Checking if pattern is relevant: " + candidate.getMinimal());
-		      	if (processedMinimals.contains(candidate.getMinimal()) || processedMinimals_iteration.contains(candidate.getMinimal())) {
+		      	log.debug("Checking if pattern is relevant: " + candidate.getPatternRegex());
+		      	if (processedRegex.contains(candidate.getPatternRegex()) || processedRegex_iteration.contains(candidate.getPatternRegex())) {
 		       		// no need to induce less general patterns, continue with next context
 		            //TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		            //TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
@@ -240,7 +240,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		        else if (nonStopwordPresent && isRelevant(candidate, candidates)) {
 		        	candidate.setTags(getExecution().getTags());
 		          	patterns.add(candidate);
-		           	processedMinimals_iteration.add(candidate.getMinimal());
+		           	processedRegex_iteration.add(candidate.getPatternRegex());
 		           	log.debug("Pattern accepted");
 		           	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
 		           	contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
@@ -265,7 +265,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     	private boolean isRelevant(InfolisPattern pattern, List<InfolisPattern> candidateList) {
     		int count = 0;
     		for (InfolisPattern candidateP : candidateList) {
-    			if (pattern.getMinimal().equals(candidateP.getMinimal())) count++;
+    			if (pattern.getPatternRegex().equals(candidateP.getPatternRegex())) count++;
     		}
 		// TODO: Call computeRelevance only if count > 0 (optimisation)?
     		double relevance = computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext());

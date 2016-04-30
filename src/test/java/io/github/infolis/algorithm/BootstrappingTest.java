@@ -52,11 +52,9 @@ public class BootstrappingTest extends InfolisBaseTest {
 	public BootstrappingTest() throws Exception {
 		
 		for (InfolisFile file : createTestTextFiles(7, testStrings)) uris7.add(file.getUri());
-		pat.setPatternRegex("\\S++\\s\\S++\\s\\S++\\s\\S++\\s\\Q.the\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
-		pat.setMinimal("\\Q.the\\E" + RegexUtils.studyRegex_ngram + "\\Qin\\E");
+		pat.setPatternRegex("\\Q.the\\E" + RegexUtils.studyRegex_ngram + "\\Qin\\E");
 		pat.setLuceneQuery("\".the * in\"");
-		pat2.setPatternRegex("\\S++\\s\\S++\\s\\S++\\s\\S++\\s\\Qthe\\E\\s\\s?(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s?\\s\\Qin\\E\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+");
-		pat2.setMinimal("\\Qthe\\E" + RegexUtils.studyRegex_ngram + "\\Qin\\E");
+		pat2.setPatternRegex("\\Qthe\\E" + RegexUtils.studyRegex_ngram + "\\Qin\\E");
 		pat2.setLuceneQuery("\"the * in\"");
 		dataStoreClient.post(InfolisPattern.class, pat);
 		dataStoreClient.post(InfolisPattern.class, pat2);
@@ -115,7 +113,7 @@ public class BootstrappingTest extends InfolisBaseTest {
     	Set<String> regexSet = new HashSet<String>();
     	for (String uri : patternURIs) {
     		InfolisPattern pattern = dataStoreClient.get(InfolisPattern.class, uri);
-    		regexSet.add(pattern.getMinimal());
+    		regexSet.add(pattern.getPatternRegex());
     	}
     	return regexSet;
     }

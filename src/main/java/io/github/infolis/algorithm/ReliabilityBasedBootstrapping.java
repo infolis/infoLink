@@ -101,10 +101,10 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             
             // reset list of reliable patterns found in this iteration
             Collection<InfolisPattern> reliablePatterns_iteration = new HashSet<>();
-            Map<String, Double> reliableMinimals_iteration = patternRanker.getReliablePatterns(candidatePatterns, reliableInstances);
-            for (String relMinimal : reliableMinimals_iteration.keySet()) {
-            	reliablePatterns.add(patternRanker.knownPatterns.get(relMinimal));
-            	reliablePatterns_iteration.add(patternRanker.knownPatterns.get(relMinimal));
+            Map<String, Double> reliableRegex_iteration = patternRanker.getReliablePatterns(candidatePatterns, reliableInstances);
+            for (String relRegex : reliableRegex_iteration.keySet()) {
+            	reliablePatterns.add(patternRanker.knownPatterns.get(relRegex));
+            	reliablePatterns_iteration.add(patternRanker.knownPatterns.get(relRegex));
             }
 
             log.info("Pattern Selection completed.");
@@ -164,8 +164,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         }
 
         Collection<TextualReference> topContexts = new ArrayList<>();
-        for (String minimal : patternRanker.topK.keySet()) {
-        	InfolisPattern topPattern = patternRanker.knownPatterns.get(minimal);
+        for (String regex : patternRanker.topK.keySet()) {
+        	InfolisPattern topPattern = patternRanker.knownPatterns.get(regex);
         	topContexts.addAll(topPattern.getTextualReferences());
         }
         log.info("Final iteration: " + numIter);
@@ -231,7 +231,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
     private class ReliabilityPatternRanker extends Bootstrapping.PatternRanker {
     	//TODO custom comparator for entities..
     	private Map<String,InfolisPattern> knownPatterns = new HashMap<>();
-        private Map<Double, Collection<String>> reliableMinimals = new HashMap<>();
+        private Map<Double, Collection<String>> reliableRegex = new HashMap<>();
         private Map<String, Double> topK = new HashMap<>();
 
         /**
@@ -244,23 +244,23 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
          */
         private Map<String, Double> getReliablePatterns(List<List<InfolisPattern>> candidatesPerContext, Set<Entity> relInstances) throws IOException, ParseException {
             int size = getExecution().getInputFiles().size();
-            List<String> processedMinimals_iteration = new ArrayList<>();
+            List<String> processedRegex_iteration = new ArrayList<>();
             for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {
 
                 for (InfolisPattern candidate : candidatesForContext) {
-                    log.debug("Checking if pattern is reliable: " + candidate.getMinimal());
+                    log.debug("Checking if pattern is reliable: " + candidate.getPatternRegex());
 	            	// Do not process patterns more than once in one iteration, scores do not change.
                     // Scores may change from iteration to iteration though, thus do not exclude 
                     // patterns already checked in another iteration
-                    if (processedMinimals_iteration.contains(candidate.getMinimal())) {
+                    if (processedRegex_iteration.contains(candidate.getPatternRegex())) {
                         log.debug("Pattern already known, continuing.");
                         break; // this prohibits induction of less general patterns
                         //continue; // this prohibits induction of duplicate patterns but allows less general ones
                     }
 
                     // compute reliability again for patterns known from previous iterations - scores may change
-                    if (this.knownPatterns.containsKey(candidate.getMinimal())) {
-                    	candidate = this.knownPatterns.get(candidate.getMinimal());
+                    if (this.knownPatterns.containsKey(candidate.getPatternRegex())) {
+                    	candidate = this.knownPatterns.get(candidate.getPatternRegex());
                         //contexts_pattern = candidatePattern.getTextualReferences();
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
@@ -268,31 +268,31 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                         getOutputDataStoreClient().post(InfolisPattern.class, candidate);
                         // TODO: use on set of candidates instead of on single candidate
                         candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate))));
-                        this.knownPatterns.put(candidate.getMinimal(), candidate);
+                        this.knownPatterns.put(candidate.getPatternRegex(), candidate);
                     }
 
                     // Pattern Ranking / Selection
                     if (candidate.isReliable(size, relInstances, r)) {
                         double candidateReliability = candidate.getReliability();
                         log.debug("Pattern reliable, score: " + candidateReliability);
-                        Collection<String> minimalsWithSameScore = new ArrayList<>();
-                        if (this.reliableMinimals.containsKey(candidateReliability)) {
-                            minimalsWithSameScore = this.reliableMinimals.get(candidateReliability);
+                        Collection<String> regexWithSameScore = new ArrayList<>();
+                        if (this.reliableRegex.containsKey(candidateReliability)) {
+                            regexWithSameScore = this.reliableRegex.get(candidateReliability);
                         }
-                        minimalsWithSameScore.add(candidate.getMinimal());
-                        this.reliableMinimals.put(candidateReliability, minimalsWithSameScore);
+                        regexWithSameScore.add(candidate.getPatternRegex());
+                        this.reliableRegex.put(candidateReliability, regexWithSameScore);
 	            		// this returns the top k patterns regardless if their score is above the threshold
-                        //topK = getTopK(this.reliableMinimals, 5);
+                        //topK = getTopK(this.reliableRegex, 5);
                         // this returns all top k patterns above the threshold 
                         //TODO: start with small k and increase with each iteration
                         //TODO: at the same time, decrease thresholds slightly
-                        this.topK = getTopK(removeBelowThreshold(this.reliableMinimals, getExecution().getReliabilityThreshold()), 100);
-                        processedMinimals_iteration.add(candidate.getMinimal());
+                        this.topK = getTopK(removeBelowThreshold(this.reliableRegex, getExecution().getReliabilityThreshold()), 100);
+                        processedRegex_iteration.add(candidate.getPatternRegex());
                         break; // this prohibits induction of less general patterns 
                         // and equally general pattern of the other type (e.g. candidate2 vs. candidateB)
                         //continue; // this prohibits induction of duplicate patterns but allows less general ones
                     } else {
-                        processedMinimals_iteration.add(candidate.getMinimal());
+                        processedRegex_iteration.add(candidate.getPatternRegex());
                         log.debug("Pattern unreliable, score: " + candidate.getReliability());
                     }
                 }

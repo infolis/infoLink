@@ -29,7 +29,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 
 
 	public InfolisPatternTest() throws Exception {
-		pat.setMinimal("foO\\s(.*?)\\sfoO");
+		pat.setPatternRegex("foO\\s(.*?)\\sfoO");
 		String[] testStrings = new String[contextStrings.size()];
 		createTestTextFiles(10, contextStrings.toArray(testStrings));
 	}
@@ -87,7 +87,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		double pmi_score = MathUtils.pmi(p_xy, p_x, p_y);
 		log.debug("initial pmi_score: " + pmi_score);
 		pat.addAssociation("bar", pmi_score);
-		bar.addAssociation(pat.getMinimal(), pmi_score);
+		bar.addAssociation(pat.getPatternRegex(), pmi_score);
 		r.addInstance(bar);
 		r.addPattern(pat);
 		r.setMaxPmi(pmi_score);

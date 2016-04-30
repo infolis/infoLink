@@ -47,7 +47,6 @@ public class SearchPatternsAndCreateLinksTest extends InfolisBaseTest {
         InfolisPattern infolisPattern = new InfolisPattern();
         String regex = ".*?Datenbasis: (\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?), eigene Berechnung.*?";
         infolisPattern.setPatternRegex(regex);
-        infolisPattern.setMinimal(regex);
         infolisPattern.setLuceneQuery("\"Datenbasis\\\\: * eigene Berechnung\\\\)\"");
         HashSet<String> tags = new HashSet<String>();
         tags.add("test");

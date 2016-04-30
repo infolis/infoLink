@@ -45,21 +45,21 @@ public class StandardPatternInducerTest {
 		patterns = inducer.induce(ref1, thresholds);
 		assertEquals("\"dataset\"", patterns.get(0).getLuceneQuery());
 		assertEquals(new HashSet<String>(Arrays.asList("2000", "dataset")), patterns.get(0).getWords());
-		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E\\s" + RegexUtils.studyRegex_ngram + "\\s\\Qdataset\\E", patterns.get(0).getMinimal());
+		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E\\s" + RegexUtils.studyRegex_ngram + "\\s\\Qdataset\\E", patterns.get(0).getPatternRegex());
 		assertEquals(null, patterns.get(2).getLuceneQuery());
-		assertEquals(null, patterns.get(2).getMinimal());
+		assertEquals(null, patterns.get(2).getPatternRegex());
 		assertEquals("\"to the * * dataset\"", patterns.get(3).getLuceneQuery());
-		assertEquals("\\Qto\\E\\s\\Qthe\\E\\s" + "\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E\\s" + RegexUtils.studyRegex_ngram +"\\s\\Qdataset\\E", patterns.get(3).getMinimal());
+		assertEquals("\\Qto\\E\\s\\Qthe\\E\\s" + "\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E\\s" + RegexUtils.studyRegex_ngram +"\\s\\Qdataset\\E", patterns.get(3).getPatternRegex());
 		
 		TextualReference ref2 = new TextualReference("dies ist eine Referenz auf den 2000er ", "ALLBUS", "-Datensatz .", "textfile", "pattern", "mentionsReference");
 		patterns = inducer.induce(ref2, thresholds);
 		assertEquals("\"*er *\\\\\\-Datensatz\"", patterns.get(0).getLuceneQuery());
-		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Qer\\E\\s" + RegexUtils.studyRegex_ngram + "\\s?\\Q-Datensatz\\E", patterns.get(0).getMinimal());
+		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Qer\\E\\s" + RegexUtils.studyRegex_ngram + "\\s?\\Q-Datensatz\\E", patterns.get(0).getPatternRegex());
 		
 		TextualReference ref3 = new TextualReference("dies ist eine Referenz auf den 2000er Wohlfahrtssurvey/", "ALLBUS", "-Datensatz .", "textfile", "pattern", "mentionsReference");
 		patterns = inducer.induce(ref3, thresholds);
 		assertEquals("\"Wohlfahrtssurvey\\\\\\/*\\\\\\-Datensatz\"", patterns.get(0).getLuceneQuery());
-		assertEquals("\\QWohlfahrtssurvey/\\E\\s?" + RegexUtils.studyRegex_ngram + "\\s?\\Q-Datensatz\\E", patterns.get(0).getMinimal());
+		assertEquals("\\QWohlfahrtssurvey/\\E\\s?" + RegexUtils.studyRegex_ngram + "\\s?\\Q-Datensatz\\E", patterns.get(0).getPatternRegex());
 		
 		String text = "dies ist eine Referenz auf den 2000er Wohlfahrtssurvey/ALLBUS-Datensatz .";
 		Pattern p = Pattern.compile(patterns.get(0).getPatternRegex());
@@ -67,7 +67,7 @@ public class StandardPatternInducerTest {
 		boolean matchFound = false;
 		while (m.find()) {
 			matchFound = true;
-			assertEquals(text, m.group());
+			assertEquals("Wohlfahrtssurvey/ALLBUS-Datensatz", m.group());
 		}
 		assertTrue(matchFound);
 		

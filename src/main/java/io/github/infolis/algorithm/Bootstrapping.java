@@ -48,13 +48,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         getOutputDataStoreClient().post(Execution.class, execution);
 		return execution;
 	}
-    
-    private String quoteIfSpacePresent(String query) {
-    	if (query.matches(".*\\s.*")) {
-			query = "\"" + query + "\"";
-		}
-    	return query;
-    }
 
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
@@ -64,7 +57,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         execution.setAllowLeadingWildcards(true);
         execution.setMaxClauseCount(getExecution().getMaxClauseCount());
         execution.setSearchTerm(seed);
-        //InfolisPattern termPattern = new InfolisPattern(quoteIfSpacePresent(RegexUtils.normalizeQuery(seed, false) + "*"));
         InfolisPattern termPattern = new InfolisPattern(RegexUtils.normalizeQuery(seed, true));
         DataStoreClient tempClient = getTempDataStoreClient();
         tempClient.put(InfolisPattern.class, termPattern);

@@ -106,14 +106,14 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]"));
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,
     			testSentence5));
     	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
-    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
+    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
     			testSentence3,
@@ -122,14 +122,14 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,
     			testSentence5));
     	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
-    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Q.\\E",
+    			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
     			testSentence3,

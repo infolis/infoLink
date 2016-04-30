@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,8 @@ import io.github.infolis.datastore.FileResolver;
  */
 public class TokenizerStanford extends Tokenizer {
 
+	private final static List<String> compoundMarkers = Arrays.asList("(-)", "(–)", "(/)");
+	
 	public TokenizerStanford (DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
@@ -57,11 +61,15 @@ public class TokenizerStanford extends Tokenizer {
 		for (List<HasWord> wordList : dp) {
 			String sentence = "";
 			for (HasWord word : wordList) {
-				sentence += " " + word.word();
+				sentence += " " + splitCompounds(word.word());
 			}
 			sentences.add(sentence);
 		}
 		return sentences;
+	}
+	
+	private static String splitCompounds(String text) {
+		return text.replaceAll("(?<=\\S)(" + String.join("|", compoundMarkers) + ")(?=\\S)", " $1 ");
 	}
 	
 	

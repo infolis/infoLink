@@ -112,9 +112,9 @@ public class RegexUtilsTest extends InfolisBaseTest {
 
 	@Test
 	public void testNormalizeAndEscapeRegex() {
-		assertEquals("\\Q\\E" + RegexUtils.percentRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2%"));
-		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2"));
-		assertEquals("\\Q\\E" + RegexUtils.complexNumericInfoRegex + "\\Q\\E", RegexUtils.normalizeAndEscapeRegex("2000"));
+		assertEquals(RegexUtils.percentRegex, RegexUtils.normalizeAndEscapeRegex("2%"));
+		assertEquals(RegexUtils.complexNumericInfoRegex, RegexUtils.normalizeAndEscapeRegex("2"));
+		assertEquals(RegexUtils.complexNumericInfoRegex, RegexUtils.normalizeAndEscapeRegex("2000"));
 	}
 	
 	//TODO may change if different values for ignoreStudy are set in the config
@@ -136,6 +136,7 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("30850"));
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1836"));
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 until 1992"));//& / \\ - 
+		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 - 1992"));
 	}
 
 

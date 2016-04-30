@@ -28,6 +28,7 @@ public class RegexUtils {
     public static final String rangeRegex = "((-)|(–)|(bis)|(to)|(till)|(until))";
 	public static final Pattern patternNumeric = Pattern.compile("\\d+");
 	public static final Pattern patternDecimal = Pattern.compile("\\d+\\.\\d+");
+	public static final String punctuationRegex = "[.,;!?]";
     // complex regex for extraction of numeric information
     public static final String numericInfoRegex = "(" + yearRegex + "|" + yearAbbrRegex + "|" + numberRegex + ")";
     public static final String enumRangeRegex = "(" + enumRegex + "|" + rangeRegex + ")";
@@ -72,9 +73,11 @@ public class RegexUtils {
 	{
 		Pattern yearPat = Pattern.compile(complexNumericInfoRegex);
 		Pattern percentPat = Pattern.compile(percentRegex);
+		Pattern punctuationPat = Pattern.compile(punctuationRegex);
 
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
+		String punctuationNorm = new String("<PUNCT>");
 
 		// do not change order of replacements
 		Matcher percentMatcher = percentPat.matcher(term);
@@ -82,6 +85,9 @@ public class RegexUtils {
 
 		Matcher yearMatcher = yearPat.matcher(term);
 		term = yearMatcher.replaceAll(yearNorm);
+		
+		Matcher punctuationMatcher = punctuationPat.matcher(term);
+		term = punctuationMatcher.replaceAll(punctuationNorm);
 
 		return term;
 	}
@@ -97,8 +103,10 @@ public class RegexUtils {
 	public static String normalizeAndEscapeRegex(String string) {
 		String yearNorm = new String("<YEAR>");
 		String percentNorm = new String("<PERCENT>");
+		String punctuationNorm = new String("<PUNCT>");
 		string = normalizeRegex(string);
-		string = Pattern.quote(string).replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(yearNorm, "\\E" + complexNumericInfoRegex + "\\Q");
+		string = Pattern.quote(string).replace(percentNorm, "\\E" + percentRegex + "\\Q").replace(yearNorm, "\\E" + complexNumericInfoRegex + "\\Q")
+				.replace(punctuationNorm, "\\E" + punctuationRegex + "\\Q").replace("\\Q\\E", "");
 		return string;
 	}
 

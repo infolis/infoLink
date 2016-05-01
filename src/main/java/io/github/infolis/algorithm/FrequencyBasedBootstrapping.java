@@ -171,7 +171,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             debug(log, String.format("Found %s seeds in current iteration (%s occurrences): %s)", newSeedTermsIteration.size(), newSeedsIteration.size(), newSeedTermsIteration));
             numIter++;
 
-            persistExecution();
             if (newSeedTermsIteration.isEmpty() || processedSeeds.keySet().containsAll(newSeedTermsIteration)) {
             	debug(log, "No new seeds found in iteration, returning.");
             	// extractedContexts contains all contexts resulting from searching a seed term
@@ -185,7 +184,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             }
         }
         debug(log, "Maximum number of iterations reached, returning.");
-        // TODO now delete all the contexts that were only temporary
 
         debug(log, "Final iteration: " + numIter);//info
         log.debug("Final list of instances:  ");
@@ -215,18 +213,18 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	        // constraint for patterns: at least one component not be a stopword
 	        // prevent induction of patterns less general than already known patterns:
 	        // check whether pattern is known before continuing
-		    for (int contextNo = 0; contextNo < candidates.size(); contextNo++) {
-		    	InfolisPattern candidate = candidates.get(contextNo);
-		    	log.debug("Processing context no. " + String.valueOf(contextNo));
+	        int acceptedPatterns = 0;
+		    for (int candidateNo = 0; candidateNo < candidates.size(); candidateNo++) {
+		    	InfolisPattern candidate = candidates.get(candidateNo);
+		    	int candidateNoInCurrentContext = candidateNo % getPatternInducer().getPatternsPerContext();
+		    	int remainingCandidatesForContext = getPatternInducer().getPatternsPerContext() - candidateNoInCurrentContext;
+		    	log.debug(String.format("Processing candidate no. %s (context no. %s)", String.valueOf(candidateNo),
+		    			String.valueOf( ((candidateNo - remainingCandidatesForContext) / getPatternInducer().getPatternsPerContext()))));
 		      	log.debug("Checking if pattern is relevant: " + candidate.getPatternRegex());
 		      	if (processedRegex.contains(candidate.getPatternRegex()) || processedRegex_iteration.contains(candidate.getPatternRegex())) {
-		       		// no need to induce less general patterns, continue with next context
-		            //TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-		            //TODO (enhancement): also store unsuccessful patterns to avoid multiple computations of their score?
 		            log.debug("Pattern already known, continuing with candidates for next context.");
-		            log.debug(String.valueOf(contextNo % getPatternInducer().getPatternsPerContext()));
-		            // skip candidates of the same context
-		            contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
+		            // skip less general pattern candidates of the same context
+		            candidateNo += remainingCandidatesForContext -1;
 		            continue;
 		        }
 		        boolean nonStopwordPresent = false;
@@ -236,18 +234,38 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           		continue;
 		           	}
 		        }
-		        if (!nonStopwordPresent) log.debug("Pattern rejected - stopwords only");
+		        if (!nonStopwordPresent) {
+		        	log.debug("Pattern rejected - stopwords only");
+		        	if (acceptedPatterns == 1) {
+		        		candidateNo += remainingCandidatesForContext -1;
+		           		acceptedPatterns = 0;
+		           		continue;
+		        	}
+		        }
 		        else if (nonStopwordPresent && isRelevant(candidate, candidates)) {
 		        	candidate.setTags(getExecution().getTags());
 		          	patterns.add(candidate);
 		           	processedRegex_iteration.add(candidate.getPatternRegex());
 		           	log.debug("Pattern accepted");
-		           	//TODO (enhancement): separate number and character patterns: omit only less general patterns of the same type, do not limit generation of other type
-		           	contextNo += getPatternInducer().getPatternsPerContext() - (contextNo % getPatternInducer().getPatternsPerContext()) -1;
-		           	continue;
+		           	
+		           	if (acceptedPatterns == 1) {
+		           		candidateNo += remainingCandidatesForContext -1;
+		           		acceptedPatterns = 0;
+		           		continue;
+		           	}
+		           	// omit only less general patterns, do not limit generation of patterns on same level
+		           	else {
+		           		acceptedPatterns ++;
+		           	}
+		           	
 		        }
 		        else {
 		        	log.debug("Pattern rejected - not relevant");
+		        	if (acceptedPatterns == 1) {
+		        		candidateNo += remainingCandidatesForContext -1;
+		           		acceptedPatterns = 0;
+		           		continue;
+		           	}
 		        }
     		}
 	        return patterns;
@@ -267,7 +285,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
     		for (InfolisPattern candidateP : candidateList) {
     			if (pattern.getPatternRegex().equals(candidateP.getPatternRegex())) count++;
     		}
-		// TODO: Call computeRelevance only if count > 0 (optimisation)?
     		double relevance = computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext());
 		return (relevance >= pattern.getThreshold() && (count > 0));
     	}

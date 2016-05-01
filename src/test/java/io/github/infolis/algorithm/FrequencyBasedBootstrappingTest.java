@@ -106,7 +106,11 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_separate = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_separate = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
+    			
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E\\s\\Qthis\\E"));
+    			// this pattern is rejected because it consists of stopwords only:
+    			//"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]\\s\\Qin\\E"
     	Set<String> expectedContexts_separate = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,
@@ -114,7 +118,10 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_mergeCurrent = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeCurrent = new HashSet<String>(Arrays.asList(
     			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
+    			
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]\\s\\Qin\\E\\s\\Qthis\\E",
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E\\s\\Qthis\\E"));
     	Set<String> expectedContexts_mergeCurrent = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,
@@ -122,7 +129,9 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_mergeNew = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeNew = new HashSet<String>(Arrays.asList(
     			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
+    			
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E\\s\\Qthis\\E"));
     	Set<String> expectedContexts_mergeNew = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,
@@ -130,7 +139,10 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
     	Set<String> expectedStudies_mergeAll = new HashSet<String>(Arrays.asList("term", "FOOBAR", "term ."));
     	Set<String> expectedPatterns_mergeAll = new HashSet<String>(Arrays.asList(
     			"\\Qto\\E\\s\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]",
-    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E"));
+    			"\\Qfind\\E\\s\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E",
+    			
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s[.,;!?]\\s\\Qin\\E\\s\\Qthis\\E",
+    			"\\Qthe\\E\\s(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)\\s\\Qin\\E\\s\\Qthis\\E"));
     	Set<String> expectedContexts_mergeAll = new HashSet<String>(Arrays.asList(
     			testSentence3,
     			testSentence0,

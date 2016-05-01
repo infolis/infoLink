@@ -102,9 +102,6 @@ public class BootstrappingTest extends InfolisBaseTest {
         execution.setBootstrapStrategy(strategy);
         execution.setUpperCaseConstraint(false);
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-        //TODO: use this when URIs are posted in FrequencyBasedBootstrapping instead of the term string
-        //assertEquals(expectedStudies, getTerms(execution.getStudies()));
-        // TODO replace, since exeution.getStudies() is gone
         assertEquals(expectedPatterns, getRegex(execution.getPatterns()));
         assertEquals(expectedContexts, getContextStrings(execution.getTextualReferences()));
     }
@@ -126,16 +123,6 @@ public class BootstrappingTest extends InfolisBaseTest {
     	}
     	return contextSet;
     }
-    //TODO: use this when URIs are posted in FrequencyBasedBootstrapping instead of the term string
-    /*
-    Set<String> getTerms(List<String> studyURIs) {
-    	Set<String> termSet = new HashSet<String>();
-    	for (String uri : studyURIs) {
-    		Study study = localClient.get(Study.class, uri);
-    		termSet.add(study.getName());
-    	}
-    	return termSet;
-    }*/
 
     static class ExpectedOutput {
     	Class<? extends Algorithm> algorithm;

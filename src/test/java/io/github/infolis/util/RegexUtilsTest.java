@@ -64,7 +64,7 @@ public class RegexUtilsTest extends InfolisBaseTest {
 		for (InfolisFile file : createTestTextFiles(3, testStrings)) uris.add(file.getUri());
 		
 		String pat = "(Datenbasis: 2000 ,";
-		String lucenePat = "\"\\\\\\(Datenbasis\\\\\\: * ,\"";
+		String lucenePat = "\"\\\\\\(Datenbasis\\\\\\: * *\"";
 		assertEquals(lucenePat, "\"" + RegexUtils.normalizeAndEscapeRegex_lucene(pat) + "\"");
 		InfolisPattern p = new InfolisPattern(lucenePat);
 		dataStoreClient.post(InfolisPattern.class, p);
@@ -135,8 +135,10 @@ public class RegexUtilsTest extends InfolisBaseTest {
 	public void testNormalizeAndEscapeRegex_lucene() {
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("30850"));
 		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1836"));
-		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 until 1992"));//& / \\ - 
-		//assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 - 1992"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 until 1992"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 & 1992"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990 - 1992"));
+		assertEquals("*", RegexUtils.normalizeAndEscapeRegex_lucene("1990-1992"));
 	}
 
 

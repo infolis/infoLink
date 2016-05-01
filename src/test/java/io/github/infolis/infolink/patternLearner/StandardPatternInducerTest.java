@@ -32,8 +32,8 @@ public class StandardPatternInducerTest {
 		
 		TextualReference ref = new TextualReference("15757 41727 5743 10877 10014 30850 Sozialstaatssurvey/", "ALLBUS", " .", "textfile", "pattern", "mentionsReference");
 		List<InfolisPattern> patterns = inducer.induce(ref, thresholds);
-		assertEquals("\"Sozialstaatssurvey\\\\\\/* .\"", patterns.get(0).getLuceneQuery());
-		assertEquals("\"Sozialstaatssurvey\\\\\\/* .\"", patterns.get(5).getLuceneQuery());
+		assertEquals("\"Sozialstaatssurvey\\\\\\/*\"", patterns.get(0).getLuceneQuery());
+		assertEquals("\"Sozialstaatssurvey\\\\\\/*\"", patterns.get(5).getLuceneQuery());
 		
 		TextualReference ref0 = new TextualReference("this is a ref 1998 1999 2000 ", "ALLBUS", " dataset .", "textfile", "pattern", "mentionsReference");
 		patterns = inducer.induce(ref0, thresholds);

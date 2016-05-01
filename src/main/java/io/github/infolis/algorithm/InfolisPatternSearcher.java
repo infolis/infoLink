@@ -103,10 +103,10 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     	for (String textRefUri : textRefsForPatterns) {
     		TextualReference textRef = tempClient.get(TextualReference.class, textRefUri);
     		InfolisPattern pattern = tempClient.get(InfolisPattern.class, textRef.getPattern());
-    		// textual reference does not match regex
-    		log.debug(pattern.getPatternRegex());
-    		log.debug(textRef.getLeftText());
+    		log.debug("pattern: " + pattern.getPatternRegex());
+    		log.debug("candidate textual reference: " + textRef.getLeftText());
     		String referencedTerm = getReference(textRef.getLeftText(), pattern.getPatternRegex());
+    		// textual reference does not match regex
 	    	if ("".equals(referencedTerm)) {
 	    		log.debug("Textual reference does not match regex: " + pattern.getPatternRegex());
 	    		log.debug("Textual reference: " + textRef.getLeftText());
@@ -131,6 +131,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
               	TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
                	getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
                 validatedTextualReferences.add(validatedTextRef.getUri());
+                log.debug("added textual reference " + validatedTextRef);
             } catch (StringIndexOutOfBoundsException sioobe) { 
 	        	log.warn(sioobe.getMessage());
 	        	log.warn("(this is not an error if term is the first or last word in the input)");

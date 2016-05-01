@@ -180,7 +180,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	debug(log, "Final iteration: " + numIter);//info
                 log.debug("Final list of instances:  ");
                 for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
-                log.debug("Final list of patterns: " + processedPatterns);
+                log.debug("Final list of patterns: " + String.join("\n", processedPatterns));
             	return extractedContextsFromPatterns;
             }
         }
@@ -190,7 +190,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         debug(log, "Final iteration: " + numIter);//info
         log.debug("Final list of instances:  ");
         for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
-        log.debug("Final list of patterns: " + processedPatterns);
+        log.debug("Final list of patterns: " + String.join("\n", processedPatterns));
         return extractedContextsFromPatterns;
     }
 

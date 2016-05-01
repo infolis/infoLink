@@ -121,8 +121,9 @@ public class RegexUtils {
 	 */
 	public static String normalizeAndEscapeRegex_lucene(String string)
 	{
+		string = string.replaceAll(percentRegex, "_WILDCARD_").replaceAll(complexNumericInfoRegex, "_WILDCARD_").replaceAll(punctuationRegex, "_WILDCARD_");
 		string = normalizeQuery(string, false);
-		string = string.replaceAll(percentRegex, "*").replaceAll(complexNumericInfoRegex, "*");
+		string = string.replace("_WILDCARD_", "*");
 		return string;
 	}
 

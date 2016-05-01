@@ -53,10 +53,11 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
 		Collections.reverse(regex_left_copy);
 		
 		String luceneQuery = "\"" + String.join(" ", lucene_left_copy) + delimiter_left + "*" + delimiter_right + String.join(" ", lucene_right) + "\"";
-		// TODO optimize: wildcards are necessary between words but not at the beginning or end of the query
+		
 		Matcher leadingWildcardMatcher = leadingWildcards.matcher(luceneQuery);
-		Matcher trailingWildcardMatcher = trailingWildcards.matcher(luceneQuery);
 		if (leadingWildcardMatcher.find()) luceneQuery = leadingWildcardMatcher.replaceAll("\"");
+		
+		Matcher trailingWildcardMatcher = trailingWildcards.matcher(luceneQuery);
 		if (trailingWildcardMatcher.find()) luceneQuery = trailingWildcardMatcher.replaceAll("\"");
 		
 		if (delimiter_left.matches("\\s")) delimiter_left = "\\s";

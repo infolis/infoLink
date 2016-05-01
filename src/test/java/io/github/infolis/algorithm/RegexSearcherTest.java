@@ -32,15 +32,7 @@ public class RegexSearcherTest extends InfolisBaseTest {
 	// study title: <word>* <word> <word> <word> <word>*
 	// right context: in <word> <word> <word> <word>
 	// where word is an arbitrary string consisting of at least one character
-	private final static InfolisPattern testPattern = new InfolisPattern(""
-			+ "(\\S++\\s\\S++"
-			+ "\\s\\Qto\\E"
-			+ "\\s\\Qfind\\E"
-			+ "\\s\\Qthe\\E"
-			+ "\\s\\s?)"
-			+ "(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)(\\s?"
-			+ "\\s\\Qin\\E"
-			+ "\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+)");
+	private final static InfolisPattern testPattern = new InfolisPattern();
 
 	String[] testStrings = {
 			"Hallo, please try to find the FOOBAR in this short text snippet. Thank you.",
@@ -54,6 +46,15 @@ public class RegexSearcherTest extends InfolisBaseTest {
 
 	@Before
 	public void setUp() throws Exception {
+		testPattern.setPatternRegex(""
+			+ "(\\S++\\s\\S++"
+			+ "\\s\\Qto\\E"
+			+ "\\s\\Qfind\\E"
+			+ "\\s\\Qthe\\E"
+			+ "\\s\\s?)"
+			+ "(\\S*?\\s?\\S+?\\s?\\S+?\\s?\\S+?\\s?\\S*?)(\\s?"
+			+ "\\s\\Qin\\E"
+			+ "\\s\\S+?\\s\\S+?\\s\\S+?\\s\\S+)");
 		dataStoreClient.clear();
 		textUris = new ArrayList<>();
 		for (InfolisFile file : createTestTextFiles(NUMBER_OF_FILES, testStrings)) {
@@ -66,13 +67,16 @@ public class RegexSearcherTest extends InfolisBaseTest {
 		dataStoreClient.post(InfolisPattern.class, testPattern);
 	}
 
-	@Ignore
+	@Test
 	public void testRegexSearcherWithPdf() throws Exception {
 
 		Execution execution = new Execution();
 		execution.getPatterns().add(testPattern.getUri());
 		execution.setAlgorithm(RegexSearcher.class);
 		execution.getInputFiles().addAll(pdfUris);
+		execution.setLeftContextGroup(1);
+		execution.setRightContextGroup(3);
+		execution.setReferenceGroup(2);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
 		// find the contexts of "FOOBAR" and "term" (see also
@@ -84,13 +88,16 @@ public class RegexSearcherTest extends InfolisBaseTest {
 		assertEquals(3, execution.getTextualReferences().size());
 	}
 
-	@Ignore
+	@Test
 	public void testRegexSearcher() throws Exception {
 
 		Execution execution = new Execution();
 		execution.getPatterns().add(testPattern.getUri());
 		execution.setAlgorithm(RegexSearcher.class);
 		execution.getInputFiles().addAll(textUris);
+		execution.setLeftContextGroup(1);
+		execution.setRightContextGroup(3);
+		execution.setReferenceGroup(2);
 		Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		algo.run();
 

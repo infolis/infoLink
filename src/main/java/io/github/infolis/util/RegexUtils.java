@@ -39,8 +39,16 @@ public class RegexUtils {
 	// list of symbols to be treated as enumerators. Useful for querying textual references
 	// TODO this feature seems to have been lost during refactoring of the matcher classes. Restore!
 	public static final String[] enumeratorList = {",", ";", "/", "\\\\"};
+	// regex for extraction of contexts
+	public static final String leftContextRegex = "((.*?" + System.getProperty("line.separator") + "+)?.*?)";
+	public static final String rightContextRegex = "(.*(" + System.getProperty("line.separator") + "+.*)?)";
 	// regex for extracting DOIs
-    public static final String doiRegex = "10\\.\\d+?/\\S+";
+    public static final String doiBaseRegex = "(10\\.\\d+?/\\S+\\P{Punct})";
+    public static final String doiRegex = leftContextRegex + doiBaseRegex + rightContextRegex;
+    // number of the group which contains the doi. This number depends on the used doiRegex
+ 	public static final int doiGroupNum = 5;
+ 	public static final int doiLeftContextGroupNum = 3;
+ 	public static final int doiRightContextGroupNum = 6;
     // regex for extracting URLs
     public static String httpRegex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
     public static String wwwRegex = "www\\d?\\..*?\\.[^\\d\\s]+";
@@ -56,11 +64,6 @@ public class RegexUtils {
 	public static final String wordRegex_atomic = new String("\\S++");
 	// use greedy variant for last word - normal wordRegex would only extract first character of last word
 	public static final String lastWordRegex = new String("\\S+");
-	// regex for extraction of contexts
-	public static final String leftContextRegex = "(.*?" + System.getProperty("line.separator") + "+)?.*?\\s";
-	public static final String rightContextRegex = "\\s.*(" + System.getProperty("line.separator") + "+.*)?";
-	// number of the group which contains the study. This number depends on the used studyRegex and leftContextRegex
-	public static final int studyGroupNum = 2;
    
 	/**
      * Replaces regular expressions in term with placeholders. 

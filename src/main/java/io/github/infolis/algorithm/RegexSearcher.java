@@ -10,6 +10,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.LimitedTimeMatcher;
@@ -45,21 +46,17 @@ public class RegexSearcher extends BaseAlgorithm {
         InputStream in = getInputFileResolver().openInputStream(file);
         String input = IOUtils.toString(in);
         in.close();
-        log.trace("Input: " + input);
-        // makes regex matching a bit easier
-        return input.replaceAll("\\s+", " ");
+        return input;
     }
 
-    private List<TextualReference> searchForPatterns(InfolisFile file, int groupOfTerm)
+    private List<TextualReference> searchForPatterns(InfolisFile file)
             throws IOException {
         String inputClean = getFileAsString(file);
 
         List<TextualReference> res = new ArrayList<>();
-        /*for (String patternURI : this.getExecution().getPatterns()) {
-            //debug(log, patternURI);
+        for (String patternURI : this.getExecution().getPatterns()) {
             log.trace(patternURI);
-            InfolisPattern pattern = getInputDataStoreClient().get(InfolisPattern.class, patternURI);
-            //debug(log, "Searching for pattern '%s'", pattern.getPatternRegex());
+            InfolisPattern pattern = getOutputDataStoreClient().get(InfolisPattern.class, patternURI);
             log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
@@ -73,49 +70,30 @@ public class RegexSearcher extends BaseAlgorithm {
             // thread was aborted due to long processing time
             if (!ltm.finished()) {
                 // TODO: what to do if search was aborted?
-                log.error("Search was aborted. TODO");
-                // InfolisFileUtils.writeToFile(new
-                // File("data/abortedMatches.txt"), "utf-8", filenameIn + ";" +
-                // curPat + "\n", true);
+                log.warn("Search was aborted. TODO");
             }
             while (ltm.matched()) {
-                log.debug("found pattern " + pattern.getPatternRegex() + " in " + file);
-                String studyName = ltm.group(groupOfTerm).trim();
-                log.debug("referenced study name: " + studyName);
-                String context = ltm.group();
-                
-                // if studyname contains no characters: ignore
-                // TODO: not accurate - include accents etc in match... \p{M}?
-                if (studyName.matches("\\P{L}+")) {
-                    log.debug("Invalid study name \"" + studyName + "\". Searching for next match of pattern " + pattern.getPatternRegex());
-                    ltm.run();
-                    continue;
-                }
-                // a study name is supposed to be a named entity and thus should
-                // contain at least one upper-case character
-                if (this.getExecution().isUpperCaseConstraint()) {
-                	// do not treat -RRB-, -LRB- and *NL* tokens as uppercase words
-                    if (studyName.replaceAll("-RRB-", "").replaceAll("-LRB-", "").replaceAll("\\*NL\\*", "").toLowerCase().equals(studyName.replaceAll("-RRB-", "").replaceAll("-LRB-", "").replaceAll("\\*NL\\*", ""))) {
-                        ltm.run();
-                        log.debug("Match does not satisfy uppercase-constraint \"" + studyName
-                                + "\". Processing new match...");
-                        continue;
-                    }
-                }
-
-                List<TextualReference> references = LuceneSearcher.getContexts(getOutputDataStoreClient(), file.getUri(), studyName, context);
-                for (TextualReference ref : references) {
-                    ref.setPattern(pattern.getUri());
-                    log.debug("added reference: " + ref);
-                }
-                res.addAll(references);
-                log.trace("Added references.");
+                log.debug(String.format("found pattern %s in file %s, match: %s", pattern.getPatternRegex(), file, ltm.group()));
+                String referencedTerm = ltm.group(getExecution().getReferenceGroup()).trim();
+                log.trace("referenced term: " + referencedTerm);
+                String leftContext = ltm.group(getExecution().getLeftContextGroup());
+                String rightContext = ltm.group(getExecution().getRightContextGroup());
+                log.trace("leftContext: " + leftContext);
+                log.trace("rightContext: " + rightContext);
+                Entity entity = new Entity();
+                getOutputDataStoreClient().post(Entity.class, entity);
+                entity.setFile(file.getUri());
+                if (leftContext.isEmpty()) leftContext = " ";
+                if (rightContext.isEmpty()) rightContext = " ";
+                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, entity.getUri());
+                log.trace("added reference: " + textRef);
+                res.add(textRef);
 
                 log.trace("Searching for next match of pattern " + pattern.getPatternRegex());
                 ltm.run();
             }
         }
-        log.trace("Done searching for patterns in " + file);*/
+        log.trace("Done searching for patterns in " + file);
         return res;
     }
 
@@ -131,7 +109,7 @@ public class RegexSearcher extends BaseAlgorithm {
     	
         List<TextualReference> detectedContexts = new ArrayList<>();
         int counter = 0, size = getExecution().getInputFiles().size();
-        System.out.println("size: " + size);
+        System.out.println("number of documents to process: " + size);
         for (String inputFileURI : getExecution().getInputFiles()) {
             counter++;
             log.trace("Input file URI: '{}'", inputFileURI);
@@ -172,7 +150,7 @@ public class RegexSearcher extends BaseAlgorithm {
             log.trace("Start extracting from '{}'.", inputFile);
             updateProgress(counter, size);
 
-            detectedContexts.addAll(searchForPatterns(inputFile, RegexUtils.studyGroupNum));
+            detectedContexts.addAll(searchForPatterns(inputFile));
         }
 
         for (TextualReference sC : detectedContexts) {

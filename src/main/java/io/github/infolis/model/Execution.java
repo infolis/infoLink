@@ -9,6 +9,7 @@ import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.querying.QueryService;
+import io.github.infolis.util.RegexUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -249,6 +250,17 @@ public class Execution extends BaseModel {
 	 * {@link LuceneSearcher} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
 	 */
 	private String searchQuery;
+	
+	/**
+	 * Group numbers to use for RegexSearcher.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
+	private int referenceGroup = RegexUtils.doiGroupNum;
+	
+	private int leftContextGroup = RegexUtils.doiLeftContextGroupNum;
+	
+	private int rightContextGroup = RegexUtils.doiRightContextGroupNum;
 
 	/**
          * A textual reference represents any kind of reference that
@@ -601,6 +613,30 @@ public class Execution extends BaseModel {
 
 	public void setSearchQuery(String searchQuery) {
 		this.searchQuery = searchQuery;
+	}
+	
+	public void setLeftContextGroup(int groupNum) {
+		this.leftContextGroup = groupNum;
+	}
+	
+	public void setRightContextGroup(int groupNum) {
+		this.rightContextGroup = groupNum;
+	}
+	
+	public void setReferenceGroup(int groupNum) {
+		this.referenceGroup = groupNum;
+	}
+	
+	public int getLeftContextGroup() {
+		return this.leftContextGroup;
+	}
+	
+	public int getRightContextGroup() {
+		return this.rightContextGroup;
+	}
+	
+	public int getReferenceGroup() {
+		return this.referenceGroup;
 	}
 
 	public List<String> getTextualReferences() {

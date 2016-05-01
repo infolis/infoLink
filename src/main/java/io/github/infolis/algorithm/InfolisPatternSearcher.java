@@ -128,16 +128,12 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
             Entity e = tempClient.get(Entity.class, textRef.getMentionsReference());
             getOutputDataStoreClient().post(Entity.class, e);
             getOutputDataStoreClient().post(InfolisPattern.class, pattern);
-            try {
-              	TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
-               	getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
-                validatedTextualReferences.add(validatedTextRef.getUri());
-                log.debug("added textual reference " + validatedTextRef);
-            } catch (StringIndexOutOfBoundsException sioobe) { 
-	        	log.warn(sioobe.getMessage());
-	        	log.warn("(this is not an error if term is the first or last word in the input)");
-	        	log.warn("\"" + referencedTerm + "\" in \"" + textRef.getLeftText() + "\"");
-	        }
+
+            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
+            getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
+            validatedTextualReferences.add(validatedTextRef.getUri());
+            log.debug("added textual reference " + validatedTextRef);
+
     		counter++;
     		updateProgress(counter, size);
     	}

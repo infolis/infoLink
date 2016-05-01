@@ -85,6 +85,8 @@ public class LuceneSearcher extends BaseAlgorithm {
        	// size should be restricted here
        	String leftContext = contexts[0];
        	String rightContext = contexts[1];
+       	if (leftContext.isEmpty()) leftContext = " ";
+       	if (rightContext.isEmpty()) rightContext = " ";
        	TextualReference textRef = new TextualReference(leftContext, term, 
 	       			rightContext, fileUri, patternUri, entityUri);
 	       	return textRef;
@@ -193,11 +195,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 				                getExecution().getTextualReferences().add(textRef.getUri());
 				            } catch (ArrayIndexOutOfBoundsException aioobe) {
 				               	log.warn("Error: failed to split reference \"" + term + "\" in \"" + fragment + "\"");
-				            } catch (StringIndexOutOfBoundsException sioobe) { 
-				           		log.warn(sioobe.getMessage());
-				           		log.warn("(this is not an error if term is the first or last word in the input)");
-				           		log.warn("\"" + term + "\" in \"" + fragment + "\"");
-				           	}
+				            }
 			            }
 			            else {
 			            	TextualReference textRef = new TextualReference();

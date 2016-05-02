@@ -51,6 +51,7 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
@@ -243,22 +244,27 @@ public class CommandLineExecuter {
 		}
 		if (null == indexDir) {
 		    throwCLI("Inconsistency: --search-candidates but no --index-dir given.");
-		} Set<String> allMatchingFiles = new HashSet<>(); Map<String,List<String>> matchingFilesByQuery = new HashMap<>(); for (String query : getQueryTermsFromFile(queriesFile)) {
-		    String normalizeQuery = RegexUtils.normalizeQuery(query.trim(), true);
-		    matchingFilesByQuery.put(normalizeQuery, new ArrayList<String>());
+		} 
+		Set<String> allMatchingFiles = new HashSet<>(); 
+		Map<String,List<String>> matchingFilesByQuery = new HashMap<>(); 
+		for (String query : getQueryTermsFromFile(queriesFile)) {
+		    String normalizedQuery = RegexUtils.normalizeQuery(query.trim(), true);
+		    matchingFilesByQuery.put(normalizedQuery, new ArrayList<String>());
 
 		    Execution exec = new Execution();
 		    exec.setAlgorithm(LuceneSearcher.class);
 		    exec.setPhraseSlop(0);
 		    exec.setIndexDirectory(parentExec.getIndexDirectory());
 		    // normalize to treat phrase query properly
-            exec.setSearchQuery(normalizeQuery);
+		    InfolisPattern p = new InfolisPattern(normalizedQuery);
+		    dataStoreClient.post(InfolisPattern.class, p);
+            exec.setPatterns(Arrays.asList(p.getUri()));
 		    dataStoreClient.post(Execution.class, exec);
 		    exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		    for (InfolisFile f: dataStoreClient.get(InfolisFile.class, exec.getOutputFiles())) {
 		        String filename = FilenameUtils.getBaseName(f.getFileName());
 		        allMatchingFiles.add(filename);
-		        matchingFilesByQuery.get(normalizeQuery).add(filename);
+		        matchingFilesByQuery.get(normalizedQuery).add(filename);
 		    }
 		}
 		Path outFile = dbDir.resolve(FilenameUtils.getBaseName(queriesFile));

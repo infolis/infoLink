@@ -46,9 +46,9 @@ public class RegexUtils {
     public static final String doiBaseRegex = "(10\\.\\d+?/\\S+\\P{Punct})";
     public static final String doiRegex = leftContextRegex + doiBaseRegex + rightContextRegex;
     // number of the group which contains the doi. This number depends on the used doiRegex
- 	public static final int doiGroupNum = 5;
- 	public static final int doiLeftContextGroupNum = 3;
- 	public static final int doiRightContextGroupNum = 6;
+ 	public static final int doiGroupNum = 3;
+ 	public static final int doiLeftContextGroupNum = 1;
+ 	public static final int doiRightContextGroupNum = 5;
     // regex for extracting URLs
     public static String httpRegex = "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
     public static String wwwRegex = "www\\d?\\..*?\\.[^\\d\\s]+";

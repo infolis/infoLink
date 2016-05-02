@@ -13,6 +13,7 @@ import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.infolink.querying.SearchResultScorer;
+import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.infolink.querying.QueryService.QueryField;
 
 import org.slf4j.Logger;
@@ -66,9 +67,8 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             double confidenceValue = 0.0;
             log.debug("Computing score based on numbers. Weight: " + weights[0]);
             if (0 != weights[0]) confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
-            //TODO FIX
-            //log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
-            //confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, r.getQueryService()).getReliability();
+            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
+            confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getReliability();
             log.debug("Adding score based on list index. Weight: " + weights[2]);
             // normalize: +1 to avoid NaN if only results contains only one search result
             confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));

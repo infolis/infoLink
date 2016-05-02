@@ -10,6 +10,7 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.algorithm.BootstrappingTest.ExpectedOutput;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
@@ -99,11 +100,15 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 		assertTrue("StudyContexts must not be empty!", execution.getTextualReferences().size() > 0);
 		for (String s : execution.getTextualReferences()) {
 			TextualReference studyContext = dataStoreClient.get(TextualReference.class, s);
-			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
-			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
 			assertNotNull("StudyContext must have pattern set!", studyContext.getPattern());
 			assertNotNull("StudyContext must have term set!", studyContext.getReference());
 			assertNotNull("StudyContext must have file set!", studyContext.getFile());
+			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
+			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
+			Entity e = dataStoreClient.get(Entity.class, studyContext.getMentionsReference());
+			log.debug("Entity: {}", e.getFile());
+			InfolisFile f = dataStoreClient.get(InfolisFile.class, studyContext.getFile());
+			log.debug("Filename: {}", f.getFileName());
 		}
 		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}

@@ -93,7 +93,7 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		r.setMaxPmi(pmi_score);
 		pat.setTextualReferences(contexts_pattern);
 
-		double expectedReliability = r.reliability(pat, "");
+		double expectedReliability = r.reliability(pat, new HashSet<String>());
 
 		pat.isReliable(dataSize, reliableInstances, r);
 		assertEquals(expectedReliability, pat.getReliability(), 0.0);

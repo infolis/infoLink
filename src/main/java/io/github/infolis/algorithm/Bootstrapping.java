@@ -87,7 +87,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	return patternUris;
     }
 
-    List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
+    List<String> getContextsForPatterns(Collection<InfolisPattern> patterns, 
+    		DataStoreClient outputDataStoreClient) {
     	Execution applierExec = new Execution();
     	applierExec.setAlgorithm(InfolisPatternSearcher.class);
     	applierExec.setInputFiles(getExecution().getInputFiles());
@@ -98,7 +99,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	applierExec.setAllowLeadingWildcards(true);
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
     	applierExec.setTags(getExecution().getTags());
-    	applierExec.instantiateAlgorithm(this).run();
+    	applierExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
+    			getInputFileResolver(), getOutputFileResolver()).run();
     	return applierExec.getTextualReferences();
     }
 

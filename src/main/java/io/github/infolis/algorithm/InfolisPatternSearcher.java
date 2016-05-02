@@ -40,7 +40,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     private List<InfolisPattern> getInfolisPatterns(Collection<String> patternUris) {
     	List<InfolisPattern> patterns = new ArrayList<>();
     	for (String uri : patternUris) {
-    		patterns.add(getInputDataStoreClient().get(InfolisPattern.class, uri));
+    		patterns.add(getOutputDataStoreClient().get(InfolisPattern.class, uri));
     	}
     	return patterns;
     }

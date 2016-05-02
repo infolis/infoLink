@@ -226,7 +226,7 @@ public class Reliability {
 	        this.addInstance(instance);
 	        this.setMaxPmi(pmi);
         }
-        return this.reliability(pattern, "");
+        return this.reliability(pattern, new HashSet<String>());
     }
 
     /**
@@ -253,7 +253,7 @@ public class Reliability {
 	        this.addPattern(pattern);
 	        this.setMaxPmi(pmi);
         }
-        return this.reliability(instance, "");
+        return this.reliability(instance, new HashSet<String>());
     }
 
     /**
@@ -261,7 +261,7 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(Entity instance, String callingEntity) {
+    public double reliability(Entity instance, Set<String> callingEntitiesTrace) {
     	log.debug("Computing reliability of instance: " + instance.getName());
     	if (this.seedTerms.contains(instance.getName())) {
     		return 1.0;
@@ -272,11 +272,12 @@ public class Reliability {
         float P = Float.valueOf(patternsAndPmis.size());
         for (String patternString : patternsAndPmis.keySet()) {
         	// avoid circles
-        	if (patternString.equals(callingEntity)) { continue; }
+        	if (callingEntitiesTrace.contains(patternString)) { continue; }
             double pmi = patternsAndPmis.get(patternString);
             InfolisPattern pattern = this.patterns.get(patternString);
+            callingEntitiesTrace.add(instance.getName());
             if (maximumPmi != 0) {
-            	rp += ((pmi / maximumPmi) * reliability(pattern, instance.getName()));
+            	rp += ((pmi / maximumPmi) * reliability(pattern, callingEntitiesTrace));
             }
         }
         log.debug("instance max pmi: " + maximumPmi);
@@ -293,17 +294,18 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(InfolisPattern pattern, String callingEntity) {
+    public double reliability(InfolisPattern pattern, Set<String> callingEntitiesTrace) {
     	log.debug("Computing reliability of pattern: " + pattern.getPatternRegex());
     	if (scoreCache.containsKey(pattern.getPatternRegex())) return scoreCache.get(pattern.getPatternRegex());
         double rp = 0.0;
         Map<String, Double> instancesAndPmis = pattern.getAssociations();
         float P = Float.valueOf(instancesAndPmis.size());
         for (String instanceName : instancesAndPmis.keySet()) {
-        	if (instanceName.equals(callingEntity)) { continue; }
+        	if (callingEntitiesTrace.contains(instanceName)) { continue; }
             double pmi = instancesAndPmis.get(instanceName);
             Entity instance = instances.get(instanceName);
-            double reliability_instance = reliability(instance, pattern.getPatternRegex());
+            callingEntitiesTrace.add(pattern.getPatternRegex());
+            double reliability_instance = reliability(instance, callingEntitiesTrace);
             log.debug("stored pmi for pattern \"" + pattern.getPatternRegex() + "\" and instance \"" + instanceName +"\": " + pmi);
             if (maximumPmi != 0) {
             	rp += ((pmi / maximumPmi) * reliability_instance);

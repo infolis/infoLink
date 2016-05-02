@@ -59,7 +59,6 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         seedTerms.addAll(getExecution().getSeeds());
         this.r.setSeedTerms(seedTerms); 
         Map<String, Double> lastTopK = new HashMap<>();
-        //Set<TextualReference> contextsOfReliablePatterns = new HashSet<>();
         
         // initialize bootstrapping:
         // 1. search for all initial seeds and save contexts
@@ -166,13 +165,26 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         Collection<TextualReference> topContexts = new ArrayList<>();
         for (String regex : patternRanker.topK.keySet()) {
         	InfolisPattern topPattern = patternRanker.knownPatterns.get(regex);
+        	this.getOutputDataStoreClient().post(InfolisPattern.class, topPattern);
+        	// textual reference holds temporary uris for patterns and entities
+        	for (TextualReference textRef : topPattern.getTextualReferences()) {
+        		textRef.setPattern(topPattern.getUri());
+        		Entity entity = new Entity();
+        		entity.setFile(textRef.getFile());
+        		this.getOutputDataStoreClient().post(Entity.class, entity);
+        		textRef.setMentionsReference(entity.getUri());
+        	}
         	topContexts.addAll(topPattern.getTextualReferences());
         }
+        
         log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  ");
         for (Entity i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
         log.debug("Final top patterns: " + patternRanker.topK);
-        return removeUnreliableInstances(topContexts, reliableInstances);
+        
+        List<TextualReference> reliableReferences = removeUnreliableInstances(topContexts, reliableInstances);
+        this.getOutputDataStoreClient().post(TextualReference.class, reliableReferences);
+        return reliableReferences;
     }
 
     private List<TextualReference> removeUnreliableInstances(Collection<TextualReference> contexts, Set<Entity> reliableInstances) {
@@ -194,10 +206,10 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
      * @param URIs	list of study context URIs
      * @return	list of corresponding study contexts
      */
-    private List<TextualReference> getStudyContexts(Collection<String> URIs) {
+    private List<TextualReference> getStudyContexts(Collection<String> URIs, DataStoreClient client) {
         List<TextualReference> contexts = new ArrayList<>();
         for (String uri : URIs) {
-            contexts.add(getOutputDataStoreClient().get(TextualReference.class, uri));
+            contexts.add(client.get(TextualReference.class, uri));
         }
         return contexts;
     }
@@ -233,6 +245,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
     	private Map<String,InfolisPattern> knownPatterns = new HashMap<>();
         private Map<Double, Collection<String>> reliableRegex = new HashMap<>();
         private Map<String, Double> topK = new HashMap<>();
+        private DataStoreClient tempClient = getTempDataStoreClient();
 
         /**
          * 
@@ -248,6 +261,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {
 
                 for (InfolisPattern candidate : candidatesForContext) {
+                	// may be null if context had less words than windowsize for pattern induction
+                	if (null == candidate.getLuceneQuery()) continue;
                     log.debug("Checking if pattern is reliable: " + candidate.getPatternRegex());
 	            	// Do not process patterns more than once in one iteration, scores do not change.
                     // Scores may change from iteration to iteration though, thus do not exclude 
@@ -264,10 +279,9 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                         //contexts_pattern = candidatePattern.getTextualReferences();
                     } // even potentially unreliable candidates need a URI for extraction of contexts
                     else {
-                    	// TODO post temp patterns to temp datastore
-                        getOutputDataStoreClient().post(InfolisPattern.class, candidate);
+                    	tempClient.post(InfolisPattern.class, candidate);
                         // TODO: use on set of candidates instead of on single candidate
-                        candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate))));
+                        candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate), tempClient), tempClient));
                         this.knownPatterns.put(candidate.getPatternRegex(), candidate);
                     }
 
@@ -297,6 +311,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                     }
                 }
             }
+            tempClient.clear();
 	        // this returns only the most reliable patterns, not all reliable ones
             // thus, new seeds are generated based on the most reliable patterns only
             return this.topK;

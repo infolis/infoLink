@@ -159,7 +159,8 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 
             // 3. search for patterns in corpus
             if (!newPatterns.isEmpty()) {
-	            List<String> res = this.getContextsForPatterns(newPatterns);
+	            //List<String> res = this.getContextsForPatterns(newPatterns);
+            	List<String> res = this.getContextsForPatterns(newPatterns, this.getOutputDataStoreClient());
 	            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
 	            	extractedContextsFromPatterns.add(studyContext);
 	            	Entity entity = new Entity(studyContext.getReference());

@@ -40,7 +40,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
     private Reliability r = new Reliability();
     
     public PatternInducer getPatternInducer() {
-    	return new StandardPatternInducer();
+    	return new StandardPatternInducer(getExecution().getWindowsize());
     }
 
     public PatternRanker getPatternRanker() {

@@ -30,12 +30,16 @@ import org.slf4j.LoggerFactory;
 public class StandardPatternInducer extends Bootstrapping.PatternInducer {
     
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(StandardPatternInducer.class);
-	// TODO derive from windowsize
-	public final static int patternsPerContext = 9;
+
+    private int windowsize;;
+	private static int patternsPerContext;
 	Pattern leadingWildcards = Pattern.compile("\"(\\*\\s)+");
 	Pattern trailingWildcards = Pattern.compile("(\\s\\*)+\"");
 	
-	public StandardPatternInducer() {}
+	public StandardPatternInducer(int windowsize) {
+		this.windowsize = windowsize;
+		patternsPerContext = (windowsize * 2) -1;
+	}
 	
 	public final int getPatternsPerContext() {
 		return patternsPerContext;
@@ -104,8 +108,6 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
         String delimiter_left = leftWords.get(0);
         String delimiter_right = rightWords.get(0);
         
-        // TODO make configurable
-        int windowsize = 5;
         // set default values in case the context of a term contains less elements than the given windowsize
         List<InfolisPattern> inducedPatternsLeft = Stream.generate(InfolisPattern::new)
         												.limit(windowsize)
@@ -150,7 +152,13 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
         }
 	    // order is important here: patterns are listed in ascending order with regard to their generality
 	    // type2left and type2right etc. have equal generality
-	    return (Arrays.asList(typeGeneral, inducedPatternsLeft.get(0), inducedPatternsRight.get(0), inducedPatternsLeft.get(1), inducedPatternsRight.get(1), inducedPatternsLeft.get(2), inducedPatternsRight.get(2), inducedPatternsLeft.get(3), inducedPatternsRight.get(3)));
+        List<InfolisPattern> patterns = new ArrayList<>();
+        patterns.add(typeGeneral);
+        for (int i = 0; i < windowsize -1; i++) {
+        	patterns.add(inducedPatternsLeft.get(i));
+        	patterns.add(inducedPatternsRight.get(i));
+        }
+        return patterns;
 	}
 	    
 }

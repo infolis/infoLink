@@ -243,23 +243,33 @@ public class Execution extends BaseModel {
 
 	/**
          * Any kind of search query that can be used within the algorithms.
-         * For example, it represtens the search query which is used
+         * For example, it represents the search query which is used
          * to perform a search in different repositories to find
          * fitting research data.
          * 
-	 * {@link LuceneSearcher} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
+	 * {@link FederatedSearcher} {@link SearchPatternsAndCreateLinks}
 	 */
 	private String searchQuery;
 	
 	/**
-	 * Group numbers to use for RegexSearcher.
+	 * Group numbers to use for RegexSearcher: group of reference term.
 	 * 
 	 * {@Link RegexSearcher}
 	 */
 	private int referenceGroup = RegexUtils.doiGroupNum;
 	
+	/**
+	 * Group numbers to use for RegexSearcher: group of left context.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
 	private int leftContextGroup = RegexUtils.doiLeftContextGroupNum;
 	
+	/**
+	 * Group numbers to use for RegexSearcher: group of right context.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
 	private int rightContextGroup = RegexUtils.doiRightContextGroupNum;
 
 	/**
@@ -309,6 +319,13 @@ public class Execution extends BaseModel {
          * {@link Bootstrapping}
 	 */
 	private int maxIterations = 10;
+	
+	/**
+	 * Number of words used for creation of patterns.
+	 * 
+	 * {@link StandardPatternInducer}
+	 */
+	private int windowsize = 3;
 
         
         //TODO: also used for frequencyBasedBootstrapping, should we just name 
@@ -681,6 +698,14 @@ public class Execution extends BaseModel {
 
 	public void setMaxIterations(int maxIterations) {
 		this.maxIterations = maxIterations;
+	}
+	
+	public int getWindowsize() {
+		return this.windowsize;
+	}
+	
+	public void setWindowsize(int windowsize) {
+		this.windowsize = windowsize;
 	}
 
 	public double getReliabilityThreshold() {

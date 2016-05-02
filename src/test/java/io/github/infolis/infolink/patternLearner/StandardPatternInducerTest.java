@@ -27,7 +27,7 @@ public class StandardPatternInducerTest {
 	
 	@Test
 	public void testInduce() {
-		StandardPatternInducer inducer = new StandardPatternInducer();
+		StandardPatternInducer inducer = new StandardPatternInducer(5);
 		Double[] thresholds = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		
 		TextualReference ref = new TextualReference("15757 41727 5743 10877 10014 30850 Sozialstaatssurvey/", "ALLBUS", " .", "textfile", "pattern", "mentionsReference");

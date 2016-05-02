@@ -34,7 +34,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(FrequencyBasedBootstrapping.class);
 
 	public PatternInducer getPatternInducer() {
-	   	return new StandardPatternInducer();
+	   	return new StandardPatternInducer(getExecution().getWindowsize());
 	}
 
 	public PatternRanker getPatternRanker() {

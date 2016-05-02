@@ -104,6 +104,7 @@ public class DaraSolrQueryService extends QueryService {
             int listIndex = 0;
             for (JsonObject item : result.getValuesAs(JsonObject.class)) {
                 SearchResult sr = new SearchResult();
+                sr.setQueryService(this.getUri());
                 sr.setListIndex(listIndex);
                 JsonArray identifier = item.getJsonArray("doi");
                 sr.setIdentifier(identifier.getString(0));
@@ -118,12 +119,13 @@ public class DaraSolrQueryService extends QueryService {
                     sr.addTitle(title);
                     for (String num : numericInfo) sr.addNumericInformation(num);                    
                 }              
-                
+                log.debug("Creating search result: titles: " + titles + "; identifier: " + identifier);
                 results.add(sr);
                 listIndex++;
             }
         } catch (Exception ex) {
-            //TODO: catch exception
+        	// TODO catch exception
+            log.error(ex.getMessage());
         }
         return results;
     }

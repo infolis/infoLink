@@ -52,7 +52,8 @@ public class FederatedSearcher extends BaseAlgorithm {
                     	queryService.setQueryStrategy(linker.getQueryStrategy());
                     }
                     //TODO else?
-                    debug(log, "Calling QueryService %s to find entity %s", queryService, entity);
+                    getOutputDataStoreClient().post(QueryService.class, queryService);
+                    debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
                     List<SearchResult> results = queryService.find(entity);
                     allResults.addAll(results);
                     updateProgress(counter, size);
@@ -71,6 +72,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                     	queryService.setQueryStrategy(linker.getQueryStrategy());
                     }
                     //TODO else?
+	            	debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
 	            	List<SearchResult> results = queryService.find(entity);
 	                allResults.addAll(results);
 	                updateProgress(counter, size);
@@ -83,7 +85,7 @@ public class FederatedSearcher extends BaseAlgorithm {
         List<String> searchResultUris = new ArrayList<>();
         for (SearchResult sr : allResults) {
             searchResultUris.add(sr.getUri());
-            log.debug("Found search result " + sr.getUri());
+            log.debug("Found search result {}: {}", sr.getUri(), sr.getIdentifier());
         }
         getExecution().setSearchResults(searchResultUris);
         getExecution().setStatus(ExecutionStatus.FINISHED);

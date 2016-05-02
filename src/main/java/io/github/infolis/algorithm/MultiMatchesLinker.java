@@ -40,7 +40,7 @@ public class MultiMatchesLinker extends SearchResultLinker {
 		String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
 		Map<SearchResult, Double> scoreMap = rankResults(textRef);
-		scoreMap = getMatchingSearchResults(scoreMap, 0.5);
+		scoreMap = getMatchingSearchResults(scoreMap, 1.0);
         List<String> entityLinks = createLinks(textRef, scoreMap);
         getExecution().setLinks(entityLinks);
         getExecution().setStatus(ExecutionStatus.FINISHED);

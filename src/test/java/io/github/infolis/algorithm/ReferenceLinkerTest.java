@@ -57,8 +57,8 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 	    Entity toEntity1 = dataStoreClient.get(Entity.class, links.get(0).getToEntity());
 	    Entity toEntity2 = dataStoreClient.get(Entity.class, links.get(1).getToEntity());
 	    Entity toEntity3 = dataStoreClient.get(Entity.class, links.get(2).getToEntity());
-	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getIdentifier()).contains("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)"));
-	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getIdentifier()).contains("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013"));
+	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getName()).contains("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)"));
+	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getName()).contains("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013"));
 	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.5126"));
 	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.12510"));
 	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.12494"));

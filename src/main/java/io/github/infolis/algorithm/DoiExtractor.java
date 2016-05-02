@@ -24,7 +24,7 @@ public class DoiExtractor extends BaseAlgorithm {
 	}
 	
 	private void extractDois(List<String> inputFileUris) {
-		String doiRegex = RegexUtils.leftContextRegex + RegexUtils.doiRegex + RegexUtils.rightContextRegex;
+		String doiRegex = RegexUtils.doiRegex;
 		InfolisPattern doiInfolisPat = new InfolisPattern();
 		doiInfolisPat.setPatternRegex(doiRegex);
 		getInputDataStoreClient().post(InfolisPattern.class, doiInfolisPat);

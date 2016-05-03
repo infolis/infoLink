@@ -1,2 +1,23 @@
 language: java
-script: ./gradlew test -i
+jdk:
+  - oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/2.3
+    - $HOME/.gradle/caches/jars-1
+    - $HOME/.gradle/daemon
+    - $HOME/.gradle/native
+    - $HOME/.gradle/wrapper
+
+# before_script:
+#   - wget 'http://dbgroup.cs.tsinghua.edu.cn/wangjn/codes/fastjoin.tar.gz'
+#   - tar xf fastjoin.tar.gz
+#   - chmod a+x $PWD/fastjoin/linux/FastJoin
+#   - cp ./src/main/resources/infolis-config.properties $HOME
+#   - echo "" >> $HOME/infolis-config.properties
+#   - echo "fastJoin = $PWD/fastjoin/linux/FastJoin" >> $HOME/infolis-config.properties
+#   - cat "$HOME/infolis-config.properties"
+
+script:
+  - ./gradlew travisTest --info

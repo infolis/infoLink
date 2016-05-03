@@ -78,6 +78,15 @@ test {
     }
 }
 
+task travisTest(type: Test) {
+    systemProperties = System.properties
+    testLogging {
+        events "failed"
+        exceptionFormat "short"
+    }
+    exclude '**/KeywordTaggerTest.class'
+}
+
 configurations.all {
     exclude group: "org.slf4j", module: "slf4j-log4j12"
     exclude group: "log4j", module: "log4j"

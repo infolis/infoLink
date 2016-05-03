@@ -445,8 +445,8 @@ public class CommandLineExecuter {
             if (null == json && shouldConvertToText && ! searchCandidatesMode) {
                 convertToTextMode = true;
             }
-            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-            root.setLevel(Level.toLevel(logLevel));
+            // ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            // root.setLevel(Level.toLevel(logLevel));
         } catch (Exception e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);

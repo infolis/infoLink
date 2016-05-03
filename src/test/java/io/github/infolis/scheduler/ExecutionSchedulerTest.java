@@ -52,7 +52,7 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
     @Test
     public void testScheduler() throws IOException, InterruptedException {
         File txtDir = new File(getClass().getResource("/examples/txts").getFile());
-        File patternFile = new File(getClass().getResource("/examples/pattern.txt").getFile());
+        File patternFile = new File(getClass().getResource("/examples/patterns.txt").getFile());
 
         //post all important stuff
         List<String> pattern = postPattern(patternFile);
@@ -62,6 +62,9 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         e.setAlgorithm(RegexSearcher.class);
         e.setPatterns(pattern);
         e.setInputFiles(txt);
+        e.setLeftContextGroup(1);
+		e.setRightContextGroup(0);
+		e.setReferenceGroup(2);
         dataStoreClient.post(Execution.class, e);
         ExecutionScheduler exe = ExecutionScheduler.getInstance();
         exe.execute(e.instantiateAlgorithm(dataStoreClient, fileResolver));
@@ -128,7 +131,8 @@ public class ExecutionSchedulerTest extends InfolisBaseTest {
         String line = read.readLine();
         List<String> postedPattern = new ArrayList<>();
         while (line != null) {
-            InfolisPattern p = new InfolisPattern(line);
+            InfolisPattern p = new InfolisPattern();
+            p.setPatternRegex(line);
             dataStoreClient.post(InfolisPattern.class, p);
             postedPattern.add(p.getUri());
             line = read.readLine();

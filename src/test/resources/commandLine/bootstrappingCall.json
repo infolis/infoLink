@@ -1,0 +1,10 @@
+{
+"algorithm":"FrequencyBasedBootstrapping",
+"seeds":["ALLBUS"],
+"bootstrapStrategy":"mergeAll",
+"reliabilityThreshold":0.09,
+"upperCaseConstraint":true,
+"tokenize":true,
+"tokenizeNLs":true,
+"ptb3Escaping":true
+}

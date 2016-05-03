@@ -127,7 +127,8 @@ public abstract class BaseAlgorithm implements Algorithm {
     }
 
     private String log(Logger log, String fmt, String level, Object... args) {
-    	final String str = String.format(fmt.replaceAll("%", "\\%").replaceAll("\\{\\}", "%s"), args);
+    	fmt = fmt.replaceAll("%", "%%");
+    	final String str = String.format(fmt.replaceAll("\\{\\}", "%s"), args);
         switch (level.toLowerCase()) {
             case "trace":
                 log.trace(str);
@@ -171,7 +172,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             validate();
         } catch (IllegalAlgorithmArgumentException | RuntimeException e) {
             getExecution().setStatus(ExecutionStatus.FAILED);
-            error(log, "Validation threw an Exception: %s", e);
+            error(log, "Validation threw an Exception: {}", e);
             e.printStackTrace();
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
@@ -184,7 +185,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
         } catch (Exception e) {
-            error(log, "Execution threw an Exception: %s", e);
+            error(log, "Execution threw an Exception: {}", e);
             e.printStackTrace();
             getExecution().setStatus(ExecutionStatus.FAILED);
             getExecution().setEndTime(new Date());

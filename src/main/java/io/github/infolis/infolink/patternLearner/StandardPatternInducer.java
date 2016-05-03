@@ -10,7 +10,15 @@ import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.RegexUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.slf4j.LoggerFactory;
 
 /**
@@ -22,18 +30,60 @@ import org.slf4j.LoggerFactory;
 public class StandardPatternInducer extends Bootstrapping.PatternInducer {
     
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(StandardPatternInducer.class);
-	public final static int patternsPerContext = 9;
+
+    private int windowsize;;
+	private static int patternsPerContext;
+	Pattern leadingWildcards = Pattern.compile("\"(\\*\\s)+");
+	Pattern trailingWildcards = Pattern.compile("(\\s\\*)+\"");
 	
-	public StandardPatternInducer() {}
+	public StandardPatternInducer(int windowsize) {
+		this.windowsize = windowsize;
+		patternsPerContext = (windowsize * 2) -1;
+	}
 	
 	public final int getPatternsPerContext() {
 		return patternsPerContext;
 	}
 	
+	private InfolisPattern createPattern(Set<String> words, List<String> lucene_left, List<String> lucene_right, List<String> regex_left, List<String> regex_right, String delimiter_left, String delimiter_right, double threshold) {
+		// left words are in reverse order, need to reverse again here
+		// make a deep copy of the list to not alter the original one
+		List<String> lucene_left_copy = new ArrayList<>();
+		for (String word : lucene_left) lucene_left_copy.add(word);
+		Collections.reverse(lucene_left_copy);
+		
+		List<String> regex_left_copy = new ArrayList<>();
+		for (String word : regex_left) regex_left_copy.add(word);
+		Collections.reverse(regex_left_copy);
+		
+		String luceneQuery = "\"" + String.join(" ", lucene_left_copy) + delimiter_left + "*" + delimiter_right + String.join(" ", lucene_right) + "\"";
+		
+		Matcher leadingWildcardMatcher = leadingWildcards.matcher(luceneQuery);
+		if (leadingWildcardMatcher.find()) luceneQuery = leadingWildcardMatcher.replaceAll("\"");
+		
+		Matcher trailingWildcardMatcher = trailingWildcards.matcher(luceneQuery);
+		if (trailingWildcardMatcher.find()) luceneQuery = trailingWildcardMatcher.replaceAll("\"");
+		
+		if (delimiter_left.matches("\\s")) delimiter_left = "\\s";
+		else if (delimiter_left.matches("")) delimiter_left = "\\s?";
+		if (delimiter_right.matches("\\s")) delimiter_right = "\\s";
+		else if (delimiter_right.matches("")) delimiter_right = "\\s?";
+		
+	    String regex = String.join("\\s", regex_left_copy) + delimiter_left + RegexUtils.studyRegex_ngram + delimiter_right + String.join("\\s", regex_right);
+		InfolisPattern pattern = new InfolisPattern(regex, luceneQuery, words, threshold);
+		return pattern;
+	}
+	
 	protected List<InfolisPattern> induce(TextualReference context, Double[] thresholds) {
+		
+		log.trace("context: " + context.toString());
 
-		List<String> leftWords = context.getLeftWords();
+		List<String> leftWords = new ArrayList<>();
+		leftWords.addAll(context.getLeftWords());
         List<String> rightWords = context.getRightWords();
+        
+        // reverse order so that leftWords.get(0) is the direct neighbour of the search term
+        Collections.reverse(leftWords);
 
         Function<String, String> normalizeAndEscape_lucene
                 = new Function<String, String>() {
@@ -53,95 +103,62 @@ public class StandardPatternInducer extends Bootstrapping.PatternInducer {
         List<String> rightWords_lucene = new ArrayList<>(Lists.transform(rightWords, normalizeAndEscape_lucene));
         List<String> leftWords_regex = new ArrayList<>(Lists.transform(leftWords, regex_escape));
         List<String> rightWords_regex = new ArrayList<>(Lists.transform(rightWords, regex_escape));
+        
+        // delimiter between search term and context terms
+        String delimiter_left = leftWords.get(0);
+        String delimiter_right = rightWords.get(0);
+        
+        // set default values in case the context of a term contains less elements than the given windowsize
+        List<InfolisPattern> inducedPatternsLeft = Stream.generate(InfolisPattern::new)
+        												.limit(windowsize)
+        												.collect(Collectors.toList());
+        List<InfolisPattern> inducedPatternsRight = Stream.generate(InfolisPattern::new)
+														.limit(windowsize)
+														.collect(Collectors.toList());
 
-        int windowSize = leftWords.size();
-        String directNeighbourLeft = leftWords.get(windowSize - 1);
-        String directNeighbourRight = rightWords.get(0);
-
+        InfolisPattern typeGeneral;
+        
         try {
-	        //directly adjacent words may appear without being separated by whitespace iff those words consist of punctuation marks
-	        if (directNeighbourLeft.matches(".*\\P{Punct}")) {
-	            leftWords_regex.set(windowSize - 1, leftWords_regex.get(windowSize - 1) + "\\s");
-	        }
-	        if (directNeighbourRight.matches("\\P{Punct}.*")) {
-	            rightWords_regex.set(0, "\\s" + rightWords_regex.get(0));
-	        }
-	
-	        // construct all allowed patterns
-	        //TODO: atomic regex...?
-	        // most general pattern: two words enclosing study name
-	        String luceneQuery1 = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
-	        String minimal1 = leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0);
-	        String regex1 = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 2 words behind study title + fixed word before
-	        String luceneQueryB = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + "\"";
-	        String minimalB = minimal1 + "\\s" + rightWords_regex.get(1);
-	        String regexB = RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 3 words behind study title + fixed word before
-	        String luceneQueryC = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + "\"";
-	        String minimalC = leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2);
-	        String regexC = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        String luceneQueryD = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + "\"";
-	        String minimalD = leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3);
-	        String regexD = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 5 words behind study title + fixed word before
-	        String luceneQueryE = "\"" + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + " " + rightWords_lucene.get(1) + " " + rightWords_lucene.get(2) + " " + rightWords_lucene.get(3) + " " + rightWords_lucene.get(4) + "\"";
-	        String minimalE = leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
-	        String regexE = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + rightWords_regex.get(1) + "\\s" + rightWords_regex.get(2) + "\\s" + rightWords_regex.get(3) + "\\s" + rightWords_regex.get(4);
-	
-	        // phrase consisting of 2 words before study title + fixed word behind
-	        String luceneQuery2 = "\"" + leftWords_lucene.get(windowSize - 2) + " " + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
-	        String minimal2 = leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0);
-	        String regex2 = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 3 words before study title + fixed word behind
-	        String luceneQuery3 = "\"" + leftWords_lucene.get(windowSize - 3) + " " + leftWords_lucene.get(windowSize - 2) + " " + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
-	        String minimal3 = leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0);
-	        String regex3 = RegexUtils.wordRegex_atomic + "\\s" + RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 4 words before study title + fixed word behind
-	        String luceneQuery4 = "\"" + leftWords_lucene.get(windowSize - 4) + " " + leftWords_lucene.get(windowSize - 3) + " " + leftWords_lucene.get(windowSize - 2) + " " + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
-	        String minimal4 = leftWords_regex.get(windowSize - 4) + "\\s" + leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0);
-	        String regex4 = RegexUtils.wordRegex_atomic + "\\s" + leftWords_regex.get(windowSize - 4) + "\\s" + leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        // phrase consisting of 5 words before study title + fixed word behind
-	        String luceneQuery5 = "\"" + leftWords_lucene.get(windowSize - 5) + " " + leftWords_lucene.get(windowSize - 4) + " " + leftWords_lucene.get(windowSize - 3) + " " + leftWords_lucene.get(windowSize - 2) + " " + leftWords_lucene.get(windowSize - 1) + " * " + rightWords_lucene.get(0) + "\"";
-	        String minimal5 = leftWords_regex.get(windowSize - 5) + "\\s" + leftWords_regex.get(windowSize - 4) + "\\s" + leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0);
-	        String regex5 = leftWords_regex.get(windowSize - 5) + "\\s" + leftWords_regex.get(windowSize - 4) + "\\s" + leftWords_regex.get(windowSize - 3) + "\\s" + leftWords_regex.get(windowSize - 2) + "\\s" + leftWords_regex.get(windowSize - 1) + "\\s?" + RegexUtils.studyRegex_ngram + "\\s?" + rightWords_regex.get(0) + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.wordRegex + "\\s" + RegexUtils.lastWordRegex;
-	
-	        InfolisPattern type_general = new InfolisPattern(regex1, luceneQuery1, minimal1, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[0]);
-	        InfolisPattern type2 = new InfolisPattern(regex2, luceneQuery2, minimal2, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[1]);
-	        InfolisPattern type3 = new InfolisPattern(regex3, luceneQuery3, minimal3, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[2]);
-	        InfolisPattern type4 = new InfolisPattern(regex4, luceneQuery4, minimal4, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 4), leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), leftWords.get(windowSize - 1), 
-	        		rightWords.get(0))), thresholds[3]);
-	        InfolisPattern type5 = new InfolisPattern(regex5, luceneQuery5, minimal5, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 5), leftWords.get(windowSize - 4), leftWords.get(windowSize - 3), leftWords.get(windowSize - 2), 
-	        		leftWords.get(windowSize - 1), rightWords.get(0))), thresholds[4]);
-	        InfolisPattern typeB = new InfolisPattern(regexB, luceneQueryB, minimalB, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1))), thresholds[5]);
-	        InfolisPattern typeC = new InfolisPattern(regexC, luceneQueryC, minimalC, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2))), thresholds[6]);
-	        InfolisPattern typeD = new InfolisPattern(regexD, luceneQueryD, minimalD, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3))), thresholds[7]);
-	        InfolisPattern typeE = new InfolisPattern(regexE, luceneQueryE, minimalE, new ArrayList<String>(Arrays.asList(
-	        		leftWords.get(windowSize - 1), rightWords.get(0), rightWords.get(1), rightWords.get(2), rightWords.get(3), rightWords.get(4))), 
-	        		thresholds[8]);
-	        // order is important here: patterns are listed in ascending order with regard to their generality
-	        // type2 and typeB, type3 and typeC etc. have equal generality
-	        return (Arrays.asList(type_general, type2, typeB, type3, typeC, type4, typeD, type5, typeE));
+        	// most general pattern: two words enclosing study name
+            Set<String> words = new HashSet<>();
+            words.addAll(leftWords.subList(1, 2));
+            words.addAll(rightWords.subList(1, 2));
+        	typeGeneral = createPattern(words, leftWords_lucene.subList(1, 2), rightWords_lucene.subList(1, 2), leftWords_regex.subList(1, 2), rightWords_regex.subList(1, 2), delimiter_left, delimiter_right, thresholds[0]);
+        	log.trace("induced pattern: " + typeGeneral.getLuceneQuery());
         } catch (IndexOutOfBoundsException e) {
-        	log.error("Error: missing words in context: " + context);
-        	log.error("trace: " + e); 
-        	return new ArrayList<InfolisPattern>();
+        	log.debug("Not enough words in context to induce pattern of type general: " + context);
+        	return new ArrayList<>();
         }
+        
+        // induce patterns with one word as left context and a phrase of windowsize * 1 right context words
+        // i starts at 2 because index 0 is the delimiter, first word is at subList(1,2)
+        for (int i = 3; i < Math.min(windowsize + 2, rightWords.size()); i++) {    
+        	Set<String> words = new HashSet<>();
+            words.addAll(leftWords.subList(1, 2));
+            words.addAll(rightWords.subList(1, i));
+        	InfolisPattern pattern = createPattern(words, leftWords_lucene.subList(1, 2), rightWords_lucene.subList(1, i), leftWords_regex.subList(1, 2), rightWords_regex.subList(1, i), delimiter_left, delimiter_right, thresholds[i+2]);
+        	inducedPatternsRight.add(i-3, pattern);
+        	log.trace("induced pattern: " + pattern.getLuceneQuery());
+        }
+
+        // induce patterns with one word as right context and a phrase of windowsize * 1 left context words
+        for (int i = 3; i < Math.min(windowsize + 2, leftWords.size()); i++) {
+        	Set<String> words = new HashSet<>();
+            words.addAll(leftWords.subList(1, i));
+            words.addAll(rightWords.subList(1, 2));
+        	InfolisPattern pattern = createPattern(words, leftWords_lucene.subList(1, i), rightWords_lucene.subList(1, 2), leftWords_regex.subList(1, i), rightWords_regex.subList(1, 2), delimiter_left, delimiter_right, thresholds[i-2]);
+        	inducedPatternsLeft.add(i-3, pattern);
+        	log.trace("induced pattern: " + pattern.getLuceneQuery());
+        }
+	    // order is important here: patterns are listed in ascending order with regard to their generality
+	    // type2left and type2right etc. have equal generality
+        List<InfolisPattern> patterns = new ArrayList<>();
+        patterns.add(typeGeneral);
+        for (int i = 0; i < windowsize -1; i++) {
+        	patterns.add(inducedPatternsLeft.get(i));
+        	patterns.add(inducedPatternsRight.get(i));
+        }
+        return patterns;
 	}
 	    
 }

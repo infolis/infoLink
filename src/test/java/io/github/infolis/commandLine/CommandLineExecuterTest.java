@@ -116,7 +116,6 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
         	"--json", getResourcePath("/commandLine/algoQueryServiceClasses.json"),
-                "--search-query","?q=title:ALLBUS",
                 "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),

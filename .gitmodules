@@ -1,0 +1,3 @@
+[submodule "keywordTagging"]
+	path = keywordTagging
+	url = https://github.com/infolis/tagging

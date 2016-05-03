@@ -13,13 +13,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -43,26 +41,23 @@ public class InfolisPattern extends BaseModel {
     // TODO can this be final?
     private String patternRegex;
     private String luceneQuery;
-    private String minimal;
-    private List<String> words = new ArrayList<>();
+    private Set<String> words = new HashSet<>();
     private double threshold;
     private double reliability;
     private Set<String> tags = new HashSet<>();
-    // TODO @bolandka Make this a class so it can be persisted
     private Map<String, Double> associations = new HashMap<>();
-    //TODO: change to URI -> string
+    //TODO: change to URI -> string?
     private Collection<TextualReference> textualReferences;
 
-    public InfolisPattern(String patternRegex, String luceneQuery, String minimal, List<String> words, double threshold) {
+    public InfolisPattern(String patternRegex, String luceneQuery, Set<String> words, double threshold) {
         this.setLuceneQuery(luceneQuery);
         this.setPatternRegex(patternRegex);
-        this.setMinimal(minimal);
         this.setWords(words);
         this.setThreshold(threshold);
     }
 
-    public InfolisPattern(String patternRegex) {
-        this.setPatternRegex(patternRegex);
+    public InfolisPattern(String luceneQuery) {
+        this.luceneQuery = luceneQuery;
     }
 
     public InfolisPattern() {
@@ -93,7 +88,7 @@ public class InfolisPattern extends BaseModel {
     /**
      * @return the words
      */
-    public List<String> getWords() {
+    public Set<String> getWords() {
         return words;
     }
 
@@ -106,24 +101,10 @@ public class InfolisPattern extends BaseModel {
     }
 
     /**
-     * @return the minimal
-     */
-    public String getMinimal() {
-        return minimal;
-    }
-
-    /**
-     * @param minimal the minimal to set
-     */
-    public void setMinimal(String minimal) {
-        this.minimal = minimal;
-    }
-
-    /**
      *
      * @param words the words to set
      */
-    public void setWords(List<String> words) {
+    public void setWords(Set<String> words) {
         this.words = words;
     }
     
@@ -231,7 +212,7 @@ public class InfolisPattern extends BaseModel {
 
     public boolean addAssociation(String entityName, double score) {
         if (this.getAssociations().containsKey(entityName)) {
-            log.debug("association between entity " + this.getMinimal()
+            log.debug("association between entity " + this.getPatternRegex()
                     + " and entity " + entityName
                     + " already known, overwriting previously saved score.");
         }

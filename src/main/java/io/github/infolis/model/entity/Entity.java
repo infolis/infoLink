@@ -19,7 +19,7 @@ import io.github.infolis.model.TextualReference;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -36,21 +36,21 @@ public class Entity extends BaseModel {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Entity.class);
 
-    //TODO: list of names instead one?
     @XmlAttribute
     private String name;
     private String identifier;
+    private String url;
     private Set<String> tags;
-  //TODO use uris instead of TextualReference objects (hard to change it)
-    //private Collection<String> textualReferences;
     private Collection<TextualReference> textualReferences;
     private String file;
 
     @XmlAttribute
     private String number;
+    private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
     private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
+    private String abstractText;
 
     public Entity(String name) {
         this.name = name;
@@ -65,15 +65,6 @@ public class Entity extends BaseModel {
     public String getName() {
         return this.name;
     }
-    //TODO use uris instead of TextualReference objects
-    /*
-    public void setTextualReferences(Collection<String> uris) {
-    	this.textualReferences = uris;
-    }
-
-    public Collection<String> getTextualReferences() {
-    	return this.textualReferences;
-    }*/
 
     public void setTextualReferences(Collection<TextualReference> textualReferences) {
     	this.textualReferences = textualReferences;
@@ -112,6 +103,14 @@ public class Entity extends BaseModel {
      */
     public String getIdentifier() {
         return identifier;
+    }
+    
+    public String getURL() {
+    	return this.url;
+    }
+    
+    public void setURL(String url) {
+    	this.url = url;
     }
 
     /**
@@ -154,6 +153,14 @@ public class Entity extends BaseModel {
      */
     public void setNumber(String number) {
         this.number = number;
+    }
+    
+    public void addNumericInfo(String numericInfo) {
+    	this.numericInfo.add(numericInfo);
+    }
+    
+    public List<String> getNumericInfo() {
+    	return this.numericInfo;
     }
 
     public double getReliability() {
@@ -211,5 +218,19 @@ public class Entity extends BaseModel {
      */
     public void addAlternativeNames(String alternativeName) {
         this.alternativeNames.add(alternativeName);
+    }
+
+    /**
+     * @return the abstractText
+     */
+    public String getAbstractText() {
+        return abstractText;
+    }
+
+    /**
+     * @param abstractText the abstractText to set
+     */
+    public void setAbstractText(String abstractText) {
+        this.abstractText = abstractText;
     }
 }

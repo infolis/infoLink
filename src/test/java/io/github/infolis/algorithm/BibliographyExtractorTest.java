@@ -1,13 +1,12 @@
 package io.github.infolis.algorithm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,8 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
-import io.github.infolis.commandLine.CommandLineExecuterTest;
-import io.github.infolis.datastore.DataStoreStrategy;
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.InfolisFile;
@@ -40,31 +38,27 @@ import io.github.infolis.util.SerializationUtils;
 public class BibliographyExtractorTest extends InfolisBaseTest {
 
 	private static final Logger log = LoggerFactory.getLogger(BibliographyExtractorTest.class);
-	Path inputDir;
-	Path goldDir;
+	File inputDir;
+	File goldDir;
 	List<String> inputFiles;
 	List<String> goldFiles;
 
 	public BibliographyExtractorTest() throws URISyntaxException, IOException {
-		inputDir = getResourcePath("/bibExtractor/test/");
-		goldDir = getResourcePath("/bibExtractor/gold/");
+		inputDir = getResource("/bibExtractor/test/");
+		goldDir = getResource("/bibExtractor/gold/");
 		inputFiles = postFiles(inputDir, "text/plain");
 		goldFiles = postFiles(goldDir, "text/plain");
-		fileResolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
 	}
 
-	private Path getResourcePath(String resName) throws URISyntaxException {
-    	URL resource = CommandLineExecuterTest.class.getResource(resName);
-    	log.debug("{}", resource);
-        return Paths.get(resource.toURI());
+	private File getResource(String resName) {
+    	return new File(getClass().getResource(resName).getFile());
     }
 
-	public List<String> postFiles(Path dir, String mimetype) throws IOException {
+	public List<String> postFiles(File dir, String mimetype) throws IOException {
         List<InfolisFile> infolisFiles = new ArrayList<>();
-        DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir);
-        for (Path file : dirStream) {
+        for (File file : dir.listFiles()) {
             InfolisFile infolisFile = new InfolisFile();
-            InputStream inputStream = Files.newInputStream(file);
+            InputStream inputStream = Files.newInputStream(Paths.get(file.getAbsolutePath()));
             byte[] bytes = IOUtils.toByteArray(inputStream);
             infolisFile.setMd5(SerializationUtils.getHexMd5(bytes));
             infolisFile.setFileName(file.toString());
@@ -80,10 +74,13 @@ public class BibliographyExtractorTest extends InfolisBaseTest {
 		Execution exec = new Execution();
 		exec.setInputFiles(inputFiles);
 		exec.setAlgorithm(BibliographyExtractor.class);
-		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		exec.instantiateAlgorithm(dataStoreClient, dataStoreClient, FileResolverFactory.local(), fileResolver).run();
+
 		log.debug("output files: " + exec.getOutputFiles());
 		assertEquals(exec.getInputFiles().size(), exec.getOutputFiles().size());
-		// todo: check if files are written properly
+		assertTrue(Paths.get(exec.getOutputDirectory()).startsWith(InfolisConfig.getTmpFilePath()));
+		InfolisFile outFile = dataStoreClient.get(InfolisFile.class, exec.getFirstOutputFile());
+		assertTrue(Paths.get(outFile.getFileName()).getParent().startsWith(InfolisConfig.getTmpFilePath()));
 	}
 
 	private Map<String, String> getGoldTexts() throws IOException {

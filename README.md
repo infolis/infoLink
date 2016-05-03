@@ -23,11 +23,15 @@ Change into your Eclipse workspace directory
 cd ~/workspace
 ```
 
-Clone the repository
+Clone the repository and get the submodules
 
 ```
 git clone https://github.com/infolis/infoLink
+git submodule init
+git submodule update
 ```
+
+Download FastJoin from `http://dbgroup.cs.tsinghua.edu.cn/wangjn/projects/fastjoin/` and set the `fastJoin` config option.
 
 Change to the directory and run the `eclipse` gradle task
 

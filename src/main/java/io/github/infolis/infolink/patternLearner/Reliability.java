@@ -108,15 +108,15 @@ public class Reliability {
      * if already in this patterns
      */
     public boolean addPattern(InfolisPattern pattern) {
-        if (this.patterns.containsKey(pattern.getMinimal())) {
-            InfolisPattern curPattern = this.patterns.get(pattern.getMinimal());
+        if (this.patterns.containsKey(pattern.getPatternRegex())) {
+            InfolisPattern curPattern = this.patterns.get(pattern.getPatternRegex());
             Map<String, Double> curAssociations = curPattern.getAssociations();
             curAssociations.putAll(pattern.getAssociations());
             pattern.setAssociations(curAssociations);
-            this.patterns.put(pattern.getMinimal(), pattern);
+            this.patterns.put(pattern.getPatternRegex(), pattern);
             return false;
         }
-        this.patterns.put(pattern.getMinimal(), pattern);
+        this.patterns.put(pattern.getPatternRegex(), pattern);
         return true;
     }
 
@@ -173,7 +173,7 @@ public class Reliability {
      * @return					point-wise mutual information score of instance and pattern (belonging to regex)
      */
     private double computePmi(int dataSize, Entity instance, InfolisPattern pattern) {
-    	log.debug("computing pmi of instance \"" + instance.getName() + "\" and pattern \"" + pattern.getMinimal() + "\"");
+    	log.debug("computing pmi of instance \"" + instance.getName() + "\" and pattern \"" + pattern.getPatternRegex() + "\"");
     	int patternCount = pattern.getTextualReferences().size();
     	int instanceCount = instance.getTextualReferences().size();
     	int jointOccurrences = countJointOccurrences(instance, pattern);
@@ -217,16 +217,16 @@ public class Reliability {
         	// instance and pattern do not occur together in the data and are thus not associated
         	// should not happen here because instance is found as term in the textual references of pattern
         	if (Double.isNaN(pmi) || Double.isInfinite(pmi)) throw new IllegalStateException(
-        			"Spurious association of pattern \"" + pattern.getMinimal() + " and instance\"" + instance.getName());
+        			"Spurious association of pattern \"" + pattern.getPatternRegex() + " and instance\"" + instance.getName());
 	        pattern.addAssociation(instance.getName(), pmi);
 	        //Instance instance = new Instance(instanceName);
-	        instance.addAssociation(pattern.getMinimal(), pmi);
+	        instance.addAssociation(pattern.getPatternRegex(), pmi);
 	        //TODO: why use regex for storing association? Shouldn't the URI be used?
 	        this.addPattern(pattern);
 	        this.addInstance(instance);
 	        this.setMaxPmi(pmi);
         }
-        return this.reliability(pattern, "");
+        return this.reliability(pattern, new HashSet<String>());
     }
 
     /**
@@ -246,14 +246,14 @@ public class Reliability {
         	// instance and pattern never occur together and thus are not associated
         	// this may happen here and is not an error
         	if (Double.isNaN(pmi) || Double.isInfinite(pmi)) { continue; }
-        	instance.addAssociation(pattern.getMinimal(), pmi);
+        	instance.addAssociation(pattern.getPatternRegex(), pmi);
         	this.addInstance(instance);
         	//InfolisPattern pattern = this.getPattern(regex);
         	pattern.addAssociation(instance.getName(), pmi);
 	        this.addPattern(pattern);
 	        this.setMaxPmi(pmi);
         }
-        return this.reliability(instance, "");
+        return this.reliability(instance, new HashSet<String>());
     }
 
     /**
@@ -261,7 +261,7 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(Entity instance, String callingEntity) {
+    public double reliability(Entity instance, Set<String> callingEntitiesTrace) {
     	log.debug("Computing reliability of instance: " + instance.getName());
     	if (this.seedTerms.contains(instance.getName())) {
     		return 1.0;
@@ -272,11 +272,12 @@ public class Reliability {
         float P = Float.valueOf(patternsAndPmis.size());
         for (String patternString : patternsAndPmis.keySet()) {
         	// avoid circles
-        	if (patternString.equals(callingEntity)) { continue; }
+        	if (callingEntitiesTrace.contains(patternString)) { continue; }
             double pmi = patternsAndPmis.get(patternString);
             InfolisPattern pattern = this.patterns.get(patternString);
+            callingEntitiesTrace.add(instance.getName());
             if (maximumPmi != 0) {
-            	rp += ((pmi / maximumPmi) * reliability(pattern, instance.getName()));
+            	rp += ((pmi / maximumPmi) * reliability(pattern, callingEntitiesTrace));
             }
         }
         log.debug("instance max pmi: " + maximumPmi);
@@ -293,18 +294,19 @@ public class Reliability {
      *
      * @return the reliability score
      */
-    public double reliability(InfolisPattern pattern, String callingEntity) {
-    	log.debug("Computing reliability of pattern: " + pattern.getMinimal());
-    	if (scoreCache.containsKey(pattern.getMinimal())) return scoreCache.get(pattern.getMinimal());
+    public double reliability(InfolisPattern pattern, Set<String> callingEntitiesTrace) {
+    	log.debug("Computing reliability of pattern: " + pattern.getPatternRegex());
+    	if (scoreCache.containsKey(pattern.getPatternRegex())) return scoreCache.get(pattern.getPatternRegex());
         double rp = 0.0;
         Map<String, Double> instancesAndPmis = pattern.getAssociations();
         float P = Float.valueOf(instancesAndPmis.size());
         for (String instanceName : instancesAndPmis.keySet()) {
-        	if (instanceName.equals(callingEntity)) { continue; }
+        	if (callingEntitiesTrace.contains(instanceName)) { continue; }
             double pmi = instancesAndPmis.get(instanceName);
             Entity instance = instances.get(instanceName);
-            double reliability_instance = reliability(instance, pattern.getMinimal());
-            log.debug("stored pmi for pattern \"" + pattern.getMinimal() + "\" and instance \"" + instanceName +"\": " + pmi);
+            callingEntitiesTrace.add(pattern.getPatternRegex());
+            double reliability_instance = reliability(instance, callingEntitiesTrace);
+            log.debug("stored pmi for pattern \"" + pattern.getPatternRegex() + "\" and instance \"" + instanceName +"\": " + pmi);
             if (maximumPmi != 0) {
             	rp += ((pmi / maximumPmi) * reliability_instance);
             }
@@ -314,7 +316,7 @@ public class Reliability {
 		log.debug("pattern rp: " + rp);
 		log.debug("returned pattern reliability: " + rp / P);
 		double score = rp / P;
-		scoreCache.put(pattern.getMinimal(), score);
+		scoreCache.put(pattern.getPatternRegex(), score);
 		return score;
     }
 

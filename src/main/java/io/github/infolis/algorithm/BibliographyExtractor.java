@@ -1,12 +1,12 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.BreakIterator;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 
 import io.github.infolis.InfolisConfig;
@@ -122,21 +122,25 @@ public class BibliographyExtractor extends BaseAlgorithm {
     	}
     }
 
-    public String transformFilename(String filename) {
-    	return filename.replace(".txt", "_bibless.txt");
+    public String transformFilename(String filename, String outputDir) {
+    	 String outFileName = SerializationUtils.changeFileExtension(filename, "bibless.txt");
+         if (null != outputDir && !outputDir.isEmpty()) {
+             outFileName = SerializationUtils.changeBaseDir(outFileName, outputDir);
+         }
+         return outFileName;
     }
 
 
     @Override
-    public void execute() {
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    public void execute() throws IOException {
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
 
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-
+    	
     	int counter = 0;
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		counter++;
@@ -147,62 +151,72 @@ public class BibliographyExtractor extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile) {
                 error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals("text/plain")) {
                 error(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
 
-            debug(log, "Start removing bib from %s", inputFile);
+            debug(log, "Start removing bib from {}", inputFile);
             String text;
-			try ( InputStream is =  getInputFileResolver().openInputStream(inputFile)) {
+            InputStream is = null;
+			try {
+				is =  getInputFileResolver().openInputStream(inputFile);
 				text = IOUtils.toString(is);
 			} catch (IOException e) {
 				fatal(log, "Error reading text file: " + e);
 				getExecution().setStatus(ExecutionStatus.FAILED);
-				persistExecution();
 				return;
+			} finally {
+				is.close();
 			}
             //TODO: Test optimal section size
             List<String> inputSections = tokenizeSections(text, 10);
             text = removeBibliography(inputSections);
             InfolisFile outFile = new InfolisFile();
+            
+        	// if no output directory is given, create temporary output files
+        	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+        		 String REMOVED_BIB_DIR_PREFIX = "removedBib-";
+                 String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), REMOVED_BIB_DIR_PREFIX).toString();
+                 FileUtils.forceDeleteOnExit(new File(tempDir));
+                 getExecution().setOutputDirectory(tempDir);
+             }
+        	
             // creates a new file for each text document
-            outFile.setFileName(transformFilename(inputFile.getFileName()));
+            outFile.setFileName(transformFilename(inputFile.getFileName(), getExecution().getOutputDirectory()));
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");
             outFile.setTags(getExecution().getTags());
 
+            OutputStream outStream = null;
             try {
-            	OutputStream outStream = getOutputFileResolver().openOutputStream(outFile);
+            	outStream = getOutputFileResolver().openOutputStream(outFile);
             	IOUtils.write(text, outStream);
             } catch (IOException e) {
             	error(log, "Error copying text to output stream: " + e);
             	getExecution().setStatus(ExecutionStatus.FAILED);
-            	persistExecution();
             	return;
+            } finally {
+            	outStream.close();
             }
 
             updateProgress(counter, getExecution().getInputFiles().size());
 
-            debug(log, "Removed bibliography from file %s", outFile);
+            debug(log, "Removed bibliography from file {}", outFile);
             getOutputDataStoreClient().post(InfolisFile.class, outFile);
             getExecution().getOutputFiles().add(outFile.getUri());
         }
-        debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
+        debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
     }
 
 }

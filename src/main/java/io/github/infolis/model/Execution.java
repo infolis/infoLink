@@ -3,12 +3,13 @@ package io.github.infolis.model;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.FederatedSearcher;
-import io.github.infolis.algorithm.Learner;
-import io.github.infolis.algorithm.SearchTermPosition;
+import io.github.infolis.algorithm.SearchResultLinker;
+import io.github.infolis.algorithm.LuceneSearcher;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.resolve.QueryService;
+import io.github.infolis.infolink.querying.QueryService;
+import io.github.infolis.util.RegexUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -148,8 +149,8 @@ public class Execution extends BaseModel {
          * They are for example used to search patterns within the
          * Pattern Applier algorithm.
          * 
-         * {@link Learner} {@link TextExtractor} {@link Bootstrapping}
-         * {@link PatternApplier} {@link ApplyPatternAndResolve} 
+         * {@link TextExtractor} {@link Bootstrapping}
+         * {@link InfolisPatternSearcher} {@link SearchPatternsAndCreateLinks} 
          * {@link Indexer} 
 	 */ 
 	private List<String> inputFiles = new ArrayList<>();
@@ -160,7 +161,7 @@ public class Execution extends BaseModel {
          * For example, the TextExtraction algorithm extracts texts of pdfs
          * and stores these texts as output files.
          * 
-         * {@link Learner} {@link SearchTermPosition} {@link TextExtractor} 
+         * {@link LuceneSearcher} {@link TextExtractor} 
 	 */
 	private List<String> outputFiles = new ArrayList<>();
 
@@ -171,6 +172,19 @@ public class Execution extends BaseModel {
 	 * {@link TextExtractor}
 	 */
 	private boolean removeBib = false;
+	
+	/**
+	 * Whether to tokenize text input. Bootstrapping requires tokenized 
+	 * input texts to perform well. It can either be called on tokenized 
+	 * input texts or it can be called on untokenized text or pdf files and 
+	 * perform tokenization itself. If unspecified, defaults to false for 
+	 * TextExtractor. For Bootstrapping, this field has to be set explicitly 
+	 * as this information is crucial for good performance.
+         * Default: null
+         * 
+	 * {@link TextExtractor} {@link Bootstrapping}
+	 */
+	private Boolean tokenize = null;
 
 	/**
 	 * Output directory of Indexer and TextExtractor. 
@@ -180,9 +194,9 @@ public class Execution extends BaseModel {
 	private String outputDirectory = "";
 
 	/**
-	 * Input directory of SearchTermPosition = output directory of indexer. 
+	 * Input directory of LuceneSearcher = output directory of indexer. 
          * 
-	 * {@link Indexer} {@link SearchTermPosition}
+	 * {@link Indexer} {@link LuceneSearcher}
 	 */
 	private String indexDirectory = "";
 	
@@ -193,7 +207,7 @@ public class Execution extends BaseModel {
          * operations may be carried out.
          * Default: 10 
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int phraseSlop = 10;
 
@@ -202,7 +216,7 @@ public class Execution extends BaseModel {
          * use leading wildcard characters.
          * Default: true       
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private boolean allowLeadingWildcards = true;
 
@@ -212,7 +226,7 @@ public class Execution extends BaseModel {
          * matching boolean combinations of other queries.
          * Default: Integer max value
          * 
-	 * {@link Bootstrapping} {@link SearchTermPosition}
+	 * {@link Bootstrapping} {@link LuceneSearcher}
 	 */
 	private int maxClauseCount = Integer.MAX_VALUE;
 
@@ -223,19 +237,40 @@ public class Execution extends BaseModel {
          * beginning to start the whole process. The search term represents 
          * such a seed, e.g. the study name "ALLBUS".
          * 
-	 * {@link SearchTermPosition}
+	 * {@link LuceneSearcher}
 	 */
 	private String searchTerm;
 
 	/**
          * Any kind of search query that can be used within the algorithms.
-         * For example, it represtens the search query which is used
+         * For example, it represents the search query which is used
          * to perform a search in different repositories to find
          * fitting research data.
          * 
-	 * {@link SearchTermPosition} {@link FederatedSearcher} {@link ApplyPatternAndResolve}
+	 * {@link FederatedSearcher} {@link SearchPatternsAndCreateLinks}
 	 */
 	private String searchQuery;
+	
+	/**
+	 * Group numbers to use for RegexSearcher: group of reference term.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
+	private int referenceGroup = RegexUtils.doiGroupNum;
+	
+	/**
+	 * Group numbers to use for RegexSearcher: group of left context.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
+	private int leftContextGroup = RegexUtils.doiLeftContextGroupNum;
+	
+	/**
+	 * Group numbers to use for RegexSearcher: group of right context.
+	 * 
+	 * {@Link RegexSearcher}
+	 */
+	private int rightContextGroup = RegexUtils.doiRightContextGroupNum;
 
 	/**
          * A textual reference represents any kind of reference that
@@ -243,18 +278,11 @@ public class Execution extends BaseModel {
          * Besides the text and the term that has been found in the text,
          * it also contains the context, i.e. where the term has been detected.
          * 
-	 * {@link Learner} {@link FederatedSearcher} {@link MetaDataExtractor}
-         * {@link Resolver} {@link SearchTermPosition} {@link ApplyPatternAndResolve}
+         * {@link FederatedSearcher} {@link MetaDataExtractor}
+         * {@link Resolver} {@link LuceneSearcher} {@link SearchPatternsAndCreateLinks}
          * {@link PatternApplier} {@link Bootstrapping}
 	 */
 	private List<String> textualReferences = new ArrayList<>();
-
-        //TODO: necessary? can't we used the outputFiles?
-	/**
-         * 
-	 * {@link SearchTermPosition}
-	 */
-	private List<String> matchingFiles = new ArrayList<>();
 
 	/**
          * A list of patterns (internally expressed as regular expression) 
@@ -271,7 +299,7 @@ public class Execution extends BaseModel {
          * named entity and thus should contain at least one upper-case character.
          * Default: false
          * 
-         * {@link PatternApplier} {@link Bootstrapping} {@link Learner}
+         * {@link PatternApplier} {@link Bootstrapping}
          */
 	private boolean upperCaseConstraint = false;
 
@@ -279,7 +307,7 @@ public class Execution extends BaseModel {
 	 * Seeds used for bootstrapping, e.g. study names to start
          * with like "ALLBUS".
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private List<String> seeds = new ArrayList<>();
 
@@ -288,9 +316,16 @@ public class Execution extends BaseModel {
          * A high number of iterations can lead to a increased run time.       
          * Default: 10
          * 
-         * {@link Bootstrapping} {@link Learner}
+         * {@link Bootstrapping}
 	 */
 	private int maxIterations = 10;
+	
+	/**
+	 * Number of words used for creation of patterns.
+	 * 
+	 * {@link StandardPatternInducer}
+	 */
+	private int windowsize = 3;
 
         
         //TODO: also used for frequencyBasedBootstrapping, should we just name 
@@ -322,16 +357,11 @@ public class Execution extends BaseModel {
 	private BootstrapStrategy bootstrapStrategy = BootstrapStrategy.mergeAll;
 
 	/**
-         * When resolving the detected meta data by searching in repositories,
-         * we need to know what we search for. The different strategies are:         
-         * title, doi, urn, bibliography.
-         * If we chose for example title, we search the meta data within the 
-         * title field in a repository.
-         * Default: MetaDataExtractingStrategy.title
-         * 
-	 * {@link MetaDataExtractingStrategy} {@link MetaDataResolver}
+	 * The SearchResultLinkerClass determines the SearchResultLinker to 
+	 * use. That class is responsible for deciding which SearchResults to 
+	 * select for creating links.
 	 */
-	private MetaDataExtractingStrategy metaDataExtractingStrategy = MetaDataExtractingStrategy.title;
+	private Class<? extends SearchResultLinker> searchResultLinkerClass;
         
 	/**
          * As a final step, links between the texts and the discovered
@@ -412,7 +442,31 @@ public class Execution extends BaseModel {
 	 * {@link TextExtractor}
 	 */
 	private boolean overwriteTextfiles = true;
-
+	
+	/**
+	 * Determines whether new line characters are to be tokenized.
+	 * {@link Tokenizer}
+	 */
+	private boolean tokenizeNLs = true;
+	
+	/**
+	 * Enable all traditional PTB3 token transforms (like parentheses becoming -LRB-, -RRB-).
+	 * {@link Tokenizer}
+	 */
+	private boolean ptb3Escaping = true;
+	
+	/**
+	 * Index (starting at 1 rather than 0) of the first page to extract. 
+	 * Useful to ignore title pages if present.
+	 * {@link TextExtractor}
+	 */
+	private int startPage = 1;
+        
+        private List<String> entitiesForKeywordTagging = new ArrayList<>();
+        private List<String> keyWords = new ArrayList<>();
+        private String thesaurus = new String();
+        private String language = "en";
+        
 	//
 	//
 	//
@@ -494,6 +548,14 @@ public class Execution extends BaseModel {
 	public void setRemoveBib(boolean removeBib) {
 		this.removeBib = removeBib;
 	}
+	
+	public Boolean isTokenize() {
+		return this.tokenize;
+	}
+	
+	public void setTokenize(boolean tokenize) {
+		this.tokenize = tokenize;
+	}
 
 	public String getOutputDirectory() {
 		return outputDirectory;
@@ -574,6 +636,30 @@ public class Execution extends BaseModel {
 	public void setSearchQuery(String searchQuery) {
 		this.searchQuery = searchQuery;
 	}
+	
+	public void setLeftContextGroup(int groupNum) {
+		this.leftContextGroup = groupNum;
+	}
+	
+	public void setRightContextGroup(int groupNum) {
+		this.rightContextGroup = groupNum;
+	}
+	
+	public void setReferenceGroup(int groupNum) {
+		this.referenceGroup = groupNum;
+	}
+	
+	public int getLeftContextGroup() {
+		return this.leftContextGroup;
+	}
+	
+	public int getRightContextGroup() {
+		return this.rightContextGroup;
+	}
+	
+	public int getReferenceGroup() {
+		return this.referenceGroup;
+	}
 
 	public List<String> getTextualReferences() {
 		return textualReferences;
@@ -581,14 +667,6 @@ public class Execution extends BaseModel {
 
 	public void setTextualReferences(List<String> textualReferences) {
 		this.textualReferences = textualReferences;
-	}
-
-	public List<String> getMatchingFiles() {
-		return matchingFiles;
-	}
-
-	public void setMatchingFiles(List<String> matchingFilenUris) {
-		this.matchingFiles = matchingFilenUris;
 	}
 
 	public List<String> getPatterns() {
@@ -626,6 +704,14 @@ public class Execution extends BaseModel {
 	public void setMaxIterations(int maxIterations) {
 		this.maxIterations = maxIterations;
 	}
+	
+	public int getWindowsize() {
+		return this.windowsize;
+	}
+	
+	public void setWindowsize(int windowsize) {
+		this.windowsize = windowsize;
+	}
 
 	public double getReliabilityThreshold() {
 		return reliabilityThreshold;
@@ -662,14 +748,14 @@ public class Execution extends BaseModel {
 	public void setLinks(List<String> links) {
 		this.links = links;
 	}
-
-    public MetaDataExtractingStrategy getMetaDataExtractingStrategy() {
-        return metaDataExtractingStrategy;
-    }
-
-    public void setMetaDataExtractingStrategy(MetaDataExtractingStrategy metaDataExtractingStrategy) {
-        this.metaDataExtractingStrategy = metaDataExtractingStrategy;
-    }
+	
+	public Class<? extends SearchResultLinker> getSearchResultLinkerClass() {
+		return this.searchResultLinkerClass;
+	}
+	
+	public void setSearchResultLinkerClass (Class<? extends SearchResultLinker> searchResultLinkerClass) {
+		this.searchResultLinkerClass = searchResultLinkerClass;
+	}
 
     public List<String> getLinkedEntities() {
         return linkedEntities;
@@ -722,6 +808,62 @@ public class Execution extends BaseModel {
     public boolean getOverwriteTextfiles() {
     	return this.overwriteTextfiles;
     }
+    
+    public void setTokenizeNLs(boolean tokenizeNLs) {
+    	this.tokenizeNLs = tokenizeNLs;
+    }
+    
+    public boolean getTokenizeNLs() {
+    	return this.tokenizeNLs;
+    }
+    
+    public void setPtb3Escaping(boolean ptb3Escaping) {
+    	this.ptb3Escaping = ptb3Escaping;
+    }
+	
+	public boolean getPtb3Escaping() {
+		return this.ptb3Escaping;
+	}
+	
+	public void setStartPage(int startPage) {
+		this.startPage = startPage;
+	}
+
+	public int getStartPage() {
+		return this.startPage;
+	}
+    public void setEntitiesForKeywordTagging(List<String> ents) {
+        this.entitiesForKeywordTagging = ents;
+    }
+    
+    public List<String> getEntitiesForKeywordTagging() {
+        return this.entitiesForKeywordTagging;
+    }
+    
+    public void setKeyWords(List<String> keywords) {
+        this.keyWords = keywords;
+    }
+    
+    public List<String> getKeyWords() {
+        return this.keyWords;
+    }
+    
+    public void setThesaurus(String thesaurus) {
+        this.thesaurus = thesaurus;
+    }
+    
+    public String getThesaurus() {
+        return this.thesaurus;
+    }
+    
+    public void setLanguage(String lang) {
+        this.language = lang;
+    }
+    
+    public String getLanguage() {
+        return this.language;
+    }
+
     
     public List<Class<? extends QueryService>> getQueryServiceClasses() {
         return queryServiceClasses;

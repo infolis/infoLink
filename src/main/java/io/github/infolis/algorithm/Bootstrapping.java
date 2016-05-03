@@ -11,10 +11,11 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -42,30 +43,36 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     Execution createIndex() throws IOException {
 		Execution execution = getExecution().createSubExecution(Indexer.class);
 		execution.setInputFiles(getExecution().getInputFiles());
-        getOutputDataStoreClient().post(Execution.class, execution);
+		execution.setOutputDirectory(getExecution().getIndexDirectory());
         execution.instantiateAlgorithm(this).run();
+        getOutputDataStoreClient().post(Execution.class, execution);
 		return execution;
 	}
 
     List<TextualReference> getContextsForSeed(String seed) {
         // use lucene index to search for term in corpus
-        Execution execution = getExecution().createSubExecution(SearchTermPosition.class);
+        Execution execution = getExecution().createSubExecution(LuceneSearcher.class);
         execution.setIndexDirectory(indexerExecution.getOutputDirectory());
-        execution.setPhraseSlop(getExecution().getPhraseSlop());
-        execution.setAllowLeadingWildcards(getExecution().isAllowLeadingWildcards());
+        execution.setPhraseSlop(0);
+        execution.setAllowLeadingWildcards(true);
         execution.setMaxClauseCount(getExecution().getMaxClauseCount());
         execution.setSearchTerm(seed);
-        execution.setSearchQuery(RegexUtils.normalizeQuery(seed, true));
+        InfolisPattern termPattern = new InfolisPattern(RegexUtils.normalizeQuery(seed, true));
+        DataStoreClient tempClient = getTempDataStoreClient();
+        tempClient.put(InfolisPattern.class, termPattern);
+        execution.setPatterns(Arrays.asList(termPattern.getUri()));
         execution.setInputFiles(getExecution().getInputFiles());
         execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());
-        Algorithm algo = execution.instantiateAlgorithm(this);
-        getOutputDataStoreClient().post(Execution.class, execution);
+        Algorithm algo = execution.instantiateAlgorithm(
+        		getInputDataStoreClient(), tempClient, getInputFileResolver(), getOutputFileResolver());
         algo.run();
+        getOutputDataStoreClient().post(Execution.class, execution);
         getExecution().getLog().addAll(execution.getLog());
         List<TextualReference> textualReferences = new ArrayList<>();
-            for (String uri : execution.getTextualReferences()) {
-            	textualReferences.add(getOutputDataStoreClient().get(TextualReference.class, uri));
-            }
+        for (String uri : execution.getTextualReferences()) {
+           	textualReferences.add(tempClient.get(TextualReference.class, uri));
+        }
+        tempClient.clear();
         return textualReferences;
     }
 
@@ -80,20 +87,20 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	return patternUris;
     }
 
-    List<String> getContextsForPatterns(Collection<InfolisPattern> patterns) {
+    List<String> getContextsForPatterns(Collection<InfolisPattern> patterns, 
+    		DataStoreClient outputDataStoreClient) {
     	Execution applierExec = new Execution();
-    	applierExec.setAlgorithm(PatternApplier.class);
+    	applierExec.setAlgorithm(InfolisPatternSearcher.class);
     	applierExec.setInputFiles(getExecution().getInputFiles());
     	applierExec.setIndexDirectory(indexerExecution.getOutputDirectory());
     	applierExec.setPatterns(getPatternUris(patterns));
     	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
     	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
-    	// TODO this need not be a parameter for execution
     	applierExec.setAllowLeadingWildcards(true);
-    	// TODO this need not be a parameter for execution
     	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
     	applierExec.setTags(getExecution().getTags());
-    	applierExec.instantiateAlgorithm(this).run();
+    	applierExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
+    			getInputFileResolver(), getOutputFileResolver()).run();
     	return applierExec.getTextualReferences();
     }
 
@@ -105,16 +112,20 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         }
         if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
-            throw new IllegalArgumentException("Must set at least one inputFile!");
+            throw new IllegalArgumentException("Must set at least one input file!");
         }
         if (null == exec.getBootstrapStrategy()) {
-            throw new IllegalArgumentException("Must set the bootstrap strategy");
+            throw new IllegalArgumentException("Must set the bootstrap strategy!");
+        }
+        if (null == exec.isTokenize()) {
+        	throw new IllegalArgumentException("Must specify whether input texts have to be tokenized! Note: "
+        			+ "only set to false if the input texts are in tokenized form.");
         }
     }
 
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
@@ -122,8 +133,27 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 
+    	if (getExecution().isRemoveBib()) {
+    		Execution bibRemoverExec = new Execution();
+    		bibRemoverExec.setAlgorithm(BibliographyExtractor.class);
+    		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
+    		bibRemoverExec.instantiateAlgorithm(this).run();
+    		debug(log, "Removed bibliographies of input files");
+    		getExecution().setInputFiles(bibRemoverExec.getOutputFiles());
+    	}
+    	
+    	if (getExecution().isTokenize()) {
+    		Execution tokenizerExec = new Execution();
+    		tokenizerExec.setAlgorithm(TokenizerStanford.class);
+    		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
+    		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
+    		tokenizerExec.setInputFiles(getExecution().getInputFiles());
+    		tokenizerExec.instantiateAlgorithm(this).run();
+    		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
+    		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
+    	}
+    	
     	this.indexerExecution = createIndex();
-    	getExecution().setIndexDirectory(this.indexerExecution.getIndexDirectory());
     	List<TextualReference> detectedContexts = new ArrayList<>();
         try {
         	detectedContexts = bootstrap();
@@ -133,7 +163,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         }
 
         for (TextualReference sC : detectedContexts) {
-            getOutputDataStoreClient().post(TextualReference.class, sC);
+            //getOutputDataStoreClient().post(TextualReference.class, sC);
             this.getExecution().getTextualReferences().add(sC.getUri());
             this.getExecution().getPatterns().add(sC.getPattern());
         }

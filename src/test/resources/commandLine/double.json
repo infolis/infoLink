@@ -1,5 +1,6 @@
 {
 "algorithm": "io.github.infolis.algorithm.FrequencyBasedBootstrapping",
 "reliabilityThreshold":"0.45",
-"seeds": ["ALLBUS"]
+"seeds": ["ALLBUS"],
+"tokenize":false
 }

@@ -19,7 +19,6 @@ package io.github.infolis.algorithm;
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.infolink.luceneIndexing.CaseSensitiveStandardAnalyzer;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
@@ -30,20 +29,25 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LimitTokenCountAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.NIOFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,30 +68,27 @@ public class Indexer extends BaseAlgorithm {
 
     private Logger log = LoggerFactory.getLogger(Indexer.class);
 
-    /*
-     * kba: That was the old value of {@link IndexWriter.MaxFieldLength.LIMITED}
-     */
-    private static final int MAX_TOKEN_COUNT = 10000;
-
     public static Analyzer createAnalyzer() {
-        return new LimitTokenCountAnalyzer(new CaseSensitiveStandardAnalyzer(), MAX_TOKEN_COUNT);
+    	return new WhitespaceAnalyzer();
     }
 
     @Override
     public void execute() throws IOException {
-        File indexDir;
+        String indexPath;
         if (null != getExecution().getIndexDirectory() && !getExecution().getIndexDirectory().isEmpty()) {
-            indexDir = new File(getExecution().getIndexDirectory());
+            indexPath = getExecution().getIndexDirectory();
         } else {
-            indexDir = new File(Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString());
-            FileUtils.forceDeleteOnExit(indexDir);
+            indexPath = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), INDEX_DIR_PREFIX).toString();
+            FileUtils.forceDeleteOnExit(new File(indexPath));
         }
-        log.debug("Indexing to: " + indexDir.getAbsolutePath());
-        getExecution().setOutputDirectory(indexDir.getAbsolutePath().toString());
+        log.debug("Indexing to: " + indexPath);
+        getExecution().setOutputDirectory(indexPath);
 
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_35, createAnalyzer());
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(createAnalyzer());
         indexWriterConfig.setOpenMode(OpenMode.CREATE);
-        FSDirectory fsIndexDir = FSDirectory.open(indexDir);
+        // An FSDirectory implementation that uses java.nio's FileChannel's positional read, which allows multiple threads to read from the same file without synchronizing. 
+        // NIOFSDirectory is not recommended on Windows because of a bug in how FileChannel.read is implemented in Sun's JRE. Inside of the implementation the position is apparently synchronized.
+        Directory fsIndexDir = NIOFSDirectory.open(Paths.get(indexPath));
 
         List<InfolisFile> files = new ArrayList<>();
         for (String fileUri : getExecution().getInputFiles()) {
@@ -96,7 +97,7 @@ public class Indexer extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
+                fsIndexDir.close();
                 return;
             }
         }
@@ -122,9 +123,9 @@ public class Indexer extends BaseAlgorithm {
             log.debug("Merging all Lucene segments ...");
             writer.forceMerge(1);
             writer.close();
+            fsIndexDir.close();
         }
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        fsIndexDir.close();
         log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
     }
 
@@ -146,8 +147,8 @@ public class Indexer extends BaseAlgorithm {
      * words.</li>
      * <li>The contents of the file are added to a field named "contents". A
      * reader is specified so that the text of the file is tokenized and
-     * indexed, but not stored. Note that FileReader expects the file to be in
-     * the system's default encoding. If that's not the case searching for
+     * indexed, but not stored. Note that the file is expected to be in
+     * UTF-8 encoding. If that's not the case, searching for
      * special characters will fail.</li>
      * <li>Content (text files) is saved in the index along with position and
      * offset information.</li>
@@ -158,13 +159,6 @@ public class Indexer extends BaseAlgorithm {
      * @throws IOException
      */
     public static Document toLuceneDocument(FileResolver fileResolver, InfolisFile f) throws IOException {
-        //use code below to process pdfs instead of text (requires pdfBox)
-	  /*FileInputStream fi = new FileInputStream(new File(f.getPath()));
-         PDFParser parser = new PDFParser(fi);
-         parser.parse();
-         COSDocument cd = parser.getDocument();
-         PDFTextStripper stripper = new PDFTextStripper();
-         String text = stripper.getText(new PDDocument(cd));  */
         InputStreamReader isr = new InputStreamReader(fileResolver.openInputStream(f), "UTF8");
         BufferedReader reader = new BufferedReader(isr);
         StringBuffer contents = new StringBuffer();
@@ -175,34 +169,19 @@ public class Indexer extends BaseAlgorithm {
         reader.close();
         isr.close();
         text = new String(contents);
-
-        // make a new, empty document
+        
         Document doc = new Document();
-
-        // Add the path of the file as a field named "path".  Use a field that is
-        // indexed (i.e. searchable), but don't tokenize the field into words.
-        doc.add(new Field("path", f.getUri(), Field.Store.YES, Field.Index.NOT_ANALYZED));
-        doc.add(new Field("fileName", f.getFileName(), Field.Store.YES, Field.Index.ANALYZED));
-
-        // Add the last modified date of the file a field named "modified".  Use
-        // a field that is indexed (i.e. searchable), but don't tokenize the field
-        // into words.
+        doc.add(new StringField("path", f.getUri(), Field.Store.YES));
+        doc.add(new StringField("fileName", f.getFileName(), Field.Store.YES));
         // TODO kba: Add modified to InfolisFile
-//      doc.add( new Field( "modified",
-//    		  DateTools.timeToString( f.lastModified(), DateTools.Resolution.MINUTE ),
-//    		  Field.Store.YES, Field.Index.NOT_ANALYZED ) );
-        // save the content (text files) in the index
-        // Add the contents of the file to a field named "contents".  Specify a Reader,
-        // so that the text of the file is tokenized and indexed, but not stored.
-        // Note that FileReader expects the file to be in the system's default encoding.
+        //doc.add(new LongField("modified", lastModified, Field.Store.NO));
+        
+        // file is expected to be in UTF-8 encoding.
         // If that's not the case searching for special characters will fail.
-        //Store both position and offset information
-        // TextFilesContent = readTextFiles(f.getPath()) + " ";
-        doc.add(new Field("contents", text, Field.Store.YES, Field.Index.ANALYZED,
-                Field.TermVector.WITH_POSITIONS_OFFSETS));
-
-        // return the document
-        //cd.close();
+        FieldType offsetsType = new FieldType(TextField.TYPE_STORED);
+        offsetsType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+        Field contentField = new Field("contents", text, offsetsType);
+        doc.add(contentField);
         return doc;
     }
 }

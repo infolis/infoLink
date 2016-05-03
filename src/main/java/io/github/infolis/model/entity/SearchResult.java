@@ -4,7 +4,6 @@ package io.github.infolis.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.infolis.model.BaseModel;
-import io.github.infolis.util.NumericInformationExtractor;
 import java.util.ArrayList;
 import java.util.List;
 

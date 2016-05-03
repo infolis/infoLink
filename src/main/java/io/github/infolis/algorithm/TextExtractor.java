@@ -18,7 +18,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -52,8 +51,7 @@ public class TextExtractor extends BaseAlgorithm {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class
-    );
+    private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
 
     private final PDFTextStripper stripper;
 
@@ -63,8 +61,18 @@ public class TextExtractor extends BaseAlgorithm {
         //TODO: Test optimal section size
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
+    
+    private String tokenizeText(String text) throws IOException {
+    	Tokenizer tokenizer = new TokenizerStanford(
+    			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+    	Execution exec = new Execution();
+    	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
+    	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
+    	tokenizer.setExecution(exec);
+    	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
+    }
 
-    public InfolisFile extract(InfolisFile inFile) throws IOException {
+    public InfolisFile extract(InfolisFile inFile, int startPage, boolean tokenize) throws IOException {
         String asText = null;
 
         // TODO make configurable
@@ -84,7 +92,7 @@ public class TextExtractor extends BaseAlgorithm {
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {
-                debug(log, "File exists: %s, skipping text extraction for %s", _outFile, inFile);
+                debug(log, "File exists: {}, skipping text extraction for {}", _outFile, inFile);
                 asText = FileUtils.readFileToString(_outFile, "utf-8");
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
@@ -92,30 +100,39 @@ public class TextExtractor extends BaseAlgorithm {
             }
         }
 
-        try (InputStream inStream = getInputFileResolver().openInputStream(inFile)) {
-            try (PDDocument pdfIn = PDDocument.load(inStream)) {
-                asText = extractText(pdfIn);
+        InputStream inStream = null;
+        OutputStream outStream = null;
+        PDDocument pdfIn = null;
+        try {
+        	inStream = getInputFileResolver().openInputStream(inFile);
+            try {
+            	pdfIn = PDDocument.load(inStream);
+                asText = extractText(pdfIn, startPage);
                 if (null == asText) {
                     throw new IOException("extractText returned null!");
                 }
                 if (getExecution().isRemoveBib()) {
                     asText = removeBibSection(asText);
                 }
+                if (getExecution().isTokenize()) {
+                	asText = tokenizeText(asText);
+                }
 
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
-                try (OutputStream outStream = getOutputFileResolver().openOutputStream(outFile)) {
+                try {
+                	outStream = getOutputFileResolver().openOutputStream(outFile);
                     try {
                         IOUtils.write(asText, outStream);
                     } catch (IOException e) {
                         warn(log, "Error copying text to output stream: " + e);
                         throw e;
-                    }
+                    } 
                 } catch (IOException e) {
                     warn(log, "Error opening output stream to text file: " + e);
                     throw e;
-                }
+                } 
                 return outFile;
             } catch (Exception e) {
                 warn(log, "Error reading PDF from stream: " + e);
@@ -127,6 +144,10 @@ public class TextExtractor extends BaseAlgorithm {
         } catch (Exception e) {
             warn(log, "Error converting PDF to text: " + e);
             throw e;
+        } finally {
+        	if (null != outStream) outStream.close();
+        	if (null != inStream) inStream.close();
+        	if (null != pdfIn) pdfIn.close();
         }
     }
 
@@ -137,10 +158,10 @@ public class TextExtractor extends BaseAlgorithm {
      * @return text of the PDF
      * @throws IOException
      */
-    private String extractText(PDDocument pdfIn) throws IOException {
+    private String extractText(PDDocument pdfIn, int startPage) throws IOException {
         String asText;
+        stripper.setStartPage(startPage);
         asText = stripper.getText(pdfIn);
-
         if (null == asText) {
             throw new IOException("PdfStripper returned null!");
         }
@@ -151,7 +172,7 @@ public class TextExtractor extends BaseAlgorithm {
 
     @Override
     public void execute() {
-        Execution tagExec = getExecution().createSubExecution(TagResolver.class);
+        Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
         tagExec.instantiateAlgorithm(this).run();
@@ -169,51 +190,47 @@ public class TextExtractor extends BaseAlgorithm {
             } catch (Exception e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile) {
                 error(log, "File was not registered with the data store: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals(MediaType.PDF.toString())) {
                 error(log, "File is not a PDF: " + inputFileURI);
                 getExecution().setStatus(ExecutionStatus.FAILED);
-                persistExecution();
                 return;
             }
-            debug(log, "Start extracting from %s", inputFile);
+            debug(log, "Start extracting from {}", inputFile);
             InfolisFile outputFile;
             try {                
-                outputFile = extract(inputFile);
-                debug(log, "Converted to file %s", outputFile);
+                outputFile = extract(inputFile, getExecution().getStartPage(), getExecution().isTokenize());
+                debug(log, "Converted to file {}", outputFile);
             } catch (IOException e) {
                 // invalid pdf file cannot be read by pdfBox
                 // log warning, skip file and continue with next file
-                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                warn(log, "Extraction caused exception in file {} - PdfBox cannot extract from this file, is it a valid pdf file? Trace: \n{}", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             } catch (RuntimeException e) {
                 // warn but not error: do not terminate execution but continue with next file.
                 // RuntimeErrors caused by DataFormatExceptions in pdfBox may occur when 
                 // pdfBox cannot handle a (valid) pdf file due to its encoding
-                warn(log, "Extraction caused exception in file %s - PdfBox cannot extract from this file due to its encoding or similar issues: \n%s", inputFile, ExceptionUtils.getStackTrace(e));
+                warn(log, "Extraction caused exception in file {} - PdfBox cannot extract from this file due to its encoding or similar issues: \n{}", inputFile, ExceptionUtils.getStackTrace(e));
                 outputFile = null;
                 continue;
             }
             updateProgress(counter, getExecution().getInputFiles().size());
             if (null == outputFile) {
-                warn(log, "Conversion failed for input file %s", inputFileURI);
+                warn(log, "Conversion failed for input file {}", inputFileURI);
             } else {
                 getOutputDataStoreClient().post(InfolisFile.class, outputFile);
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }
         }
-        debug(log, "No of OutputFiles of this execution: %s", getExecution().getOutputFiles().size());
+        debug(log, "No of OutputFiles of this execution: {}", getExecution().getOutputFiles().size());
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        persistExecution();
     }
 
     @Override
@@ -223,6 +240,10 @@ public class TextExtractor extends BaseAlgorithm {
     		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one inputFile!");
         }
+		if (null == exec.isTokenize()) {
+			warn(log, "\"tokenize\" field unspecified. Defaulting to \"false\".");
+			this.getExecution().setTokenize(false);
+		}
     }
 
     /**
@@ -241,6 +262,9 @@ public class TextExtractor extends BaseAlgorithm {
 
         @Option(name = "-b", usage = "remove bibliographies", metaVar = "REMOVE_BIBLIOGRAPHIES")
         private boolean removeBib = false;
+        
+        @Option(name = "-t", usage = "tokenize", metaVar = "TOKENIZE")
+        private boolean tokenize = false;
 
         @Option(name = "-w", usage = "overwrite existing text files", metaVar = "OVERWRITE")
         private boolean overwriteTextfiles = true;
@@ -295,6 +319,7 @@ public class TextExtractor extends BaseAlgorithm {
             }
             execution.setOutputDirectory(outputPath.toString());
             execution.setRemoveBib(removeBib);
+            execution.setTokenize(tokenize);
             execution.setOverwriteTextfiles(overwriteTextfiles);
 
             algo.run();

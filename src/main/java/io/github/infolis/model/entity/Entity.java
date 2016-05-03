@@ -50,6 +50,7 @@ public class Entity extends BaseModel {
     private Map<String, Double> associations = new HashMap<>();
     private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
+    private String abstractText;
 
     public Entity(String name) {
         this.name = name;
@@ -217,5 +218,19 @@ public class Entity extends BaseModel {
      */
     public void addAlternativeNames(String alternativeName) {
         this.alternativeNames.add(alternativeName);
+    }
+
+    /**
+     * @return the abstractText
+     */
+    public String getAbstractText() {
+        return abstractText;
+    }
+
+    /**
+     * @param abstractText the abstractText to set
+     */
+    public void setAbstractText(String abstractText) {
+        this.abstractText = abstractText;
     }
 }

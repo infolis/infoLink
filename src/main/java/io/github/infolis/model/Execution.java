@@ -461,7 +461,12 @@ public class Execution extends BaseModel {
 	 * {@link TextExtractor}
 	 */
 	private int startPage = 1;
-
+        
+        private List<String> entitiesForKeywordTagging = new ArrayList<>();
+        private List<String> keyWords = new ArrayList<>();
+        private String thesaurus = new String();
+        private String language = "en";
+        
 	//
 	//
 	//
@@ -827,6 +832,38 @@ public class Execution extends BaseModel {
 	public int getStartPage() {
 		return this.startPage;
 	}
+    public void setEntitiesForKeywordTagging(List<String> ents) {
+        this.entitiesForKeywordTagging = ents;
+    }
+    
+    public List<String> getEntitiesForKeywordTagging() {
+        return this.entitiesForKeywordTagging;
+    }
+    
+    public void setKeyWords(List<String> keywords) {
+        this.keyWords = keywords;
+    }
+    
+    public List<String> getKeyWords() {
+        return this.keyWords;
+    }
+    
+    public void setThesaurus(String thesaurus) {
+        this.thesaurus = thesaurus;
+    }
+    
+    public String getThesaurus() {
+        return this.thesaurus;
+    }
+    
+    public void setLanguage(String lang) {
+        this.language = lang;
+    }
+    
+    public String getLanguage() {
+        return this.language;
+    }
+
     
     public List<Class<? extends QueryService>> getQueryServiceClasses() {
         return queryServiceClasses;

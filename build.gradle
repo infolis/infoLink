@@ -18,6 +18,10 @@ gretty {
 }
 
 dependencies {
+  //  compile 'com.github.infolis:tagging:1.0'
+    
+    compile project (':keywordTagging')
+    
     compile 'nz.ac.waikato.cms.weka:weka-stable:3.6.6'
     compile 'org.apache.lucene:lucene-queryparser:6.0.0'
     compile 'org.apache.lucene:lucene-highlighter:6.0.0'
@@ -54,6 +58,16 @@ dependencies {
     // Unit testing
     testCompile 'junit:junit:4.6'
     compile 'junit:junit:4.6'
+    
+    //tagging
+    compile 'com.hp.hpl.jena:jena:2.6.4'
+    compile 'com.hp.hpl.jena:iri:0.8'
+    compile 'com.ibm.icu:icu4j:3.4.4'
+    compile 'org.knallgrau.utils:textcat:1.0.1'
+    compile 'edu.stanford.nlp:stanford-corenlp:1.2.0'
+    compile 'xerces:xercesImpl:2.7.1'
+    compile 'stax:stax-api:1.0.1'
+    compile 'org.codehaus.woodstox:wstx-asl:3.2.9'
 }
 
 test {

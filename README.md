@@ -31,6 +31,8 @@ git submodule init
 git submodule update
 ```
 
+Download FastJoin from `http://dbgroup.cs.tsinghua.edu.cn/wangjn/projects/fastjoin/` and set the `fastJoin` config option.
+
 Change to the directory and run the `eclipse` gradle task
 
 ```

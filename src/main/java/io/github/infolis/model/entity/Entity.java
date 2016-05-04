@@ -43,7 +43,7 @@ public class Entity extends BaseModel {
     private Set<String> tags;
     private Collection<TextualReference> textualReferences;
     private String file;
-
+    
     @XmlAttribute
     private String number;
     private List<String> numericInfo = new ArrayList<>();
@@ -51,6 +51,9 @@ public class Entity extends BaseModel {
     private double reliability;
     private List<String> alternativeNames = new ArrayList<>();
     private String abstractText;
+    private List<String> authors = new ArrayList<>();
+    private List<String> subjects = new ArrayList<>();
+    private String language;
 
     public Entity(String name) {
         this.name = name;
@@ -232,5 +235,47 @@ public class Entity extends BaseModel {
      */
     public void setAbstractText(String abstractText) {
         this.abstractText = abstractText;
+    }
+
+    /**
+     * @return the authors
+     */
+    public List<String> getAuthors() {
+        return authors;
+    }
+
+    /**
+     * @param authors the authors to set
+     */
+    public void setAuthors(List<String> authors) {
+        this.authors = authors;
+    }
+
+    /**
+     * @return the subjects
+     */
+    public List<String> getSubjects() {
+        return subjects;
+    }
+
+    /**
+     * @param subjects the subjects to set
+     */
+    public void setSubjects(List<String> subjects) {
+        this.subjects = subjects;
+    }
+
+    /**
+     * @return the language
+     */
+    public String getLanguage() {
+        return language;
+    }
+
+    /**
+     * @param language the language to set
+     */
+    public void setLanguage(String language) {
+        this.language = language;
     }
 }

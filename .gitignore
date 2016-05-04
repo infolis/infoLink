@@ -12,6 +12,7 @@ logFile.txt
 /testCorpus/
 .nb-gradle/
 .nb-gradle-properties
+/*-token.txt
 
 src/test/resources/out
 /bin/

@@ -19,9 +19,9 @@ gretty {
 
 dependencies {
   //  compile 'com.github.infolis:tagging:1.0'
-    
+
     compile project (':keywordTagging')
-    
+
     compile 'nz.ac.waikato.cms.weka:weka-stable:3.6.6'
     compile 'org.apache.lucene:lucene-queryparser:6.0.0'
     compile 'org.apache.lucene:lucene-highlighter:6.0.0'
@@ -58,7 +58,7 @@ dependencies {
     // Unit testing
     testCompile 'junit:junit:4.6'
     compile 'junit:junit:4.6'
-    
+
     //tagging
     compile 'com.hp.hpl.jena:jena:2.6.4'
     compile 'com.hp.hpl.jena:iri:0.8'
@@ -76,6 +76,11 @@ test {
         events "failed"
         exceptionFormat "short"
     }
+}
+
+configurations.all {
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "log4j", module: "log4j"
 }
 
 jar {

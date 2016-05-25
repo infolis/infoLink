@@ -135,7 +135,7 @@ class CentralClient extends AbstractClient {
 	}
         
         public <T extends BaseModel> void put(Class<T> clazz, T thing, String uri) {            
-            String id = String.format("%s_%s", CentralClient.getEndpointForClass(clazz), uri);
+            String id = uri;
 		WebTarget target = jerseyClient.target(id);
 		Entity<T> entity = Entity
 				.entity(thing, MediaType.APPLICATION_JSON_TYPE);

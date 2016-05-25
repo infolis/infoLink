@@ -489,10 +489,12 @@ public class Execution extends BaseModel {
         private String language = "en";
         
         /**
-         * The path to the dir in which the meta data about publications can be found.
+         * Meta data files of the publications in which information about
+         * the title, author, astract, subject, identifier, URL, and language
+         * can be found.
          * {@link TextAndMetaDataExtractor}
          */
-        private String metaDataDir;
+        private List<String> metaDataFiles = new ArrayList<>();;
         
 	//
 	//
@@ -891,12 +893,12 @@ public class Execution extends BaseModel {
         return this.language;
     }
 
-    public String getMetaDataDir() {
-        return metaDataDir;
+    public List<String> getMetaDataFiles() {
+        return metaDataFiles;
     }
 
-    public void setMetaDataDir(String metaDataDir) {
-        this.metaDataDir = metaDataDir;
+    public void setMetaDataFiles(List<String> metaDataDir) {
+        this.metaDataFiles = metaDataDir;
     }
     
     public List<Class<? extends QueryService>> getQueryServiceClasses() {

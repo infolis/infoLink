@@ -89,7 +89,7 @@ public class LocalClient extends AbstractClient {
     
      @Override
     public <T extends BaseModel> void put(Class<T> clazz, T thing, String uri) throws BadRequestException {
-        String id = String.format("%s_%s", CentralClient.getEndpointForClass(clazz), uri);
+        String id = uri;
         log.debug("PUT {}", id);
         thing.setUri(id);
         store(clazz, thing);

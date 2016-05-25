@@ -250,6 +250,11 @@ public class Entity extends BaseModel {
     public void setAuthors(List<String> authors) {
         this.authors = authors;
     }
+    
+    
+    public void addAuthor(String author) {
+        this.authors.add(author);
+    }
 
     /**
      * @return the subjects
@@ -263,6 +268,10 @@ public class Entity extends BaseModel {
      */
     public void setSubjects(List<String> subjects) {
         this.subjects = subjects;
+    }
+    
+    public void addSubject(String subject) {
+        this.subjects.add(subject);
     }
 
     /**

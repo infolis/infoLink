@@ -84,6 +84,7 @@ public class TextExtractor extends BaseAlgorithm {
 
         InfolisFile outFile = new InfolisFile();
         outFile.setFileName(outFileName);
+        outFile.setOriginalName(inFile.getFileName());
         outFile.setMediaType("text/plain");
         //TODO either set or list for all tags
 		for (String tag : getExecution().getTags())

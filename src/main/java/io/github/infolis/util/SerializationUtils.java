@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
 
 public class SerializationUtils {
 
@@ -116,7 +117,14 @@ public class SerializationUtils {
 	 * @return
 	 */
 	public static String changeBaseDir(String filename, String newBaseDir) {
-		return Paths.get(newBaseDir, Paths.get(filename).getFileName().toString()).toString();
+                Path p = null;
+                //problems with leading slashs if using Windows...
+                if (filename.startsWith("/")) {
+                    p = Paths.get(filename.substring(1));
+                } else {
+                    p = Paths.get(filename);
+                }
+		return Paths.get(newBaseDir, p.getFileName().toString()).toString();
 	}
 
 	/**

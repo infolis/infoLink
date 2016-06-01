@@ -136,7 +136,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
                 "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
-                "--meta-dir", getResourcePath("/metadata"),
+                "--meta-dir", getResourcePath("/metaData"),
                 "--convert-to-text",
                 "--tag", tag
         });

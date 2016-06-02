@@ -36,12 +36,6 @@ public class Entity extends BaseModel {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(Entity.class);
 
-    
-    //TODO: add the types that come from the ontolgy
-    public enum Type {
-        SAME_AS 
-    }
-
     @XmlAttribute
     private String name;
     private String identifier;
@@ -60,7 +54,6 @@ public class Entity extends BaseModel {
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
     private String language;
-    private Type type;
 
     public Entity(String name) {
         this.name = name;
@@ -293,19 +286,5 @@ public class Entity extends BaseModel {
      */
     public void setLanguage(String language) {
         this.language = language;
-    }
-    
-    /**
-     * @return the type
-     */
-    public Type getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(Type type) {
-        this.type = type;
     }
 }

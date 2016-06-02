@@ -60,7 +60,7 @@ public class KeywordTagger extends BaseAlgorithm {
         String thesaurusURL = getExecution().getThesaurus();
         SKOSManager man = new SKOSManager(thesaurusURL);
         ConceptScheme iflCs = new IflConceptScheme(man.getConceptSchemes().get(0), thesaurusURL);
-        IflConcept.preferredLangaue = new IflLanguage(getExecution().getLanguage());
+        IflConcept.preferredLangaue = new IflLanguage(getExecution().getAbstractLanguage());
         
         AnnotationSource target = new IflAnnotationSource(iflCs);
 

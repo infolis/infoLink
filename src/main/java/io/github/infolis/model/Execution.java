@@ -486,7 +486,7 @@ public class Execution extends BaseModel {
          * Language of the abstracts 
          * {@link KeywordTagger}
          */
-        private String language = "en";
+        private String abstractLanguage = "en";
         
         /**
          * Meta data files of the publications in which information about
@@ -885,12 +885,12 @@ public class Execution extends BaseModel {
         return this.thesaurus;
     }
     
-    public void setLanguage(String lang) {
-        this.language = lang;
+    public void setAbstractLanguage(String absLang) {
+        this.abstractLanguage = absLang;
     }
     
-    public String getLanguage() {
-        return this.language;
+    public String getAbstractLanguage() {
+        return this.abstractLanguage;
     }
 
     public List<String> getMetaDataFiles() {

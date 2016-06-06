@@ -109,7 +109,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
     	for (String inputFileURI : getExecution().getInputFiles()) {
     		InfolisFile infolisFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
     		// TODO update status
-    		List<String> tokenizedSentences = getTokenizedSentences(new File(infolisFile.getFileName()));
+    		String text = IOUtils.toString(getInputFileResolver().openInputStream(infolisFile));
+    		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), tokenizedSentences, tagsToSet);

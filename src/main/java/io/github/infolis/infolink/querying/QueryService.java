@@ -1,5 +1,6 @@
 package io.github.infolis.infolink.querying;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -19,7 +20,8 @@ import java.util.Set;
  * @author domi
  * @author kata
  */
-@JsonTypeInfo(use = Id.CLASS,include = JsonTypeInfo.As.PROPERTY,property = "type")
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = Id.CLASS,include = JsonTypeInfo.As.PROPERTY,property = "queryServiceType")
 @JsonSubTypes({
     @Type(value = DaraHTMLQueryService.class),
     @Type(value = DaraSolrQueryService.class),

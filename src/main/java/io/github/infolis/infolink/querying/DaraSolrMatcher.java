@@ -16,6 +16,13 @@ import javax.json.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName("io.github.infolis.infolink.querying.DaraSolrQueryService")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "queryServiceType")
 public class DaraSolrMatcher {
 
     Logger log = LoggerFactory.getLogger(DaraSolrMatcher.class);

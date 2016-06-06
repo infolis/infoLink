@@ -25,12 +25,22 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 /**
  * 
  * @author kata
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName("io.github.infolis.infolink.querying.DaraHTMLQueryService")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "queryServiceType")
 public class DaraHTMLQueryService extends QueryService {
+
+	private double serviceReliability = 0.8;
 
     public DaraHTMLQueryService() {
         super("http://www.da-ra.de/dara/search/search_result", 0.5);

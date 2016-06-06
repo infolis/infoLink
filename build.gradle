@@ -60,6 +60,7 @@ dependencies {
     // Unit testing
     testCompile 'junit:junit:4.6'
     compile 'junit:junit:4.6'
+
 }
 
 test {

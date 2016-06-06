@@ -30,7 +30,7 @@ public abstract class QueryService extends BaseModel {
     }
 
     protected String target = "";
-    private double reliability =0.0;
+    private double serviceReliability =0.0;
     protected Set<QueryField> queryStrategy;
     protected int maxNumber = 1000;
     
@@ -40,7 +40,7 @@ public abstract class QueryService extends BaseModel {
 
     public QueryService(String target, double reliability) {
         this.target = target;
-        this.reliability = reliability;
+        this.serviceReliability = reliability;
     }
     
     public abstract URL createQuery(Entity entity) throws MalformedURLException;
@@ -55,17 +55,17 @@ public abstract class QueryService extends BaseModel {
     }
 
     /**
-     * @return the reliability
+     * @return the serviceReliability
      */
-    public double getReliability() {
-        return reliability;
+    public double getServiceReliability() {
+        return serviceReliability;
     }
 
     /**
-     * @param reliability the reliability to set
+     * @param reliability the serviceReliability to set
      */
-    public void setReliability(double reliability) {
-        this.reliability = reliability;
+    public void setReliability(double serviceReliability) {
+        this.serviceReliability = serviceReliability;
     }
     
     /**

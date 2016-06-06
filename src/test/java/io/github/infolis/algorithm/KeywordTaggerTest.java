@@ -5,6 +5,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.Keyword;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +19,7 @@ import org.junit.Test;
 public class KeywordTaggerTest extends InfolisBaseTest {
 
     @Test
-    public void evaluateSearchResultsFromOneSource() throws IOException {
+    public void evaluateSearchResultsFromOneSource() throws IOException, URISyntaxException {
         
         Entity p = new Entity();
         p.setIdentifier("xyz");
@@ -32,8 +33,9 @@ public class KeywordTaggerTest extends InfolisBaseTest {
         p2.setAbstractText("This round of Eurobarometer surveys sought public opinion on issues oftime usage and product safety instructions.Topics: Respondents were asked about their current employment statusand occupation, matters pertaining to work arrangements and leaveoptions such as teleworking, work schedule flexibility, and takingsabbaticals, as well as activities that have an impact on their freetime. Respondents were asked about their satisfaction with respect tovarious aspects of life including their job, health, and financialsituation. Respondents were queried on the number of hours they workedper week, whether or not they intended to reduce their working hoursand for how long, and what they would do with their extra free time.Respondents were also asked for their opinions about stress levels atwork, compensation, working conditions, and job security. They werealso asked at what age they would like to retire and at what age theyexpected to retire, whether they would consider postponing retirementfor any reason, and what they would do with their extra time uponretiring. Other questions were asked about professional trainingcompleted by the respondents in the previous 12 months, whether theytook time off of work to complete the training, who should beresponsible for paying for such training and about their attitudestowards lifelong learning. Respondents were asked how many childrenunder the age of 14 were living in their household and if thechildren´s grandparents ever looked after them and with what frequency.In addition, respondents with grandchildren were asked if they everlooked after their grandchildren and whether or not they did so on aregular basis. Respondents also were asked a series of questionsregarding product safety information with respect to ´Do-it-yourself´(DIY) products. Respondents were shown different logos that hadappeared on DIY products and were asked if they were familiar with thevarious logos and if they knew what the logos said about the product.Respondents were asked if they took safety logos or other safetyinformation into account when purchasing DIY products, whether or notthey read instructions accompanying DIY products, whether they keptinstructions for future use, where they thought the best location forinstructions would be, whether they preferred safety instructions to beconveyed by logos or text, and whether or not safety information forDIY products was generally useful. Similarly, they were asked aboutproduct safety information regarding toys and other products forchildren. Respondents were also asked whether they took safetyinformation into account when buying toys or children´s products,whether they read safety instructions, and whether they kept safetyinstructions for future reference. Further, they were asked if they hadseen certain logos on toys or other products for children and whetherthey knew what the logos said about the products. Respondents´ opinionswere sought regarding the most effective placement of safetyinstructions, whether they preferred the risks of using a toy orchildren´s product to be indicated by logos or symbols or by text, andthe usefulness of warnings appearing in text form. Finally, respondentswere asked to make judgments on the overall usefulness of safetyinformation for toys and children´s products. Demography: Age, gender, marital status, nationality, left-rightpolitical self-placement, age at completion of education, occupation,household income group, type and size of locality, and region ofresidence.");
         dataStoreClient.post(Entity.class, p2);
         
-        //String thesaurus = "file:///C:/Users/domi/InFoLiS2/Verschlagwortung/thesaurus/thesoz.rdf";
-        String thesaurus = "http://web.informatik.uni-mannheim.de/dominique/stw.rdf";
+        //String thesaurus = "http://web.informatik.uni-mannheim.de/dominique/stw.rdf";
+        
+       String thesaurus = this.getClass().getResource("/thesauri/stw.rdf").toURI().toString();
         
         Execution execution = new Execution();
         execution.setAlgorithm(KeywordTagger.class);
@@ -41,6 +43,7 @@ public class KeywordTaggerTest extends InfolisBaseTest {
         execution.setEntitiesForKeywordTagging(new ArrayList<>(Arrays.asList(p.getUri(),p2.getUri())));
         execution.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         
+                
         List<Keyword> detectedKeywords = dataStoreClient.get(Keyword.class, execution.getKeyWords());
         assertEquals(10,detectedKeywords.size());
 //        for(Keyword k : dataStoreClient.get(Keyword.class, execution.getKeyWords())) {

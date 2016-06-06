@@ -86,6 +86,15 @@ public class LocalClient extends AbstractClient {
         log.debug("PUT {}", thing.getUri());
         store(clazz, thing);
     }
+    
+     @Override
+    public <T extends BaseModel> void put(Class<T> clazz, T thing, String uri) throws BadRequestException {
+        String id = uri;
+        log.debug("PUT {}", id);
+        thing.setUri(id);
+        store(clazz, thing);
+    }
+    
 
     @Override
     public <T extends BaseModel> void post(Class<T> clazz, T thing) {
@@ -199,5 +208,7 @@ public class LocalClient extends AbstractClient {
             throw new RuntimeException(e);
         }
     }
+
+   
 
 }

@@ -77,8 +77,11 @@ public class CommandLineExecuter {
     @Option(name = "--db-dir", usage = "Directory to hold JSON database dump", metaVar = "OUTPUTDIR", required = true)
     private Path dbDir;
 
-    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = { "--tag" })
+    @Option(name = "--index-dir", usage = "Directory to contain the Lucene index (no index unless specified)", metaVar = "INDEXDIR", depends = {"--tag"})
     private Path indexDir;
+
+    @Option(name = "--meta-dir", usage = "Directory to contain the metadata files", metaVar = "METADIR", depends = {"--pdf-dir"})
+    private Path metaDir;
 
     @Option(name = "--json", usage = "Execution as JSON", metaVar = "JSON")
     private Path json;
@@ -90,7 +93,7 @@ public class CommandLineExecuter {
     @Option(name = "--log-level", usage = "minimum log level")
     private String logLevel = "DEBUG";
 
-    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = { "--pdf-dir" })
+    @Option(name = "--convert-to-text", usage = "whether to convert to text before execution", depends = {"--pdf-dir"})
     private boolean shouldConvertToText = false;
 
     @Option(name = "--search-candidates", usage = "look for files that match a set of queries", depends = {"--queries-file", "--tag"})
@@ -108,117 +111,125 @@ public class CommandLineExecuter {
             // iterate through the entries in the JSON file
             for (Entry<String, JsonValue> values : jsonObject.entrySet()) {
                 switch (values.getValue().getValueType()) {
-                case STRING:
-                case NUMBER:
-                case TRUE:
-                case FALSE:
+                    case STRING:
+                    case NUMBER:
+                    case TRUE:
+                    case FALSE:
                     // algorithm has to be handled as a special case since we
-                    // need
-                    // to find the class
-                    if (values.getKey().equals("algorithm")) {
-                        String algorithmName = values.getValue().toString();
-                        algorithmName = algorithmName.replace("\"", "");
-                        if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
-                            algorithmName = "io.github.infolis.algorithm." + algorithmName;
+                        // need
+                        // to find the class
+                        if (values.getKey().equals("algorithm")) {
+                            String algorithmName = values.getValue().toString();
+                            algorithmName = algorithmName.replace("\"", "");
+                            if (!algorithmName.startsWith("io.github.infolis.algorithm")) {
+                                algorithmName = "io.github.infolis.algorithm." + algorithmName;
+                            }
+                            try {
+                                Class<? extends Algorithm> algoClass;
+                                algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
+                                exec.setAlgorithm(algoClass);
+                            } catch (ClassNotFoundException | ClassCastException e1) {
+                                throwCLI("No such algorithm: " + algorithmName);
+                            }
+                            break;
                         }
-                        try {
-                            Class<? extends Algorithm> algoClass;
-                            algoClass = (Class<? extends Algorithm>) Class.forName(algorithmName);
-                            exec.setAlgorithm(algoClass);
-                        } catch (ClassNotFoundException | ClassCastException e1) {
-                            throwCLI("No such algorithm: " + algorithmName);
+                        // TODO generic solution for enums?
+                        if (values.getKey().equals("bootstrapStrategy")) {
+                            BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString().replace("\"", ""));
+                            exec.setBootstrapStrategy(b);
+                            break;
                         }
-                        break;
-                    }
-                    // TODO generic solution for enums?
-                    if (values.getKey().equals("bootstrapStrategy")) {
-                        BootstrapStrategy b = BootstrapStrategy.valueOf(values.getValue().toString().replace("\"", ""));
-                        exec.setBootstrapStrategy(b);
-                        break;
-                    }
-                    
-                    if (values.getKey().equals("tokenize")) {
-                    	exec.setTokenize(Boolean.parseBoolean(values.getValue().toString()));
-                    	break;
-                    }
-                    
-                    if (values.getKey().equals("searchResultLinkerClass")) {
-                        String searchResultLinkerClassName = values.getValue().toString().replace("\"", "");
-                        String prefix = "io.github.infolis.algorithm.";
-                        if (!searchResultLinkerClassName.startsWith(prefix)) searchResultLinkerClassName = prefix + searchResultLinkerClassName;
-                        try {
-                        	Class<? extends SearchResultLinker> searchResultLinkerClass = (Class<? extends SearchResultLinker>) Class.forName(searchResultLinkerClassName);
-                        	exec.setSearchResultLinkerClass(searchResultLinkerClass);
-                        } catch (ClassNotFoundException | ClassCastException e1) {
-                            throwCLI("No such SearchResultLinker class: " + searchResultLinkerClassName);
-                        }
-                        break;
-                    }
 
-                    // all other fields are just set
-                    exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
-                    break;
+                        if (values.getKey().equals("tokenize")) {
+                            exec.setTokenize(Boolean.parseBoolean(values.getValue().toString()));
+                            break;
+                        }
 
-                case ARRAY:
-                	if (values.getKey().equals("linkedEntities")) {
-                		List<String> entityURIs = new ArrayList<>();
-                		JsonArray array = (JsonArray) values.getValue();
-                		for (int i = 0; i < array.size(); i++) {
-                			
-	                		JsonObject entityObject = (JsonObject) array.getJsonObject(i);
-	                		String name = "";
-	                		String number = "";
-	                		String identifier = "";
-	                		if (entityObject.containsKey("name")) name = String.valueOf(entityObject.get("name"));
-	                		if (entityObject.containsKey("number")) name = String.valueOf(entityObject.get("number"));
-	                		if (entityObject.containsKey("identifier")) name = String.valueOf(entityObject.get("identifier"));
-	                		Entity entity = new Entity();
-	                		entity.setName(name);
-	                		entity.setNumber(number);
-	                		entity.setIdentifier(identifier);
-	                		dataStoreClient.post(Entity.class, entity);
-	                		entityURIs.add(entity.getUri());
-                		}
-                		exec.setLinkedEntities(entityURIs);
-                		break;
-                	}
-                	
-                    if (values.getKey().equals("queryServiceClasses")) {
+                        if (values.getKey().equals("searchResultLinkerClass")) {
+                            String searchResultLinkerClassName = values.getValue().toString().replace("\"", "");
+                            String prefix = "io.github.infolis.algorithm.";
+                            if (!searchResultLinkerClassName.startsWith(prefix)) {
+                                searchResultLinkerClassName = prefix + searchResultLinkerClassName;
+                            }
+                            try {
+                                Class<? extends SearchResultLinker> searchResultLinkerClass = (Class<? extends SearchResultLinker>) Class.forName(searchResultLinkerClassName);
+                                exec.setSearchResultLinkerClass(searchResultLinkerClass);
+                            } catch (ClassNotFoundException | ClassCastException e1) {
+                                throwCLI("No such SearchResultLinker class: " + searchResultLinkerClassName);
+                            }
+                            break;
+                        }
+
+                        // all other fields are just set
+                        exec.setProperty(values.getKey(), values.getValue().toString().replace("\"", ""));
+                        break;
+
+                    case ARRAY:
+                        if (values.getKey().equals("linkedEntities")) {
+                            List<String> entityURIs = new ArrayList<>();
+                            JsonArray array = (JsonArray) values.getValue();
+                            for (int i = 0; i < array.size(); i++) {
+
+                                JsonObject entityObject = (JsonObject) array.getJsonObject(i);
+                                String name = "";
+                                String number = "";
+                                String identifier = "";
+                                if (entityObject.containsKey("name")) {
+                                    name = String.valueOf(entityObject.get("name"));
+                                }
+                                if (entityObject.containsKey("number")) {
+                                    name = String.valueOf(entityObject.get("number"));
+                                }
+                                if (entityObject.containsKey("identifier")) {
+                                    name = String.valueOf(entityObject.get("identifier"));
+                                }
+                                Entity entity = new Entity();
+                                entity.setName(name);
+                                entity.setNumber(number);
+                                entity.setIdentifier(identifier);
+                                dataStoreClient.post(Entity.class, entity);
+                                entityURIs.add(entity.getUri());
+                            }
+                            exec.setLinkedEntities(entityURIs);
+                            break;
+                        }
+
+                        if (values.getKey().equals("queryServiceClasses")) {
+                            JsonArray array = (JsonArray) values.getValue();
+                            for (int i = 0; i < array.size(); i++) {
+                                JsonString stringEntry = array.getJsonString(i);
+
+                                String queryServiceName = stringEntry.getString();
+                                queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
+                                if (!queryServiceName.startsWith("io.github.infolis.infolink.querying.")) {
+                                    queryServiceName = "io.github.infolis.infolink.querying." + queryServiceName;
+                                }
+                                log.debug("queryServiceClass item: " + queryServiceName);
+                                try {
+                                    Class<? extends QueryService> queryServiceClass;
+                                    queryServiceClass = (Class<? extends QueryService>) Class.forName(queryServiceName);
+                                    exec.addQueryServiceClasses(queryServiceClass);
+                                } catch (ClassNotFoundException | ClassCastException e1) {
+                                    throwCLI("No such queryService: " + queryServiceName);
+                                }
+
+                            }
+                            break;
+                        }
                         JsonArray array = (JsonArray) values.getValue();
+                        List<String> listEntries = new ArrayList<>();
                         for (int i = 0; i < array.size(); i++) {
                             JsonString stringEntry = array.getJsonString(i);
-
-                            String queryServiceName = stringEntry.getString();
-                            queryServiceName = queryServiceName.replace("\"", ""); // XXX why?
-                            if (!queryServiceName.startsWith("io.github.infolis.infolink.querying.")) {
-                                queryServiceName = "io.github.infolis.infolink.querying." + queryServiceName;
-                            }
-                            log.debug("queryServiceClass item: " + queryServiceName);
-                            try {
-                                Class<? extends QueryService> queryServiceClass;
-                                queryServiceClass = (Class<? extends QueryService>) Class.forName(queryServiceName);
-                                exec.addQueryServiceClasses(queryServiceClass);
-                            } catch (ClassNotFoundException | ClassCastException e1) {
-                                throwCLI("No such queryService: " + queryServiceName);
-                            }
-
+                            listEntries.add(stringEntry.getString());
                         }
+                        exec.setProperty(values.getKey(), listEntries);
                         break;
-                    }
-                    JsonArray array = (JsonArray) values.getValue();
-                    List<String> listEntries = new ArrayList<>();
-                    for (int i = 0; i < array.size(); i++) {
-                        JsonString stringEntry = array.getJsonString(i);
-                        listEntries.add(stringEntry.getString());
-                    }
-                    exec.setProperty(values.getKey(), listEntries);
-                    break;
-                case OBJECT:
-                	//$FALL-THROUGH$
-					default:
-                    throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
-                            + values.getKey());
-                    break;
+                    case OBJECT:
+                    //$FALL-THROUGH$
+                    default:
+                        throwCLI("Unhandled value type " + values.getValue().getValueType() + " for JSON key "
+                                + values.getKey());
+                        break;
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -227,11 +238,13 @@ public class CommandLineExecuter {
     }
 
     List<String> getQueryTermsFromFile(String filename) throws IOException {
-    	return FileUtils.readLines(new File(filename), "UTF-8");
+        return FileUtils.readLines(new File(filename), "UTF-8");
     }
 
     /**
-     * Executes the 'candidate search' mode which fires a LuceneSearcher execution for every search term provided./
+     * Executes the 'candidate search' mode which fires a LuceneSearcher
+     * execution for every search term provided./
+     *
      * @param exec2
      *
      * @param exec
@@ -239,40 +252,40 @@ public class CommandLineExecuter {
      * @throws IOException
      */
     private void executeCandidateSearch(Execution parentExec) throws BadRequestException, IOException {
-		if (null == queriesFile) {
-		    throwCLI("Inconsistency: --search-candidates but queries>File is null.");
-		}
-		if (null == indexDir) {
-		    throwCLI("Inconsistency: --search-candidates but no --index-dir given.");
-		} 
-		Set<String> allMatchingFiles = new HashSet<>(); 
-		Map<String,List<String>> matchingFilesByQuery = new HashMap<>(); 
-		for (String query : getQueryTermsFromFile(queriesFile)) {
-		    String normalizedQuery = RegexUtils.normalizeQuery(query.trim(), true);
-		    matchingFilesByQuery.put(normalizedQuery, new ArrayList<String>());
+        if (null == queriesFile) {
+            throwCLI("Inconsistency: --search-candidates but queries>File is null.");
+        }
+        if (null == indexDir) {
+            throwCLI("Inconsistency: --search-candidates but no --index-dir given.");
+        }
+        Set<String> allMatchingFiles = new HashSet<>();
+        Map<String, List<String>> matchingFilesByQuery = new HashMap<>();
+        for (String query : getQueryTermsFromFile(queriesFile)) {
+            String normalizedQuery = RegexUtils.normalizeQuery(query.trim(), true);
+            matchingFilesByQuery.put(normalizedQuery, new ArrayList<String>());
 
-		    Execution exec = new Execution();
-		    exec.setAlgorithm(LuceneSearcher.class);
-		    exec.setPhraseSlop(0);
-		    exec.setIndexDirectory(parentExec.getIndexDirectory());
-		    // normalize to treat phrase query properly
-		    InfolisPattern p = new InfolisPattern(normalizedQuery);
-		    dataStoreClient.post(InfolisPattern.class, p);
+            Execution exec = new Execution();
+            exec.setAlgorithm(LuceneSearcher.class);
+            exec.setPhraseSlop(0);
+            exec.setIndexDirectory(parentExec.getIndexDirectory());
+            // normalize to treat phrase query properly
+            InfolisPattern p = new InfolisPattern(normalizedQuery);
+            dataStoreClient.post(InfolisPattern.class, p);
             exec.setPatterns(Arrays.asList(p.getUri()));
-		    dataStoreClient.post(Execution.class, exec);
-		    exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
-		    for (InfolisFile f: dataStoreClient.get(InfolisFile.class, exec.getOutputFiles())) {
-		        String filename = FilenameUtils.getBaseName(f.getFileName());
-		        allMatchingFiles.add(filename);
-		        matchingFilesByQuery.get(normalizedQuery).add(filename);
-		    }
-		}
-		Path outFile = dbDir.resolve(FilenameUtils.getBaseName(queriesFile));
-		try (OutputStream os = Files.newOutputStream(outFile)) {
-		    IOUtils.write(StringUtils.join(allMatchingFiles, "\n"), os);
-		};
-		log.warn("ALL MATCHES: {}", allMatchingFiles);
-		log.warn("MATCHES BY QUERY: {}", matchingFilesByQuery);
+            dataStoreClient.post(Execution.class, exec);
+            exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+            for (InfolisFile f : dataStoreClient.get(InfolisFile.class, exec.getOutputFiles())) {
+                String filename = FilenameUtils.getBaseName(f.getFileName());
+                allMatchingFiles.add(filename);
+                matchingFilesByQuery.get(normalizedQuery).add(filename);
+            }
+        }
+        Path outFile = dbDir.resolve(FilenameUtils.getBaseName(queriesFile));
+        try (OutputStream os = Files.newOutputStream(outFile)) {
+            IOUtils.write(StringUtils.join(allMatchingFiles, "\n"), os);
+        };
+        log.warn("ALL MATCHES: {}", allMatchingFiles);
+        log.warn("MATCHES BY QUERY: {}", matchingFilesByQuery);
     }
 
     /**
@@ -311,7 +324,9 @@ public class CommandLineExecuter {
     }
 
     /**
-     * Indexes the input files in Lucene and sets the indexDirectory of the execution.
+     * Indexes the input files in Lucene and sets the indexDirectory of the
+     * execution.
+     *
      * @param exec
      */
     private void setExecutionIndexDir(Execution exec) {
@@ -326,7 +341,8 @@ public class CommandLineExecuter {
     }
 
     /**
-     * Sets the input files for an execution and converts depending on command line arguments.
+     * Sets the input files for an execution and converts depending on command
+     * line arguments.
      *
      * @param exec
      * @throws IOException
@@ -348,16 +364,22 @@ public class CommandLineExecuter {
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
         } else {
+            if (metaDir != null) {
+                List<String> files = new ArrayList<>();
+                for (File f : metaDir.toFile().listFiles()) {
+                    files.add(f.getAbsolutePath());
+                }
+                exec.setMetaDataFiles(files);
+            }
             if (null == textDir || !Files.exists(textDir)) {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
                     if (null == exec.isTokenize()) {
-                    	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                    	exec.setTokenize(true);
-                    }
-                    else {
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
+                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        exec.setTokenize(true);
+                    } else {
+                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     }
                 } else {
                     throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
@@ -366,17 +388,16 @@ public class CommandLineExecuter {
                 if (shouldConvertToText) {
                     //System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
                     //        + "' were specified. Will possibly clobber text files in conversion!");
-                	System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
+                    System.err.println("WARNING: Both --text-dir '" + textDir + "' and --pdf-dir '" + pdfDir
                             + "' were specified. Overwriting text files: " + exec.getOverwriteTextfiles());
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
                     if (null == exec.isTokenize()) {
-                    	log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                    	exec.setTokenize(true);
-                    }
-                    else {
-                    	exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
+                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        exec.setTokenize(true);
+                    } else {
+                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                     }
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
@@ -465,17 +486,19 @@ public class CommandLineExecuter {
     }
 
     private static void throwCLI(String msg, Exception e) {
-        if (null != msg)
+        if (null != msg) {
             System.err.println("**ERROR** " + msg);
+        }
         if (null != e) {
             System.err.println(e.getMessage());
             e.printStackTrace(System.err);
         }
-        if (System.getProperty("testing") == null)
+        if (System.getProperty("testing") == null) {
             System.exit(1);
-        else
+        } else {
             log.error("ERROR: {}", e);
-            throw new RuntimeException(e);
+        }
+        throw new RuntimeException(e);
     }
 
     public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
@@ -486,7 +509,7 @@ public class CommandLineExecuter {
             if (null == json && !(shouldConvertToText || searchCandidatesMode)) {
                 throwCLI("Must specify JSON if not --convert-to-text|--search-candidates");
             }
-            if (null == json && shouldConvertToText && ! searchCandidatesMode) {
+            if (null == json && shouldConvertToText && !searchCandidatesMode) {
                 convertToTextMode = true;
             }
             // ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);

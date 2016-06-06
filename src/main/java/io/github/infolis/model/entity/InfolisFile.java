@@ -21,6 +21,7 @@ public class InfolisFile extends BaseModel {
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
+        private String originalName;
 	private Set<String> tags = new HashSet<>();
         
         public InfolisFile() {
@@ -61,4 +62,12 @@ public class InfolisFile extends BaseModel {
 	public void setTags(Set<String> tags) {
 		this.tags = tags;
 	}
+
+        public String getOriginalName() {
+            return originalName;
+        }
+
+        public void setOriginalName(String originalName) {
+            this.originalName = originalName;
+        }
 }

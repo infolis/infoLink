@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.net.MediaType;
+import io.github.infolis.model.entity.Entity;
 
 /**
  *
@@ -83,12 +84,13 @@ public class TextExtractor extends BaseAlgorithm {
 
         InfolisFile outFile = new InfolisFile();
         outFile.setFileName(outFileName);
+        outFile.setOriginalName(inFile.getFileName());
         outFile.setMediaType("text/plain");
         //TODO either set or list for all tags
 		for (String tag : getExecution().getTags())
         	outFile.getTags().add(tag);
 		for (String tag : inFile.getTags())
-        	outFile.getTags().add(tag);
+        	outFile.getTags().add(tag);                
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {

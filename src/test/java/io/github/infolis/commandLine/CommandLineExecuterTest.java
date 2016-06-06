@@ -125,4 +125,22 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
 
+    @Test
+    public void testTextAndMetaDataExtractorClass() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
+        CommandLineExecuter.main(new String[] {
+        	"--json", getResourcePath("/commandLine/textAndMetaDataCall.json"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--meta-dir", getResourcePath("/metaData"),
+                "--convert-to-text",
+                "--tag", tag
+        });
+        FileUtils.forceDelete(outputBaseDir.toFile());
+    }
+    
 }

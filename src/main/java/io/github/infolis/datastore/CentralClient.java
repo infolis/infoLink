@@ -63,6 +63,7 @@ class CentralClient extends AbstractClient {
 	private static Map<Class<?>, String> uriForClass = new ImmutableMap.Builder<Class<?>, String>()
 //		.put(InfolisFile.class, "file")
 		.build();
+                
 	public static String getEndpointForClass(Class<?> clazz) {
 		// if explicitly mapped
 		if (uriForClass.containsKey(clazz)) {
@@ -113,7 +114,6 @@ class CentralClient extends AbstractClient {
 		}
 	}
 
-	@Override
 	public <T extends BaseModel> void put(Class<T> clazz, T thing) {
 		String thingURI = thing.getUri();
 		if (null == thingURI) {
@@ -132,7 +132,23 @@ class CentralClient extends AbstractClient {
 //			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
 			throw new BadRequestException(resp);
 		}
-
+	}
+        
+        public <T extends BaseModel> void put(Class<T> clazz, T thing, String uri) {            
+            String id = uri;
+		WebTarget target = jerseyClient.target(id);
+		Entity<T> entity = Entity
+				.entity(thing, MediaType.APPLICATION_JSON_TYPE);
+		Response resp = target
+				.request(MediaType.APPLICATION_JSON_TYPE)
+				.put(entity);
+		if (resp.getStatus() >= 400) {
+			// TODO check whether resp actually succeeded
+//			ErrorResponse err = resp.readEntity(ErrorResponse.class);
+//			log.error(err.getMessage());
+//			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			throw new BadRequestException(resp);
+		}
 	}
 
 

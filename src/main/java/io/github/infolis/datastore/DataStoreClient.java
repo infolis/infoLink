@@ -22,6 +22,14 @@ public interface DataStoreClient {
 	 */
 	<T extends BaseModel> void put(Class<T> clazz, T thing) throws BadRequestException;
 
+        /**
+	 * PUT a resource with a specific URI
+	 *
+	 * @param clazz
+	 * @param thing
+	 */
+	<T extends BaseModel> void put(Class<T> clazz, T thing, String uri) throws BadRequestException;
+        
 	/**
 	 * GET a thing with a URI.
 	 *

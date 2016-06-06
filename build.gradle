@@ -24,7 +24,6 @@ dependencies {
         exclude group: 'org.slf4j'
     }
 
-    compile 'nz.ac.waikato.cms.weka:weka-stable:3.6.6'
     compile 'org.apache.lucene:lucene-queryparser:6.0.0'
     compile 'org.apache.lucene:lucene-highlighter:6.0.0'
     compile 'org.apache.lucene:lucene-memory:6.0.0'

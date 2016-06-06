@@ -205,6 +205,7 @@ class CentralClient extends AbstractClient {
 			{
 				throw new RuntimeException(e);
 			}
+			qParamSB.append(",");
         }
         String baseURI = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
         String uri = baseURI;

@@ -44,13 +44,15 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
     }
 
     public PatternRanker getPatternRanker() {
-    	return new ReliabilityPatternRanker();
+    	//return new ReliabilityPatternRanker();
+    	return new RelativeReliabilityPatternRanker();
     }
     
     public List<TextualReference> bootstrap() throws IOException, ParseException {
         Set<Entity> reliableInstances = new HashSet<>();
         Set<InfolisPattern> reliablePatterns = new HashSet<>();
-        ReliabilityPatternRanker patternRanker = new ReliabilityPatternRanker();
+        //ReliabilityPatternRanker patternRanker = new ReliabilityPatternRanker();
+        RelativeReliabilityPatternRanker patternRanker = new RelativeReliabilityPatternRanker();
         //TODO define and use generic PatternRanker
         //PatternRanker patternRanker = getPatternRanker();
         int numIter = 1;
@@ -76,7 +78,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         while (numIter < getExecution().getMaxIterations()) {
 
             log.info("Bootstrapping... Iteration: " + numIter);
-            log.debug("Current reliable instances:  " + reliableInstances);
+            log.debug("Current reliable instances:  ");
+            for (Entity instance : reliableInstances) log.debug(instance.getName());
             log.debug("Current top patterns: " + lastTopK);
 
             // add seeds selected in last iteration to list of reliable instances
@@ -112,10 +115,15 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             // Instance Extraction: filter seeds, select only reliable ones
             seeds = new HashSet<>();
 
+            log.debug("selected " + reliablePatterns_iteration.size() + " patterns");
+            
             // get list of new instances from textual references of reliablePatterns_iteration
             // compute reliability of all instances 
             Collection<TextualReference> reliableContexts_iteration = new ArrayList<>();
             for (InfolisPattern reliablePattern : reliablePatterns_iteration) reliableContexts_iteration.addAll(reliablePattern.getTextualReferences());
+            
+            log.debug("extracted " + reliableContexts_iteration.size() + " textual references in this iteration");
+            
             Set<String> newInstanceNames = new HashSet<>();
             for (TextualReference sC : reliableContexts_iteration) {
                 String newInstanceName = sC.getReference();
@@ -134,9 +142,12 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                 // for computation of reliability, save time nad consider only patterns of this iteration: 
                 // if instance had been found by patterns of earlier iterations, it would not be 
                 // considered as new instance here
+                /*
                 if (newInstance.isReliable(reliablePatterns_iteration, getExecution().getInputFiles().size(), r, getExecution().getReliabilityThreshold())) {
                     seeds.add(newInstance);
-                }
+                }*/
+                //TODO include reliability computation for instances again!
+                seeds.add(newInstance);
                 log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
             }
 
@@ -180,7 +191,10 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  ");
         for (Entity i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
-        log.debug("Final top patterns: " + patternRanker.topK);
+        log.debug("Final top patterns: ");
+        for (Map.Entry<String, Double> k : patternRanker.topK.entrySet()) {
+        	log.debug(String.format("%s=%s", k.getKey(), k.getValue()));
+        }
         
         List<TextualReference> reliableReferences = removeUnreliableInstances(topContexts, reliableInstances);
         this.getOutputDataStoreClient().post(TextualReference.class, reliableReferences);
@@ -258,6 +272,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         private Map<String, Double> getReliablePatterns(List<List<InfolisPattern>> candidatesPerContext, Set<Entity> relInstances) throws IOException, ParseException {
             int size = getExecution().getInputFiles().size();
             List<String> processedRegex_iteration = new ArrayList<>();
+            
             for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {
 
                 for (InfolisPattern candidate : candidatesForContext) {
@@ -315,6 +330,118 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 	        // this returns only the most reliable patterns, not all reliable ones
             // thus, new seeds are generated based on the most reliable patterns only
             return this.topK;
+        }  
+    }
+    
+    /**
+     * Class for pattern ranking and selection using a relative threshold.
+     *
+     * @author kata
+     *
+     */
+    private class RelativeReliabilityPatternRanker extends Bootstrapping.PatternRanker {
+    	//TODO custom comparator for entities..
+    	private Map<String,InfolisPattern> knownPatterns = new HashMap<>();
+        private Map<Double, Collection<String>> reliableRegex = new HashMap<>();
+        private Map<String, Double> topK = new HashMap<>();
+        private DataStoreClient tempClient = getTempDataStoreClient();
+
+        /**
+         * 
+         * @param candidatesPerContext
+         * @param relInstances
+         * @return
+         * @throws IOException
+         * @throws ParseException
+         */
+        private Map<String, Double> getReliablePatterns(List<List<InfolisPattern>> candidatesPerContext, Set<Entity> relInstances) throws IOException, ParseException {
+            int size = getExecution().getInputFiles().size();
+            List<String> processedRegex_iteration = new ArrayList<>();
+            
+            Map<String, Double> lastTopK = new HashMap<>(topK);
+            boolean firstIteration = false;
+            if (lastTopK.size() == 0) firstIteration = true;
+            
+            double summedConfidenceTopK = 0;
+	        for (double confidence : lastTopK.values()) {
+	          	summedConfidenceTopK += confidence; 
+	        }
+	        double averageConfidenceTopK = 0;
+	        if (!firstIteration) averageConfidenceTopK = summedConfidenceTopK / lastTopK.size();
+	        
+            int newK = lastTopK.size() + 1;
+            if (firstIteration) newK += 19;
+            
+            for (List<InfolisPattern> candidatesForContext : candidatesPerContext) {
+
+                for (InfolisPattern candidate : candidatesForContext) {
+                	// may be null if context had less words than windowsize for pattern induction
+                	if (null == candidate.getLuceneQuery()) continue;
+                    log.debug("Checking if pattern is reliable: " + candidate.getPatternRegex());
+	            	// Do not process patterns more than once in one iteration, scores do not change.
+                    // Scores may change from iteration to iteration though, thus do not exclude 
+                    // patterns already checked in another iteration
+                    if (processedRegex_iteration.contains(candidate.getPatternRegex())) {
+                        log.debug("Pattern already known, continuing.");
+                        break; // this prohibits induction of less general patterns
+                        //continue; // this prohibits induction of duplicate patterns but allows less general ones
+                    }
+
+                    // compute reliability again for patterns known from previous iterations - scores may change
+                    if (this.knownPatterns.containsKey(candidate.getPatternRegex())) {
+                    	candidate = this.knownPatterns.get(candidate.getPatternRegex());
+                        //contexts_pattern = candidatePattern.getTextualReferences();
+                    } // even potentially unreliable candidates need a URI for extraction of contexts
+                    else {
+                    	tempClient.post(InfolisPattern.class, candidate);
+                        // TODO: use on set of candidates instead of on single candidate
+                        candidate.setTextualReferences(getStudyContexts(getContextsForPatterns(Arrays.asList(candidate), tempClient), tempClient));
+                        this.knownPatterns.put(candidate.getPatternRegex(), candidate);
+                    }
+
+                    // Pattern Ranking / Selection
+                    candidate.isReliable(size, relInstances, r);
+                    double candidateReliability = candidate.getReliability();
+                    // TODO is the approximate highlighter implementation the cause for this happening?
+                    if (Double.isNaN(candidateReliability)) {
+                    	log.warn("Pattern has score of NaN. Ignoring: " + candidate.getLuceneQuery());
+                    	continue;
+                    }
+                    log.debug("Pattern score: " + candidateReliability);
+                    Collection<String> regexWithSameScore = new ArrayList<>();
+                    if (this.reliableRegex.containsKey(candidateReliability)) {
+                        regexWithSameScore = this.reliableRegex.get(candidateReliability);
+                    }
+                    regexWithSameScore.add(candidate.getPatternRegex());
+                    this.reliableRegex.put(candidateReliability, regexWithSameScore);
+                    processedRegex_iteration.add(candidate.getPatternRegex());
+                }
+            }
+                    
+            Map<String, Double> newTopK = getTopK(this.reliableRegex, newK);
+            double summedConfidenceNewTopK = 0;
+            if (firstIteration) {
+            	this.topK = newTopK;
+            	tempClient.clear();
+            	return this.topK;
+            }
+            else {
+	            for (double confidence : newTopK.values()) {
+	              	summedConfidenceTopK += confidence; 
+	            }
+	            double averageConfidenceNewTopK = summedConfidenceNewTopK / newTopK.size();
+	            // if the new patterns would decrease the average confidence more than allowed, reset pattern set
+	            log.debug("average score of current top k patterns: " + averageConfidenceTopK);
+	            log.debug("average score of new top k patterns: " + averageConfidenceNewTopK);
+	            log.debug("divergence: " + Math.abs(averageConfidenceTopK - averageConfidenceNewTopK));
+	            if (Math.abs(averageConfidenceTopK - averageConfidenceNewTopK) > getExecution().getReliabilityThreshold()) {
+	              	this.topK = lastTopK;
+	            }
+	            else this.topK = newTopK;
+	
+	            tempClient.clear();
+	            return this.topK;
+            }
         }
     }
 

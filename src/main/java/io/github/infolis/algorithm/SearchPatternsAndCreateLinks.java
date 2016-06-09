@@ -58,11 +58,11 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();
         updateProgress(1, 2);
-    	debug(log, "Done executing PatternApplier, found textualReferences: " + search.getTextualReferences());
+    	debug(log, "Done executing InfolisPatternSearcher, found textualReferences: " + search.getTextualReferences());
         return search.getTextualReferences();
     }
     
-    private List<String> createLinks(List<String> textualRefs) {
+    protected List<String> createLinks(List<String> textualRefs) {
     	Execution exec = new Execution();
     	if (null != getExecution().getQueryServices()) {
     		exec.setQueryServices(getExecution().getQueryServices());

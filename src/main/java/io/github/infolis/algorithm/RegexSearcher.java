@@ -81,8 +81,8 @@ public class RegexSearcher extends BaseAlgorithm {
                 log.trace("leftContext: " + leftContext);
                 log.trace("rightContext: " + rightContext);
                 Entity entity = new Entity();
-                getOutputDataStoreClient().post(Entity.class, entity);
                 entity.setFile(file.getUri());
+                getOutputDataStoreClient().post(Entity.class, entity);
                 if (null == leftContext || leftContext.isEmpty()) leftContext = " ";
                 if (null == rightContext || rightContext.isEmpty()) rightContext = " ";
                 TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, entity.getUri());

@@ -37,6 +37,8 @@ public class SearchDoisAndCreateLinks extends SearchPatternsAndCreateLinks {
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
+    	getExecution().setSearchResultLinkerClass(DoiLinker.class);
         List<String> textualRefs = extractDois(getExecution().getInputFiles());
         List<String> createdLinks = createLinks(textualRefs);
         
@@ -75,9 +77,6 @@ public class SearchDoisAndCreateLinks extends SearchPatternsAndCreateLinks {
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
-		if (null == exec.getSearchResultLinkerClass()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
-		}
     }
 
 }

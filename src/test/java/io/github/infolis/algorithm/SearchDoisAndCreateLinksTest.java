@@ -47,7 +47,6 @@ public class SearchDoisAndCreateLinksTest extends InfolisBaseTest {
         e.setAlgorithm(SearchDoisAndCreateLinks.class);
         e.setInputFiles(uris);
         e.setQueryServices(qServices);
-        e.setSearchResultLinkerClass(DoiLinker.class);
         dataStoreClient.post(Execution.class, e);
         e.instantiateAlgorithm(dataStoreClient, fileResolver).run();
         for (String ref : e.getTextualReferences()) {

@@ -40,10 +40,7 @@ public class DoiExtractor extends BaseAlgorithm {
 	public void execute() throws IOException {
 		Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
-    	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
-    	
-    	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
         extractDois(getExecution().getInputFiles());

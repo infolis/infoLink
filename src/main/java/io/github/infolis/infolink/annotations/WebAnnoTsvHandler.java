@@ -1,6 +1,5 @@
 package io.github.infolis.infolink.annotations;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,15 +46,15 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 				String annoString = numMatcher.group(4);
 				textMap.put(wordCount, word);
 				annotationMap.put(wordCount, annoString);
-				log.debug(String.valueOf(wordCount));
-				log.debug(word);
+				//log.debug(String.valueOf(wordCount));
+				//log.debug(word);
 				
 				Annotation anno = new Annotation();
 				anno.setPosition(wordCount);
 				anno.setWord(word);
 				anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
 				//TODO
-				//anno.addRelation();
+				//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
 				annotations.add(anno);
 			}
 			//log.debug(annotation);
@@ -68,13 +67,22 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 	protected Metadata getMetadata(String annotatedItem) {
 		switch (annotatedItem) {
 		case ("B-Title"):
-			return Metadata.title;
+			return Metadata.title_b;
 		case ("I-Title"):
-			return Metadata.title;
+			return Metadata.title_i;
+		case ("B-Scale"):
+			return Metadata.scale_b;
+		case ("I-Scale"):
+			return Metadata.scale_i;
+		// TODO correct name of the tag in the annotation files?
+		/*case ("B-ProjectTitle"):
+			return Metadata.project_title_b;
+		case ("I-ProjectTitle"):
+			return Metadata.project_title_i;*/
 		case ("B-Creator"):
-			return Metadata.creator;
+			return Metadata.creator_b;
 		case ("I-Creator"):
-			return Metadata.creator;
+			return Metadata.creator_i;
 		default:
 			return Metadata.none;
 		}

@@ -1,18 +1,22 @@
 package io.github.infolis.infolink.annotations;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
+
+import io.github.infolis.infolink.annotations.Annotation.Metadata;
+import io.github.infolis.model.TextualReference;
 
 /**
  * 
  * @author kata
  *
  */
-public class WebAnnoTsvHandlerTest {
-	
-	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnnoTsvHandlerTest.class);
+public class AnnotationHandlerTest {
 	
 	String input = String.join("\n", "#id=49",
 			"#text=der regelmäßige telefonische Gesundheitssurvey",
@@ -29,15 +33,21 @@ public class WebAnnoTsvHandlerTest {
 			"50-4	Institutes,	I-Creator	I-webanno.custom.Dataset_	I-webanno.custom.Dataset_	_	_	_	_	",
 			"50-5	der	O	O	O	_	_	_	_	\n");
 	
-	
-
 	@Test
-	public void testParse() {
+	public void testCompare() {
 		AnnotationHandler h = new WebAnnoTsvHandler();
 		List<Annotation> annotations = h.parse(input);
-		for (Annotation anno : annotations) {
-			log.debug(anno.toString());
-		}
-		//TODO assertEquals
+		List<TextualReference> textualReferences = new ArrayList<>();
+		TextualReference textRef = new TextualReference();
+		textRef.setReference("Gesundheitssurvey");
+		textualReferences.add(textRef);
+		TextualReference textRef2 = new TextualReference();
+		textRef2.setReference("Koch Institutes");
+		textualReferences.add(textRef2);
+		Set<Metadata> relevantFields = new HashSet<>();
+		relevantFields.addAll(Arrays.asList(
+				Metadata.title_b, 
+				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
+		AnnotationHandler.compare(textualReferences, annotations, relevantFields);
 	}
 }

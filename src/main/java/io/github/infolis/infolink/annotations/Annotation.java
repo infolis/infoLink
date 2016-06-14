@@ -49,11 +49,22 @@ public class Annotation {
 	}
 	
 	public enum Metadata {
-		title, vagueTitle, scale, year, number, version, creator, id, url, geographical_coverage, topic, sample, project_title, project_funder, none
+		title, title_b, title_i, 
+		vagueTitle, vagueTitle_b, vagueTitle_i, 
+		scale, scale_b, scale_i,
+		project_title, project_title_b, project_title_i, 
+		creator, creator_b, creator_i,
+		year, number, version, id, url, geographical_coverage, topic, sample, project_funder, none
 	}
 
 	public enum Relation {
 		describes, uses_sub_part, same_as
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("word: %s, position: %s, metadata: %s", 
+				this.word, this.position, this.metadata);
 	}
 	
 }

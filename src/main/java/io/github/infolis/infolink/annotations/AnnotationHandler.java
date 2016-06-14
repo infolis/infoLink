@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
@@ -12,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.TextualReference;
 
-//TODO: split sentences with Stanford NLP, then convert to tsv!
-//TODO: ImExPorter as algo, translationFunction in package
 /**
  * 
  * @author kata
@@ -43,17 +42,83 @@ public abstract class AnnotationHandler {
 		return parse(input);
 	}
 	
+	// title_b, title_i and title have equal classes...
+	// this is used by a work-around to deal with webAnno breaking annotations
+	// that cross sentence boundaries. 
+	private static boolean metadataClassesEqual(Metadata metadata1, Metadata metadata2) {
+		if (metadata1.equals(metadata2)) return true;
+		else if (metadata1.toString().replaceAll("_\\w", "")
+				.equals(metadata2.toString().replaceAll("_\\w", "")))
+			return true;
+		else return false;
+	}
+	
+	private static boolean metadataClassesFollow(Metadata metadata1, Metadata metadata2) {
+		if (metadata1.toString().endsWith("_b") &&
+				metadata2.toString().endsWith("_i") &&
+				metadata1.toString().replaceAll("_\\w", "")
+				.equals(metadata2.toString().replaceAll("_\\w", "")))
+			return true;
+		else return false;
+	}
+	
 	/**
 	 * Words are annotated using the BIO system; this method merges 
 	 * words that are annotated as being one entity.
 	 * 
 	 * @param annotations
 	 */
-	//TODO IMPLEMENT
+	// this includes a work-around to deal with webAnno breaking annotations
+	// that cross sentence boundaries. 
+	// This work-around may introduce errors.
+	// If annotations were correct, neighbouring entities with _b annotations
+	// should not be merged
 	private static List<Annotation> mergeNgrams(List<Annotation> annotations) {
 		List<Annotation> mergedAnnotations = new ArrayList<>();
-		//return mergedAnnotations;
-		return annotations;
+		for (int i = 0; i < annotations.size(); i++) {
+			Annotation anno = annotations.get(i);
+			// work-around...
+			// TODO log these corrections
+			if (anno.getStartsNewSentence() && !anno.getMetadata().equals(Metadata.none)) {
+				Metadata meta = anno.getMetadata();
+				StringJoiner ngram = new StringJoiner(" ", "", "");
+				ngram.add(anno.getWord());
+				for (int j = i+1; j < annotations.size(); j++) {
+					Annotation nextAnno = annotations.get(j);
+					if (metadataClassesEqual(nextAnno.getMetadata(), meta)) {
+						ngram.add(nextAnno.getWord());
+					}
+					else {
+						Annotation mergedAnnotation = new Annotation(anno);
+						mergedAnnotation.setWord(ngram.toString());
+						mergedAnnotations.add(mergedAnnotation);
+						i = j;
+						break;
+					}
+				}	
+			}
+			
+			else if (anno.getMetadata().toString().endsWith("_b")) {
+				Metadata meta = anno.getMetadata();
+				StringJoiner ngram = new StringJoiner(" ", "", "");
+				ngram.add(anno.getWord());
+				for (int j = i+1; j < annotations.size(); j++) {
+					Annotation nextAnno = annotations.get(j);
+					if (metadataClassesFollow(meta, nextAnno.getMetadata())) {
+						ngram.add(nextAnno.getWord());
+					}
+					else {
+						Annotation mergedAnnotation = new Annotation(anno);
+						mergedAnnotation.setWord(ngram.toString());
+						mergedAnnotations.add(mergedAnnotation);
+						i = j;
+						break;
+					}
+				}	
+			}
+			else mergedAnnotations.add(anno);
+		}
+		return mergedAnnotations;
 	}
 	
 	// TODO count overlaps

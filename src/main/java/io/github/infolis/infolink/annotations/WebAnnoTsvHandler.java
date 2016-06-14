@@ -42,6 +42,7 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 			Matcher numMatcher = numPat.matcher(annotation);
 			while (numMatcher.find()) {
 				wordCount += 1;
+				String relPos = numMatcher.group(2);
 				String word = numMatcher.group(3);
 				String annoString = numMatcher.group(4);
 				textMap.put(wordCount, word);
@@ -53,9 +54,11 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 				anno.setPosition(wordCount);
 				anno.setWord(word);
 				anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
+				if ("1".equals(relPos))	anno.setStartsNewSentence();
 				//TODO
 				//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
 				annotations.add(anno);
+				
 			}
 			//log.debug(annotation);
 			//annotations.add(annotationItem);

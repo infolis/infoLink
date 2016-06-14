@@ -15,6 +15,19 @@ public class Annotation {
 	//int: start position of word
 	Map<Integer, Relation> relationMap = new HashMap<>();
 	Metadata metadata;
+	boolean startsNewSentence;
+	
+	public Annotation() {
+		
+	}
+	
+	public Annotation(Annotation copyFrom) {
+		setWord(new String(copyFrom.getWord()));
+		setPosition(new Integer(copyFrom.getPosition()));
+		setRelationMap(new HashMap<>(copyFrom.getRelationMap()));
+		setMetadata(copyFrom.getMetadata());
+		this.startsNewSentence = copyFrom.getStartsNewSentence();
+	}
 	
 	public void setWord(String word) {
 		this.word = word;
@@ -40,8 +53,20 @@ public class Annotation {
 		return this.metadata;
 	}
 	
+	public void setStartsNewSentence() {
+		this.startsNewSentence = true;
+	}
+	
+	public boolean getStartsNewSentence() {
+		return this.startsNewSentence;
+	}
+	
 	public void addRelation(int pos, Relation relation) {
 		this.relationMap.put(pos, relation);
+	}
+	
+	public void setRelationMap(Map<Integer, Relation> relationMap) {
+		this.relationMap = relationMap;
 	}
 	
 	public Map<Integer, Relation> getRelationMap() {
@@ -63,8 +88,8 @@ public class Annotation {
 	
 	@Override
 	public String toString() {
-		return String.format("word: %s, position: %s, metadata: %s", 
-				this.word, this.position, this.metadata);
+		return String.format("word: %s, position: %s, startsNewSentence: %s metadata: %s", 
+				this.word, this.position, this.startsNewSentence, this.metadata);
 	}
 	
 }

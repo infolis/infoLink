@@ -48,6 +48,6 @@ public class AnnotationHandlerTest {
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b, 
 				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
-		AnnotationHandler.compare(textualReferences, annotations, relevantFields);
+		AnnotationHandler.compare(textualReferences, annotations, relevantFields, false);
 	}
 }

@@ -59,7 +59,7 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         Path emptyInputDir = outputBaseDir.resolve("dummy-input");
         Files.createDirectories(emptyInputDir);
         CommandLineExecuter.main(new String[] {
-        		"--json", getResourcePath("/commandLine/double.json"),
+                "--json", getResourcePath("/commandLine/double.json"),
                 "--pdf-dir", emptyInputDir.toString(),
                 "--text-dir", outputBaseDir.resolve("text").toString(),
                 "--db-dir", outputBaseDir.resolve("db").toString(),
@@ -143,4 +143,22 @@ public class CommandLineExecuterTest extends InfolisBaseTest {
         FileUtils.forceDelete(outputBaseDir.toFile());
     }
     
+    @Test
+    public void testIntegratedMetaDataExtraction() throws Exception {
+        Path outputBaseDir = mktempdir();
+        String tag = "foo-bar";
+        Path emptyInputDir = outputBaseDir.resolve("dummy-input");
+        Files.createDirectories(emptyInputDir);
+        CommandLineExecuter.main(new String[] {
+                "--json", getResourcePath("/commandLine/algoDesc.json"),
+                "--pdf-dir", getResourcePath("/examples/minimal-pdf/"),
+                "--text-dir", outputBaseDir.resolve("text").toString(),
+                "--db-dir", outputBaseDir.resolve("db").toString(),
+                "--convert-to-text",
+                "--log-level", "DEBUG",
+                "--tag", tag,
+                "--meta-dir", getResourcePath("/metaData")
+        });
+        FileUtils.forceDelete(outputBaseDir.toFile());
+    }
 }

@@ -89,7 +89,9 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
                 bestSearchResult = sr;
             }
         }
-        log.debug("Best search result: " + bestSearchResult);
+        log.debug("Best search result: " 
+        		+ bestSearchResult.getIdentifier() + ": " 
+        		+ bestSearchResult.getTitles());
         log.debug("Score: " + bestScore);
         Map<SearchResult, Double> resultMap = new HashMap<>();
         resultMap.put(bestSearchResult, bestScore);

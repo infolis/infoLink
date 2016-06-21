@@ -2,6 +2,9 @@ apply plugin: 'java'
 apply plugin: 'war'
 // apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
 apply plugin: 'eclipse'
+apply plugin: 'application'
+mainClassName = "io.github.infolis.commandLine.CommandLineExecuter"
+
 
 version =  1.0
 sourceCompatibility = 1.8

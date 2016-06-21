@@ -41,6 +41,7 @@ import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchResultLinker;
 import io.github.infolis.algorithm.LuceneSearcher;
+import io.github.infolis.algorithm.TextAndMetaDataExtractor;
 import io.github.infolis.algorithm.TextExtractor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
@@ -287,6 +288,17 @@ public class CommandLineExecuter {
         log.warn("ALL MATCHES: {}", allMatchingFiles);
         log.warn("MATCHES BY QUERY: {}", matchingFilesByQuery);
     }
+    
+    private void extractMetaData(Execution parentExec) {
+        Execution extractExec = new Execution();
+        extractExec.setAlgorithm(TextAndMetaDataExtractor.class);
+        extractExec.setMetaDataFiles(parentExec.getMetaDataFiles());
+        extractExec.setInputFiles(parentExec.getInputFiles());
+        dataStoreClient.post(Execution.class, extractExec);
+        Algorithm algo = extractExec.instantiateAlgorithm(dataStoreClient, fileResolver);
+        algo.run();
+        log.debug("Extracted metadata for " +parentExec.getMetaDataFiles().size()+" files");
+    }
 
     /**
      * Run the execution
@@ -312,10 +324,15 @@ public class CommandLineExecuter {
             dataStoreClient.post(Execution.class, exec);
             if (convertToTextMode) {
                 log.debug("Yay nothing to do. woop dee doo.");
-            } else if (searchCandidatesMode) {
-                executeCandidateSearch(exec);
             } else {
-                exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+                if(metaDir != null) {
+                    extractMetaData(exec);
+                }
+                if (searchCandidatesMode) {
+                    executeCandidateSearch(exec);
+                } else {
+                    exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+                }
             }
         } catch (Exception e) {
             throwCLI("Execution threw an excepion", e);
@@ -363,14 +380,7 @@ public class CommandLineExecuter {
                 }
                 exec.setInputFiles(postFiles(textDir, "text/plain"));
             }
-        } else {
-            if (metaDir != null) {
-                List<String> files = new ArrayList<>();
-                for (File f : metaDir.toFile().listFiles()) {
-                    files.add(f.getAbsolutePath());
-                }
-                exec.setMetaDataFiles(files);
-            }
+        } else {            
             if (null == textDir || !Files.exists(textDir)) {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
@@ -403,6 +413,14 @@ public class CommandLineExecuter {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }
             }
+            //extract the metadata and create the according entities
+            if (metaDir != null) {
+                List<String> files = new ArrayList<>();
+                for (File f : metaDir.toFile().listFiles()) {
+                    files.add(f.getAbsolutePath());
+                }
+                exec.setMetaDataFiles(files);                
+            }
         }
     }
 
@@ -430,7 +448,7 @@ public class CommandLineExecuter {
             throwCLI("Unknown fields: " + badFields);
         }
     }
-
+    
     /**
      * Converts a list of InfolisFile to text
      *

@@ -21,11 +21,12 @@ public class InfolisFile extends BaseModel {
 	private String fileName;
 	private String mediaType;
 	private String fileStatus;
-        private String originalName;
+    private String originalName;
+    private String manifestsEntity;
 	private Set<String> tags = new HashSet<>();
         
-        public InfolisFile() {
-        }
+    public InfolisFile() {
+    }
 
 	@Override
 	public String toString() {
@@ -63,11 +64,19 @@ public class InfolisFile extends BaseModel {
 		this.tags = tags;
 	}
 
-        public String getOriginalName() {
-            return originalName;
-        }
+    public String getOriginalName() {
+        return originalName;
+    }
 
-        public void setOriginalName(String originalName) {
-            this.originalName = originalName;
-        }
+    public void setOriginalName(String originalName) {
+        this.originalName = originalName;
+    }
+    
+    public String getEntity() {
+    	return manifestsEntity;
+    }
+    
+    public void setEntity(String entity) {
+    	this.manifestsEntity = entity;
+    }
 }

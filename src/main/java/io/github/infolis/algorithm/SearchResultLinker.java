@@ -126,9 +126,8 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	        String linkReason = textRef.getUri();
 	        
 	        log.debug("Creating link for TextualReference: " + textRef.getReference() + "; mentionsReference: " + textRef.getMentionsReference());
-	        Entity fromEntity = getInputDataStoreClient().get(Entity.class, textRef.getMentionsReference());
-	        log.debug("File: " + fromEntity.getFile());
-	        EntityLink el = new EntityLink(fromEntity.getUri(), referencedInstance.getUri(), scoreMap.get(searchResult), linkReason);
+	        log.debug("File: " + textRef.getFile());
+	        EntityLink el = new EntityLink(textRef.getMentionsReference(), referencedInstance.getUri(), scoreMap.get(searchResult), linkReason);
 	
 	        //TODO should EntityLink have tags?
 	        getOutputDataStoreClient().post(EntityLink.class, el);

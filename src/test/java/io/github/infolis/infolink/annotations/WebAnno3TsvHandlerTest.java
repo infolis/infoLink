@@ -115,7 +115,7 @@ public class WebAnno3TsvHandlerTest {
 		
 		Annotation expectedAnno1 = new Annotation();
 		expectedAnno1.setWord("(PIAAC)");
-		expectedAnno1.setMetadata(Metadata.title);
+		expectedAnno1.setMetadata(Metadata.title_b);
 		expectedAnno1.setPosition(56);
 		expectedAnno1.setCharStart(389);
 		expectedAnno1.setCharEnd(396);

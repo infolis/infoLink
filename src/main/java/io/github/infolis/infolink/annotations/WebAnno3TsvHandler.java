@@ -74,9 +74,7 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 	protected Metadata getMetadata(String annotatedItem) {
 		switch (annotatedItem) {
 		case ("Title"):
-			return Metadata.title;
-		case ("Title[2]"):
-			return Metadata.title_i;
+			return Metadata.title_b;
 		/*case ("B-Scale"):
 			return Metadata.scale_b;
 		case ("I-Scale"):
@@ -91,7 +89,9 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		case ("I-Creator"):
 			return Metadata.creator_i;*/
 		default:
-			return Metadata.none;
+			if (annotatedItem.matches("Title\\[\\d+\\]"))
+				return Metadata.title_i;
+			else return Metadata.none;
 		}
 	}
 

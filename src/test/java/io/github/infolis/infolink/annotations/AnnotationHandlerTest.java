@@ -83,7 +83,7 @@ public class AnnotationHandlerTest {
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b, 
 				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
-		AnnotationHandler.compare(textualReferences, annotations, relevantFields, false, false);
+		AnnotationHandler.compare(textualReferences, annotations, relevantFields, false);
 	}
 	
 	@Test
@@ -100,7 +100,7 @@ public class AnnotationHandlerTest {
 		textualReferences.add(textRef2);
 		Set<Metadata> relevantFields = new HashSet<>();
 		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b, Metadata.title_i));
-		AnnotationHandler.compare(textualReferences, annotations, relevantFields, true, false);
+				Metadata.title_b));
+		AnnotationHandler.compare(textualReferences, annotations, relevantFields, false);
 	}
 }

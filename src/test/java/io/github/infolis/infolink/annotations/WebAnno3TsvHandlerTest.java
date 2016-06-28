@@ -122,7 +122,7 @@ public class WebAnno3TsvHandlerTest {
 		
 		Annotation expectedAnno2 = new Annotation();
 		expectedAnno2.setWord("Programme");
-		expectedAnno2.setMetadata(Metadata.title_i);
+		expectedAnno2.setMetadata(Metadata.title_b);
 		expectedAnno2.setPosition(48);
 		expectedAnno2.setCharStart(324);
 		expectedAnno2.setCharEnd(333);

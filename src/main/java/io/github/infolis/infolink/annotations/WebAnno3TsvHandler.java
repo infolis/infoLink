@@ -21,6 +21,9 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnno3TsvHandler.class);
 	
+	Pattern digitPat = Pattern.compile("\\d+");
+	private int recentGroup = 0;
+	
 	protected List<Annotation> parse(String input) {
 		List<Annotation> annotations = new ArrayList<>();
 		Map<Integer, String> textMap = new HashMap<>();
@@ -31,13 +34,15 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		String sentencesRegex = "(((.*?)(\n+))+)";
 		String segmentRegex = "(" + textRegex + sentencesRegex + ")";
 		
+		String numRegex = "((\\d+)-(\\d+))\\s+((\\d+)-(\\d+))\\s+(.*?)\\s+(.*?)\n";
+		Pattern numPat = Pattern.compile(numRegex);
+		
 		Pattern p = Pattern.compile(segmentRegex);
 		Matcher m = p.matcher(input);
 		while (m.find()) {
 			String text = m.group(3);
 			String annotation = m.group(4);
-			String numRegex = "((\\d+)-(\\d+))\\s+((\\d+)-(\\d+))\\s+(.*?)\\s+(.*?)\n";
-			Pattern numPat = Pattern.compile(numRegex);
+			
 			Matcher numMatcher = numPat.matcher(annotation);
 			while (numMatcher.find()) {
 				wordCount += 1;
@@ -55,6 +60,7 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 				Annotation anno = new Annotation();
 				anno.setPosition(wordCount);
 				anno.setWord(word);
+				
 				anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
 				anno.setCharStart(Integer.valueOf(charStart));
 				anno.setCharEnd(Integer.valueOf(charEnd));
@@ -62,6 +68,12 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 				//TODO
 				//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
 				annotations.add(anno);
+				
+				//TODO check: when multi-word annotations for other classes of the layer are made, 
+				//is the number increasing or does each class have its own count?
+				//in the latter case, different counters are needed here!
+				Matcher digitMatcher = digitPat.matcher(annoString.split("\\s+")[0]);
+				while (digitMatcher.find()) recentGroup = Integer.valueOf(digitMatcher.group()); 
 				
 			}
 			//log.debug(annotation);
@@ -89,8 +101,14 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		case ("I-Creator"):
 			return Metadata.creator_i;*/
 		default:
-			if (annotatedItem.matches("Title\\[\\d+\\]"))
-				return Metadata.title_i;
+			if (annotatedItem.matches("Title\\[\\d+\\]")) {
+				int group = -1;
+				Matcher digitMatcher = digitPat.matcher(annotatedItem);
+				while (digitMatcher.find()) group = Integer.valueOf(digitMatcher.group()); 
+				if (group > recentGroup) return Metadata.title_b;
+				else if (group == recentGroup) return Metadata.title_i;
+				else throw new IllegalArgumentException("cannot handle non-continuous multi-word annotations");
+			}	
 			else return Metadata.none;
 		}
 	}

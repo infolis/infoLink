@@ -80,7 +80,6 @@ public abstract class AnnotationHandler {
 	// If annotations were correct, neighbouring entities with _b annotations
 	// should not be merged
 	private static List<Annotation> mergeNgrams(List<Annotation> annotations, 
-			boolean webAnno3,
 			boolean mergeEntitiesCrossingSentenceBoundaries) {
 		List<Annotation> mergedAnnotations = new ArrayList<>();
 		for (int i = 0; i < annotations.size(); i++) {
@@ -101,17 +100,14 @@ public abstract class AnnotationHandler {
 							Annotation mergedAnnotation = new Annotation(anno);
 							mergedAnnotation.setWord(ngram.toString());
 							mergedAnnotations.add(mergedAnnotation);
-							i = j;
+							i = j-1;
 							break;
 						}
 					}	
 				}
 			}
-			boolean newEntity;
-			if (webAnno3) newEntity = anno.getMetadata().toString().endsWith("_i");
-			else newEntity = anno.getMetadata().toString().endsWith("_b");
-			if (newEntity) {
-			//if (anno.getMetadata().toString().endsWith("_b")) {
+
+			if (anno.getMetadata().toString().endsWith("_b")) {
 				Metadata meta = anno.getMetadata();
 				StringJoiner ngram = new StringJoiner(" ", "", "");
 				ngram.add(anno.getWord());
@@ -184,7 +180,6 @@ public abstract class AnnotationHandler {
 	// TODO compare contexts, not only reference terms
 	protected static void compare(List<TextualReference> textualReferences, 
 			List<Annotation> annotations, Set<Metadata> relevantFields,
-			boolean webanno3,
 			boolean mergeEntitiesCrossingSentenceBoundaries) {
 		List<String> exactMatchesRefToAnno = new ArrayList<>();
 		List<String> noMatchesRefToAnno = new ArrayList<>();
@@ -194,7 +189,7 @@ public abstract class AnnotationHandler {
 		List<List<String>> annoPartOfRef = new ArrayList<>();
 		List<List<String>> refAndAnnoOverlap = new ArrayList<>();
 		
-		annotations = mergeNgrams(annotations, webanno3, mergeEntitiesCrossingSentenceBoundaries);
+		annotations = mergeNgrams(annotations, mergeEntitiesCrossingSentenceBoundaries);
 		for (Annotation anno : annotations) log.debug(anno.toString());//System.exit(0);
 
 		for (TextualReference textRef : textualReferences) {

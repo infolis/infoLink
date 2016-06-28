@@ -44,8 +44,6 @@ public abstract class AnnotationHandler {
 	}
 	
 	// title_b, title_i and title have equal classes...
-	// this is used by a work-around to deal with webAnno breaking annotations
-	// that cross sentence boundaries. 
 	private static boolean metadataClassesEqual(Metadata metadata1, Metadata metadata2) {
 		if (metadata1.equals(metadata2)) return true;
 		else if (metadata1.toString().replaceAll("_\\w", "")
@@ -74,38 +72,10 @@ public abstract class AnnotationHandler {
 	 * 
 	 * @param annotations
 	 */
-	// this includes a work-around to deal with webAnno breaking annotations
-	// that cross sentence boundaries (mergeEntitiesCrossingSentenceBoundaries). 
-	// This work-around may introduce errors.
-	// If annotations were correct, neighbouring entities with _b annotations
-	// should not be merged
-	private static List<Annotation> mergeNgrams(List<Annotation> annotations, 
-			boolean mergeEntitiesCrossingSentenceBoundaries) {
+	private static List<Annotation> mergeNgrams(List<Annotation> annotations) {
 		List<Annotation> mergedAnnotations = new ArrayList<>();
 		for (int i = 0; i < annotations.size(); i++) {
 			Annotation anno = annotations.get(i);
-			// work-around...
-			// TODO log these corrections
-			if (mergeEntitiesCrossingSentenceBoundaries) {
-				if (anno.getStartsNewSentence() && !anno.getMetadata().equals(Metadata.none)) {
-					Metadata meta = anno.getMetadata();
-					StringJoiner ngram = new StringJoiner(" ", "", "");
-					ngram.add(anno.getWord());
-					for (int j = i+1; j < annotations.size(); j++) {
-						Annotation nextAnno = annotations.get(j);
-						if (metadataClassesEqual(nextAnno.getMetadata(), meta)) {
-							ngram.add(nextAnno.getWord());
-						}
-						else {
-							Annotation mergedAnnotation = new Annotation(anno);
-							mergedAnnotation.setWord(ngram.toString());
-							mergedAnnotations.add(mergedAnnotation);
-							i = j-1;
-							break;
-						}
-					}	
-				}
-			}
 
 			if (anno.getMetadata().toString().endsWith("_b")) {
 				Metadata meta = anno.getMetadata();
@@ -179,8 +149,7 @@ public abstract class AnnotationHandler {
 	// TODO count near misses? (algo identified context of reference as reference?)
 	// TODO compare contexts, not only reference terms
 	protected static void compare(List<TextualReference> textualReferences, 
-			List<Annotation> annotations, Set<Metadata> relevantFields,
-			boolean mergeEntitiesCrossingSentenceBoundaries) {
+			List<Annotation> annotations, Set<Metadata> relevantFields) {
 		List<String> exactMatchesRefToAnno = new ArrayList<>();
 		List<String> noMatchesRefToAnno = new ArrayList<>();
 		// algorithm found incomplete reference
@@ -189,7 +158,7 @@ public abstract class AnnotationHandler {
 		List<List<String>> annoPartOfRef = new ArrayList<>();
 		List<List<String>> refAndAnnoOverlap = new ArrayList<>();
 		
-		annotations = mergeNgrams(annotations, mergeEntitiesCrossingSentenceBoundaries);
+		annotations = mergeNgrams(annotations);
 		for (Annotation anno : annotations) log.debug(anno.toString());//System.exit(0);
 
 		for (TextualReference textRef : textualReferences) {

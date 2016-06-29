@@ -164,8 +164,21 @@ public class AnnotationHandlerTest {
 	public void testTokenizeAnnotations() {
 		AnnotationHandler h = new WebAnno3TsvHandler();
 		List<Annotation> annotations = h.parse(inputWebAnno3);
-		for (Annotation anno: h.tokenizeAnnotations(annotations)) {
+		List<Annotation> tokenizedAnnotations = h.tokenizeAnnotations(annotations);
+		for (Annotation anno: tokenizedAnnotations) {
 			log.debug(anno.toString());
+		}
+		
+		Set<Metadata> relevantFields = new HashSet<>();
+		relevantFields.addAll(Arrays.asList(
+				Metadata.title_b, Metadata.title_i));
+		testListToTextualReferenceList(tokenizedAnnotations, relevantFields);
+	}
+	
+	public void testListToTextualReferenceList(List<Annotation> annotations, 
+			Set<Metadata> relevantFields) {
+		for (TextualReference textRef : AnnotationHandler.toTextualReferenceList(annotations, relevantFields)) {
+			log.debug(textRef.toPrettyString());
 		}
 	}
 }

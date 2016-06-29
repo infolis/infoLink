@@ -30,12 +30,53 @@ public abstract class AnnotationHandler {
 		return FileUtils.readFileToString(new File(filename));
 	}
 	
-	//TODO implement
+	private static TextualReference createTextualReferenceFromAnnotations(List<Annotation> sentence, 
+			Set<Metadata> relevantFields) {
+		TextualReference textRef = new TextualReference();
+		String leftText = " ";
+		String rightText = " ";
+		String reference = "";
+		for (Annotation annotation : sentence) {
+			if (relevantFields.contains(annotation.getMetadata())) {
+				reference += " " + annotation.getWord();
+			}
+			// TODO
+			// don't just add all relevant annotations, add only those belonging to one entity
+			// (see merging method)
+			else if (reference.equals("")) {
+				leftText += annotation.getWord() + " ";
+			}
+			else rightText += " " + annotation.getWord();
+		}
+		// sentence does not contain a relevant entity
+		if (reference.equals("")) return null;
+		else {
+			textRef.setLeftText(leftText);
+			textRef.setRightText(rightText);
+			textRef.setReference(reference);
+			return textRef;
+		}
+	}
+	
 	// for testing of link creation: 
 	// 1) create links from these manually created textual references
 	// 2) compare links to manually created list of links
-	protected List<TextualReference> toTextualReferenceList(List<Annotation> annotations) {
+	protected static List<TextualReference> toTextualReferenceList(List<Annotation> annotations, 
+			Set<Metadata> relevantFields) {
 		List<TextualReference> references = new ArrayList<>();
+		
+		List<Annotation> sentence = new ArrayList<>();
+		for (Annotation annotation : annotations) {
+			if (annotation.getStartsNewSentence()) {
+				TextualReference textRef = createTextualReferenceFromAnnotations(sentence, relevantFields);
+				if (null != textRef) references.add(textRef);
+				sentence = new ArrayList<>();
+			}
+			sentence.add(annotation);
+		}
+		TextualReference textRef = createTextualReferenceFromAnnotations(sentence, relevantFields);
+		if (null != textRef) references.add(textRef);
+		
 		return references;
 	}
 	

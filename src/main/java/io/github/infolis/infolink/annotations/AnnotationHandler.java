@@ -9,8 +9,11 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import org.apache.commons.io.FileUtils;
+//import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
+import edu.stanford.nlp.ling.CoreLabel;
+import io.github.infolis.algorithm.TokenizerStanford;
 import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.TextualReference;
 
@@ -34,6 +37,110 @@ public abstract class AnnotationHandler {
 	protected List<TextualReference> toTextualReferenceList(List<Annotation> annotations) {
 		List<TextualReference> references = new ArrayList<>();
 		return references;
+	}
+	
+	private Metadata[] buildMetadataCharArray(List<Annotation> annotations) {
+		Metadata[] charAnnotations = new Metadata[
+		                               annotations.get(annotations.size()-1).getCharEnd() + 1];
+		for (Annotation annotation : annotations) {
+			// Make sure annotations contain character offsets for this method to work
+			if (annotation.getCharStart() == Integer.MIN_VALUE 
+					|| annotation.getCharEnd() == Integer.MIN_VALUE)
+				throw new IllegalArgumentException("Annotation missing character offsets, aborting.");
+			
+			for (int i = annotation.getCharStart(); i <= annotation.getCharEnd(); i++) {
+				charAnnotations[i] = annotation.getMetadata();
+			}
+		}
+		return charAnnotations;
+	}
+	
+	private String reconstructText(List<Annotation> annotations) {
+		String text = "";
+		for (Annotation annotation : annotations) {
+			text += " " + annotation.getWord();
+		}
+		return text;
+	}
+	
+	private List<List<CoreLabel>> applyTokenizer(String text) {
+		return TokenizerStanford.getInvertibleSentences(text, true, true);
+	}
+	
+	private List<Annotation> transferAnnotationsToTokenizedText(Metadata[] charAnnotations, 
+			List<List<CoreLabel>> sentences, String originalText) {
+		List<Annotation> transformedAnnotations = new ArrayList<>();
+		
+		int position = -1;
+		for (List<CoreLabel> sentence : sentences) {
+			int wordInSentence = -1;
+			for (CoreLabel token : sentence) {
+				position ++;
+				wordInSentence++;
+				/*log.debug("originaltext: " + token.originalText());
+				log.debug("tokenized: " + token.word());
+				log.debug("token beginposition: " + token.beginPosition());
+				log.debug("token endposition: " + token.endPosition());
+				
+				log.debug("annotation at beginpos: " + charAnnotations[token.beginPosition()]);
+				log.debug("annotation at endpos: " + charAnnotations[token.endPosition() - 1]);
+				*/
+				
+				/*char nextChar;
+				if (token.endPosition() >= originalText.length()) {
+					nextChar = " ".charAt(0);
+				}
+				else nextChar = originalText.charAt(token.endPosition());
+
+				log.debug("next char in original text: " + nextChar);
+				
+				if (nextChar != ' ') {
+					//original text was split here
+				}*/
+				
+				String multiword = TokenizerStanford.splitCompounds(token.word());
+					int w = -1;
+					int curChar = token.beginPosition();
+					for (String word : multiword.split(" ")) {
+						w ++;
+						Annotation anno = new Annotation();
+						anno.setWord(word);
+						anno.setMetadata(charAnnotations[token.beginPosition()]);
+						if (wordInSentence == 0 && w == 0) anno.setStartsNewSentence();
+						anno.setPosition(position + w);
+						
+						// charStart and charEnd positions correspond to positions in 
+						// the original text!
+						anno.setCharStart(curChar);
+						int wordLength = word.length();
+						// special characters that may be inserted by tokenizer
+						if (word.equals("-LRB-") 
+								|| word.equals("-RRB-") 
+								|| word.equals("*NL*")) 
+							wordLength = 1;
+						anno.setCharEnd(curChar + wordLength);
+						transformedAnnotations.add(anno);
+						curChar = curChar + word.length();
+					}
+			}
+		}
+		return transformedAnnotations;
+	}
+	
+	/**
+	 * Transform annotations: apply tokenizer to text but keep annotations. 
+	 * 
+	 * @param annotations
+	 */
+	protected List<Annotation> tokenizeAnnotations(List<Annotation> annotations) throws IllegalArgumentException {
+		Metadata[] charAnnotations = buildMetadataCharArray(annotations);
+		log.debug(String.format("charAnnotation array contains annotations for %s chars", charAnnotations.length));
+		String originalText = reconstructText(annotations);
+		List<List<CoreLabel>> sentences = applyTokenizer(originalText);
+		log.debug(String.format("split annotated text into %s sentences", sentences.size()));
+		List<Annotation> transformedAnnotations = transferAnnotationsToTokenizedText(charAnnotations, 
+				sentences, originalText);
+		return transformedAnnotations;
 	}
 	
 	

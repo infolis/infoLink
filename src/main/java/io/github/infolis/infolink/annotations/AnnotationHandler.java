@@ -36,6 +36,8 @@ public abstract class AnnotationHandler {
 		String leftText = " ";
 		String rightText = " ";
 		String reference = "";
+		
+		sentence = mergeNgrams(sentence);
 		for (Annotation annotation : sentence) {
 			if (relevantFields.contains(annotation.getMetadata())) {
 				reference += " " + annotation.getWord();
@@ -127,17 +129,15 @@ public abstract class AnnotationHandler {
 				log.debug("annotation at endpos: " + charAnnotations[token.endPosition() - 1]);
 				*/
 				
-				/*char nextChar;
-				if (token.endPosition() >= originalText.length()) {
-					nextChar = " ".charAt(0);
-				}
-				else nextChar = originalText.charAt(token.endPosition());
+				// if this token was not separated from the previous token by whitespace 
+				// in the original text, it means that the tokenizer split this word 
+				boolean entitySplit = false;
+				char prevChar = originalText.charAt(token.beginPosition() - 1);
 
-				log.debug("next char in original text: " + nextChar);
-				
-				if (nextChar != ' ') {
+				if (prevChar != ' ') {
 					//original text was split here
-				}*/
+					entitySplit = true;
+				}
 				
 				String multiword = TokenizerStanford.splitCompounds(token.word());
 					int w = -1;
@@ -146,7 +146,10 @@ public abstract class AnnotationHandler {
 						w ++;
 						Annotation anno = new Annotation();
 						anno.setWord(word);
-						anno.setMetadata(charAnnotations[token.beginPosition()]);
+						if (!entitySplit && w == 0) anno.setMetadata(charAnnotations[token.beginPosition()]);
+						// if this token used to be part of a larger word in the annotation file,
+						// change the BIO annotation to _i
+						else anno.setMetadata(getFollowingClass(charAnnotations[token.beginPosition()]));
 						if (wordInSentence == 0 && w == 0) anno.setStartsNewSentence();
 						anno.setPosition(position + w);
 						
@@ -166,6 +169,11 @@ public abstract class AnnotationHandler {
 			}
 		}
 		return transformedAnnotations;
+	}
+	
+	private Metadata getFollowingClass(Metadata metadata) {
+		
+		return Enum.valueOf(Annotation.Metadata.class, metadata.toString().replace("_b", "_i"));
 	}
 	
 	/**

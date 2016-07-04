@@ -30,34 +30,51 @@ public abstract class AnnotationHandler {
 		return FileUtils.readFileToString(new File(filename));
 	}
 	
-	private static TextualReference createTextualReferenceFromAnnotations(List<Annotation> sentence, 
+	// one annotated sentence may contain multiple references -> return list
+	private static List<TextualReference> createTextualReferencesFromAnnotations(List<Annotation> sentence, 
 			Set<Metadata> relevantFields) {
-		TextualReference textRef = new TextualReference();
-		String leftText = " ";
-		String rightText = " ";
-		String reference = "";
-		
+		List<String> text = new ArrayList<>();
+		List<TextualReference> textualRefs = new ArrayList<>();
 		sentence = mergeNgrams(sentence);
-		for (Annotation annotation : sentence) {
+		
+		for (int i = 0; i < sentence.size(); i++) {
+			Annotation annotation = sentence.get(i); 
+			text.add(annotation.getWord());
+		}
+		
+		for (int i = 0; i < sentence.size(); i++) {
+			Annotation annotation = sentence.get(i); 
 			if (relevantFields.contains(annotation.getMetadata())) {
-				reference += " " + annotation.getWord();
-			}
-			// TODO
-			// don't just add all relevant annotations, add only those belonging to one entity
-			// (see merging method)
-			else if (reference.equals("")) {
-				leftText += annotation.getWord() + " ";
-			}
-			else rightText += " " + annotation.getWord();
+				TextualReference textRef = new TextualReference();
+				// assumes that annotations are locked to token boundaries 
+				// -> annotated entities are separated from surrounding words by whitespace
+				textRef.setLeftText(String.join(" ", text.subList(0, i)) + " ");
+				textRef.setReference(annotation.getWord());
+				textRef.setRightText(" " + String.join(" ", text.subList(i + 1, text.size())));
+				textualRefs.add(textRef);
+			} 
 		}
-		// sentence does not contain a relevant entity
-		if (reference.equals("")) return null;
-		else {
-			textRef.setLeftText(leftText);
-			textRef.setRightText(rightText);
-			textRef.setReference(reference);
-			return textRef;
+		
+		return textualRefs;
+	}
+	
+	private static List<List<Annotation>> getSentences(List<Annotation> annotations) {
+		List<List<Annotation>> sentences = new ArrayList<>();
+		
+		List<Annotation> sentence = new ArrayList<>();
+		
+		for (Annotation annotation : annotations) {
+			if (annotation.getStartsNewSentence()) {
+				// first sentence
+				if (!sentence.isEmpty()) sentences.add(sentence);
+				sentence = new ArrayList<>();
+				sentence.add(annotation);
+			} else sentence.add(annotation); 
 		}
+		if (!sentence.isEmpty()) sentences.add(sentence);
+		log.debug("sentences: ");
+		for (List<Annotation> sent : sentences) log.debug("" + sent);;
+		return sentences;
 	}
 	
 	// for testing of link creation: 
@@ -67,18 +84,11 @@ public abstract class AnnotationHandler {
 			Set<Metadata> relevantFields) {
 		List<TextualReference> references = new ArrayList<>();
 		
-		List<Annotation> sentence = new ArrayList<>();
-		for (Annotation annotation : annotations) {
-			if (annotation.getStartsNewSentence()) {
-				TextualReference textRef = createTextualReferenceFromAnnotations(sentence, relevantFields);
-				if (null != textRef) references.add(textRef);
-				sentence = new ArrayList<>();
-			}
-			sentence.add(annotation);
+		List<List<Annotation>> sentences = getSentences(annotations);
+		for (List<Annotation> sentence : sentences) {
+				List<TextualReference> textRefs = createTextualReferencesFromAnnotations(sentence, relevantFields);
+				if (!textRefs.isEmpty()) references.addAll(textRefs);
 		}
-		TextualReference textRef = createTextualReferenceFromAnnotations(sentence, relevantFields);
-		if (null != textRef) references.add(textRef);
-		
 		return references;
 	}
 	

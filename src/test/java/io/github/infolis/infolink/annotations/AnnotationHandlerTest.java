@@ -171,11 +171,11 @@ public class AnnotationHandlerTest {
 		
 		Set<Metadata> relevantFields = new HashSet<>();
 		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b, Metadata.title_i));
-		testListToTextualReferenceList(tokenizedAnnotations, relevantFields);
+				Metadata.title_b));
+		testToTextualReferenceList(tokenizedAnnotations, relevantFields);
 	}
 	
-	public void testListToTextualReferenceList(List<Annotation> annotations, 
+	public void testToTextualReferenceList(List<Annotation> annotations, 
 			Set<Metadata> relevantFields) {
 		for (TextualReference textRef : AnnotationHandler.toTextualReferenceList(annotations, relevantFields)) {
 			log.debug(textRef.toPrettyString());

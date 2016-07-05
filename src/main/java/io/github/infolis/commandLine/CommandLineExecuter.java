@@ -490,6 +490,11 @@ public class CommandLineExecuter {
                 //TODO: use either set or list for tags
                 infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
+                
+                Entity entity = new Entity();
+                dataStoreClient.post(Entity.class, entity);
+                infolisFile.setEntity(entity.getUri());
+                
                 infolisFiles.add(infolisFile);
             }
         } catch (IOException e) {

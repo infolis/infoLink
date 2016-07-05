@@ -106,7 +106,7 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
 			Entity e = dataStoreClient.get(Entity.class, studyContext.getMentionsReference());
-			log.debug("Entity: {}", e.getFile());
+			log.debug("Entity: {}", e.getName());
 			InfolisFile f = dataStoreClient.get(InfolisFile.class, studyContext.getFile());
 			log.debug("Filename: {}", f.getFileName());
 		}

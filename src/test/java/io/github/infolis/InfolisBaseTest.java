@@ -5,6 +5,7 @@ import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
@@ -64,10 +65,15 @@ public class InfolisBaseTest {
 			file.setFileName(tempFile.toString());
 			file.setFileStatus("AVAILABLE");
 			file.setMediaType("text/plain");
-			dataStoreClient.post(InfolisFile.class, file);
+			
 			OutputStream os = fileResolver.openOutputStream(file);
 			IOUtils.write(data, os);
 			os.close();
+			Entity entity = new Entity();
+			dataStoreClient.post(Entity.class, entity);
+			file.setEntity(entity.getUri());
+			
+			dataStoreClient.post(InfolisFile.class, file);
 			ret.add(file);
 		}
 		return ret;
@@ -108,13 +114,16 @@ public class InfolisBaseTest {
 			file.setFileName(tempFile.toString());
 			file.setFileStatus("AVAILABLE");
 			file.setMediaType("application/pdf");
-			dataStoreClient.post(InfolisFile.class, file);
 
 			// Write the data to the file
 			OutputStream os = fileResolver.openOutputStream(file);
 			IOUtils.copy(Files.newInputStream(tempFile), os);
 			os.close();
 
+			Entity entity = new Entity();
+			dataStoreClient.post(Entity.class, entity);
+			file.setEntity(entity.getUri());
+			dataStoreClient.post(InfolisFile.class, file);
 			ret.add(file);
 		}
 		return ret;

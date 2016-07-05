@@ -121,6 +121,7 @@ public class SpringerImporter extends BaseAlgorithm {
                     IOUtils.write(text, outStream);
                     
                     updateProgress(counter, getExecution().getInputFiles().size());
+                    outFile.setEntity(inFile.getEntity());
                     getOutputDataStoreClient().post(InfolisFile.class, outFile);
                     getExecution().getOutputFiles().add(outFile.getUri());
                 } catch (IOException e) {

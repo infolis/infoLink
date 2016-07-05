@@ -7,6 +7,7 @@ import io.github.infolis.infolink.patternLearner.StandardPatternInducer;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.IOException;
 
@@ -177,13 +178,12 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         for (String regex : patternRanker.topK.keySet()) {
         	InfolisPattern topPattern = patternRanker.knownPatterns.get(regex);
         	this.getOutputDataStoreClient().post(InfolisPattern.class, topPattern);
-        	// textual reference holds temporary uris for patterns and entities
+        	// textual reference holds temporary uris for patterns
+        	//TODO also for entities?
         	for (TextualReference textRef : topPattern.getTextualReferences()) {
         		textRef.setPattern(topPattern.getUri());
-        		Entity entity = new Entity();
-        		entity.setFile(textRef.getFile());
-        		this.getOutputDataStoreClient().post(Entity.class, entity);
-        		textRef.setMentionsReference(entity.getUri());
+        		/*InfolisFile infolisFile = this.getOutputDataStoreClient().get(InfolisFile.class, textRef.getFile()); 
+        		textRef.setMentionsReference(infolisFile.getEntity());*/
         	}
         	topContexts.addAll(topPattern.getTextualReferences());
         }

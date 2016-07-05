@@ -47,7 +47,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                 textExtractor.setInfolisFileTags(getExecution().getInfolisFileTags());
                 textExtractor.instantiateAlgorithm(this).run();
             }
-            Entity e = new Entity();
+            Entity e = getOutputDataStoreClient().get(Entity.class, infoFile.getEntity());
 
             for (String metaFile : getExecution().getMetaDataFiles()) {
                 Path p = null;
@@ -102,8 +102,8 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                     }
                 }
             }
-            //put the entity with the according md5 as URI
-            getOutputDataStoreClient().put(Entity.class, e, infoFile.getMd5());
+            //put the entity with the new data
+            getOutputDataStoreClient().put(Entity.class, e, e.getUri());
         }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);

@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.net.MediaType;
-import io.github.infolis.model.entity.Entity;
 
 /**
  *
@@ -227,6 +226,7 @@ public class TextExtractor extends BaseAlgorithm {
             if (null == outputFile) {
                 warn(log, "Conversion failed for input file {}", inputFileURI);
             } else {
+            	outputFile.setEntity(inputFile.getEntity());
                 getOutputDataStoreClient().post(InfolisFile.class, outputFile);
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }

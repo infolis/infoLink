@@ -10,7 +10,6 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.LimitedTimeMatcher;
@@ -80,12 +79,9 @@ public class RegexSearcher extends BaseAlgorithm {
                 String rightContext = ltm.group(getExecution().getRightContextGroup());
                 log.trace("leftContext: " + leftContext);
                 log.trace("rightContext: " + rightContext);
-                Entity entity = new Entity();
-                entity.setFile(file.getUri());
-                getOutputDataStoreClient().post(Entity.class, entity);
                 if (null == leftContext || leftContext.isEmpty()) leftContext = " ";
                 if (null == rightContext || rightContext.isEmpty()) rightContext = " ";
-                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, entity.getUri());
+                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, file.getEntity());
                 log.trace("added reference: " + textRef);
                 res.add(textRef);
 

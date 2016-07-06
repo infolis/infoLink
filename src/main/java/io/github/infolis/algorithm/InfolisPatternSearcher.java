@@ -125,11 +125,9 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                 log.debug("Invalid referenced term \"" + referencedTerm + "\"");
                 continue;
             }
-            Entity e = tempClient.get(Entity.class, textRef.getMentionsReference());
-            getOutputDataStoreClient().post(Entity.class, e);
+            
             getOutputDataStoreClient().post(InfolisPattern.class, pattern);
-
-            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), e.getUri());
+            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
             getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
             validatedTextualReferences.add(validatedTextRef.getUri());
             log.debug("added textual reference " + validatedTextRef);

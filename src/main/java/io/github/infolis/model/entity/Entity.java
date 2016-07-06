@@ -42,7 +42,6 @@ public class Entity extends BaseModel {
     private String url;
     private Set<String> tags;
     private Collection<TextualReference> textualReferences;
-    private String file;
     
     @XmlAttribute
     private String number;
@@ -121,20 +120,6 @@ public class Entity extends BaseModel {
      */
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
-    }
-
-    /**
-     * @return the file
-     */
-    public String getFile() {
-        return file;
-    }
-
-    /**
-     * @param file the file to set
-     */
-    public void setFile(String file) {
-        this.file = file;
     }
 
     /**

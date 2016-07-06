@@ -212,6 +212,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             updateProgress(counter, getExecution().getInputFiles().size());
 
             debug(log, "Removed bibliography from file {}", outFile);
+            outFile.setEntity(inputFile.getEntity());
             getOutputDataStoreClient().post(InfolisFile.class, outFile);
             getExecution().getOutputFiles().add(outFile.getUri());
         }

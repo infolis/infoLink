@@ -65,7 +65,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
         return outFileName;
    }
 	
-	public String createInfolisFile(String filename, List<String> tokenizedSentences, Set<String> tags) throws IOException {
+	public String createInfolisFile(String filename, String entity, List<String> tokenizedSentences, Set<String> tags) throws IOException {
 		InfolisFile infolisFile = new InfolisFile();
 		String outFileName = transformFilename(filename, getExecution().getOutputDirectory());
         String asText = String.join(System.getProperty("line.separator"), tokenizedSentences);
@@ -87,6 +87,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
             throw e;
         }
         
+        infolisFile.setEntity(entity);
         getOutputDataStoreClient().post(InfolisFile.class, infolisFile);
         return infolisFile.getUri();
 	}
@@ -113,7 +114,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
-    		String outputFileURI = createInfolisFile(infolisFile.getFileName(), tokenizedSentences, tagsToSet);
+    		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}
 	}

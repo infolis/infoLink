@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
@@ -58,11 +59,11 @@ public class SearchDoisAndCreateLinksTest extends InfolisBaseTest {
 
         for (EntityLink el : createdLinks) {
         	log.debug("created link from " + el.getFromEntity() + " to " + el.getToEntity());
-        	Entity sourceEntity = dataStoreClient.get(Entity.class, el.getFromEntity());
         	Entity targetEntity = dataStoreClient.get(Entity.class, el.getToEntity());
         	assertEquals("German General Social Survey - ALLBUS 2010", targetEntity.getName());
         	assertEquals("10.4232/1.11692", (targetEntity.getIdentifier()));
-        	assertEquals("infolisFile_0", sourceEntity.getFile());
+        	TextualReference textRef = dataStoreClient.get(TextualReference.class, el.getLinkReason());
+        	assertEquals("infolisFile_1", textRef.getFile());
         }
     }
 

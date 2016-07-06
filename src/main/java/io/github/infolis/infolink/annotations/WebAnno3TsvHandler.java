@@ -30,55 +30,46 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		Map<Integer, String> annotationMap = new HashMap<>();
 		int wordCount = 0;
 
-		String textRegex = "(#Text=(.*?)\\s*\n)";
-		String sentencesRegex = "(((.*?)(\n+))+)";
-		String segmentRegex = "(" + textRegex + sentencesRegex + ")";
-		
-		String numRegex = "((\\d+)-(\\d+))\\s+((\\d+)-(\\d+))\\s+(.*?)\\s+(.*?)\n";
+		String numRegex = "((\\d+)-(\\d+))[ \t\\x0B\f\r]+((\\d+)-(\\d+))[ \t\\x0B\f\r]+(.*?)[ \t\\x0B\f\r]+(.*?)\n";
 		Pattern numPat = Pattern.compile(numRegex);
 		
-		Pattern p = Pattern.compile(segmentRegex);
-		Matcher m = p.matcher(input);
-		while (m.find()) {
-			String text = m.group(3);
-			String annotation = m.group(4);
 			
-			Matcher numMatcher = numPat.matcher(annotation);
-			while (numMatcher.find()) {
-				wordCount += 1;
-				String sentenceNum = numMatcher.group(2);
-				String relPos = numMatcher.group(3);
-				String charStart = numMatcher.group(5);
-				String charEnd = numMatcher.group(6);
-				String word = numMatcher.group(7);
-				String annoString = numMatcher.group(8);
-				textMap.put(wordCount, word);
-				annotationMap.put(wordCount, annoString);
-				//log.debug(String.valueOf(wordCount));
-				//log.debug(word);
+		Matcher numMatcher = numPat.matcher(input);
+		while (numMatcher.find()) {
+			wordCount += 1;
+			//String sentenceNum = numMatcher.group(2);
+			String relPos = numMatcher.group(3);
+			String charStart = numMatcher.group(5);
+			String charEnd = numMatcher.group(6);
+			String word = numMatcher.group(7);
+			String annoString = numMatcher.group(8);
+			textMap.put(wordCount, word);
+			annotationMap.put(wordCount, annoString);
+			//log.debug(String.valueOf(wordCount));
+			//log.debug(word);
+			
+			Annotation anno = new Annotation();
+			anno.setPosition(wordCount);
+			anno.setWord(word);
 				
-				Annotation anno = new Annotation();
-				anno.setPosition(wordCount);
-				anno.setWord(word);
+			anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
+			anno.setCharStart(Integer.valueOf(charStart));
+			anno.setCharEnd(Integer.valueOf(charEnd));
+			if ("1".equals(relPos))	anno.setStartsNewSentence();
+			//TODO
+			//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
+			annotations.add(anno);
 				
-				anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
-				anno.setCharStart(Integer.valueOf(charStart));
-				anno.setCharEnd(Integer.valueOf(charEnd));
-				if ("1".equals(relPos))	anno.setStartsNewSentence();
-				//TODO
-				//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
-				annotations.add(anno);
+			//TODO check: when multi-word annotations for other classes of the layer are made, 
+			//is the number increasing or does each class have its own count?
+			//in the latter case, different counters are needed here!
+			//-> latter case confirmed
+			Matcher digitMatcher = digitPat.matcher(annoString.split("\\s+")[0]);
+			while (digitMatcher.find()) recentGroup = Integer.valueOf(digitMatcher.group()); 
 				
-				//TODO check: when multi-word annotations for other classes of the layer are made, 
-				//is the number increasing or does each class have its own count?
-				//in the latter case, different counters are needed here!
-				Matcher digitMatcher = digitPat.matcher(annoString.split("\\s+")[0]);
-				while (digitMatcher.find()) recentGroup = Integer.valueOf(digitMatcher.group()); 
-				
-			}
-			//log.debug(annotation);
-			//annotations.add(annotationItem);
 		}
+		//log.debug(annotation);
+		//annotations.add(annotationItem);
 		return annotations;
 	}
 	
@@ -101,7 +92,7 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		case ("I-Creator"):
 			return Metadata.creator_i;*/
 		default:
-			if (annotatedItem.matches("Title\\[\\d+\\]")) {
+			if (annotatedItem.matches("\\S*Title\\[\\d+\\]\\S*")) {
 				int group = -1;
 				Matcher digitMatcher = digitPat.matcher(annotatedItem);
 				while (digitMatcher.find()) group = Integer.valueOf(digitMatcher.group()); 

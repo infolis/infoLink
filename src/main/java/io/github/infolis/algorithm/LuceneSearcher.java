@@ -6,18 +6,11 @@ import io.github.infolis.infolink.lucene.ContextHighlighter;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -32,7 +25,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
-import org.apache.lucene.search.postingshighlight.PostingsHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
 
@@ -177,10 +169,6 @@ public class LuceneSearcher extends BaseAlgorithm {
 	            // e.g. modify BreakIterator or use WholeBreakIterator and split text to sentences
 	            //String highlights[] = highlighter.highlight(DEFAULT_FIELD_NAME, q, searcher, currentDoc, 100000);
 	            String highlights[] = highlighter.highlight(DEFAULT_FIELD_NAME, q, searcher, currentDoc);
-	
-	            Entity e = new Entity();
-	            e.setFile(file.getUri());
-	            getOutputDataStoreClient().post(Entity.class, e);
 	            
 	            for (String fragment: highlights) {
 			           	log.trace("Fragment: " + fragment);
@@ -189,7 +177,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            if (term != null) {
 			            	try {
 			            		TextualReference textRef = getContext(term, fragment, file.getUri(), 
-			            				pattern.getUri(), e.getUri());
+			            				pattern.getUri(), file.getEntity());
 			                   	// those textual references should be temporary - call with temp client
 				               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 				                getExecution().getTextualReferences().add(textRef.getUri());
@@ -201,7 +189,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            	TextualReference textRef = new TextualReference();
 			            	textRef.setLeftText(fragment);
 			            	textRef.setFile(file.getUri());
-			            	textRef.setMentionsReference(e.getUri());
+			            	textRef.setMentionsReference(file.getEntity());
 			            	textRef.setPattern(pattern.getUri());
 			            	// those textual references should be temporary if validation using regex is to be performed
 			               	getOutputDataStoreClient().post(TextualReference.class, textRef);

@@ -49,8 +49,12 @@ public class TextAndMetaDataExtractorTest extends InfolisBaseTest {
         inFile.setMediaType("application/pdf");
         inFile.setFileStatus("AVAILABLE");
         
+        Entity entity = new Entity();
+        dataStoreClient.post(Entity.class, entity);
+        inFile.setEntity(entity.getUri());
+        
         writeFile(inFile);
-           
+                 
         Execution execution = new Execution();
         execution.getInputFiles().add(inFile.getUri());
         execution.getMetaDataFiles().add(metaDataFile);
@@ -60,8 +64,7 @@ public class TextAndMetaDataExtractorTest extends InfolisBaseTest {
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         algo.run();
 
-        Entity e = dataStoreClient.get(Entity.class, inFile.getMd5());
-        assertTrue(e.getUri().equals(inFile.getMd5()));
+        Entity e = dataStoreClient.get(Entity.class, inFile.getEntity());
         assertTrue(e.getName().equals("The possible trinity: Optimal interest rate, exchange rate, and taxes on capital flows in a DSGE model for a small open economy"));
         assertTrue(e.getAuthors().size()==1);
         assertTrue(e.getAbstractText().equals("A traditional way of thinking about the exchange rate (XR) regime and capital account openness has been framed in "

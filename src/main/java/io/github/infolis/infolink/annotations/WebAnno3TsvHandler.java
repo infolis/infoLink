@@ -22,7 +22,8 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnno3TsvHandler.class);
 	
 	Pattern digitPat = Pattern.compile("\\d+");
-	private int recentGroup = 0;
+	Pattern annoDigitPat = Pattern.compile("([^\\|]+)\\[(\\d+)\\]");
+	private Map<String,Integer> recentGroups = new HashMap<>();
 	
 	protected List<Annotation> parse(String input) {
 		List<Annotation> annotations = new ArrayList<>();
@@ -33,7 +34,6 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		String numRegex = "((\\d+)-(\\d+))[ \t\\x0B\f\r]+((\\d+)-(\\d+))[ \t\\x0B\f\r]+(.*?)[ \t\\x0B\f\r]+(.*?)\n";
 		Pattern numPat = Pattern.compile(numRegex);
 		
-			
 		Matcher numMatcher = numPat.matcher(input);
 		while (numMatcher.find()) {
 			wordCount += 1;
@@ -59,14 +59,13 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 			//TODO
 			//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
 			annotations.add(anno);
-				
-			//TODO check: when multi-word annotations for other classes of the layer are made, 
-			//is the number increasing or does each class have its own count?
-			//in the latter case, different counters are needed here!
-			//-> latter case confirmed
-			Matcher digitMatcher = digitPat.matcher(annoString.split("\\s+")[0]);
-			while (digitMatcher.find()) recentGroup = Integer.valueOf(digitMatcher.group()); 
-				
+			
+			Matcher annoDigitMatcher = annoDigitPat.matcher(annoString.split("\\s+")[0]);
+			while (annoDigitMatcher.find()) {
+				String annoClass = annoDigitMatcher.group(1);
+				int recentGroup = Integer.valueOf(annoDigitMatcher.group(2));
+				recentGroups.put(annoClass, recentGroup); 
+			}	
 		}
 		//log.debug(annotation);
 		//annotations.add(annotationItem);
@@ -96,9 +95,14 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 				int group = -1;
 				Matcher digitMatcher = digitPat.matcher(annotatedItem);
 				while (digitMatcher.find()) group = Integer.valueOf(digitMatcher.group()); 
-				if (group > recentGroup) return Metadata.title_b;
-				else if (group == recentGroup) return Metadata.title_i;
-				else throw new IllegalArgumentException("cannot handle non-continuous multi-word annotations");
+				if (group > recentGroups.getOrDefault("Title", 0)) return Metadata.title_b;
+				else if (group == recentGroups.get("Title")) return Metadata.title_i;
+				else {
+					log.warn("annotated item: " + annotatedItem);
+					log.warn("group: " + group);
+					log.warn("recentGroup: " + recentGroups.get("Title"));
+					throw new IllegalArgumentException("cannot handle non-continuous multi-word annotations");
+				}
 			}	
 			else return Metadata.none;
 		}

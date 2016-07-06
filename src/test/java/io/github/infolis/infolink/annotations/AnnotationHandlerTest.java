@@ -1,11 +1,14 @@
 package io.github.infolis.infolink.annotations;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -161,9 +164,11 @@ public class AnnotationHandlerTest {
 	}
 	
 	@Test
-	public void testTokenizeAnnotations() {
+	public void testTokenizeAnnotations() throws IOException {
 		AnnotationHandler h = new WebAnno3TsvHandler();
 		List<Annotation> annotations = h.parse(inputWebAnno3);
+		//String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");
+		//List<Annotation> annotations = h.parse(annotationTsv);
 		List<Annotation> tokenizedAnnotations = h.tokenizeAnnotations(annotations);
 		for (Annotation anno: tokenizedAnnotations) {
 			log.debug(anno.toString());
@@ -173,12 +178,15 @@ public class AnnotationHandlerTest {
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b));
 		testToTextualReferenceList(tokenizedAnnotations, relevantFields);
+		
 	}
 	
 	public void testToTextualReferenceList(List<Annotation> annotations, 
-			Set<Metadata> relevantFields) {
+			Set<Metadata> relevantFields) throws IOException {
+		//File testOut = new File("/tmp/44275_textrefs.txt");
 		for (TextualReference textRef : AnnotationHandler.toTextualReferenceList(annotations, relevantFields)) {
 			log.debug(textRef.toPrettyString());
+			//FileUtils.write(testOut, textRef.toPrettyString() + "\n", true);
 		}
 	}
 }

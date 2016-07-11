@@ -72,7 +72,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         for (String uri : execution.getTextualReferences()) {
            	textualReferences.add(tempClient.get(TextualReference.class, uri));
         }
-        tempClient.clear();
         return textualReferences;
     }
 

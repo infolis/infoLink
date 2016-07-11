@@ -59,7 +59,7 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
         execution.setSearchTerm(seed);
         InfolisPattern termPattern = new InfolisPattern(RegexUtils.normalizeQuery(seed, true));
         DataStoreClient tempClient = getTempDataStoreClient();
-        tempClient.put(InfolisPattern.class, termPattern);
+        tempClient.post(InfolisPattern.class, termPattern);
         execution.setPatterns(Arrays.asList(termPattern.getUri()));
         execution.setInputFiles(getExecution().getInputFiles());
         execution.setReliabilityThreshold(getExecution().getReliabilityThreshold());

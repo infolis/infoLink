@@ -1,6 +1,9 @@
 package io.github.infolis.infolink.annotations;
 
+import java.util.List;
+
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -8,6 +11,8 @@ import org.junit.Test;
  *
  */
 public class WebAnnoTsvHandlerTest {
+	
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnnoTsvHandlerTest.class);
 	
 	String input = String.join("\n", "#id=49",
 			"#text=der regelmäßige telefonische Gesundheitssurvey",
@@ -29,7 +34,10 @@ public class WebAnnoTsvHandlerTest {
 	@Test
 	public void testParse() {
 		AnnotationHandler h = new WebAnnoTsvHandler();
-		h.parse(input);
+		List<Annotation> annotations = h.parse(input);
+		for (Annotation anno : annotations) {
+			log.debug(anno.toString());
+		}
 		//TODO assertEquals
 	}
 }

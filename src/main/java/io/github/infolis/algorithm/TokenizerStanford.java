@@ -7,16 +7,18 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Word;
+import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.process.PTBTokenizer.PTBTokenizerFactory;
+import edu.stanford.nlp.process.WordToSentenceProcessor;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 
@@ -54,6 +56,17 @@ public class TokenizerStanford extends Tokenizer {
 		return applyPTBTokenizer(dp, tokenizeNLs, ptb3Escaping);
 	}
 	
+	// splitCompounds has to be applied afterwards if desired
+	public static List<List<CoreLabel>> getInvertibleSentences(String text, boolean tokenizeNLs, boolean ptb3Escaping) {
+		List<CoreLabel> tokens = new ArrayList<CoreLabel>();
+		PTBTokenizer<CoreLabel> tokenizer = new PTBTokenizer<CoreLabel>(new StringReader(text), new CoreLabelTokenFactory(), "tokenizeNLs=" + tokenizeNLs + ",ptb3Escaping=" + ptb3Escaping + ",asciiQuotes=true,invertible=true");
+		while (tokenizer.hasNext()) {
+		    tokens.add(tokenizer.next());
+		}
+		List<List<CoreLabel>> sentences = new WordToSentenceProcessor<CoreLabel>().process(tokens);
+		return sentences;
+	}
+	
 	private static List<String> applyPTBTokenizer(DocumentPreprocessor dp, boolean tokenizeNLs, boolean ptb3Escaping) {
 		PTBTokenizerFactory<Word> tf = PTBTokenizer.PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=" + tokenizeNLs + ",ptb3Escaping=" + ptb3Escaping + ",asciiQuotes=true");
 		dp.setTokenizerFactory(tf);
@@ -68,7 +81,7 @@ public class TokenizerStanford extends Tokenizer {
 		return sentences;
 	}
 	
-	private static String splitCompounds(String text) {
+	public static String splitCompounds(String text) {
 		return text.replaceAll("(?<=\\S)(" + String.join("|", compoundMarkers) + ")(?=\\S)", " $1 ");
 	}
 	

@@ -135,7 +135,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     		counter++;
     		updateProgress(counter, size);
     	}
-    	tempClient.clear();
         return validatedTextualReferences;
     }
 

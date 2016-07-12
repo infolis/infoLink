@@ -181,9 +181,100 @@ public abstract class AnnotationHandler {
 		return transformedAnnotations;
 	}
 	
-	private Metadata getFollowingClass(Metadata metadata) {
+	// ignore annotations for punctuation
+	// TODO test if this yields the same number of annotations...
+	private List<Annotation> transferAnnotationsToTokenizedText2(Metadata[] charAnnotations, 
+			List<List<CoreLabel>> sentences, String originalText) {
+		List<Annotation> transformedAnnotations = new ArrayList<>();
 		
+		int position = -1;
+		for (List<CoreLabel> sentence : sentences) {
+			int wordInSentence = -1;
+			boolean moveAnnotation = false;
+			for (CoreLabel token : sentence) {
+				position ++;
+				wordInSentence++;
+				
+				// if this token was not separated from the previous token by whitespace 
+				// in the original text, it means that the tokenizer split this word 
+				boolean entitySplit = false;
+				char prevChar = originalText.charAt(token.beginPosition() - 1);
+
+				if (prevChar != ' ') {
+					//original text was split here
+					entitySplit = true;
+				}
+				
+				String multiword = TokenizerStanford.splitCompounds(token.word());
+				int w = -1;
+				int curChar = token.beginPosition();
+				
+				for (String word : multiword.split(" ")) {
+					w ++;
+					Annotation anno = new Annotation();
+					anno.setWord(word);
+					
+					// word is punctuation, ignore annotated label
+					// TODO may punctuation occur inside of an annotated entity?
+					if (word.equals("-LRB-") || word.equals("-RRB-") || 
+							word.equals("``") || word.equals("''") |
+							word.matches("[\\p{Punct}\\p{P}]+")) {
+						
+						anno.setMetadata(Metadata.none);
+						if (charAnnotations[token.beginPosition()].toString().endsWith("_b")) {
+							moveAnnotation = true;
+						}
+					} else {
+					
+						if (!entitySplit && w == 0) {
+							if (moveAnnotation) {
+								anno.setMetadata(getStartingClass(charAnnotations[token.beginPosition()]));
+								moveAnnotation = false;
+							} else anno.setMetadata(charAnnotations[token.beginPosition()]);
+						}
+						else if (entitySplit && (w == 0) ) {
+							if (moveAnnotation) {
+								anno.setMetadata(getStartingClass(charAnnotations[token.beginPosition()]));
+								moveAnnotation = false;
+							} else	anno.setMetadata(charAnnotations[token.beginPosition()]);	
+						}
+						// if this token used to be part of a larger word in the annotation file,
+						// change the BIO annotation to _i
+						else {
+							if (moveAnnotation) {
+								anno.setMetadata(getStartingClass(charAnnotations[token.beginPosition()]));
+								moveAnnotation = false;
+							}
+							else anno.setMetadata(getFollowingClass(charAnnotations[token.beginPosition()]));
+						}
+					}
+					if (wordInSentence == 0 && w == 0) anno.setStartsNewSentence();
+					anno.setPosition(position + w);
+						
+					// charStart and charEnd positions correspond to positions in 
+					// the original text!
+					anno.setCharStart(curChar);
+					int wordLength = word.length();
+					// special characters that may be inserted by tokenizer
+					if (word.equals("-LRB-") 
+							|| word.equals("-RRB-") 
+							|| word.equals("*NL*")) 
+						wordLength = 1;
+					anno.setCharEnd(curChar + wordLength);
+					transformedAnnotations.add(anno);
+					curChar = curChar + word.length();
+				}
+			}
+		}
+		return transformedAnnotations;
+	}
+	
+	private Metadata getFollowingClass(Metadata metadata) {
 		return Enum.valueOf(Annotation.Metadata.class, metadata.toString().replace("_b", "_i"));
+	}
+	
+	private Metadata getStartingClass(Metadata metadata) {
+		return Enum.valueOf(Annotation.Metadata.class, metadata.toString().replace("_i", "_b"));
 	}
 	
 	/**
@@ -197,7 +288,7 @@ public abstract class AnnotationHandler {
 		String originalText = reconstructText(annotations);
 		List<List<CoreLabel>> sentences = applyTokenizer(originalText);
 		log.debug(String.format("split annotated text into %s sentences", sentences.size()));
-		List<Annotation> transformedAnnotations = transferAnnotationsToTokenizedText(charAnnotations, 
+		List<Annotation> transformedAnnotations = transferAnnotationsToTokenizedText2(charAnnotations, 
 				sentences, originalText);
 		return transformedAnnotations;
 	}

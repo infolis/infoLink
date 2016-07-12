@@ -184,9 +184,11 @@ public class AnnotationHandlerTest {
 	public void testToTextualReferenceList(List<Annotation> annotations, 
 			Set<Metadata> relevantFields) throws IOException {
 		//File testOut = new File("/tmp/44275_textrefs.txt");
-		for (TextualReference textRef : AnnotationHandler.toTextualReferenceList(annotations, relevantFields)) {
+		List<TextualReference> references = AnnotationHandler.toTextualReferenceList(annotations, relevantFields);
+		for (TextualReference textRef : references) {
 			log.debug(textRef.toPrettyString());
 			//FileUtils.write(testOut, textRef.toPrettyString() + "\n", true);
 		}
+		log.debug("number of references: " + references.size());
 	}
 }

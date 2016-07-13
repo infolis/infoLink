@@ -3,11 +3,8 @@ package io.github.infolis.model.entity;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlElement;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import io.github.infolis.model.BaseModel;
@@ -25,7 +22,6 @@ public class InfolisFile extends BaseModel {
 	private String mediaType;
 	private String fileStatus;
     private String originalName;
-    @JsonProperty("manifestsEntity")
     private String manifestsEntity;
 	private Set<String> tags = new HashSet<>();
         
@@ -76,11 +72,11 @@ public class InfolisFile extends BaseModel {
         this.originalName = originalName;
     }
     
-    public String getEntity() {
+    public String getManifestsEntity() {
     	return manifestsEntity;
     }
     
-    public void setEntity(String entity) {
+    public void setManifestsEntity(String entity) {
     	this.manifestsEntity = entity;
     }
 }

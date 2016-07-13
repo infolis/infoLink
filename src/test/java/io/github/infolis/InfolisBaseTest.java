@@ -71,7 +71,7 @@ public class InfolisBaseTest {
 			os.close();
 			Entity entity = new Entity();
 			dataStoreClient.post(Entity.class, entity);
-			file.setEntity(entity.getUri());
+			file.setManifestsEntity(entity.getUri());
 			
 			dataStoreClient.post(InfolisFile.class, file);
 			ret.add(file);
@@ -122,7 +122,7 @@ public class InfolisBaseTest {
 
 			Entity entity = new Entity();
 			dataStoreClient.post(Entity.class, entity);
-			file.setEntity(entity.getUri());
+			file.setManifestsEntity(entity.getUri());
 			dataStoreClient.post(InfolisFile.class, file);
 			ret.add(file);
 		}

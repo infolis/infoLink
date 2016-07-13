@@ -87,7 +87,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
             throw e;
         }
         
-        infolisFile.setEntity(entity);
+        infolisFile.setManifestsEntity(entity);
         getOutputDataStoreClient().post(InfolisFile.class, infolisFile);
         return infolisFile.getUri();
 	}
@@ -114,7 +114,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
-    		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getEntity(), tokenizedSentences, tagsToSet);
+    		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getManifestsEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}
 	}

@@ -177,7 +177,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            if (term != null) {
 			            	try {
 			            		TextualReference textRef = getContext(term, fragment, file.getUri(), 
-			            				pattern.getUri(), file.getEntity());
+			            				pattern.getUri(), file.getManifestsEntity());
 			                   	// those textual references should be temporary - call with temp client
 				               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 				                getExecution().getTextualReferences().add(textRef.getUri());
@@ -189,7 +189,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            	TextualReference textRef = new TextualReference();
 			            	textRef.setLeftText(fragment);
 			            	textRef.setFile(file.getUri());
-			            	textRef.setMentionsReference(file.getEntity());
+			            	textRef.setMentionsReference(file.getManifestsEntity());
 			            	textRef.setPattern(pattern.getUri());
 			            	// those textual references should be temporary if validation using regex is to be performed
 			               	getOutputDataStoreClient().post(TextualReference.class, textRef);

@@ -15,7 +15,7 @@ RUN cd /tmp/infoLink && ./gradlew build -x compileJava
 
 ADD . /tmp/infoLink
 
-ENV JAVA_OPTS "-Xms4096m -Xmx4096m"
+ENV JAVA_OPTS "-Xms4096m -Xmx4096m -XX:MaxMetaspaceSize=512m"
 ENV JAVA_TOOL_OPTIONS "-Dfile.encoding=UTF-8"
 RUN cd /tmp/infoLink  \
     && ./gradlew clean war  \

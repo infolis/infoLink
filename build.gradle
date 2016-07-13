@@ -87,14 +87,14 @@ configurations.all {
     exclude group: "log4j", module: "log4j"
 }
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Jar File Example',
-                   'Implementation-Version': version,
-                   'Main-Class': 'io.github.infolis.commandLine.CommandLineExecuter'
-    }
-    doFirst {
-        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    }
-    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
-}
+// jar {
+//     manifest {
+//         attributes 'Implementation-Title': 'Gradle Jar File Example',
+//                    'Implementation-Version': version,
+//                    'Main-Class': 'io.github.infolis.commandLine.CommandLineExecuter'
+//     }
+//     doFirst {
+//         from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+//     }
+//     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+// }

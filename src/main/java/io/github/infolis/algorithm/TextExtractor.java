@@ -226,7 +226,7 @@ public class TextExtractor extends BaseAlgorithm {
             if (null == outputFile) {
                 warn(log, "Conversion failed for input file {}", inputFileURI);
             } else {
-            	outputFile.setEntity(inputFile.getEntity());
+            	outputFile.setManifestsEntity(inputFile.getManifestsEntity());
                 getOutputDataStoreClient().post(InfolisFile.class, outputFile);
                 getExecution().getOutputFiles().add(outputFile.getUri());
             }

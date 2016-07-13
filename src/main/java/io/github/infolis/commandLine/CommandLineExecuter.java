@@ -493,7 +493,7 @@ public class CommandLineExecuter {
                 
                 Entity entity = new Entity();
                 dataStoreClient.post(Entity.class, entity);
-                infolisFile.setEntity(entity.getUri());
+                infolisFile.setManifestsEntity(entity.getUri());
                 
                 infolisFiles.add(infolisFile);
             }

@@ -81,7 +81,7 @@ public class RegexSearcher extends BaseAlgorithm {
                 log.trace("rightContext: " + rightContext);
                 if (null == leftContext || leftContext.isEmpty()) leftContext = " ";
                 if (null == rightContext || rightContext.isEmpty()) rightContext = " ";
-                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, file.getEntity());
+                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, file.getManifestsEntity());
                 log.trace("added reference: " + textRef);
                 res.add(textRef);
 

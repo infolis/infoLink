@@ -31,6 +31,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
+	private static final String executionTag = "TOKENIZED";
+	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
 	/**
@@ -114,6 +116,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
+    		tagsToSet.add(executionTag);
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getManifestsEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}

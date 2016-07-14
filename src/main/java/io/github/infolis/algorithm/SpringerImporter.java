@@ -101,6 +101,7 @@ public class SpringerImporter extends BaseAlgorithm {
             InfolisFile outFile = new InfolisFile();
             outFile.setFileName(outFileName);
             outFile.setMediaType("text/plain");
+            outFile.setTags(getExecution().getTags());
             InputStream inStream = null;
             OutputStream outStream = null;
             

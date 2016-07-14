@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -52,7 +53,7 @@ public class TextExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
-
+    private static final String executionTag = "TEXT_EXTRACTED";
     private final PDFTextStripper stripper;
 
     private String removeBibSection(String text) {
@@ -85,11 +86,12 @@ public class TextExtractor extends BaseAlgorithm {
         outFile.setFileName(outFileName);
         outFile.setOriginalName(inFile.getFileName());
         outFile.setMediaType("text/plain");
-        //TODO either set or list for all tags
-		for (String tag : getExecution().getTags())
-        	outFile.getTags().add(tag);
-		for (String tag : inFile.getTags())
-        	outFile.getTags().add(tag);                
+
+        Set<String> tagsToSet = getExecution().getTags();
+        tagsToSet.addAll(inFile.getTags());
+        tagsToSet.add(executionTag);
+		outFile.setTags(tagsToSet);
+             
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {

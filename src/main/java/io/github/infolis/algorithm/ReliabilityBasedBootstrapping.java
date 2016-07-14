@@ -326,7 +326,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                     }
                 }
             }
-	        tempClient.clear();
+            tempClient.clear();
 	        // this returns only the most reliable patterns, not all reliable ones
             // thus, new seeds are generated based on the most reliable patterns only
             return this.topK;
@@ -422,7 +422,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             double summedConfidenceNewTopK = 0;
             if (firstIteration) {
             	this.topK = newTopK;
-				tempClient.clear();
+            	tempClient.clear();
             	return this.topK;
             }
             else {
@@ -438,8 +438,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 	              	this.topK = lastTopK;
 	            }
 	            else this.topK = newTopK;
-	
-				tempClient.clear();
+	            
+	            tempClient.clear();
 	            return this.topK;
             }
         }

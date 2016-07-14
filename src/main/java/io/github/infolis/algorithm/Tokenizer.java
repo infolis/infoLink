@@ -31,6 +31,13 @@ public abstract class Tokenizer extends BaseAlgorithm {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
+	private static final String executionTag = "TOKENIZED";
+	
+	@Override
+	public String getExecutionTag() {
+		return executionTag;
+	}
+	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
 	/**

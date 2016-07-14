@@ -52,6 +52,11 @@ public class TextExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
+    private static final String executionTag = "TEXT_EXTRACTED";
+    
+    public String getExecutionTag() {
+    	return executionTag;
+    }
 
     private final PDFTextStripper stripper;
 

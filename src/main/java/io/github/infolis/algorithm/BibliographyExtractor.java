@@ -36,7 +36,13 @@ public class BibliographyExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(BibliographyExtractor.class);
+    private static final String executionTag = "BIB_REMOVED";
 
+    @Override
+    public String getExecutionTag() {
+    	return executionTag;
+    }
+    
     /**
      * Compute the ratio of numbers on page: a high number of numbers is assumed
      * to be typical for bibliographies as they contain many years, page numbers

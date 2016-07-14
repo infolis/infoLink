@@ -47,7 +47,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                 textExtractor.setInfolisFileTags(getExecution().getInfolisFileTags());
                 textExtractor.instantiateAlgorithm(this).run();
             }
-            Entity e = getOutputDataStoreClient().get(Entity.class, infoFile.getEntity());
+            Entity e = getOutputDataStoreClient().get(Entity.class, infoFile.getManifestsEntity());
 
             for (String metaFile : getExecution().getMetaDataFiles()) {
                 Path p = null;

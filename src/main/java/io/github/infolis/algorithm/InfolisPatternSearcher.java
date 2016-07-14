@@ -12,7 +12,6 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.RegexUtils;
-import io.github.infolis.model.entity.Entity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -135,6 +134,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     		counter++;
     		updateProgress(counter, size);
     	}
+    	tempClient.clear();
         return validatedTextualReferences;
     }
 

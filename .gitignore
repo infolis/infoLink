@@ -20,3 +20,4 @@ src/test/resources/example-infolis.txt
 src/test/resources/examples.zip
 src/test/resources/examples/patterns-escaped.txt
 src/test/resources/examples/pdfs/
+docker/infolis-files

@@ -438,7 +438,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 	              	this.topK = lastTopK;
 	            }
 	            else this.topK = newTopK;
-	
+	            
 	            tempClient.clear();
 	            return this.topK;
             }

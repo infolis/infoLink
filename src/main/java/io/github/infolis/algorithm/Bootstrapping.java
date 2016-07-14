@@ -134,8 +134,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 
     	if (getExecution().isRemoveBib()) {
-    		Execution bibRemoverExec = new Execution();
-    		bibRemoverExec.setAlgorithm(BibliographyExtractor.class);
+    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
+    		bibRemoverExec.setTags(getExecution().getTags());
     		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
     		bibRemoverExec.instantiateAlgorithm(this).run();
     		debug(log, "Removed bibliographies of input files");
@@ -143,8 +143,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	}
     	
     	if (getExecution().isTokenize()) {
-    		Execution tokenizerExec = new Execution();
-    		tokenizerExec.setAlgorithm(TokenizerStanford.class);
+    		Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
+    		tokenizerExec.setTags(getExecution().getTags());
     		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
     		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
     		tokenizerExec.setInputFiles(getExecution().getInputFiles());

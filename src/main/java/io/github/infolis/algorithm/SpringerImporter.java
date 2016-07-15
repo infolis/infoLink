@@ -101,6 +101,7 @@ public class SpringerImporter extends BaseAlgorithm {
             InfolisFile outFile = new InfolisFile();
             outFile.setFileName(outFileName);
             outFile.setMediaType("text/plain");
+            outFile.setTags(getExecution().getTags());
             InputStream inStream = null;
             OutputStream outStream = null;
             
@@ -121,7 +122,7 @@ public class SpringerImporter extends BaseAlgorithm {
                     IOUtils.write(text, outStream);
                     
                     updateProgress(counter, getExecution().getInputFiles().size());
-                    outFile.setEntity(inFile.getEntity());
+                    outFile.setManifestsEntity(inFile.getManifestsEntity());
                     getOutputDataStoreClient().post(InfolisFile.class, outFile);
                     getExecution().getOutputFiles().add(outFile.getUri());
                 } catch (IOException e) {

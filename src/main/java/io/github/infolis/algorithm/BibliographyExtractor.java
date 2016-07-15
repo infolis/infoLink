@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import io.github.infolis.InfolisConfig;
@@ -36,7 +37,8 @@ public class BibliographyExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(BibliographyExtractor.class);
-
+    private static final String executionTag = "BIB_REMOVED";
+    
     /**
      * Compute the ratio of numbers on page: a high number of numbers is assumed
      * to be typical for bibliographies as they contain many years, page numbers
@@ -195,7 +197,9 @@ public class BibliographyExtractor extends BaseAlgorithm {
             outFile.setMediaType("text/plain");
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");
-            outFile.setTags(getExecution().getTags());
+            Set<String> tagsToSet = getExecution().getTags();
+            tagsToSet.add(executionTag);
+            outFile.setTags(tagsToSet);
 
             OutputStream outStream = null;
             try {
@@ -212,7 +216,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             updateProgress(counter, getExecution().getInputFiles().size());
 
             debug(log, "Removed bibliography from file {}", outFile);
-            outFile.setEntity(inputFile.getEntity());
+            outFile.setManifestsEntity(inputFile.getManifestsEntity());
             getOutputDataStoreClient().post(InfolisFile.class, outFile);
             getExecution().getOutputFiles().add(outFile.getUri());
         }

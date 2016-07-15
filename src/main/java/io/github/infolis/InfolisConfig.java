@@ -78,6 +78,13 @@ public class InfolisConfig {
 			} catch (IOException e) {
 				log.debug("Couldn't load properties from '{}'.", path);
 			}
+			for (Object key : prop.keySet()) {
+				Object val = System.getProperty("infolis." + key);
+				if (val != null) {
+					log.debug("Overridden by system property '-Dinfolis." + key +"='" + val + "' !");
+					prop.put(key, val);
+				}
+			}
 		}
 		// TODO debug output
 		log.debug("Found config: {}", prop);

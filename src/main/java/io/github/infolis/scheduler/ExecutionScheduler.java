@@ -106,6 +106,7 @@ public class ExecutionScheduler {
         Future f = futureList.get(executionURI);
         f.cancel(true);
         setStatus(executionURI, FAILED);
+        futureList.remove(executionURI);
     }
 
 }

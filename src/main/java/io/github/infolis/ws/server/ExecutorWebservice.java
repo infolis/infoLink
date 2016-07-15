@@ -106,11 +106,12 @@ public class ExecutorWebservice {
 		return resp.build();
 	}
         
-        @DELETE
+	@DELETE
 	@Produces("application/json")
 	public Response stopExecution(@QueryParam("id") String executionUri) {
             ExecutionScheduler exe = ExecutionScheduler.getInstance();
             exe.stopExecution(executionUri);
+			log.info("Received DELETE request for " + executionUri + " in thread " + exe.futureList.get(executionUri));
             ResponseBuilder resp = Response.ok();
             return resp.build();
         }

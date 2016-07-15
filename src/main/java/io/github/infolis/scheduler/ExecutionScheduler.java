@@ -41,7 +41,7 @@ public class ExecutionScheduler {
         executor = aExecutor;
     }
     private final Map<String, ExecutionStatus> statusForExecution = new HashMap<>();
-    private final Map<String, Future> futureList = new HashMap<>();
+    public final Map<String, Future> futureList = new HashMap<>();
 
     private ExecutionScheduler() { }
 

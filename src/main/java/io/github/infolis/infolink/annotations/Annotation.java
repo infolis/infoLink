@@ -97,8 +97,18 @@ public class Annotation {
 		vagueTitle, vagueTitle_b, vagueTitle_i, 
 		scale, scale_b, scale_i,
 		project_title, project_title_b, project_title_i, 
+		id, id_b, id_i,
 		creator, creator_b, creator_i,
-		year, number, version, id, url, geographical_coverage, topic, sample, project_funder, none
+		publisher, publisher_b, publisher_i,
+		geographical_coverage, geographical_coverage_b, geographical_coverage_i,
+		year, year_b, year_i,
+		number, number_b, number_i,
+		version, version_b, version_i,
+		url, url_b, url_i,
+		topic, topic_b, topic_i,
+		sample, sample_b, sample_i,
+		project_funder, project_funder_b, project_funder_i,
+		none
 	}
 
 	public enum Relation {

@@ -221,7 +221,11 @@ public abstract class AnnotationHandler {
 							word.matches("[\\p{Punct}\\p{P}]+")) {
 						
 						anno.setMetadata(Metadata.none);
-						if (charAnnotations[token.beginPosition()].toString().endsWith("_b")) {
+						if (charAnnotations[token.beginPosition() + 1].toString().endsWith("_i") && 
+								charAnnotations[token.beginPosition()].toString().endsWith("_i")) {
+							anno.setMetadata(charAnnotations[token.beginPosition()]);
+						}
+						else if (charAnnotations[token.beginPosition()].toString().endsWith("_b")) {
 							moveAnnotation = true;
 						}
 					} else {
@@ -236,7 +240,7 @@ public abstract class AnnotationHandler {
 							if (moveAnnotation) {
 								anno.setMetadata(getStartingClass(charAnnotations[token.beginPosition()]));
 								moveAnnotation = false;
-							} else	anno.setMetadata(charAnnotations[token.beginPosition()]);	
+							} else	anno.setMetadata(getFollowingClass(charAnnotations[token.beginPosition()]));	
 						}
 						// if this token used to be part of a larger word in the annotation file,
 						// change the BIO annotation to _i

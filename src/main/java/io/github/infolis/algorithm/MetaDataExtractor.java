@@ -56,7 +56,6 @@ public class MetaDataExtractor extends BaseAlgorithm {
      * @return	an entity representing the extracted information
      */
     public Entity extractMetadata(TextualReference ref) {
-    	if (RegexUtils.ignoreStudy(ref.getReference())) return null;
 
     	Entity entity = new Entity();
         List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);

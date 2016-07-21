@@ -3,6 +3,8 @@ package io.github.infolis.algorithm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +39,10 @@ public class ReferenceLinker extends BaseAlgorithm {
 	
 	private List<String> resolveReferences(List<String> textualReferences) throws IOException {
 		// create query cache
-		File cache = Files.createTempFile(InfolisConfig.getTmpFilePath(), "querycache", ".txt").toFile();
-		cache.deleteOnExit();
+		Path generalCachePath = Paths.get(InfolisConfig.getTmpFilePath().toString(), "cache");
+		if (!generalCachePath.toFile().exists()) Files.createDirectories(generalCachePath);
+		Path privateCachePath = Files.createTempDirectory(generalCachePath, Long.toString(System.nanoTime()));
+		File cache = Files.createTempFile(privateCachePath, "querycache", ".txt").toFile();
         String cachePath = cache.getCanonicalPath();
         
     	List<String> entityLinks = new ArrayList<>();
@@ -61,6 +65,8 @@ public class ReferenceLinker extends BaseAlgorithm {
 	        	entityLinks.addAll(createLinks(searchRes, s));
 	        }
 	    }
+	    cache.delete();
+		privateCachePath.toFile().delete();
 	    return entityLinks;
     }
 

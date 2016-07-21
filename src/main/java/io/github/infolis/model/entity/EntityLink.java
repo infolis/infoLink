@@ -2,6 +2,10 @@ package io.github.infolis.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.infolis.model.BaseModel;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -19,8 +23,8 @@ public class EntityLink extends BaseModel {
     private String fromEntity;
     private double confidence;
     private String linkReason;
-    private String relation;
-
+    private Set<EntityRelation> entityRelations;
+    
     public EntityLink() {
     }
 
@@ -30,6 +34,39 @@ public class EntityLink extends BaseModel {
 		this.toEntity = toEntity;
 		this.confidence = confidence;
 		this.linkReason = linkReason;
+		this.entityRelations = new HashSet<>();
+	}
+	
+	public EntityLink(String fromEntity, String toEntity, double confidence, String linkReason, Set<EntityRelation> entityRelations)
+	{
+		this.fromEntity = fromEntity;
+		this.toEntity = toEntity;
+		this.confidence = confidence;
+		this.linkReason = linkReason;
+		this.entityRelations = entityRelations;
+	}
+	
+	enum EntityRelation {
+		part_of_temporal,
+	    part_of_spatial,
+	    parts_of_temporal,
+	    parts_of_spatial,
+	    version_of,
+	    part_of_confidential,
+	    part_of_sample,
+	    part_of_supplement
+	};
+	
+	public void setEntityRelations(Set<EntityRelation> entityRelations) {
+		this.entityRelations = entityRelations;
+	}
+	
+	public void addEntityRelation(EntityRelation entityRelation) {
+		this.entityRelations.add(entityRelation);
+	}
+	
+	public Set<EntityRelation> getEntityRelations() {
+		return this.entityRelations;
 	}
 
 	public String getToEntity()
@@ -80,17 +117,4 @@ public class EntityLink extends BaseModel {
         this.linkReason = linkReason;
     }
 
-    /**
-     * @return the relation
-     */
-    public String getRelation() {
-        return relation;
-    }
-
-    /**
-     * @param relation the relation to set
-     */
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
 }

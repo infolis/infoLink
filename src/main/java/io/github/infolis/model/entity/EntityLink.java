@@ -54,7 +54,8 @@ public class EntityLink extends BaseModel {
 	    version_of,
 	    part_of_confidential,
 	    part_of_sample,
-	    part_of_supplement
+	    part_of_supplement,
+	    part_of
 	};
 	
 	public void setEntityRelations(Set<EntityRelation> entityRelations) {

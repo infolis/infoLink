@@ -121,6 +121,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     	
     	String entry = query + "@@@";
     	for (String uri : uris) entry += uri + "!!!";
+    	if (uris.isEmpty()) entry += " ";
     	FileUtils.write(cache, entry.substring(0, entry.length() - 3) + "\n", true);
     	log.debug("wrote query to cache");
     }
@@ -135,7 +136,12 @@ public class FederatedSearcher extends BaseAlgorithm {
     		String[] entry = line.split("@@@");
     		if (entry[0].equals(query)) {
     			log.debug("found query in cache");
-    			return Arrays.asList(entry[1].split("!!!"));
+    			try {
+    				return Arrays.asList(entry[1].split("!!!"));
+    			} catch (ArrayIndexOutOfBoundsException e) {
+    				if (null == entry[1] || entry[1].isEmpty()) return new ArrayList<String>();
+    				else return Arrays.asList(entry[1]);
+    			}
     		}
     	}
     	// query was not found in cache

@@ -86,7 +86,7 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		linkUris = exec4.getLinks();
 	    assertEquals(25, linkUris.size());
 
-	    // test for query cache
+	    // testa for query cache
         Execution exec5 = new Execution();
         TextualReference reference3 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
         TextualReference reference4 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
@@ -105,9 +105,41 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 	    assertEquals("10.4232/1.5126", toEntity5.getIdentifier());
 	    
 	    EntityLink link5b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
-	    Entity toEntity5b = dataStoreClient.get(Entity.class, link5.getToEntity());
+	    Entity toEntity5b = dataStoreClient.get(Entity.class, link5b.getToEntity());
 	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5b.getName());
 	    assertEquals("10.4232/1.5126", toEntity5b.getIdentifier());
+	    
+	    // no matching entries in dara
+	    Execution exec6 = new Execution();
+        TextualReference reference6 = new TextualReference("In this snippet, the reference", "hübbeldiebübb", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+        TextualReference reference6b = new TextualReference("In this snippet, the reference", "hübbeldiebübb", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+        dataStoreClient.post(TextualReference.class, reference6);
+		dataStoreClient.post(TextualReference.class, reference6b);
+	    exec6.setTextualReferences(Arrays.asList(reference6.getUri(), reference6b.getUri()));
+		exec6.setAlgorithm(ReferenceLinker.class);
+		exec6.setQueryServices(Arrays.asList(queryService.getUri()));
+		exec6.setSearchResultLinkerClass(BestMatchLinker.class);
+		exec6.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		linkUris = exec6.getLinks();
+	    assertEquals(0, linkUris.size());
+	    
+	    // exactly one matching entry in dara (to date)
+	    Execution exec7 = new Execution();
+        TextualReference reference7 = new TextualReference("In this snippet, the reference", "CELLA1", " is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+        TextualReference reference7b = new TextualReference("In this snippet, the reference", "CELLA1", " is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+        dataStoreClient.post(TextualReference.class, reference7);
+		dataStoreClient.post(TextualReference.class, reference7b);
+	    exec7.setTextualReferences(Arrays.asList(reference7.getUri(), reference7b.getUri()));
+		exec7.setAlgorithm(ReferenceLinker.class);
+		exec7.setQueryServices(Arrays.asList(queryService.getUri()));
+		exec7.setSearchResultLinkerClass(MultiMatchesLinker.class);
+		exec7.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		linkUris = exec7.getLinks();
+	    assertEquals(2, linkUris.size());
+	    EntityLink link7b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
+	    Entity toEntity7b = dataStoreClient.get(Entity.class, link7b.getToEntity());
+	    assertEquals("Sozialwissenschaftliche Telefonumfragen in der Allgemeinbevölkerung über das Mobilfunknetz (CELLA 1)", toEntity7b.getName());
+	    assertEquals("10.4232/1.4875", toEntity7b.getIdentifier());
 	}
     
 }

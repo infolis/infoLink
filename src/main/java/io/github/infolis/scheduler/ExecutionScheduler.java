@@ -20,8 +20,11 @@ import static io.github.infolis.model.ExecutionStatus.PENDING;
 import static io.github.infolis.model.ExecutionStatus.STARTED;
 import static io.github.infolis.model.ExecutionStatus.FINISHED;
 import static io.github.infolis.model.ExecutionStatus.FAILED;
+import io.github.infolis.ws.server.ExecutorWebservice;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * Class to pool threads of {@link Execution Executions}s.
@@ -33,6 +36,7 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
+    Logger log = LoggerFactory.getLogger(ExecutionScheduler.class);
 
     /**
      * @param aExecutor the executor to set
@@ -69,6 +73,7 @@ public class ExecutionScheduler {
             }
         });
         futureList.put(uri, future);
+        log.info("Execution " + uri + " submitted with future " + future.toString());
     }
 
     public ExecutionStatus getStatus(Execution e) {
@@ -102,8 +107,9 @@ public class ExecutionScheduler {
         executor.awaitTermination(1, TimeUnit.MINUTES);
     }
     
-    public void stopExecution(String executionURI) {        
+    public void stopExecution(String executionURI) {                
         Future f = futureList.get(executionURI);
+        log.info("Stop Requested: " + executionURI + " with future " + f.toString());
         f.cancel(true);
         setStatus(executionURI, FAILED);
         futureList.remove(executionURI);

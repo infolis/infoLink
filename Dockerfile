@@ -7,8 +7,7 @@
 #   infolis/infolink
 FROM tomcat:7-jre8
 
-RUN apt-get update && apt-get install -y git openjdk-8-jdk-headless
-RUN git clone --recursive --depth 1 https://github.com/infolis/infoLink /tmp/infoLink
+RUN apt-get update && apt-get install -y openjdk-8-jdk-headless
 
 # hackety hack to cache gradle deps and reduce download time for subsequent builds
 RUN mkdir -p /tmp/infoLink

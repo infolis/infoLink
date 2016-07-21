@@ -9,6 +9,7 @@ import io.github.infolis.infolink.querying.DaraHTMLQueryService;
 import io.github.infolis.infolink.querying.QueryService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -25,7 +26,9 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         Execution execution = new Execution();
         Entity entity = new Entity();
         entity.setName("Studierendensurvey");
-        entity.setNumber("2012/13");
+        List<String> numInfo = new ArrayList<>();
+        numInfo.add("2012/13");
+        entity.setNumericInfo(numInfo);
         dataStoreClient.post(Entity.class, entity);
         execution.setLinkedEntities(Arrays.asList(entity.getUri()));
         QueryService queryService = new DaraHTMLQueryService();

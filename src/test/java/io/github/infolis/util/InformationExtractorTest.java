@@ -30,12 +30,14 @@ public class InformationExtractorTest {
 		TextualReference reference = new TextualReference("In this snippet, the reference", "Eurobarometer 56.1 2000", "is to be extracted as", "document", "pattern","ref");
 		List<String> numericInfo = InformationExtractor.extractNumericInfo(reference);
 		assertEquals(new HashSet<>(Arrays.asList("56.1", "2000")), new HashSet<>(numericInfo));
+		assertEquals(Arrays.asList("2000", "56.1"), InformationExtractor.sortNumericInfo(numericInfo));
 	}
 	
 	@Test
 	public void testGetNumericInfo() {
 		List<String> numericInfo = InformationExtractor.getNumericInfo("Eurobarometer 56.1 2000");
 		assertEquals(new HashSet<>(Arrays.asList("56.1", "2000")), new HashSet<>(numericInfo));
+		assertEquals(Arrays.asList("2000", "56.1"), InformationExtractor.sortNumericInfo(numericInfo));
 	}
 	
 	@Test

@@ -41,8 +41,9 @@ public class Evaluator extends BaseAlgorithm {
 	 * @param foundReferences
 	 * @param goldReferences
 	 */
-	public static void compareEntities(List<TextualReference> foundReferences, List<TextualReference> goldReferences) {
-		
+	public void compareReferences(List<TextualReference> foundReferences, List<TextualReference> goldReferences) {
+		// 1. iterate through references, generate maps for each different textFile
+		// count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
 	}
 	
 	// TODO compute study group - wise precision and recall using the ontology

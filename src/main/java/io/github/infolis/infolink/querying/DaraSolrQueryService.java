@@ -68,15 +68,17 @@ public class DaraSolrQueryService extends QueryService {
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.publicationDate)) {
             if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
-    		pubDate = ClientUtils.escapeQueryChars(entity.getNumericInfo().get(0));
+            	pubDate = ClientUtils.escapeQueryChars(entity.getNumericInfo().get(0));
             }
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.numericInfoInTitle)) {
     		if (!title.isEmpty()) log.debug("Warning: both title and numericInfoInTitle strategies set. Using numericInfoInTitle"); 
-                if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
-                    title = ClientUtils.escapeQueryChars(entity.getName()) + " " + ClientUtils.escapeQueryChars(entity.getNumericInfo().get(0));
-                }
+            if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
+            	title = ClientUtils.escapeQueryChars(entity.getName()) + " " + ClientUtils.escapeQueryChars(entity.getNumericInfo().get(0));
+            }
+            else title = ClientUtils.escapeQueryChars(entity.getName());
+            
     		/*for (String numInfo : entity.getNumericInfo()) {
     			title += " " + numInfo;
     		}*/

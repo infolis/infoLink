@@ -92,9 +92,11 @@ public class DaraHTMLQueryService extends QueryService {
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.numericInfoInTitle)) {
     		if (!title.isEmpty()) log.debug("Warning: both title and numericInfoInTitle strategies set. Using numericInfoInTitle"); 
-                if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
-                    title = entity.getName() + " " + entity.getNumericInfo().get(0);
-                }
+            if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
+                title = entity.getName() + " " + entity.getNumericInfo().get(0);
+            }
+            else title = entity.getName();
+            
     		/*for (String numInfo : entity.getNumericInfo()) {
     			title += " " + numInfo;
     		}*/

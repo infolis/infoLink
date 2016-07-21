@@ -52,12 +52,25 @@ public class Entity extends BaseModel {
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
     private String language;
+    private Set<String> spatial = new HashSet<>();
 
     public Entity(String name) {
         this.name = name;
     }
 
     public Entity() {
+    }
+    
+    public void setSpatial(HashSet<String> spatial) {
+    	this.spatial = spatial;
+    }
+    
+    public void addSpatial(String spatial) {
+    	this.spatial.add(spatial);
+    }
+    
+    public Set<String> getSpatial() {
+    	return this.spatial;
     }
 
     public void setName(String name) {

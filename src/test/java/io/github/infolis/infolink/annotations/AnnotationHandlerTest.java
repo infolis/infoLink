@@ -166,28 +166,38 @@ public class AnnotationHandlerTest {
 	@Test
 	public void testTokenizeAnnotations() throws IOException {
 		AnnotationHandler h = new WebAnno3TsvHandler();
-		List<Annotation> annotations = h.parse(inputWebAnno3);
-		//String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");
-		//List<Annotation> annotations = h.parse(annotationTsv);
+		//List<Annotation> annotations = h.parse(inputWebAnno3);
+		String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");
+		List<Annotation> annotations = h.parse(annotationTsv);
 		List<Annotation> tokenizedAnnotations = h.tokenizeAnnotations(annotations);
-		for (Annotation anno: tokenizedAnnotations) {
+		/*for (Annotation anno: tokenizedAnnotations) {
 			log.debug(anno.toString());
-		}
+		}*/
+		
+		testExportAsWebAnnoTsv(tokenizedAnnotations);
 		
 		Set<Metadata> relevantFields = new HashSet<>();
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b));
-		testToTextualReferenceList(tokenizedAnnotations, relevantFields);
+		//testToTextualReferenceList(tokenizedAnnotations, relevantFields);
 		
+	}
+	
+	public void testExportAsWebAnnoTsv(List<Annotation> annotations) throws IOException {
+		log.debug("output of WebAnnoTsvHandler:\n");
+		//log.debug(WebAnnoTsvHandler.exportAsWebAnnoTsv(annotations));
+		File testOut = new File("/tmp/44275._tsv");
+		FileUtils.write(testOut, WebAnnoTsvHandler.exportAsWebAnnoTsv(annotations), false);
 	}
 	
 	public void testToTextualReferenceList(List<Annotation> annotations, 
 			Set<Metadata> relevantFields) throws IOException {
-		//File testOut = new File("/tmp/44275_textrefs.txt");
+		File testOut = new File("/tmp/44275_textrefs.txt");
+		FileUtils.write(testOut, "", false);
 		List<TextualReference> references = AnnotationHandler.toTextualReferenceList(annotations, relevantFields);
 		for (TextualReference textRef : references) {
 			log.debug(textRef.toPrettyString());
-			//FileUtils.write(testOut, textRef.toPrettyString() + "\n", true);
+			FileUtils.write(testOut, textRef.toPrettyString() + "\n", true);
 		}
 		log.debug("number of references: " + references.size());
 	}

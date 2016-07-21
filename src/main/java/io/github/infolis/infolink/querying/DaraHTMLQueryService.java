@@ -85,12 +85,16 @@ public class DaraHTMLQueryService extends QueryService {
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.publicationDate)) {
-    		pubDate = entity.getNumber();
+            if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
+    		pubDate = entity.getNumericInfo().get(0);
+            }    
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.numericInfoInTitle)) {
     		if (!title.isEmpty()) log.debug("Warning: both title and numericInfoInTitle strategies set. Using numericInfoInTitle"); 
-    		title = entity.getName() + " " + entity.getNumber();
+                if(entity.getNumericInfo()!= null && entity.getNumericInfo().size()>0) {
+                    title = entity.getName() + " " + entity.getNumericInfo().get(0);
+                }
     		/*for (String numInfo : entity.getNumericInfo()) {
     			title += " " + numInfo;
     		}*/

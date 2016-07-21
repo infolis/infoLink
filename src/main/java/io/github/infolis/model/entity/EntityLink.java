@@ -19,6 +19,7 @@ public class EntityLink extends BaseModel {
     private String fromEntity;
     private double confidence;
     private String linkReason;
+    private String relation;
 
     public EntityLink() {
     }
@@ -77,5 +78,19 @@ public class EntityLink extends BaseModel {
      */
     public void setLinkReason(String linkReason) {
         this.linkReason = linkReason;
+    }
+
+    /**
+     * @return the relation
+     */
+    public String getRelation() {
+        return relation;
+    }
+
+    /**
+     * @param relation the relation to set
+     */
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 }

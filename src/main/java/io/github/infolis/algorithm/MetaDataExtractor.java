@@ -9,6 +9,7 @@ import io.github.infolis.util.InformationExtractor;
 import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         }
         //TODO make priorities configurable...
         String bestNumInfo = InformationExtractor.getBestNumericInfo(numericInfo);
-        entity.setNumber(bestNumInfo);
+        entity.addBestNumericInfo(bestNumInfo);
         
         entity.setIdentifier(InformationExtractor.extractDOI(ref));
         entity.setURL(InformationExtractor.extractURL(ref));

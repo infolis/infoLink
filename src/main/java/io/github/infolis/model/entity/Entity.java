@@ -42,9 +42,8 @@ public class Entity extends BaseModel {
     private String url;
     private Set<String> tags;
     private Collection<TextualReference> textualReferences;
-    
+
     @XmlAttribute
-    private String number;
     private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
     private double reliability;
@@ -58,7 +57,8 @@ public class Entity extends BaseModel {
         this.name = name;
     }
 
-    public Entity() {}
+    public Entity() {
+    }
 
     public void setName(String name) {
         this.name = name;
@@ -69,11 +69,11 @@ public class Entity extends BaseModel {
     }
 
     public void setTextualReferences(Collection<TextualReference> textualReferences) {
-    	this.textualReferences = textualReferences;
+        this.textualReferences = textualReferences;
     }
 
     public Collection<TextualReference> getTextualReferences() {
-    	return this.textualReferences;
+        return this.textualReferences;
     }
 
     /**
@@ -106,13 +106,13 @@ public class Entity extends BaseModel {
     public String getIdentifier() {
         return identifier;
     }
-    
+
     public String getURL() {
-    	return this.url;
+        return this.url;
     }
-    
+
     public void setURL(String url) {
-    	this.url = url;
+        this.url = url;
     }
 
     /**
@@ -126,37 +126,40 @@ public class Entity extends BaseModel {
      * Set reliability to 1.0 for manually selected seed instances.
      */
     public void setIsSeed() {
-    	this.reliability = 1.0;
+        this.reliability = 1.0;
     }
 
-    /**
-     * @return the number
-     */
-    public String getNumber() {
-        return number;
-    }
-
-    /**
-     * @param number the number (year, number, wave, ...) to set
-     */
-    public void setNumber(String number) {
-        this.number = number;
-    }
-    
     public void addNumericInfo(String numericInfo) {
-    	this.numericInfo.add(numericInfo);
+        this.getNumericInfo().add(numericInfo);
     }
-    
+
+    public void addBestNumericInfo(String numericInfo) {
+        //add the value from index 0 to the end of the list
+        if (getNumericInfo().size() > 0) {
+            addNumericInfo(this.getNumericInfo().get(0));
+            //replace the value on position 0 with the best found one
+            this.getNumericInfo().set(0, numericInfo);
+            //delete the value which is a duplicate
+            if (getNumericInfo().size() > 1) {
+                for (int i = 1; i < getNumericInfo().size(); i++) {
+                    if (getNumericInfo().get(i).equals(numericInfo)) {
+                        getNumericInfo().remove(i);
+                    }
+                }
+            }
+        }
+    }
+
     public List<String> getNumericInfo() {
-    	return this.numericInfo;
+        return this.numericInfo;
     }
 
     public double getReliability() {
-    	return this.reliability;
+        return this.reliability;
     }
 
     public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
-    	this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
+        this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
         if (this.getReliability() >= threshold) {
             return true;
         } else {
@@ -178,7 +181,7 @@ public class Entity extends BaseModel {
         this.associations = associations;
     }
 
-        public boolean addAssociation(String entityName, double score) {
+    public boolean addAssociation(String entityName, double score) {
         if (this.getAssociations().containsKey(entityName)) {
             log.debug("association between entity " + this.getName()
                     + " and entity " + entityName
@@ -235,8 +238,7 @@ public class Entity extends BaseModel {
     public void setAuthors(List<String> authors) {
         this.authors = authors;
     }
-    
-    
+
     public void addAuthor(String author) {
         this.authors.add(author);
     }
@@ -254,7 +256,7 @@ public class Entity extends BaseModel {
     public void setSubjects(List<String> subjects) {
         this.subjects = subjects;
     }
-    
+
     public void addSubject(String subject) {
         this.subjects.add(subject);
     }
@@ -271,5 +273,12 @@ public class Entity extends BaseModel {
      */
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    /**
+     * @param numericInfo the numericInfo to set
+     */
+    public void setNumericInfo(List<String> numericInfo) {
+        this.numericInfo = numericInfo;
     }
 }

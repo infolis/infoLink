@@ -186,7 +186,9 @@ public class CommandLineExecuter {
                                 }
                                 Entity entity = new Entity();
                                 entity.setName(name);
-                                entity.setNumber(number);
+                                List<String> numInfo = new ArrayList();
+                                numInfo.add(number);
+                                entity.setNumericInfo(numInfo);
                                 entity.setIdentifier(identifier);
                                 dataStoreClient.post(Entity.class, entity);
                                 entityURIs.add(entity.getUri());

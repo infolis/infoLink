@@ -3,6 +3,7 @@ package io.github.infolis.algorithm;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,7 +26,7 @@ import io.github.infolis.infolink.querying.QueryService;
 public class ReferenceLinkerTest extends InfolisBaseTest {
 	
 	@Test
-	public void testExecute() {
+	public void testExecute() throws IOException {
 		InfolisFile infolisFile = new InfolisFile();
 		dataStoreClient.post(InfolisFile.class, infolisFile);
 		TextualReference reference = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
@@ -84,6 +85,29 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec4.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec4.getLinks();
 	    assertEquals(25, linkUris.size());
+
+	    // test for query cache
+        Execution exec5 = new Execution();
+        TextualReference reference3 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+        TextualReference reference4 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
+		dataStoreClient.post(TextualReference.class, reference3);
+		dataStoreClient.post(TextualReference.class, reference4);
+	    exec5.setTextualReferences(Arrays.asList(reference3.getUri(), reference4.getUri()));
+		exec5.setAlgorithm(ReferenceLinker.class);
+		exec5.setQueryServices(Arrays.asList(queryService.getUri()));
+		exec5.setSearchResultLinkerClass(BestMatchLinker.class);
+		exec5.instantiateAlgorithm(dataStoreClient, fileResolver).run();
+		linkUris = exec5.getLinks();
+	    assertEquals(2, linkUris.size());
+	    EntityLink link5 = dataStoreClient.get(EntityLink.class, linkUris.get(0));
+	    Entity toEntity5 = dataStoreClient.get(Entity.class, link5.getToEntity());
+	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5.getName());
+	    assertEquals("10.4232/1.5126", toEntity5.getIdentifier());
+	    
+	    EntityLink link5b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
+	    Entity toEntity5b = dataStoreClient.get(Entity.class, link5.getToEntity());
+	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5b.getName());
+	    assertEquals("10.4232/1.5126", toEntity5b.getIdentifier());
 	}
     
 }

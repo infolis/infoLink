@@ -1,12 +1,17 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -31,10 +36,16 @@ public class ReferenceLinker extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(ReferenceLinker.class);
 	
-	private List<String> resolveReferences(List<String> textualReferences) {
+	private List<String> resolveReferences(List<String> textualReferences) throws IOException {
     	List<String> entityLinks = new ArrayList<>();
     	List<String> queryServices = getExecution().getQueryServices();
         List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
+        
+        //TODO hack
+        // create query cache
+        File cache = Paths.get(InfolisConfig.getTmpFilePath().toString(), "querycache").toFile();
+        // delete cache if it already exists
+        FileUtils.write(cache, "", false);
 
 	    for (String s : textualReferences) {
 	    	debug(log, "Resolving TextualReference " + s);
@@ -66,7 +77,6 @@ public class ReferenceLinker extends BaseAlgorithm {
         return entityUri;
     }
 
-    //TODO call referenceLinker on list of entites?
     public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
@@ -106,7 +116,7 @@ public class ReferenceLinker extends BaseAlgorithm {
 
     
 	@Override
-	public void execute() {
+	public void execute() throws IOException {
 		List<String> entityLinks = resolveReferences(getExecution().getTextualReferences());
 		getExecution().setLinks(entityLinks);
 	}

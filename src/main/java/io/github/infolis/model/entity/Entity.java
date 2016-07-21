@@ -133,23 +133,6 @@ public class Entity extends BaseModel {
         this.getNumericInfo().add(numericInfo);
     }
 
-    public void addBestNumericInfo(String numericInfo) {
-        //add the value from index 0 to the end of the list
-        if (getNumericInfo().size() > 0) {
-            addNumericInfo(this.getNumericInfo().get(0));
-            //replace the value on position 0 with the best found one
-            this.getNumericInfo().set(0, numericInfo);
-            //delete the value which is a duplicate
-            if (getNumericInfo().size() > 1) {
-                for (int i = 1; i < getNumericInfo().size(); i++) {
-                    if (getNumericInfo().get(i).equals(numericInfo)) {
-                        getNumericInfo().remove(i);
-                    }
-                }
-            }
-        }
-    }
-
     public List<String> getNumericInfo() {
         return this.numericInfo;
     }

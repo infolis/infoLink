@@ -61,7 +61,7 @@ public class Entity extends BaseModel {
     public Entity() {
     }
     
-    public void setSpatial(HashSet<String> spatial) {
+    public void setSpatial(Set<String> spatial) {
     	this.spatial = spatial;
     }
     

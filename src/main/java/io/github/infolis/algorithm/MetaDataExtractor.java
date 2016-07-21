@@ -6,7 +6,6 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.util.InformationExtractor;
-import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,17 +57,13 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public Entity extractMetadata(TextualReference ref) {
 
     	Entity entity = new Entity();
-        List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);
         String name = ref.getReference().replaceAll("[^a-zA-Z]", "");
-        
         entity.setName(name);
        
-        for (String numInf : numericInfo) {
-           	entity.addNumericInfo(numInf);
-        }
+        List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);
         //TODO make priorities configurable...
-        String bestNumInfo = InformationExtractor.getBestNumericInfo(numericInfo);
-        entity.setNumber(bestNumInfo);
+        numericInfo = InformationExtractor.sortNumericInfo(numericInfo);
+        entity.setNumericInfo(InformationExtractor.sortNumericInfo(numericInfo)); 
         
         entity.setIdentifier(InformationExtractor.extractDOI(ref));
         entity.setURL(InformationExtractor.extractURL(ref));

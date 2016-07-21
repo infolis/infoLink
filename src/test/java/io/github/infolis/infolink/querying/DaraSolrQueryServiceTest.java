@@ -43,12 +43,23 @@ public class DaraSolrQueryServiceTest {
 	}
 	
 	@Test
-    public void testCreateQuery() throws MalformedURLException {
+    public void testCreateTitleQuery() throws MalformedURLException {
         QueryService queryService = new DaraSolrQueryService();
         Entity entity = new Entity();
         entity.setName("Studierendensurvey");
         Set<QueryField> queryStrategy = new HashSet<>();
         queryStrategy.add(QueryField.title);
+        queryService.setQueryStrategy(queryStrategy);
+        Assert.assertEquals(new URL("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey +resourceType:2&start=0&rows=1000&fl=doi,title&wt=json"), queryService.createQuery(entity));
+    }
+	
+	@Test
+    public void testCreateNumInTitleQuery() throws MalformedURLException {
+        QueryService queryService = new DaraSolrQueryService();
+        Entity entity = new Entity();
+        entity.setName("Studierendensurvey");
+        Set<QueryField> queryStrategy = new HashSet<>();
+        queryStrategy.add(QueryField.numericInfoInTitle);
         queryService.setQueryStrategy(queryStrategy);
         Assert.assertEquals(new URL("http://www.da-ra.de/solr/dara/select/?q=title:Studierendensurvey +resourceType:2&start=0&rows=1000&fl=doi,title&wt=json"), queryService.createQuery(entity));
     }

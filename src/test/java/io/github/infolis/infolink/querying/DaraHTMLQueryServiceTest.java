@@ -64,14 +64,26 @@ public class DaraHTMLQueryServiceTest {
 	}
 	
 	 @Test
-	    public void testCreateQuery() throws IOException {
-	        QueryService queryService = new DaraHTMLQueryService();
-	        queryService.setMaxNumber(600);
-	        Set<QueryField> queryStrategy = new HashSet<>();
-	        queryStrategy.add(QueryField.title);
-	        queryService.setQueryStrategy(queryStrategy);
-	        Entity entity = new Entity();
-	        entity.setName("Studierendensurvey");
-	        Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
-	    }
+	 public void testCreateTitleQuery() throws IOException {
+		 QueryService queryService = new DaraHTMLQueryService();
+	     queryService.setMaxNumber(600);
+	     Set<QueryField> queryStrategy = new HashSet<>();
+	     queryStrategy.add(QueryField.title);
+	     queryService.setQueryStrategy(queryStrategy);
+	     Entity entity = new Entity();
+	     entity.setName("Studierendensurvey");
+	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
+	 }
+	 
+	 @Test
+	 public void testCreateNumInTitleQuery() throws IOException {
+		 QueryService queryService = new DaraHTMLQueryService();
+	     queryService.setMaxNumber(600);
+	     Set<QueryField> queryStrategy = new HashSet<>();
+	     queryStrategy.add(QueryField.numericInfoInTitle);
+	     queryService.setQueryStrategy(queryStrategy);
+	     Entity entity = new Entity();
+	     entity.setName("Studierendensurvey");
+	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
+	 }
 }

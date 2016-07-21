@@ -120,7 +120,9 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	            referencedInstance.setName(searchResult.getTitles().get(0));
 	        }
 	        if(searchResult.getNumericInformation() != null && searchResult.getNumericInformation().size()>0) {
-	            referencedInstance.setNumber(searchResult.getNumericInformation().get(0));
+                    List<String> numInfo = new ArrayList<>();
+                    numInfo.add(searchResult.getNumericInformation().get(0));
+	            referencedInstance.setNumericInfo(numInfo);
 	        }
 	        getOutputDataStoreClient().post(Entity.class, referencedInstance);
 	        String linkReason = textRef.getUri();

@@ -65,8 +65,7 @@ public class ReferenceLinker extends BaseAlgorithm {
         updateProgress(1, 3);
         return entityUri;
     }
-
-    //TODO call referenceLinker on list of entites?
+    
     public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
@@ -120,12 +119,12 @@ public class ReferenceLinker extends BaseAlgorithm {
 		if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
             queryServiceSet = true;
 		}
+		if (null == getExecution().getTextualReferences()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
+		}
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
-		if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
-		}
 		if (null == getExecution().getSearchResultLinkerClass()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
 		}

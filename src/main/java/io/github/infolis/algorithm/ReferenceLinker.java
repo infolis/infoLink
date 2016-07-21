@@ -1,5 +1,10 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,6 +12,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -31,11 +37,18 @@ public class ReferenceLinker extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(ReferenceLinker.class);
 	
-	private List<String> resolveReferences(List<String> textualReferences) {
+	private List<String> resolveReferences(List<String> textualReferences) throws IOException {
+		// create query cache
+		Path generalCachePath = Paths.get(InfolisConfig.getTmpFilePath().toString(), "cache");
+		if (!generalCachePath.toFile().exists()) Files.createDirectories(generalCachePath);
+		Path privateCachePath = Files.createTempDirectory(generalCachePath, Long.toString(System.nanoTime()));
+		File cache = Files.createTempFile(privateCachePath, "querycache", ".txt").toFile();
+        String cachePath = cache.getCanonicalPath();
+        
     	List<String> entityLinks = new ArrayList<>();
     	List<String> queryServices = getExecution().getQueryServices();
         List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
-
+        
 	    for (String s : textualReferences) {
 	    	debug(log, "Resolving TextualReference " + s);
 	        String referencedEntity = extractMetaData(s);
@@ -43,16 +56,18 @@ public class ReferenceLinker extends BaseAlgorithm {
 	        
 	        List<String> searchRes = new ArrayList<>();
 	        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
-	            searchRes = searchClassInRepositories(referencedEntity, queryServiceClasses);
+	            searchRes = searchClassInRepositories(referencedEntity, queryServiceClasses, cachePath);
 	        }
 	        if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
-	            searchRes = searchInRepositories(referencedEntity, queryServices);
+	            searchRes = searchInRepositories(referencedEntity, queryServices, cachePath);
 	        }
 	        if (searchRes.size() > 0) {
 	        	entityLinks.addAll(createLinks(searchRes, s));
 	        }
 	    }
-	return entityLinks;
+	    cache.delete();
+		privateCachePath.toFile().delete();
+	    return entityLinks;
     }
 
     public String extractMetaData(String textualReference) {
@@ -66,12 +81,12 @@ public class ReferenceLinker extends BaseAlgorithm {
         return entityUri;
     }
 
-    //TODO call referenceLinker on list of entites?
-    public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
+    public List<String> searchInRepositories(String entityUri, List<String> queryServices, String cachePath) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServices(queryServices);
+        searchRepo.setIndexDirectory(cachePath);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(2, 3);
@@ -79,11 +94,12 @@ public class ReferenceLinker extends BaseAlgorithm {
         return searchRepo.getSearchResults();
     }
 
-    public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices) {
+    public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices, String cachePath) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServiceClasses(queryServices);
+        searchRepo.setIndexDirectory(cachePath);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(2, 3);
@@ -106,7 +122,7 @@ public class ReferenceLinker extends BaseAlgorithm {
 
     
 	@Override
-	public void execute() {
+	public void execute() throws IOException {
 		List<String> entityLinks = resolveReferences(getExecution().getTextualReferences());
 		getExecution().setLinks(entityLinks);
 	}
@@ -120,12 +136,12 @@ public class ReferenceLinker extends BaseAlgorithm {
 		if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
             queryServiceSet = true;
 		}
+		if (null == getExecution().getTextualReferences()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
+		}
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
         }
-		if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
-		}
 		if (null == getExecution().getSearchResultLinkerClass()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
 		}

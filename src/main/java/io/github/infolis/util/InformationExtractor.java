@@ -31,6 +31,17 @@ public class InformationExtractor {
         return numericInfo;
     }
     
+    public static List<String> sortNumericInfo(List<String> numericInfo) {
+    	List<String> sortedNumericInfo = new ArrayList<>();
+    	List<String> numericInfoCopy = new ArrayList<>(numericInfo);
+    	for (int i = 0; i < numericInfo.size(); i++) {
+    		String bestNumericInfo = getBestNumericInfo(numericInfoCopy);
+    		sortedNumericInfo.add(bestNumericInfo);
+    		numericInfoCopy.remove(numericInfoCopy.indexOf(bestNumericInfo));
+    	}
+    	return sortedNumericInfo;
+    }
+    
     public static String getBestNumericInfo(List<String> numericInfo) {
     	//prefer years to abbreviated years to numbers
     	//prefer position: term to right context to left context

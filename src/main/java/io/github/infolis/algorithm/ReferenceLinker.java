@@ -2,6 +2,7 @@ package io.github.infolis.algorithm;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import sun.security.util.Cache;
 import io.github.infolis.infolink.querying.QueryService;
 
 /**
@@ -37,16 +39,13 @@ public class ReferenceLinker extends BaseAlgorithm {
 	private static final Logger log = LoggerFactory.getLogger(ReferenceLinker.class);
 	
 	private List<String> resolveReferences(List<String> textualReferences) throws IOException {
+		// create query cache
+        String cachePath = Files.createTempFile(InfolisConfig.getTmpFilePath(), "querycache", ".txt").toAbsolutePath().toString();
+        
     	List<String> entityLinks = new ArrayList<>();
     	List<String> queryServices = getExecution().getQueryServices();
         List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
         
-        //TODO hack
-        // create query cache
-        File cache = Paths.get(InfolisConfig.getTmpFilePath().toString(), "querycache").toFile();
-        // delete cache if it already exists
-        FileUtils.write(cache, "", false);
-
 	    for (String s : textualReferences) {
 	    	debug(log, "Resolving TextualReference " + s);
 	        String referencedEntity = extractMetaData(s);
@@ -54,10 +53,10 @@ public class ReferenceLinker extends BaseAlgorithm {
 	        
 	        List<String> searchRes = new ArrayList<>();
 	        if (null != getExecution().getQueryServiceClasses() && !getExecution().getQueryServiceClasses().isEmpty()) {
-	            searchRes = searchClassInRepositories(referencedEntity, queryServiceClasses);
+	            searchRes = searchClassInRepositories(referencedEntity, queryServiceClasses, cachePath);
 	        }
 	        if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
-	            searchRes = searchInRepositories(referencedEntity, queryServices);
+	            searchRes = searchInRepositories(referencedEntity, queryServices, cachePath);
 	        }
 	        if (searchRes.size() > 0) {
 	        	entityLinks.addAll(createLinks(searchRes, s));
@@ -77,11 +76,12 @@ public class ReferenceLinker extends BaseAlgorithm {
         return entityUri;
     }
 
-    public List<String> searchInRepositories(String entityUri, List<String> queryServices) {
+    public List<String> searchInRepositories(String entityUri, List<String> queryServices, String cachePath) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServices(queryServices);
+        searchRepo.setIndexDirectory(cachePath);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(2, 3);
@@ -89,11 +89,12 @@ public class ReferenceLinker extends BaseAlgorithm {
         return searchRepo.getSearchResults();
     }
 
-    public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices) {
+    public List<String> searchClassInRepositories(String entityUri, List<Class<? extends QueryService>> queryServices, String cachePath) {
         Execution searchRepo = getExecution().createSubExecution(FederatedSearcher.class);
         searchRepo.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
         searchRepo.setLinkedEntities(Arrays.asList(entityUri));
         searchRepo.setQueryServiceClasses(queryServices);
+        searchRepo.setIndexDirectory(cachePath);
         getOutputDataStoreClient().post(Execution.class, searchRepo);
         searchRepo.instantiateAlgorithm(this).run();
         updateProgress(2, 3);

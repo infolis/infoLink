@@ -38,8 +38,13 @@ public class FederatedSearcher extends BaseAlgorithm {
     @Override
     public void execute() throws IOException {
         List<String> allResults = new ArrayList<>();
-        File cache = initializeCache();
-
+        
+        File cache = null;
+        if (null != getExecution().getIndexDirectory() && !getExecution().getIndexDirectory().isEmpty()) {
+        	cache = new File(getExecution().getIndexDirectory());
+        	log.debug("using cache at " + getExecution().getIndexDirectory());
+        }
+        
         Entity entity = getInputDataStoreClient().get(Entity.class, getExecution().getLinkedEntities().get(0));
         int counter = 0, size =0;
         
@@ -111,15 +116,9 @@ public class FederatedSearcher extends BaseAlgorithm {
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
     
-    private File initializeCache() throws IOException {
-    	// TODO hack
-    	//return Files.createTempFile(InfolisConfig.getTmpFilePath(), "querycache", ".txt").toFile();
-    	return Paths.get(InfolisConfig.getTmpFilePath().toString(), "querycache").toFile();
-    }
-    
     private void writeToCache(File cache, String query, List<String> uris) throws IOException {
-    	if (!cache.exists()) {
-    		log.debug("cache file does not exist, continuing without cache");
+    	if (null == cache || !cache.exists()) {
+    		log.debug("no cache file given or cache file does not exist, continuing without cache");
     		return;
     	}
     	
@@ -130,8 +129,8 @@ public class FederatedSearcher extends BaseAlgorithm {
     }
     
     private List<String> readFromCache(File cache, String query) throws IOException {
-    	if (!cache.exists()) {
-    		log.debug("cache file does not exist, continuing without cache");
+    	if (null == cache || !cache.exists()) {
+    		log.debug("no cache file given or cache file does not exist, continuing without cache");
     		return new ArrayList<String>();
     	}
     	

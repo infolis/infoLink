@@ -35,7 +35,9 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 			getExecution().setTextualReferences(linkingExec.getTextualReferences());
 			getExecution().setLinks(linkingExec.getLinks());
 			//TODO: set all created entities
-			debug(log, "Done. Returning textual references and entity links");
+			debug(log, "Done. Returning {} textual references and {} entity links", 
+					getExecution().getTextualReferences().size(),
+					getExecution().getLinks().size());
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		}
 		catch (Exception e) {

@@ -6,6 +6,7 @@ import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.InformationExtractor;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
@@ -53,7 +54,7 @@ public class DaraSolrQueryService extends QueryService {
         if (!title.isEmpty()) query += "title:" + title;
         if (!pubDate.isEmpty()) query += " +publicationDate:" + pubDate;
         if (!doi.isEmpty()) query += " +doi:" + doi;
-        if (!resourceType.isEmpty()) query += " +resourceType:" + resourceType;
+        if (!resourceType.isEmpty()) query += "+resourceType:" + resourceType;
         query = query.replaceAll("= \\+", "");
         return new URL(target + beginning + query + remainder);
     }
@@ -100,12 +101,15 @@ public class DaraSolrQueryService extends QueryService {
             URL url = createQuery(entity);
             log.debug("Opening stream: " + url);
             InputStream is = url.openStream();
-            JsonReader reader = Json.createReader(is);
+            InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+            JsonReader reader = Json.createReader(isr);
+
             JsonObject obj = reader.readObject();
             JsonObject response = obj.getJsonObject("response");
             JsonArray result = response.getJsonArray("docs");
             reader.close();
             is.close();
+            isr.close();
 
             int listIndex = 0;
             for (JsonObject item : result.getValuesAs(JsonObject.class)) {
@@ -132,6 +136,7 @@ public class DaraSolrQueryService extends QueryService {
         } catch (Exception ex) {
         	// TODO catch exception
             log.error(ex.getMessage());
+            ex.printStackTrace();
         }
         return results;
     }

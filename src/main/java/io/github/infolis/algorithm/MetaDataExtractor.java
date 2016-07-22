@@ -32,14 +32,14 @@ public class MetaDataExtractor extends BaseAlgorithm {
         String tr = getExecution().getTextualReferences().get(0);
         TextualReference ref = getInputDataStoreClient().get(TextualReference.class, tr);
 
-        debug(log, "Extracting metadata from textual reference %s", ref);
+        debug(log, "Extracting metadata from textual reference {}", ref);
         Entity entity = extractMetadata(ref);
         
         if ((null == entity.getName() || entity.getName().isEmpty()) &&
         	entity.getNumericInfo().isEmpty() &&
         	(null == entity.getIdentifier() || entity.getIdentifier().isEmpty()) &&
         	(null == entity.getURL() || entity.getURL().isEmpty())) {
-        	error(log, "Could not extract metadata for reference: " + ref);
+        	error(log, "Could not extract metadata for reference {} ", ref);
         	getExecution().setStatus(ExecutionStatus.FAILED);
             return;
         }
@@ -57,7 +57,17 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public Entity extractMetadata(TextualReference ref) {
 
     	Entity entity = new Entity();
-        String name = ref.getReference().replaceAll("\\d", "").replaceAll("\\p{Punct}+", " ").trim();
+    	//TODO hacky, other special characters may still cause problems
+        String name = ref.getReference()
+        		.replaceAll("\\d", "")
+        		.replaceAll("\\p{Punct}+", " ")
+        		.replace("ü", "ue")
+        		.replace("ä", "ae")
+        		.replace("ö", "oe")
+        		.replace("Ü", "Ue")
+        		.replace("Ä", "Ae")
+        		.replace("Ö", "Oe")
+        		.trim();
         entity.setName(name);
        
         List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);

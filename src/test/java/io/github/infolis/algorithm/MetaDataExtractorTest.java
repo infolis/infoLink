@@ -137,6 +137,6 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals("", entity.getIdentifier());
         
         entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "Sozio-ökonomisches Panel", "of any year is to", "document", "pattern","ref"));
-        assertEquals("Sozio ökonomisches Panel", entity.getName());
+        assertEquals("Sozio oekonomisches Panel", entity.getName());
     }
 }

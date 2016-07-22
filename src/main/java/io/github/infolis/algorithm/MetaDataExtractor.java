@@ -59,6 +59,10 @@ public class MetaDataExtractor extends BaseAlgorithm {
     	Entity entity = new Entity();
     	//TODO hacky, other special characters may still cause problems
         String name = ref.getReference()
+        		// replace characters that might have been introduced during tokenization
+        		.replace("-LRB-", "")
+        		.replace("-RRB-", "")
+        		.replace("*NL*", "")
         		.replaceAll("\\d", "")
         		.replaceAll("\\p{Punct}+", " ")
         		.replace("ü", "ue")
@@ -67,6 +71,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         		.replace("Ü", "Ue")
         		.replace("Ä", "Ae")
         		.replace("Ö", "Oe")
+        		.replaceAll("\\s+", " ")
         		.trim();
         entity.setName(name);
        

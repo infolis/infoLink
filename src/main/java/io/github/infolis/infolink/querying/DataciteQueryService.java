@@ -55,12 +55,11 @@ public class DataciteQueryService extends QueryService {
         String remainder = "&start=0&rows=" + maxNumber + "&sort=score&order=desc";
         String query = "?query=";
         if (!title.isEmpty()) query += "title:" + title;
-        if (!pubDate.isEmpty()) query += " +publicationDate:" + pubDate;
-        if (!doi.isEmpty()) query += "+doi:" + doi;
-        //query += "+" + ClientUtils.escapeQueryChars("resource-type-general") + ":dataset";
-        //query += "+resource-type:dataset";
-        //query += "+type:dataset";
-        query = query.replaceAll("= \\+", "");
+        if (!doi.isEmpty()) query += "%20AND%20doi:\"" + doi + "\"";
+        //query += "+resource\-type\-general") + ":dataset";
+        //query += "+resource\-type:dataset";
+        query += "%20AND%20type:\"dataset\"";
+        query = query.replaceAll("=%20AND%20", "");
         return new URL(target + beginning + query + remainder);
     }
     
@@ -71,7 +70,7 @@ public class DataciteQueryService extends QueryService {
     	String doi = "";
     	if (this.getQueryStrategy().contains(QueryService.QueryField.title)) {
     		try {
-				title = URLParamEncoder.encode(ClientUtils.escapeQueryChars(entity.getName()));
+				title = URLParamEncoder.encode("\"" + ClientUtils.escapeQueryChars(entity.getName()) + "\"");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 				throw new IllegalArgumentException("Cannot encode \"" + title + "\"");
@@ -95,7 +94,7 @@ public class DataciteQueryService extends QueryService {
 				}
             } else
 				try {
-					title = URLParamEncoder.encode(ClientUtils.escapeQueryChars(entity.getName()));
+					title = URLParamEncoder.encode("\"" + ClientUtils.escapeQueryChars(entity.getName()) + "\"");
 				} catch (UnsupportedEncodingException e) {
 					e.printStackTrace();
 					throw new IllegalArgumentException("Cannot encode \"" + title + "\"");

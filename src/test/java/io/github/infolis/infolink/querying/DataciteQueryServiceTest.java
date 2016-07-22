@@ -30,7 +30,7 @@ public class DataciteQueryServiceTest {
         Set<QueryField> queryStrategy = new HashSet<>();
         queryStrategy.add(QueryField.title);
         queryService.setQueryStrategy(queryStrategy);
-        Assert.assertEquals(new URL("https://api.datacite.org/works/?query=title:Studierendensurvey&start=0&rows=1000&sort=score&order=desc"), queryService.createQuery(entity));
+        Assert.assertEquals(new URL("https://api.datacite.org/works/?query=title:\"Studierendensurvey\"%20AND%20type:\"dataset\"&start=0&rows=1000&sort=score&order=desc"), queryService.createQuery(entity));
     }
 	
 	@Test
@@ -41,7 +41,7 @@ public class DataciteQueryServiceTest {
         Set<QueryField> queryStrategy = new HashSet<>();
         queryStrategy.add(QueryField.numericInfoInTitle);
         queryService.setQueryStrategy(queryStrategy);
-        Assert.assertEquals(new URL("https://api.datacite.org/works/?query=title:Studierendensurvey&start=0&rows=1000&sort=score&order=desc"), queryService.createQuery(entity));
+        Assert.assertEquals(new URL("https://api.datacite.org/works/?query=title:\"Studierendensurvey\"%20AND%20type:\"dataset\"&start=0&rows=1000&sort=score&order=desc"), queryService.createQuery(entity));
     }
 	
 }

@@ -55,10 +55,10 @@ public class DaraSolrQueryService extends QueryService {
         String remainder = "&start=0&rows=" + maxNumber + "&fl=doi,title&wt=json";
         String query = "?q=";
         if (!title.isEmpty()) query += "title:" + title;
-        if (!pubDate.isEmpty()) query += " +publicationDate:" + pubDate;
+        if (!pubDate.isEmpty()) query += "+publicationDate:" + pubDate;
         if (!doi.isEmpty()) query += "+doi:" + doi;
         if (!resourceType.isEmpty()) query += "+resourceType:" + resourceType;
-        query = query.replaceAll("= \\+", "");
+        query = query.replaceAll("=\\+", "");
         return new URL(target + beginning + query + remainder);
     }
     
@@ -68,7 +68,7 @@ public class DaraSolrQueryService extends QueryService {
     	String doi = "";
     	if (this.getQueryStrategy().contains(QueryService.QueryField.title)) {
     		try {
-				title = URLParamEncoder.encode(ClientUtils.escapeQueryChars(entity.getName()));
+				title = URLParamEncoder.encode("\"" + ClientUtils.escapeQueryChars(entity.getName()) + "\"");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 				throw new IllegalArgumentException("Cannot encode \"" + title + "\"");
@@ -92,7 +92,7 @@ public class DaraSolrQueryService extends QueryService {
 				}
             } else
 				try {
-					title = URLParamEncoder.encode(ClientUtils.escapeQueryChars(entity.getName()));
+					title = URLParamEncoder.encode("\"" + ClientUtils.escapeQueryChars(entity.getName()) + "\"");
 				} catch (UnsupportedEncodingException e) {
 					e.printStackTrace();
 					throw new IllegalArgumentException("Cannot encode \"" + title + "\"");

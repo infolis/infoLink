@@ -32,6 +32,7 @@ public class BestMatchLinker extends SearchResultLinker {
         Set<QueryField> queryStrategy = new HashSet<>();
         queryStrategy.add(QueryField.numericInfoInTitle);
         setQueryStrategy(queryStrategy); 
+        setMaxNum(1);
     }
 	
 	@Override

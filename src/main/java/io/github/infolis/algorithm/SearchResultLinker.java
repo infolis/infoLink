@@ -31,6 +31,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	// weight for number-based score, weight for reliability of QueryService, weight for list index
 	private int[] weights = {1, 1, 1};
 	Set<QueryField> queryStrategy;
+	private int maxNum = 1000;
 
     public SearchResultLinker(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -54,6 +55,14 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
     
     public Set<QueryField> getQueryStrategy() {
     	return this.queryStrategy;
+    }
+    
+    public void setMaxNum(int maxNum) {
+    	this.maxNum = maxNum;
+    }
+    
+    public int getMaxNum() {
+    	return this.maxNum;
     }
 
     public Map<SearchResult, Double> rankResults(TextualReference textRef) {

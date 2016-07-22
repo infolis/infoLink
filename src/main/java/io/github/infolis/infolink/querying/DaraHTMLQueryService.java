@@ -40,8 +40,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "queryServiceType")
 public class DaraHTMLQueryService extends QueryService {
 
-	private double serviceReliability = 0.8;
-
     public DaraHTMLQueryService() {
         super("http://www.da-ra.de/dara/search/search_result", 0.5);
     }

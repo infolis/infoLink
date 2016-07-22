@@ -50,10 +50,11 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     
     private List<String> searchPatterns(List<String> patterns, List<String> input) {
     	debug(log, "Executing InfolisPatternSearcher with patterns " + patterns);
-        //Execution search = getExecution().createSubExecution(RegexSearcher.class);
     	Execution search = getExecution().createSubExecution(InfolisPatternSearcher.class);
         search.setPatterns(patterns);
         search.setInputFiles(input);
+        search.setPhraseSlop(getExecution().getPhraseSlop());
+        search.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
         search.setIndexDirectory(getExecution().getIndexDirectory());
         getOutputDataStoreClient().post(Execution.class, search);
         search.instantiateAlgorithm(this).run();

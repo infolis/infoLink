@@ -1,7 +1,11 @@
 package io.github.infolis.util;
 
+import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +13,8 @@ import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.StringJoiner;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBContext;
@@ -176,6 +182,32 @@ public class SerializationUtils {
 		return sb.toString();
 	}
 
-
+	/**
+	 * Create csv file from entity links. 
+	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getMentionsReference()
+	 * 			|toEntity.getIdentifier()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
+	 * 
+	 * @param entityLinks
+	 * @param client
+	 * @return
+	 */
+	public static String toCsv(List<String> entityLinks, DataStoreClient client) {
+		StringJoiner csv = new StringJoiner("|", "", "");
+		for (String linkUri : entityLinks) {
+			EntityLink link = client.get(EntityLink.class, linkUri);
+			Entity fromEntity = client.get(Entity.class, link.getFromEntity());
+			Entity toEntity = client.get(Entity.class, link.getToEntity());
+			csv.add(fromEntity.getIdentifier());
+			csv.add(fromEntity.getName());
+			TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
+			csv.add(client.get(InfolisFile.class, ref.getMentionsReference()).getFileName());
+			csv.add(toEntity.getIdentifier());
+			csv.add(toEntity.getName());
+			csv.add(toEntity.getNumericInfo().toString());
+			csv.add(ref.toPrettyString());
+			csv.add("\n");
+		}
+		return csv.toString();
+	}
 
 }

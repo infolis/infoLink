@@ -8,6 +8,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.util.SerializationUtils;
 
 /**
  * 
@@ -38,6 +39,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 			debug(log, "Done. Returning {} textual references and {} entity links", 
 					getExecution().getTextualReferences().size(),
 					getExecution().getLinks().size());
+			log.debug(SerializationUtils.toCsv(getExecution().getLinks(), getOutputDataStoreClient()));
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		}
 		catch (Exception e) {
@@ -65,16 +67,23 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	
 	private Execution learn() {
 		Execution learnExec = new Execution();
-		//TODO set all optional parameters
 		learnExec.setInputFiles(getExecution().getInputFiles());
 		learnExec.setBootstrapStrategy(getExecution().getBootstrapStrategy());
 		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){
 			learnExec.setAlgorithm(ReliabilityBasedBootstrapping.class);
 		}
 		else learnExec.setAlgorithm(FrequencyBasedBootstrapping.class);
+		learnExec.setStartPage(getExecution().getStartPage());
+		learnExec.setRemoveBib(getExecution().isRemoveBib());
 		learnExec.setTokenize(getExecution().isTokenize());
+		learnExec.setTokenizeNLs(getExecution().getTokenizeNLs());
+		learnExec.setPtb3Escaping(getExecution().getPtb3Escaping());
+		learnExec.setPhraseSlop(getExecution().getPhraseSlop());
 		learnExec.setSeeds(getExecution().getSeeds());
+		learnExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
 		learnExec.setReliabilityThreshold(getExecution().getReliabilityThreshold());
+		learnExec.setMaxIterations(getExecution().getMaxIterations());
+		
 		learnExec.instantiateAlgorithm(this).run();
 		return learnExec;
 	}

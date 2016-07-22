@@ -66,11 +66,13 @@ public class FederatedSearcher extends BaseAlgorithm {
                     String query = queryService.createQuery(entity).toString();
 	            	List<String> searchResultUris = readFromCache(cache, query);
 	            	
-	            	if (searchResultUris.isEmpty()) {
+	            	// searchResultUris is null iff query is not contained in the cache
+	            	if (null == searchResultUris) {
 		            	List<SearchResult> results = queryService.find(entity);
 		            	searchResultUris = getInputDataStoreClient().post(SearchResult.class, results);
 		                writeToCache(cache, query, searchResultUris);
 	            	}
+
 	            	if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
 	            	
 	                updateProgress(counter, size);
@@ -92,11 +94,13 @@ public class FederatedSearcher extends BaseAlgorithm {
 	            	debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
 	            	String query = queryService.createQuery(entity).toString();
 	            	List<String> searchResultUris = readFromCache(cache, query);
-	            	if (searchResultUris.isEmpty()) {
+	            	// searchResultUris is null iff query is not contained in the cache
+	            	if (null == searchResultUris) {
 		            	List<SearchResult> results = queryService.find(entity);
 		            	searchResultUris = getInputDataStoreClient().post(SearchResult.class, results);
 		                writeToCache(cache, query, searchResultUris);
 	            	}
+	            	
 	            	if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
 	            	
 	                updateProgress(counter, size);
@@ -123,7 +127,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     	for (String uri : uris) entry += uri + "!!!";
     	if (uris.isEmpty()) entry += " ";
     	FileUtils.write(cache, entry.substring(0, entry.length() - 3) + "\n", true);
-    	log.debug("wrote query to cache");
+    	log.debug("wrote query to cache {}", entry.substring(0, entry.length() - 3));
     }
     
     private List<String> readFromCache(File cache, String query) throws IOException {
@@ -145,7 +149,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     		}
     	}
     	// query was not found in cache
-    	return new ArrayList<String>();
+    	return null;
     }
 
     @Override

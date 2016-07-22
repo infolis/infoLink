@@ -39,7 +39,7 @@ public class BestMatchLinker extends SearchResultLinker {
 		log.debug("Creating link to best match...");
 		String textRefURI = getExecution().getTextualReferences().get(0);
         TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
-		Map<SearchResult, Double> scoreMap = rankResults(textRef);
+        Map<SearchResult, Double> scoreMap = getBestResultsAtFirstIndex();
 		Map<SearchResult, Double> bestMatch = getBestSearchResult(scoreMap); 
         List<String> entityLinks = createLinks(textRef, bestMatch);
         getExecution().setLinks(entityLinks);

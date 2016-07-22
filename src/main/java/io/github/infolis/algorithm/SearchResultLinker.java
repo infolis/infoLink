@@ -79,6 +79,22 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         return scoreMap;
     }
     
+    // the confidence score of the best result equals the confidence score of the QueryService
+    public Map<SearchResult, Double> getBestResultsAtFirstIndex() {
+    	Map<SearchResult, Double> scoreMap = new HashMap<>();
+    	List<SearchResult> searchResults = getInputDataStoreClient().get(
+    			SearchResult.class, getExecution().getSearchResults());
+        for (SearchResult searchResult : searchResults) {
+        	if (searchResult.getListIndex() == 0) {
+        		double confidence = 
+        				weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService())
+        				.getServiceReliability();
+        		scoreMap.put(searchResult, confidence);
+        	}
+        }
+        return scoreMap;
+    }
+    
     public Map<SearchResult, Double> getBestSearchResult(Map<SearchResult, Double> scoreMap) {
     	SearchResult bestSearchResult = null;
         double bestScore = -1.0;

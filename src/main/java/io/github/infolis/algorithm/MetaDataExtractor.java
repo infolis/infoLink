@@ -57,7 +57,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
     public Entity extractMetadata(TextualReference ref) {
 
     	Entity entity = new Entity();
-        String name = ref.getReference().replaceAll("[^a-zA-Z]", "");
+        String name = ref.getReference().replaceAll("\\d", "").replaceAll("\\p{Punct}+", " ").trim();
         entity.setName(name);
        
         List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);

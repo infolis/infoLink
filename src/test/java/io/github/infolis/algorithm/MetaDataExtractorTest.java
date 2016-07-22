@@ -1,7 +1,6 @@
 package io.github.infolis.algorithm;
 
 import java.util.Arrays;
-import java.util.HashSet;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
@@ -136,5 +135,8 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         assertEquals(Arrays.asList(), entity.getNumericInfo());
         assertEquals(0, entity.getNumericInfo().size());
         assertEquals("", entity.getIdentifier());
+        
+        entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "Sozio-ökonomisches Panel", "of any year is to", "document", "pattern","ref"));
+        assertEquals("Sozio ökonomisches Panel", entity.getName());
     }
 }

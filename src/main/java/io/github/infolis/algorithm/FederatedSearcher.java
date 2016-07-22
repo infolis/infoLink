@@ -133,7 +133,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     private List<String> readFromCache(File cache, String query) throws IOException {
     	if (null == cache || !cache.exists()) {
     		log.debug("no cache file given or cache file does not exist, continuing without cache");
-    		return new ArrayList<String>();
+    		return null;
     	}
     	
     	for (String line : FileUtils.readLines(cache)) {

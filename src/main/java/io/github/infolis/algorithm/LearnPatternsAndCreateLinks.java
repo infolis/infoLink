@@ -26,6 +26,10 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	
 	@Override
 	public void execute() {
+		Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
+		tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+		tagExec.instantiateAlgorithm(this).run();
+		getExecution().getInputFiles().addAll(tagExec.getInputFiles());
 		try {
 			debug(log, "Step1: Learning patterns and extracting textual references...");
 			Execution learnExec = learn();
@@ -35,7 +39,6 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 			updateProgress(2, 2);
 			getExecution().setTextualReferences(linkingExec.getTextualReferences());
 			getExecution().setLinks(linkingExec.getLinks());
-			//TODO: set all created entities
 			debug(log, "Done. Returning {} textual references and {} entity links", 
 					getExecution().getTextualReferences().size(),
 					getExecution().getLinks().size());
@@ -53,6 +56,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		linkExec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
 		linkExec.setAlgorithm(ReferenceLinker.class);
 		linkExec.setInputFiles(getExecution().getInputFiles());
+		linkExec.setTags(getExecution().getTags());
 		
 		linkExec.setTextualReferences(learnExec.getTextualReferences());
 		if (null != getExecution().getQueryServiceClasses()) {
@@ -67,6 +71,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	
 	private Execution learn() {
 		Execution learnExec = new Execution();
+		learnExec.setTags(getExecution().getTags());
 		learnExec.setInputFiles(getExecution().getInputFiles());
 		learnExec.setBootstrapStrategy(getExecution().getBootstrapStrategy());
 		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){

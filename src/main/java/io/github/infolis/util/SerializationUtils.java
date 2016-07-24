@@ -184,7 +184,7 @@ public class SerializationUtils {
 
 	/**
 	 * Create csv file from entity links. 
-	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getMentionsReference()
+	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getFile()
 	 * 			|toEntity.getIdentifier()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
 	 * 
 	 * @param entityLinks
@@ -192,20 +192,21 @@ public class SerializationUtils {
 	 * @return
 	 */
 	public static String toCsv(List<String> entityLinks, DataStoreClient client) {
-		StringJoiner csv = new StringJoiner("|", "", "");
+		String csv = "";
 		for (String linkUri : entityLinks) {
+			StringJoiner row = new StringJoiner("|", "", "");
 			EntityLink link = client.get(EntityLink.class, linkUri);
 			Entity fromEntity = client.get(Entity.class, link.getFromEntity());
 			Entity toEntity = client.get(Entity.class, link.getToEntity());
-			csv.add(fromEntity.getIdentifier());
-			csv.add(fromEntity.getName());
+			row.add(fromEntity.getIdentifier());
+			row.add(fromEntity.getName());
 			TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
-			csv.add(client.get(InfolisFile.class, ref.getMentionsReference()).getFileName());
-			csv.add(toEntity.getIdentifier());
-			csv.add(toEntity.getName());
-			csv.add(toEntity.getNumericInfo().toString());
-			csv.add(ref.toPrettyString());
-			csv.add("\n");
+			row.add(client.get(InfolisFile.class, ref.getFile()).getFileName());
+			row.add(toEntity.getIdentifier());
+			row.add(toEntity.getName());
+			row.add(toEntity.getNumericInfo().toString());
+			row.add(ref.toPrettyString());
+			csv += row.toString() + "\n";
 		}
 		return csv.toString();
 	}

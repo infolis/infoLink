@@ -46,7 +46,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 			getExecution().setStatus(ExecutionStatus.FINISHED);
 		}
 		catch (Exception e) {
-			error(log, "Execution threw an Exception: %s", e);
+			error(log, "Execution threw an Exception: {}", e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
 		}
 	}

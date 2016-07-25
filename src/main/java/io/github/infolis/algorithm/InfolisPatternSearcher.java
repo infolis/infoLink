@@ -15,7 +15,6 @@ import io.github.infolis.util.RegexUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,14 +34,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(InfolisPatternSearcher.class);
-    
-    private List<InfolisPattern> getInfolisPatterns(Collection<String> patternUris) {
-    	List<InfolisPattern> patterns = new ArrayList<>();
-    	for (String uri : patternUris) {
-    		patterns.add(getOutputDataStoreClient().get(InfolisPattern.class, uri));
-    	}
-    	return patterns;
-    }
     
     private List<String> getTextRefsForLuceneQueries(
     		List<String> patternUris, DataStoreClient client) {
@@ -95,9 +86,13 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
         log.debug("number of patterns to search for: " + size);
         DataStoreClient tempClient = this.getTempDataStoreClient();
     	// for all patterns, retrieve documents in which they occur (using lucene)
-        List<String> tempPatternUris = tempClient.post(InfolisPattern.class, getInfolisPatterns(patternUris));
+        for (String patternUri : patternUris) {
+        	tempClient.put(InfolisPattern.class, 
+        			getOutputDataStoreClient()
+        			.get(InfolisPattern.class, patternUri), patternUri);
+        }
     	List<String> textRefsForPatterns = getTextRefsForLuceneQueries(
-    			tempPatternUris, tempClient);
+    			patternUris, tempClient);
     	List<String> validatedTextualReferences = new ArrayList<>();
     	// open each reference once and validate with the corresponding regular expression
     	for (String textRefUri : textRefsForPatterns) {
@@ -125,7 +120,6 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                 continue;
             }
             
-            getOutputDataStoreClient().post(InfolisPattern.class, pattern);
             TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
             getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
             validatedTextualReferences.add(validatedTextRef.getUri());

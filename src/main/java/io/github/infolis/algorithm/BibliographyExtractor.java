@@ -161,7 +161,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
                 return;
             }
             if (null == inputFile.getMediaType() || !inputFile.getMediaType().equals("text/plain")) {
-                error(log, "File \"%s\" is not text/plain but is %s ", inputFileURI, inputFile.getMediaType());
+                error(log, "File \"{}\" is not text/plain but is {} ", inputFileURI, inputFile.getMediaType());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;
             }

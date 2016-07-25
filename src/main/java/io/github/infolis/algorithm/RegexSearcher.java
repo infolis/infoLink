@@ -56,7 +56,7 @@ public class RegexSearcher extends BaseAlgorithm {
         for (String patternURI : this.getExecution().getPatterns()) {
             log.trace(patternURI);
             InfolisPattern pattern = getOutputDataStoreClient().get(InfolisPattern.class, patternURI);
-            log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
+            log.trace("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
             // call m.find() as a thread: catastrophic backtracking may occur

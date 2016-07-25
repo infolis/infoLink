@@ -96,7 +96,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                         updateProgress(counter, getExecution().getInputFiles().size());
 
                     } catch (Exception ex) {
-                        error(log, "File \"%s\" could not be parsed!", metaFile);
+                        error(log, "File \"{}\" could not be parsed!", metaFile);
                         //should it fail if one file could not be parsed?
                         //getExecution().setStatus(ExecutionStatus.FAILED);
                     }

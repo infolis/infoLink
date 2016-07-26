@@ -110,7 +110,6 @@ public class DaraSolrQueryService extends QueryService {
     	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
     }
     
-    @Override
     public List<SearchResult> find(Entity entity) {
         //TODO: use solr results and do not parse JSON
         List<SearchResult> results = new ArrayList<>();

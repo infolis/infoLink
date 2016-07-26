@@ -32,17 +32,18 @@ public class FederatedSearcherTest extends InfolisBaseTest {
         dataStoreClient.post(Entity.class, entity);
         execution.setLinkedEntities(Arrays.asList(entity.getUri()));
         QueryService queryService = new DaraHTMLQueryService();
-        queryService.setMaxNumber(10);
         dataStoreClient.post(QueryService.class, queryService);
-        execution.setQueryServices(Arrays.asList(queryService.getUri()));
+        execution.setQueryServices(Arrays.asList(queryService.getUri(), queryService.getUri()));
         execution.setAlgorithm(FederatedSearcher.class);
         execution.setSearchResultLinkerClass(BestMatchLinker.class);
         Algorithm algo = execution.instantiateAlgorithm(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
         algo.run();
 
         List<SearchResult> searchResults = dataStoreClient.get(SearchResult.class, execution.getSearchResults());
+        // since the query service is given twice, FederatedSearcher should find the same result twice
         assertEquals(2, searchResults.size());
-        assertEquals(Arrays.asList("10.4232/1.5126", "10.4232/1.12510"), Arrays.asList(searchResults.get(0).getIdentifier(), searchResults.get(1).getIdentifier()));
+        assertEquals("10.4232/1.5126", searchResults.get(0).getIdentifier());
+        assertEquals("10.4232/1.5126", searchResults.get(1).getIdentifier());
     }
 
 }

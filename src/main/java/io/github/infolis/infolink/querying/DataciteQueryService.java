@@ -30,16 +30,15 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * @author kata
- * @author domi
  *
  */
-public class DaraSolrQueryService extends QueryService {
+public class DataciteQueryService extends QueryService {
 
-    public DaraSolrQueryService() {
-        super("http://www.da-ra.de/solr/dara/",0.5);
+    public DataciteQueryService() {
+    	super("https://api.datacite.org/works/", 0.3);
     }
     
-    private static final Logger log = LoggerFactory.getLogger(DaraSolrQueryService.class);
+    private static final Logger log = LoggerFactory.getLogger(DataciteQueryService.class);
     
     /**
      * Constructs a query url for given title, pubDate and doi.
@@ -47,21 +46,24 @@ public class DaraSolrQueryService extends QueryService {
      * @param title	the query title
      * @param pubDate	the publication date
      * @param doi	the doi
+     * @param maxNumber the maximum number of rows to retrieve
      * @return	a url representing the query
      * @throws MalformedURLException
      */
-    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber, String resourceType) throws MalformedURLException {
-    	String beginning = "select/";
-        String remainder = "&start=0&rows=" + maxNumber + "&fl=doi,title&wt=json";
-        String query = "?q=";
+    public URL constructQueryURL(String title, String pubDate, String doi, int maxNumber) throws MalformedURLException {
+    	String beginning = "";
+        String remainder = "&start=0&rows=" + maxNumber + "&sort=score&order=desc";
+        String query = "?query=";
         if (!title.isEmpty()) query += "title:" + title;
-        if (!pubDate.isEmpty()) query += "+publicationDate:" + pubDate;
-        if (!doi.isEmpty()) query += "+doi:" + doi;
-        if (!resourceType.isEmpty()) query += "+resourceType:" + resourceType;
-        query = query.replaceAll("=\\+", "");
+        if (!doi.isEmpty()) query += "%20AND%20doi:\"" + doi + "\"";
+        //query += "+resource\-type\-general") + ":dataset";
+        //query += "+resource\-type:dataset";
+        query += "%20AND%20type:\"dataset\"";
+        query = query.replaceAll("=%20AND%20", "");
         return new URL(target + beginning + query + remainder);
     }
     
+    @Override
     public URL createQuery(Entity entity) throws MalformedURLException {
     	String title = "";
     	String pubDate = "";
@@ -106,13 +108,11 @@ public class DaraSolrQueryService extends QueryService {
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
     		doi = entity.getIdentifier();
     	}
-    	// resourceType field in da|ra: "2" denotes dataset
-    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
+    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber());
     }
     
     @Override
     public List<SearchResult> find(Entity entity) {
-        //TODO: use solr results and do not parse JSON
         List<SearchResult> results = new ArrayList<>();
 
         URL url = null;
@@ -125,8 +125,7 @@ public class DaraSolrQueryService extends QueryService {
             JsonReader reader = Json.createReader(isr);
 
             JsonObject obj = reader.readObject();
-            JsonObject response = obj.getJsonObject("response");
-            result = response.getJsonArray("docs");
+            result = obj.getJsonArray("data");
             reader.close();
             is.close();
             isr.close();
@@ -139,33 +138,28 @@ public class DaraSolrQueryService extends QueryService {
 		
         int listIndex = 0;
         for (JsonObject item : result.getValuesAs(JsonObject.class)) {
+        	JsonObject attr = item.getJsonObject("attributes");
         	SearchResult sr = new SearchResult();
-        	JsonArray identifier = null;
         	sr.setQueryService(this.getUri());
         	sr.setListIndex(listIndex);
         	try {
-        		identifier = item.getJsonArray("doi");
-	            sr.setIdentifier(identifier.getString(0));
+	        	String identifier = attr.getString("doi");
+		        sr.setIdentifier(identifier);
+		        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		        Date date = new Date();
+		        sr.setDate(dateFormat.format(date));
+		        String title = attr.getString("title");
+		        List<String> numericInfo = InformationExtractor.getNumericInfo(title);
+		        sr.addTitle(title);
+		        for (String num : numericInfo) sr.addNumericInformation(num);     
+		        log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
+		        results.add(sr);
+		        listIndex++;
         	} catch (NullPointerException npe) {
-        		log.warn("search result does not have a doi. Ignoring");
-        		//sr.setIdentifier("");
-        		break;
-            }
-	        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	        Date date = new Date();
-	        sr.setDate(dateFormat.format(date));
-	        JsonArray titles = item.getJsonArray("title");
-	        for (int i = 0; i < titles.size(); i++) {
-	          	// remove " at beginning and end of title
-	            String title = titles.get(i).toString().substring(1, titles.get(i).toString().length()-1);
-	            List<String> numericInfo = InformationExtractor.getNumericInfo(title);
-	            sr.addTitle(title);
-	            for (String num : numericInfo) sr.addNumericInformation(num);                    
-	        }              
-	        log.debug("Creating search result: titles: " + titles + "; identifier: " + identifier);
-	        results.add(sr);
-	        listIndex++;
-        }
+        		log.warn("search result does not have doi and title. Ignoring");
+        		log.debug("item: " + item);
+        	}
+        }              
         return results;
     }
 

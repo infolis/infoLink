@@ -120,7 +120,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                 continue;
             }
             
-            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getFile(), pattern.getUri(), textRef.getMentionsReference());
+            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getTextFile(), pattern.getUri(), textRef.getMentionsReference());
             getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
             validatedTextualReferences.add(validatedTextRef.getUri());
             log.debug("added textual reference " + validatedTextRef);

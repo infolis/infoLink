@@ -188,7 +188,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            else {
 			            	TextualReference textRef = new TextualReference();
 			            	textRef.setLeftText(fragment);
-			            	textRef.setFile(file.getUri());
+			            	textRef.setTextFile(file.getUri());
 			            	textRef.setMentionsReference(file.getManifestsEntity());
 			            	textRef.setPattern(pattern.getUri());
 			            	// those textual references should be temporary if validation using regex is to be performed

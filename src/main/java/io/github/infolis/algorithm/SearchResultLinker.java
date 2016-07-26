@@ -153,7 +153,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	        String linkReason = textRef.getUri();
 	        
 	        log.debug("Creating link for TextualReference: " + textRef.getReference() + "; mentionsReference: " + textRef.getMentionsReference());
-	        log.debug("File: " + textRef.getFile());
+	        log.debug("File: " + textRef.getTextFile());
 	        EntityLink el = new EntityLink(textRef.getMentionsReference(), referencedInstance.getUri(), scoreMap.get(searchResult), linkReason);
 	
 	        //TODO should EntityLink have tags?

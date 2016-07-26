@@ -184,7 +184,7 @@ public class SerializationUtils {
 
 	/**
 	 * Create csv file from entity links. 
-	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getFile()
+	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getTextFile()
 	 * 			|toEntity.getIdentifier()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
 	 * 
 	 * @param entityLinks
@@ -201,7 +201,7 @@ public class SerializationUtils {
 			row.add(fromEntity.getIdentifier());
 			row.add(fromEntity.getName());
 			TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
-			row.add(client.get(InfolisFile.class, ref.getFile()).getFileName());
+			row.add(client.get(InfolisFile.class, ref.getTextFile()).getFileName());
 			row.add(toEntity.getIdentifier());
 			row.add(toEntity.getName());
 			row.add(toEntity.getNumericInfo().toString());

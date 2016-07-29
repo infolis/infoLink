@@ -8,6 +8,7 @@ import io.github.infolis.datastore.TempFileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
+import java.io.IOException;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -184,7 +185,7 @@ public abstract class BaseAlgorithm implements Algorithm {
             execute();
             getExecution().setEndTime(new Date());
             getExecution().setProgress(100);
-        } catch (Exception e) {
+        } catch (IOException e) {
             error(log, "Execution threw an Exception: {}", e);
             e.printStackTrace();
             getExecution().setStatus(ExecutionStatus.FAILED);

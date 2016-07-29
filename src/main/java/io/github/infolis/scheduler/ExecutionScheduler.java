@@ -60,6 +60,7 @@ public class ExecutionScheduler {
                     r.run();
                     setStatus(uri, r.getExecution().getStatus());
                 } catch (Exception e) {
+                    e.printStackTrace();
                     setStatus(uri, FAILED);
                 }
             }

@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -112,7 +114,7 @@ public class RegexSearcher extends BaseAlgorithm {
             InfolisFile inputFile;
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;

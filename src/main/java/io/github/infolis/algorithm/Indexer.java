@@ -33,6 +33,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -94,7 +96,7 @@ public class Indexer extends BaseAlgorithm {
         for (String fileUri : getExecution().getInputFiles()) {
             try {
                 files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + fileUri + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 fsIndexDir.close();

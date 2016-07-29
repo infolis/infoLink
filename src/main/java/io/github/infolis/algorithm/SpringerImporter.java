@@ -23,6 +23,8 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 /**
  * Class for importing documents in Springer's A++ format.
@@ -74,7 +76,7 @@ public class SpringerImporter extends BaseAlgorithm {
             InfolisFile inFile;
             try {
                 inFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;

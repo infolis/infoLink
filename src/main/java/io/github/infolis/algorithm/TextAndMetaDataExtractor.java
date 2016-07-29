@@ -11,10 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Algorithm to extract the meta data of the according publications.
@@ -95,7 +97,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                         }
                         updateProgress(counter, getExecution().getInputFiles().size());
 
-                    } catch (Exception ex) {
+                    } catch (SAXException | ParserConfigurationException ex) {
                         error(log, "File \"{}\" could not be parsed!", metaFile);
                         //should it fail if one file could not be parsed?
                         //getExecution().setStatus(ExecutionStatus.FAILED);

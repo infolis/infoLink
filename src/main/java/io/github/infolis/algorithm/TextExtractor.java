@@ -33,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.net.MediaType;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 /**
  *
@@ -137,7 +139,7 @@ public class TextExtractor extends BaseAlgorithm {
                     throw e;
                 } 
                 return outFile;
-            } catch (Exception e) {
+            } catch (IOException e) {
                 warn(log, "Error reading PDF from stream: " + e);
                 throw e;
             }
@@ -190,7 +192,7 @@ public class TextExtractor extends BaseAlgorithm {
             InfolisFile inputFile;
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;

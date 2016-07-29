@@ -56,6 +56,7 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
+import org.kohsuke.args4j.CmdLineException;
 
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
@@ -322,7 +323,7 @@ public class CommandLineExecuter {
             setExecutionIndexDir(exec);
         }
 
-        try {
+      try {
             dataStoreClient.post(Execution.class, exec);
             if (convertToTextMode) {
                 log.debug("Yay nothing to do. woop dee doo.");
@@ -336,7 +337,7 @@ public class CommandLineExecuter {
                     exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
                 }
             }
-        } catch (Exception e) {
+        } catch (BadRequestException e) {
             throwCLI("Execution threw an excepion", e);
         }
         dataStoreClient.dump(dbDir, tag);
@@ -527,7 +528,7 @@ public class CommandLineExecuter {
     }
 
     public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
-            IllegalAccessException, IOException {
+            IllegalAccessException, IOException, CmdLineException {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
@@ -539,7 +540,7 @@ public class CommandLineExecuter {
             }
             // ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             // root.setLevel(Level.toLevel(logLevel));
-        } catch (Exception e) {
+        } catch (CmdLineException e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
             throwCLI("", e);

@@ -12,6 +12,8 @@ import io.github.infolis.model.entity.InfolisPattern;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -150,7 +152,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 	            InfolisFile file;
 	            try {
 	                file = getInputDataStoreClient().get(InfolisFile.class, doc.get("path"));
-	            } catch (Exception e) {
+	            } catch (BadRequestException | ProcessingException e) {
 	                error(log, "Could not retrieve file " + doc.get("path") + ": " + e.getMessage());
 	                Indexer.createAnalyzer().close();
 	                indexReader.close();

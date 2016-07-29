@@ -44,8 +44,8 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 					getExecution().getLinks().size());
 			log.debug(SerializationUtils.toCsv(getExecution().getLinks(), getOutputDataStoreClient()));
 			getExecution().setStatus(ExecutionStatus.FINISHED);
-		}
-		catch (Exception e) {
+               //TODO proper exception handling but therefore the validation needs to be completed first         
+		} catch (Exception e) {
 			error(log, "Execution threw an Exception: {}", e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
 		}

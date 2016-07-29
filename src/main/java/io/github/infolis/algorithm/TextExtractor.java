@@ -18,7 +18,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -53,13 +55,14 @@ public class TextExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
-    private static final String executionTag = "TEXT_EXTRACTED";
+    private static final List<String> executionTags = Arrays.asList("TEXT_EXTRACTED");
     private final PDFTextStripper stripper;
 
     private String removeBibSection(String text) {
         BibliographyExtractor bibExtractor = new BibliographyExtractor(
                 getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         //TODO: Test optimal section size
+        executionTags.addAll(bibExtractor.getExecutionTags());
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
     
@@ -70,6 +73,7 @@ public class TextExtractor extends BaseAlgorithm {
     	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	tokenizer.setExecution(exec);
+    	executionTags.addAll(tokenizer.getExecutionTags());
     	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
     }
 
@@ -89,7 +93,7 @@ public class TextExtractor extends BaseAlgorithm {
 
         Set<String> tagsToSet = getExecution().getTags();
         tagsToSet.addAll(inFile.getTags());
-        tagsToSet.add(executionTag);
+        tagsToSet.addAll(executionTags);
 		outFile.setTags(tagsToSet);
              
         if (getExecution().getOverwriteTextfiles() == false) {

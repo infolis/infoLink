@@ -19,6 +19,8 @@ import java.util.List;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.net.MediaType;
+
 /**
  *
  * @author kata
@@ -134,10 +136,28 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
+    	List<String> toTextExtract = new ArrayList<>();
     	List<String> toTokenize = new ArrayList<>();
     	List<String> toBibExtract = new ArrayList<>();
     	
-    	if (getExecution().isTokenize() && getExecution().isRemoveBib()) {
+    	for (InfolisFile file : getInputDataStoreClient().get(
+    			InfolisFile.class, getExecution().getInputFiles())) {
+    		if (file.getMediaType().equals(MediaType.PDF.toString())) {
+    			toTextExtract.add(file.getUri());
+    			getExecution().getInputFiles().remove(file.getUri());
+    		}
+    	}
+    	
+    	if (!toTextExtract.isEmpty()) {
+    		Execution textExtract = getExecution().createSubExecution(TextExtractor.class);
+    		textExtract.setTokenize(getExecution().isTokenize());
+    		textExtract.setRemoveBib(getExecution().isRemoveBib());
+    		textExtract.setTags(getExecution().getTags());
+    		textExtract.instantiateAlgorithm(this).run();
+    		getExecution().getInputFiles().addAll(textExtract.getOutputFiles());
+    	}
+    	
+    	if (getExecution().isTokenize() || getExecution().isRemoveBib()) {
 	    	for (InfolisFile file : getInputDataStoreClient().get(
 	    			InfolisFile.class, getExecution().getInputFiles())) {
 	    		// if input file isn't tokenized, apply tokenizer

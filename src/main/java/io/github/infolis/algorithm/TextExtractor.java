@@ -62,7 +62,7 @@ public class TextExtractor extends BaseAlgorithm {
         BibliographyExtractor bibExtractor = new BibliographyExtractor(
                 getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         //TODO: Test optimal section size
-        executionTags.addAll(bibExtractor.getExecutionTags());
+        executionTags.addAll(BibliographyExtractor.getExecutionTags());
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
     
@@ -73,7 +73,7 @@ public class TextExtractor extends BaseAlgorithm {
     	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	tokenizer.setExecution(exec);
-    	executionTags.addAll(tokenizer.getExecutionTags());
+    	executionTags.addAll(Tokenizer.getExecutionTags());
     	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
     }
 

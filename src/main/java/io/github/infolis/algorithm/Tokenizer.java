@@ -33,8 +33,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
 	}
 	
 	private static final List<String> executionTags = Arrays.asList("TOKENIZED");
-	
-	protected List<String> getExecutionTags() {
+
+	protected static List<String> getExecutionTags() {
 		return executionTags;
 	}
 	

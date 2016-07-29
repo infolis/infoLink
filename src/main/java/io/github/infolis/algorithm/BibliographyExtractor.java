@@ -40,7 +40,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
     private static final Logger log = LoggerFactory.getLogger(BibliographyExtractor.class);
     private static final List<String> executionTags = Arrays.asList("BIB_REMOVED");
     
-    protected List<String> getExecutionTags() {
+    protected static List<String> getExecutionTags() {
     	return executionTags;
     }
     /**

@@ -6,6 +6,7 @@ import io.github.infolis.infolink.patternLearner.BootstrapLearner;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.RegexUtils;
 
@@ -118,9 +119,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             throw new IllegalArgumentException("Must set the bootstrap strategy!");
         }
         if (null == exec.isTokenize()) {
-        	throw new IllegalArgumentException("Must specify whether input texts have to be tokenized! Note: "
-        			+ "only set to false if the input texts are in tokenized form.");
-        }
+			warn(log, "tokenize parameter unspecified. Setting to true for Bootstrapping"); 
+			exec.setTokenize(true);
+		}
     }
 
     @Override
@@ -132,25 +133,59 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-
-    	if (getExecution().isRemoveBib()) {
-    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-    		bibRemoverExec.setTags(getExecution().getTags());
-    		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
-    		bibRemoverExec.instantiateAlgorithm(this).run();
-    		debug(log, "Removed bibliographies of input files");
-    		getExecution().setInputFiles(bibRemoverExec.getOutputFiles());
-    	}
     	
-    	if (getExecution().isTokenize()) {
-    		Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
-    		tokenizerExec.setTags(getExecution().getTags());
-    		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
-    		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
-    		tokenizerExec.setInputFiles(getExecution().getInputFiles());
-    		tokenizerExec.instantiateAlgorithm(this).run();
-    		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
-    		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
+    	List<String> toTokenize = new ArrayList<>();
+    	List<String> toBibExtract = new ArrayList<>();
+    	
+    	if (getExecution().isTokenize() && getExecution().isRemoveBib()) {
+	    	for (InfolisFile file : getInputDataStoreClient().get(
+	    			InfolisFile.class, getExecution().getInputFiles())) {
+	    		// if input file isn't tokenized, apply tokenizer
+	    		// TODO tokenizer parameters also relevant...
+	    		if (getExecution().isTokenize()) {
+		    		if (!file.getTags().contains(Tokenizer.getExecutionTags().get(0))) {
+		    			toTokenize.add(file.getUri());
+		    			getExecution().getInputFiles().remove(file.getUri());
+		    		}
+	    		}
+	    		// removing bibliographies is optional
+	    		// if it is to be performed, check whether input files are stripped of 
+	    		// their bibliography sections already
+	    		if (getExecution().isRemoveBib()) {
+		    		if (!file.getTags().contains(BibliographyExtractor.getExecutionTags().get(0))) {
+		    			toBibExtract.add(file.getUri());
+		    			getExecution().getInputFiles().remove(file.getUri());
+		    		}
+	    		}
+	    	}
+	
+	    	if (getExecution().isRemoveBib() && !toBibExtract.isEmpty()) {
+	    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
+	    		bibRemoverExec.setTags(getExecution().getTags());
+	    		for (String uri : toBibExtract) {
+	    			bibRemoverExec.setInputFiles(Arrays.asList(uri));
+	    			bibRemoverExec.instantiateAlgorithm(this).run();
+	    			debug(log, "Removed bibliographies of input file: " + uri);
+	    			if (!toTokenize.contains(uri)) {
+	    				getExecution().getInputFiles().add(bibRemoverExec.getOutputFiles().get(0));
+	    			}
+	    			else {
+	    				toTokenize.remove(uri);
+	    				toTokenize.add(bibRemoverExec.getOutputFiles().get(0));
+	    			}
+	    		}
+	    	}
+	    	
+	    	if (getExecution().isTokenize() && !toTokenize.isEmpty()) {
+		    	Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
+		    	tokenizerExec.setTags(getExecution().getTags());
+		    	tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
+		    	tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
+		    	tokenizerExec.setInputFiles(toTokenize);
+		    	tokenizerExec.instantiateAlgorithm(this).run();
+		    	debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
+		    	getExecution().getInputFiles().addAll(tokenizerExec.getOutputFiles());
+	    	}
     	}
     	
     	this.indexerExecution = createIndex();

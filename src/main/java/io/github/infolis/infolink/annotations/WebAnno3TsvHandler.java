@@ -22,7 +22,7 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnno3TsvHandler.class);
 	
 	Pattern digitPat = Pattern.compile("\\d+");
-	Pattern annoDigitPat = Pattern.compile("([^\\|]+)\\[(\\d+)\\]");
+	Pattern annoClassPat = Pattern.compile("([^|*]*)\\[(\\d+)\\]");
 	private Map<String,Integer> recentGroups = new HashMap<>();
 	
 	protected List<Annotation> parse(String input) {
@@ -52,17 +52,18 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 			anno.setPosition(wordCount);
 			anno.setWord(word);
 				
-			anno.setMetadata(getMetadata(annoString.split("\\s+")[0]));
+			anno.setMetadata(getMetadata(annoString.split("\\t")[0]));
 			anno.setCharStart(Integer.valueOf(charStart));
 			anno.setCharEnd(Integer.valueOf(charEnd));
 			if ("1".equals(relPos))	anno.setStartsNewSentence();
 			//TODO
-			//anno.addRelation(targetPosition, getRelation(annoString.split("\\s+")[relAnnoPos]));
+			//anno.addRelation(targetPosition, getRelation(annoString.split("\\t+")[relAnnoPos]));
 			annotations.add(anno);
 			
-			Matcher annoDigitMatcher = annoDigitPat.matcher(annoString.split("\\s+")[0]);
+			Matcher annoDigitMatcher = annoClassPat.matcher(annoString.split("\\t")[0]);
 			while (annoDigitMatcher.find()) {
-				String annoClass = annoDigitMatcher.group(1);
+				String annoClass = annoDigitMatcher.group(1).trim();
+				if (annoClass.isEmpty()) continue;
 				int recentGroup = Integer.valueOf(annoDigitMatcher.group(2));
 				recentGroups.put(annoClass, recentGroup); 
 			}	
@@ -71,41 +72,26 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 		//annotations.add(annotationItem);
 		return annotations;
 	}
-	
-	//TODO add all cases
+
 	protected Metadata getMetadata(String annotatedItem) {
-		switch (annotatedItem) {
-		case ("Title"):
-			return Metadata.title_b;
-		/*case ("B-Scale"):
-			return Metadata.scale_b;
-		case ("I-Scale"):
-			return Metadata.scale_i;
-		// TODO correct name of the tag in the annotation files?
-		case ("B-ProjectTitle"):
-			return Metadata.project_title_b;
-		case ("I-ProjectTitle"):
-			return Metadata.project_title_i;
-		case ("B-Creator"):
-			return Metadata.creator_b;
-		case ("I-Creator"):
-			return Metadata.creator_i;*/
-		default:
-			if (annotatedItem.matches("\\S*Title\\[\\d+\\]\\S*")) {
-				int group = -1;
-				Matcher digitMatcher = digitPat.matcher(annotatedItem);
-				while (digitMatcher.find()) group = Integer.valueOf(digitMatcher.group()); 
-				if (group > recentGroups.getOrDefault("Title", 0)) return Metadata.title_b;
-				else if (group == recentGroups.get("Title")) return Metadata.title_i;
-				else {
-					log.warn("annotated item: " + annotatedItem);
-					log.warn("group: " + group);
-					log.warn("recentGroup: " + recentGroups.get("Title"));
-					throw new IllegalArgumentException("cannot handle non-continuous multi-word annotations");
-				}
-			}	
-			else return Metadata.none;
+		Matcher m = annoClassPat.matcher(annotatedItem);
+		while (m.find()) {
+			String annotatedClass = m.group(1).trim();
+			if (annotatedClass.isEmpty()) continue;
+			int group = -1;
+			Matcher digitMatcher = digitPat.matcher(annotatedItem);
+			while (digitMatcher.find()) group = Integer.valueOf(digitMatcher.group()); 
+			if (group > recentGroups.getOrDefault(annotatedClass, 0)) return Enum.valueOf(Metadata.class, annotatedClass.toLowerCase().replace(" ", "_") + "_b");
+			else if (group == recentGroups.get(annotatedClass)) return Enum.valueOf(Metadata.class, annotatedClass.toLowerCase().replace(" ", "_") + "_i");
+			else {
+				log.warn("annotated item: " + annotatedItem);
+				log.warn("group: " + group);
+				log.warn("recentGroup: " + recentGroups.get(annotatedClass));
+				throw new IllegalArgumentException("cannot handle non-continuous multi-word annotations");
+			}
 		}
+		if (annotatedItem.equals("_") || annotatedItem.startsWith("*")) return Metadata.none;
+		return Enum.valueOf(Metadata.class, annotatedItem.toLowerCase().replace(" ", "_") + "_b");
 	}
 
 }

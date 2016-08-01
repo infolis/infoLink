@@ -94,7 +94,7 @@ public class Annotation {
 	
 	public enum Metadata {
 		title, title_b, title_i, 
-		vagueTitle, vagueTitle_b, vagueTitle_i, 
+		vague_title, vague_title_b, vague_title_i, 
 		scale, scale_b, scale_i,
 		project_title, project_title_b, project_title_i, 
 		id, id_b, id_i,

@@ -117,7 +117,6 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 		return tsv;
 	}
 	
-	//TODO add all cases
 	protected Metadata getMetadata(String annotatedItem) {
 		switch (annotatedItem) {
 		case ("B-Title"):
@@ -149,9 +148,9 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 		case ("I-ID"):
 			return Metadata.id_i;
 		case ("B-Vague Title"):
-			return Metadata.vagueTitle_b;
+			return Metadata.vague_title_b;
 		case ("I-Vague Title"):
-			return Metadata.vagueTitle_i;
+			return Metadata.vague_title_i;
 		case ("B-Number"):
 			return Metadata.number_b;
 		case ("I-Number"):
@@ -215,9 +214,9 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 				return "B-ID";
 			case id_i:
 				return "I-ID";
-			case vagueTitle_b:
+			case vague_title_b:
 				return "B-Vague Title";
-			case vagueTitle_i:
+			case vague_title_i:
 				return "I-Vague Title";
 			case number_b:
 				return "B-Number";

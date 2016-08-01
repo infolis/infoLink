@@ -446,7 +446,7 @@ public class Execution extends BaseModel {
 	 * Determines whether new line characters are to be tokenized.
 	 * {@link Tokenizer}
 	 */
-	private boolean tokenizeNLs = true;
+	private boolean tokenizeNLs = false;
 	
 	/**
 	 * Enable all traditional PTB3 token transforms (like parentheses becoming -LRB-, -RRB-).

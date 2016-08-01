@@ -36,7 +36,6 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Level;
 import io.github.infolis.algorithm.Algorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchResultLinker;
@@ -387,12 +386,11 @@ public class CommandLineExecuter {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
                     if (null == exec.isTokenize()) {
-                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to true for text extraction and all algorithms to be applied on extracted texts");
                         exec.setTokenize(true);
-                    } else {
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                    }
+                    } 
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+
                 } else {
                     throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
                 }
@@ -405,12 +403,10 @@ public class CommandLineExecuter {
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
                     if (null == exec.isTokenize()) {
-                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                        exec.setTokenize(true);
-                    } else {
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to true for text extraction and all algorithms to be applied on extracted texts");
+                        exec.setTokenize(true);    
                     }
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }

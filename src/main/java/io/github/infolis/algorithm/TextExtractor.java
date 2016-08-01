@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +56,7 @@ public class TextExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
-    private static final List<String> executionTags = Arrays.asList("TEXT_EXTRACTED");
+    private static final List<String> executionTags = new ArrayList<>(Arrays.asList("TEXT_EXTRACTED"));
     private final PDFTextStripper stripper;
 
     private String removeBibSection(String text) {

@@ -1,5 +1,7 @@
 package io.github.infolis.algorithm;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +11,7 @@ import io.github.infolis.model.BootstrapStrategy;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.util.SerializationUtils;
+
 
 /**
  * 
@@ -43,15 +46,15 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 					getExecution().getTextualReferences().size(),
 					getExecution().getLinks().size());
 			log.debug(SerializationUtils.toCsv(getExecution().getLinks(), getOutputDataStoreClient()));
-			getExecution().setStatus(ExecutionStatus.FINISHED);
-               //TODO proper exception handling but therefore the validation needs to be completed first         
-		} catch (Exception e) {
+			getExecution().setStatus(ExecutionStatus.FINISHED);        
+		} catch (IllegalArgumentException | IllegalAlgorithmArgumentException | IOException e) {
 			error(log, "Execution threw an Exception: {}", e);
 			getExecution().setStatus(ExecutionStatus.FAILED);
 		}
 	}
 	
-	private Execution createLinks(Execution learnExec) {
+	private Execution createLinks(Execution learnExec) 
+			throws IllegalAlgorithmArgumentException, IOException {
 		Execution linkExec = new Execution();
 		linkExec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
 		linkExec.setAlgorithm(ReferenceLinker.class);
@@ -69,7 +72,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		return linkExec;
 	}
 	
-	private Execution learn() {
+	private Execution learn() throws IllegalArgumentException, IOException {
 		Execution learnExec = new Execution();
 		learnExec.setTags(getExecution().getTags());
 		learnExec.setInputFiles(getExecution().getInputFiles());
@@ -94,8 +97,34 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	}
 	
 	@Override
-	public void validate() {
-		// TODO: Validator with validations for each parameter to choose from
-		// all non-optional fields must be given...
-	}
+    public void validate() throws IllegalAlgorithmArgumentException {
+        Execution exec = this.getExecution();
+		if (null == exec.getSeeds() || exec.getSeeds().isEmpty()) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "seeds", "Required parameter 'seeds' is missing!");
+        }
+        if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) &&
+    		(null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "Required parameter 'inputFiles' is missing!");
+        }
+        if (null == exec.getBootstrapStrategy()) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "bootstrapStrategy", "Required parameter 'bootstrapStrategy' is missing!");
+        }
+        if (null == exec.isTokenize()) {
+        	log.warn("Warning: tokenize parameter not set. Defaulting to true.");
+        	this.getExecution().setTokenize(true);
+        }
+        boolean queryServiceSet = false;
+        if (null != exec.getQueryServiceClasses() && !exec.getQueryServiceClasses().isEmpty()) {
+            queryServiceSet = true;
+        }
+		if (null != exec.getQueryServices() && !exec.getQueryServices().isEmpty()) {
+            queryServiceSet = true;
+		}
+		if (!queryServiceSet) {
+            throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");
+        }
+		if (null == exec.getSearchResultLinkerClass()) {
+			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
+		}
+    }
 }

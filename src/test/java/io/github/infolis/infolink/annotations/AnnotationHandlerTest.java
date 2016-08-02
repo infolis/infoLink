@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.junit.Assert;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisConfig;
@@ -198,20 +200,28 @@ public class AnnotationHandlerTest {
 	
 	public void testToTextualReferenceList(List<Annotation> annotations, 
 			Set<Metadata> relevantFields) throws IOException {
+		List<String> allAnnotatedTextRefs = new ArrayList<>();
 		for (Metadata field : relevantFields) {
 			//File testOut = new File("/tmp/44275_textrefs_" + field.toString() + ".txt");
-			File testOut = Files.createTempFile(
+			/*File testOut = Files.createTempFile(
 					InfolisConfig.getTmpFilePath(), 
 					"test_textrefs_" + field.toString(),
 					".txt")
-					.toFile();
+					.toFile();*/
 			Set<Metadata> fields = new HashSet<>();
 			fields.add(field);
 			List<TextualReference> references = AnnotationHandler
 					.toTextualReferenceList(annotations, fields);
-			AnnotationHandler.writeToAnnotatedTextRefFile(testOut, references, field.toString());
+			//AnnotationHandler.writeToAnnotatedTextRefFile(testOut, references, field.toString());
+			List<String> annotatedTextRefs = AnnotationHandler.toAnnotatedTextRefs(references, field.toString());
 			log.debug("number of references: " + references.size());
+			allAnnotatedTextRefs.addAll(annotatedTextRefs);
+			Assert.assertEquals(references.size(), annotatedTextRefs.size());
 		}
-		
+		log.debug("\nunmerged annotated text refs:");
+		for (String ref : allAnnotatedTextRefs) log.debug(ref);
+		Collection<String> mergedAnnotatedTextRefs = AnnotationHandler.mergeAnnotatedTextualReferences(allAnnotatedTextRefs);
+		log.debug("\nmerged annotated text refs:");
+		for (String ref : mergedAnnotatedTextRefs) log.debug(ref);
 	}
 }

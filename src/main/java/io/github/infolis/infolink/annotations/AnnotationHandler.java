@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
-//import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import edu.stanford.nlp.ling.CoreLabel;
@@ -29,6 +33,8 @@ public abstract class AnnotationHandler {
 	protected String read(String filename) throws IOException{
 		return FileUtils.readFileToString(new File(filename));
 	}
+	
+	private static final Pattern annotatedEntityPat = Pattern.compile("\\*(.*?)\\*\\[\\s+(.+?)\\s+\\]\\*\\*");
 	
 	// one annotated sentence may contain multiple references -> return list
 	private static List<TextualReference> createTextualReferencesFromAnnotations(List<Annotation> sentence, 
@@ -511,8 +517,59 @@ public abstract class AnnotationHandler {
 							+ "*[") + "\n", true);
 	}
 	
-	protected static void mergeTextualReferences() {
-		
+	protected static List<String> toAnnotatedTextRefs(List<TextualReference> references, 
+			String label) {
+		List<String> annotatedTextRefs = new ArrayList<>();
+		for (TextualReference textRef : references)
+			annotatedTextRefs.add(textRef.toPrettyString()
+					.replace("**[", "*" + label.replace("_b", "").toUpperCase() 
+							+ "*["));
+		return annotatedTextRefs;
+	}
+	
+	private static String removeAnnotations(String annotatedTextualRef) {
+		return annotatedTextualRef
+				.replaceAll("\\*.*\\*\\[\\s+", "")
+				.replaceAll("\\s+\\]\\*\\*", "");
+	}
+	
+	// return entity, label, annotatedEntity, position
+	private static String[] getAnnotatedEntity(String textRef) {
+		String[] annotatedEntity = new String[4];
+		Matcher annotatedEntityMatcher = annotatedEntityPat.matcher(textRef);
+		annotatedEntityMatcher.find();
+		annotatedEntity[1] = annotatedEntityMatcher.group(1);
+		annotatedEntity[0] = annotatedEntityMatcher.group(2);
+		annotatedEntity[2] = annotatedEntityMatcher.group();
+		annotatedEntity[3] = String.valueOf(textRef.indexOf(annotatedEntityMatcher.group()));
+		return annotatedEntity;
+	}
+	
+	private static String addTextRefAnnotation(String toAdd, String target) {
+		// 1. find annotated entity in toAdd
+		// 2. find annotated entity in target
+		// 3. replace entity in target with entity in toAdd
+		log.trace(String.format("adding annotation in '%s' to '%s'", toAdd, target));
+		String[] annoToAdd = getAnnotatedEntity(toAdd);
+		// entity may occur multiple times in target. Replace only the annotated entity in toAdd
+		return target.substring(0, Integer.valueOf(annoToAdd[3]))
+				+ target.substring(Integer.valueOf(annoToAdd[3]), target.length())
+				.replaceFirst(annoToAdd[0], annoToAdd[2]);
+	}
+	
+	protected static Collection<String> mergeAnnotatedTextualReferences(
+			List<String> annotatedTextRefs) {
+		Map<String, String> mergedTextRefs = new HashMap<>();
+		for (String annotatedTextRef : annotatedTextRefs) {
+			String textRefText = removeAnnotations(annotatedTextRef);
+			String mergedRef = mergedTextRefs.getOrDefault(
+					textRefText, annotatedTextRef);
+			if (!mergedRef.equals(annotatedTextRef)) {
+				mergedRef = addTextRefAnnotation(annotatedTextRef, mergedRef);
+			}
+			mergedTextRefs.put(textRefText, mergedRef);
+		}
+		return mergedTextRefs.values();
 	}
 	
 	//TODO implement

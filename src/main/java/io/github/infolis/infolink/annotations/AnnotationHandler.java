@@ -530,7 +530,8 @@ public abstract class AnnotationHandler {
 	private static String removeAnnotations(String annotatedTextualRef) {
 		return annotatedTextualRef
 				.replaceAll("\\*.*\\*\\[\\s+", "")
-				.replaceAll("\\s+\\]\\*\\*", "");
+				.replaceAll("\\s+\\]\\*\\*", "")
+				.trim();
 	}
 	
 	// return entity, label, annotatedEntity, position
@@ -541,7 +542,7 @@ public abstract class AnnotationHandler {
 		annotatedEntity[1] = annotatedEntityMatcher.group(1);
 		annotatedEntity[0] = annotatedEntityMatcher.group(2);
 		annotatedEntity[2] = annotatedEntityMatcher.group();
-		annotatedEntity[3] = String.valueOf(textRef.indexOf(annotatedEntityMatcher.group()));
+		annotatedEntity[3] = String.valueOf(annotatedEntityMatcher.start());
 		return annotatedEntity;
 	}
 	
@@ -552,9 +553,12 @@ public abstract class AnnotationHandler {
 		log.trace(String.format("adding annotation in '%s' to '%s'", toAdd, target));
 		String[] annoToAdd = getAnnotatedEntity(toAdd);
 		// entity may occur multiple times in target. Replace only the annotated entity in toAdd
+		// need to consider the additional characters in the merged annotations!
+		// TODO this is only a work-around. In usual cases, this may annotate more 
+		// entities than are annotated originally
 		return target.substring(0, Integer.valueOf(annoToAdd[3]))
-				+ target.substring(Integer.valueOf(annoToAdd[3]), target.length())
-				.replaceFirst(annoToAdd[0], annoToAdd[2]);
+				+ (target.substring(Integer.valueOf(annoToAdd[3]), target.length())
+					.replaceAll("(?<!\\*" + annoToAdd[1] + "\\*\\[  )" + Pattern.quote(annoToAdd[0]), annoToAdd[2]));
 	}
 	
 	protected static Collection<String> mergeAnnotatedTextualReferences(

@@ -2,6 +2,7 @@ package io.github.infolis.infolink.annotations;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.TextualReference;
 
@@ -166,39 +168,50 @@ public class AnnotationHandlerTest {
 	@Test
 	public void testTokenizeAnnotations() throws IOException {
 		AnnotationHandler h = new WebAnno3TsvHandler();
+		/*String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");
+		List<Annotation> annotations = h.parse(annotationTsv);
+		List<Annotation> tokenizedAnnotations = h.tokenizeAnnotations(annotations);*/
 		List<Annotation> annotations = h.parse(inputWebAnno3);
-		//String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");
-		//List<Annotation> annotations = h.parse(annotationTsv);
 		List<Annotation> tokenizedAnnotations = h.tokenizeAnnotations(annotations);
 		for (Annotation anno: tokenizedAnnotations) {
 			log.debug(anno.toString());
 		}
 		
-		testExportAsWebAnnoTsv(tokenizedAnnotations);
+		//testExportAsWebAnnoTsv(tokenizedAnnotations);
 		
 		Set<Metadata> relevantFields = new HashSet<>();
 		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b));
-		//testToTextualReferenceList(tokenizedAnnotations, relevantFields);
+				Metadata.title_b, Metadata.scale_b,
+				Metadata.year_b, Metadata.number_b, Metadata.version_b
+				));
+		testToTextualReferenceList(tokenizedAnnotations, relevantFields);
 		
 	}
 	
 	public void testExportAsWebAnnoTsv(List<Annotation> annotations) throws IOException {
 		log.debug("output of WebAnnoTsvHandler:\n");
 		log.debug(WebAnnoTsvHandler.exportAsWebAnnoTsv(annotations));
-		//File testOut = new File("/tmp/44275._tsv");
-		//FileUtils.write(testOut, WebAnnoTsvHandler.exportAsWebAnnoTsv(annotations), false);
+		/*File testOut = new File("/tmp/44275._tsv");
+		FileUtils.write(testOut, WebAnnoTsvHandler.exportAsWebAnnoTsv(annotations), false);
+		*/
 	}
 	
 	public void testToTextualReferenceList(List<Annotation> annotations, 
 			Set<Metadata> relevantFields) throws IOException {
-		//File testOut = new File("/tmp/44275_textrefs.txt");
-		//FileUtils.write(testOut, "", false);
-		List<TextualReference> references = AnnotationHandler.toTextualReferenceList(annotations, relevantFields);
-		for (TextualReference textRef : references) {
-			log.debug(textRef.toPrettyString());
-			//FileUtils.write(testOut, textRef.toPrettyString() + "\n", true);
+		for (Metadata field : relevantFields) {
+			//File testOut = new File("/tmp/44275_textrefs_" + field.toString() + ".txt");
+			File testOut = Files.createTempFile(
+					InfolisConfig.getTmpFilePath(), 
+					"test_textrefs_" + field.toString(),
+					".txt")
+					.toFile();
+			Set<Metadata> fields = new HashSet<>();
+			fields.add(field);
+			List<TextualReference> references = AnnotationHandler
+					.toTextualReferenceList(annotations, fields);
+			AnnotationHandler.writeToAnnotatedTextRefFile(testOut, references, field.toString());
+			log.debug("number of references: " + references.size());
 		}
-		log.debug("number of references: " + references.size());
+		
 	}
 }

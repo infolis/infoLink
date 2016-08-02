@@ -502,6 +502,19 @@ public abstract class AnnotationHandler {
 				annotatedReferences));
 	}
 	
+	protected static void writeToAnnotatedTextRefFile(File outFile, 
+			List<TextualReference> references, String label) throws IOException {
+		FileUtils.write(outFile, "", false);
+		for (TextualReference textRef : references)
+			FileUtils.write(outFile, textRef.toPrettyString()
+					.replace("**[", "*" + label.replace("_b", "").toUpperCase() 
+							+ "*[") + "\n", true);
+	}
+	
+	protected static void mergeTextualReferences() {
+		
+	}
+	
 	//TODO implement
 	// agreement scores: matches and overlaps of annotated items; classifications...
 	/*

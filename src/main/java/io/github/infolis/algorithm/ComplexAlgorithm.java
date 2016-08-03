@@ -50,6 +50,7 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 			textExtract.setPtb3Escaping(getExecution().getPtb3Escaping());
 			textExtract.setRemoveBib(getExecution().isRemoveBib());
 			textExtract.setTags(getExecution().getTags());
+			textExtract.setInputFiles(toTextExtract);
 			textExtract.instantiateAlgorithm(this).run();
 			getExecution().getInputFiles().addAll(textExtract.getOutputFiles());
 		}

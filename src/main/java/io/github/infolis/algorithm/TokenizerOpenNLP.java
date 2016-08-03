@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -37,6 +38,18 @@ public class TokenizerOpenNLP extends Tokenizer {
 	private opennlp.tools.tokenize.Tokenizer tokenizer;
 	private SentenceDetectorME sentenizer;
 	private static final Logger log = LoggerFactory.getLogger(TokenizerOpenNLP.class);
+	
+	private static final List<String> executionTags = Arrays.asList("TOKENIZED_OPENNLP");
+	
+	private static final String tokenizeTag = "TOKENIZED_OPENNLP";
+	
+	protected static String getTokenizeTag() {
+		return tokenizeTag;
+	}
+
+	protected List<String> getExecutionTags() {
+		return executionTags;
+	}
 	
 	
 	public void initialize(String modelPathTokenize, String modelPathSentenize) throws InvalidFormatException, IOException {

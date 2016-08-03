@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -31,12 +30,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
 	public Tokenizer (DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
-	
-	private static final List<String> executionTags = Arrays.asList("TOKENIZED");
 
-	protected static List<String> getExecutionTags() {
-		return executionTags;
-	}
+	protected abstract List<String> getExecutionTags();
 	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
@@ -121,7 +116,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
-    		tagsToSet.addAll(executionTags);
+    		tagsToSet.addAll(getExecutionTags());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getManifestsEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}

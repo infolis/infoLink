@@ -1,20 +1,15 @@
 package io.github.infolis.algorithm;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.net.MediaType;
-
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
-import io.github.infolis.model.entity.InfolisFile;
 
 /**
  *
@@ -27,7 +22,7 @@ import io.github.infolis.model.entity.InfolisFile;
  * @author kata
  *
  */
-public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
+public class SearchPatternsAndCreateLinks extends ComplexAlgorithm {
 
     public SearchPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -45,77 +40,7 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
-    	List<String> toTextExtract = new ArrayList<>();
-    	List<String> toTokenize = new ArrayList<>();
-    	List<String> toBibExtract = new ArrayList<>();
-    	
-    	for (InfolisFile file : getInputDataStoreClient().get(
-    			InfolisFile.class, getExecution().getInputFiles())) {
-    		if (file.getMediaType().equals(MediaType.PDF.toString())) {
-    			toTextExtract.add(file.getUri());
-    			getExecution().getInputFiles().remove(file.getUri());
-    		}
-    	}
-    	
-    	if (!toTextExtract.isEmpty()) {
-    		Execution textExtract = getExecution().createSubExecution(TextExtractor.class);
-    		textExtract.setTokenize(getExecution().isTokenize());
-    		textExtract.setRemoveBib(getExecution().isRemoveBib());
-    		textExtract.setTags(getExecution().getTags());
-    		textExtract.instantiateAlgorithm(this).run();
-    		getExecution().getInputFiles().addAll(textExtract.getOutputFiles());
-    	}
-    	
-    	if (getExecution().isTokenize() || getExecution().isRemoveBib()) {
-	    	for (InfolisFile file : getInputDataStoreClient().get(
-	    			InfolisFile.class, getExecution().getInputFiles())) {
-	    		// if input file isn't tokenized, apply tokenizer
-	    		// TODO tokenizer parameters also relevant...
-	    		if (getExecution().isTokenize()) {
-		    		if (!file.getTags().contains(Tokenizer.getExecutionTags().get(0))) {
-		    			toTokenize.add(file.getUri());
-		    			getExecution().getInputFiles().remove(file.getUri());
-		    		}
-	    		}
-	    		// removing bibliographies is optional
-	    		// if it is to be performed, check whether input files are stripped of 
-	    		// their bibliography sections already
-	    		if (getExecution().isRemoveBib()) {
-		    		if (!file.getTags().contains(BibliographyExtractor.getExecutionTags().get(0))) {
-		    			toBibExtract.add(file.getUri());
-		    			getExecution().getInputFiles().remove(file.getUri());
-		    		}
-	    		}
-	    	}
-	
-	    	if (getExecution().isRemoveBib() && !toBibExtract.isEmpty()) {
-	    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-	    		bibRemoverExec.setTags(getExecution().getTags());
-	    		for (String uri : toBibExtract) {
-	    			bibRemoverExec.setInputFiles(Arrays.asList(uri));
-	    			bibRemoverExec.instantiateAlgorithm(this).run();
-	    			debug(log, "Removed bibliographies of input file: " + uri);
-	    			if (!toTokenize.contains(uri)) {
-	    				getExecution().getInputFiles().add(bibRemoverExec.getOutputFiles().get(0));
-	    			}
-	    			else {
-	    				toTokenize.remove(uri);
-	    				toTokenize.add(bibRemoverExec.getOutputFiles().get(0));
-	    			}
-	    		}
-	    	}
-	    	
-	    	if (getExecution().isTokenize() && !toTokenize.isEmpty()) {
-		    	Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
-		    	tokenizerExec.setTags(getExecution().getTags());
-		    	tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
-		    	tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
-		    	tokenizerExec.setInputFiles(toTokenize);
-		    	tokenizerExec.instantiateAlgorithm(this).run();
-		    	debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
-		    	getExecution().getInputFiles().addAll(tokenizerExec.getOutputFiles());
-	    	}
-    	}
+    	preprocessInputFiles();
     	
         List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());
 

@@ -7,7 +7,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +34,28 @@ public class TokenizerStanford extends Tokenizer {
 	
 	private static final Logger log = LoggerFactory.getLogger(TokenizerStanford.class);
 	
+	private final List<String> executionTags = new ArrayList<>(Arrays.asList("TOKENIZED_STANFORD"));
+	
+	private static final String tokenizeTag = "TOKENIZED_STANFORD";
+	private static final String tokenizeNLsTag = "TOKENIZENLS";
+	private static final String ptb3EscapingTag = "PTB3ESCAPING";
+
+	protected List<String> getExecutionTags() {
+		return executionTags;
+	}
+	
+	protected static String getTokenizeTag() {
+		return tokenizeTag;
+	}
+	
+	protected static String getTokenizeNLsTag() {
+		return tokenizeNLsTag;
+	}
+	
+	protected static String getPtb3EscapingTag() {
+		return ptb3EscapingTag;
+	}
+	
 	public List<String> getTokenizedSentences(String text) {
 		Reader reader = new StringReader(text);
 		return tokenize(reader, getExecution().getTokenizeNLs(), getExecution().getPtb3Escaping());
@@ -44,12 +65,16 @@ public class TokenizerStanford extends Tokenizer {
 		return tokenize(file.getAbsolutePath(), getExecution().getTokenizeNLs(), getExecution().getPtb3Escaping());
 	}
 	
-	public static List<String> tokenize(String filename, boolean tokenizeNLs, boolean ptb3Escaping) {
+	public List<String> tokenize(String filename, boolean tokenizeNLs, boolean ptb3Escaping) {
+		if (tokenizeNLs) this.executionTags.add("TOKENIZENLS");
+		if (ptb3Escaping) this.executionTags.add("PTB3ESCAPING");
 		DocumentPreprocessor dp = new DocumentPreprocessor(filename);
 		return applyPTBTokenizer(dp, tokenizeNLs, ptb3Escaping);
 	}
 	
-	public static List<String> tokenize(Reader reader, boolean tokenizeNLs, boolean ptb3Escaping) {
+	public List<String> tokenize(Reader reader, boolean tokenizeNLs, boolean ptb3Escaping) {
+		if (tokenizeNLs) this.executionTags.add("TOKENIZENLS");
+		if (ptb3Escaping) this.executionTags.add("PTB3ESCAPING");
 		DocumentPreprocessor dp = new DocumentPreprocessor(reader);
 		return applyPTBTokenizer(dp, tokenizeNLs, ptb3Escaping);
 	}

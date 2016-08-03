@@ -51,6 +51,7 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 			textExtract.setRemoveBib(getExecution().isRemoveBib());
 			textExtract.setTags(getExecution().getTags());
 			textExtract.setInputFiles(toTextExtract);
+			textExtract.setOutputDirectory(getExecution().getOutputDirectory());
 			textExtract.instantiateAlgorithm(this).run();
 			getExecution().getInputFiles().addAll(textExtract.getOutputFiles());
 		}

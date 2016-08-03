@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -83,7 +84,14 @@ public class TextExtractor extends BaseAlgorithm {
 
         // TODO make configurable
         String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-        if (null != getExecution().getOutputDirectory()) {
+        
+        // if no output directory is given, create temporary output files
+    	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+    		 String EXTRACTED_DIR_PREFIX = "extracted-";
+             String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), EXTRACTED_DIR_PREFIX).toString();
+             FileUtils.forceDeleteOnExit(new File(tempDir));
+             outFileName = SerializationUtils.changeBaseDir(outFileName, tempDir);
+         } else {
             outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
         }
 

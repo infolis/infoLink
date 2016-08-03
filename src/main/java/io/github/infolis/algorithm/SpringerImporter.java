@@ -1,13 +1,16 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import org.xml.sax.SAXException;
 
 import com.google.common.net.MediaType;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
@@ -95,9 +99,17 @@ public class SpringerImporter extends BaseAlgorithm {
 
             // TODO make configurable
             String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-            if (null != getExecution().getOutputDirectory()) {
+            
+            // if no output directory is given, create temporary output files
+        	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+        		 String IMPORTED_DIR_PREFIX = "imported-";
+                 String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), IMPORTED_DIR_PREFIX).toString();
+                 FileUtils.forceDeleteOnExit(new File(tempDir));
+                 outFileName = SerializationUtils.changeBaseDir(outFileName, tempDir);
+             } else {
                 outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
             }
+
             InfolisFile outFile = new InfolisFile();
             outFile.setFileName(outFileName);
             outFile.setMediaType("text/plain");

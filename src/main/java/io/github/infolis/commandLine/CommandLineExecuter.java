@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.ComplexAlgorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchResultLinker;
 import io.github.infolis.algorithm.LuceneSearcher;
@@ -68,7 +69,7 @@ public class CommandLineExecuter {
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
     private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
 
-    @Option(name = "--text-dir", usage = "Directory containing *.txt", metaVar = "TEXTDIR", required = true)
+    @Option(name = "--text-dir", usage = "Directory containing *.txt", metaVar = "TEXTDIR")
     private Path textDir;
 
     @Option(name = "--pdf-dir", usage = "Directory containing *.pdf", metaVar = "PDFDIR")
@@ -392,7 +393,9 @@ public class CommandLineExecuter {
                     exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
 
                 } else {
-                    throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
+                	// complex algorithm can convert pdfs on demand, others can't and need --convert-to-text option
+                	if (ComplexAlgorithm.class.isAssignableFrom(exec.getAlgorithm())) exec.setInputFiles(postFiles(pdfDir, "application/pdf"));
+                	else throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but --convert-to-text not set");
                 }
             } else {
                 if (shouldConvertToText) {

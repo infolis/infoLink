@@ -75,8 +75,9 @@ public class TextExtractor extends BaseAlgorithm {
     	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	tokenizer.setExecution(exec);
+    	String tokenizedText = tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
     	executionTags.addAll(tokenizer.getExecutionTags());
-    	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
+    	return tokenizedText;
     }
 
     public InfolisFile extract(InfolisFile inFile, int startPage, boolean tokenize) throws IOException {

@@ -395,6 +395,7 @@ public class CommandLineExecuter {
                 } else {
                 	// complex algorithm can convert pdfs on demand, others can't and need --convert-to-text option
                 	if (ComplexAlgorithm.class.isAssignableFrom(exec.getAlgorithm())) exec.setInputFiles(postFiles(pdfDir, "application/pdf"));
+                	else if (TextExtractor.class.equals(exec.getAlgorithm())) exec.setInputFiles(postFiles(pdfDir, "application/pdf"));
                 	else throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but --convert-to-text not set");
                 }
             } else {

@@ -38,7 +38,9 @@ public class TokenizerStanford extends Tokenizer {
 	
 	private static final String tokenizeTag = "TOKENIZED_STANFORD";
 	private static final String tokenizeNLsTag = "TOKENIZENLS";
+	private static final String NLsNotTokenizedTag = "NLSNOTTOKENIZED";
 	private static final String ptb3EscapingTag = "PTB3ESCAPING";
+	private static final String noPtb3EscapingTag = "NOPTB3ESCAPING";
 
 	protected List<String> getExecutionTags() {
 		return executionTags;
@@ -66,15 +68,19 @@ public class TokenizerStanford extends Tokenizer {
 	}
 	
 	public List<String> tokenize(String filename, boolean tokenizeNLs, boolean ptb3Escaping) {
-		if (tokenizeNLs) this.executionTags.add("TOKENIZENLS");
-		if (ptb3Escaping) this.executionTags.add("PTB3ESCAPING");
+		if (tokenizeNLs) this.executionTags.add(tokenizeNLsTag);
+		else this.executionTags.add(NLsNotTokenizedTag);
+		if (ptb3Escaping) this.executionTags.add(ptb3EscapingTag);
+		else this.executionTags.add(noPtb3EscapingTag);
 		DocumentPreprocessor dp = new DocumentPreprocessor(filename);
 		return applyPTBTokenizer(dp, tokenizeNLs, ptb3Escaping);
 	}
 	
 	public List<String> tokenize(Reader reader, boolean tokenizeNLs, boolean ptb3Escaping) {
-		if (tokenizeNLs) this.executionTags.add("TOKENIZENLS");
-		if (ptb3Escaping) this.executionTags.add("PTB3ESCAPING");
+		if (tokenizeNLs) this.executionTags.add(tokenizeNLsTag);
+		else this.executionTags.add(NLsNotTokenizedTag);
+		if (ptb3Escaping) this.executionTags.add(ptb3EscapingTag);
+		else this.executionTags.add(noPtb3EscapingTag);
 		DocumentPreprocessor dp = new DocumentPreprocessor(reader);
 		return applyPTBTokenizer(dp, tokenizeNLs, ptb3Escaping);
 	}

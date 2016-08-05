@@ -71,9 +71,9 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 	 */
 	private List<String> removeBibs(List<String> toBibExtract, List<String> toTokenize) {
 		if (getExecution().isRemoveBib() && !toBibExtract.isEmpty()) {
-    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-    		bibRemoverExec.setTags(getExecution().getTags());
     		for (String uri : toBibExtract) {
+    			Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
+        		bibRemoverExec.setTags(getExecution().getTags());
     			bibRemoverExec.setInputFiles(Arrays.asList(uri));
     			bibRemoverExec.instantiateAlgorithm(this).run();
     			debug(log, "Removed bibliographies of input file: " + uri);
@@ -97,7 +97,8 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 	    	tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
 	    	tokenizerExec.setInputFiles(toTokenize);
 	    	tokenizerExec.instantiateAlgorithm(this).run();
-	    	debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
+	    	debug(log, "Tokenized {} files with parameters tokenizeNLs={} ptb3Escaping={}", toTokenize.size(), tokenizerExec.getTokenizeNLs(), tokenizerExec.getPtb3Escaping());
+	    	log.debug(toTokenize.toString());
 	    	getExecution().getInputFiles().addAll(tokenizerExec.getOutputFiles());
 		}
 	}

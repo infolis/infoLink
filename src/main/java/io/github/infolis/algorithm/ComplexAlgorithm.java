@@ -39,6 +39,8 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 				getExecution().getInputFiles().remove(file.getUri());
 			}
 		}
+		debug(log, "Scheduling {} of {} files for text extraction", 
+				toTextExtract.size(), toTextExtract.size() + getExecution().getInputFiles().size());
 		return toTextExtract;
 	}
 	
@@ -52,6 +54,7 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 			textExtract.setTags(getExecution().getTags());
 			textExtract.setInputFiles(toTextExtract);
 			textExtract.setOutputDirectory(getExecution().getOutputDirectory());
+			textExtract.setStartPage(getExecution().getStartPage());
 			textExtract.instantiateAlgorithm(this).run();
 			getExecution().getInputFiles().addAll(textExtract.getOutputFiles());
 		}
@@ -192,6 +195,10 @@ public abstract class ComplexAlgorithm extends BaseAlgorithm {
 	    		}
 	    	}
 		}
+		debug(log, "Scheduling {} files for tokenization", toTokenize.size());
+		log.debug(toTokenize.toString());
+		debug(log, "Scheduling {} files for removal of bibliographies",	toBibExtract.size());
+		log.debug(toBibExtract.toString());
 		return Arrays.asList(toTokenize, toBibExtract);
 	}
 

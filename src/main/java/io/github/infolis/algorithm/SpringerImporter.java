@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -113,7 +114,9 @@ public class SpringerImporter extends BaseAlgorithm {
             InfolisFile outFile = new InfolisFile();
             outFile.setFileName(outFileName);
             outFile.setMediaType("text/plain");
-            outFile.setTags(getExecution().getTags());
+            Set<String> tagsToSet = getExecution().getTags();
+            tagsToSet.addAll(inFile.getTags());
+            outFile.setTags(tagsToSet);
             InputStream inStream = null;
             OutputStream outStream = null;
             

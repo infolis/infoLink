@@ -141,10 +141,8 @@ public class BibliographyExtractor extends BaseAlgorithm {
     public void execute() throws IOException {
     	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
-    	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();
 
-    	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
     	
     	int counter = 0;
@@ -202,7 +200,9 @@ public class BibliographyExtractor extends BaseAlgorithm {
             outFile.setMd5(SerializationUtils.getHexMd5(text));
             outFile.setFileStatus("AVAILABLE");
             Set<String> tagsToSet = getExecution().getTags();
+            tagsToSet.addAll(inputFile.getTags());
             tagsToSet.addAll(executionTags);
+            tagsToSet.remove(TextExtractor.getExecutionTagBibNotRemoved());
             outFile.setTags(tagsToSet);
 
             OutputStream outStream = null;

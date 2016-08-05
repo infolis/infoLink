@@ -57,14 +57,27 @@ public class TextExtractor extends BaseAlgorithm {
     }
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
-    private static final List<String> executionTags = new ArrayList<>(Arrays.asList("TEXT_EXTRACTED"));
+    private static final String executionTag = "TEXT_EXTRACTED";
+    private static final String executionTagUntokenized = "UNTOKENIZED";
+    private static final String executionTagBibNotRemoved = "BIBNOTREMOVED";
+    private final List<String> executionTags = new ArrayList<>(Arrays.asList(
+    		executionTag, executionTagUntokenized, executionTagBibNotRemoved));
     private final PDFTextStripper stripper;
+    
+    protected static String getExecutionTagUntokenized() {
+    	return executionTagUntokenized;
+    }
+    
+    protected static String getExecutionTagBibNotRemoved() {
+    	return executionTagBibNotRemoved;
+    }
 
     private String removeBibSection(String text) {
         BibliographyExtractor bibExtractor = new BibliographyExtractor(
                 getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         //TODO: Test optimal section size
-        executionTags.addAll(BibliographyExtractor.getExecutionTags());
+        this.executionTags.addAll(BibliographyExtractor.getExecutionTags());
+        this.executionTags.remove(getExecutionTagBibNotRemoved());
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
     
@@ -76,7 +89,8 @@ public class TextExtractor extends BaseAlgorithm {
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	tokenizer.setExecution(exec);
     	String tokenizedText = tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
-    	executionTags.addAll(tokenizer.getExecutionTags());
+    	this.executionTags.addAll(tokenizer.getExecutionTags());
+    	this.executionTags.remove(getExecutionTagUntokenized());
     	return tokenizedText;
     }
 
@@ -101,11 +115,6 @@ public class TextExtractor extends BaseAlgorithm {
         outFile.setOriginalName(inFile.getFileName());
         outFile.setMediaType("text/plain");
 
-        Set<String> tagsToSet = getExecution().getTags();
-        tagsToSet.addAll(inFile.getTags());
-        tagsToSet.addAll(executionTags);
-		outFile.setTags(tagsToSet);
-             
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {
@@ -135,6 +144,10 @@ public class TextExtractor extends BaseAlgorithm {
                 	asText = tokenizeText(asText);
                 }
 
+                Set<String> tagsToSet = getExecution().getTags();
+                tagsToSet.addAll(inFile.getTags());
+                tagsToSet.addAll(executionTags);
+        		outFile.setTags(tagsToSet);
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 

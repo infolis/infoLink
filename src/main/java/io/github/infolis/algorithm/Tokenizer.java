@@ -117,6 +117,7 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
     		tagsToSet.addAll(getExecutionTags());
+    		tagsToSet.remove(TextExtractor.getExecutionTagUntokenized());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getManifestsEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}

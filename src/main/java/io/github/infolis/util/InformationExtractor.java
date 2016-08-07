@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author kata
@@ -15,16 +18,27 @@ import java.util.regex.Pattern;
  */
 public class InformationExtractor {
 
+	private static final Logger log = LoggerFactory.getLogger(InformationExtractor.class);
+			
     public static List<String> getNumericInfo(String title) {
     	List<String> numericInfo = new ArrayList<>();
         LimitedTimeMatcher ltm = new LimitedTimeMatcher(Pattern.compile(RegexUtils.complexNumericInfoRegex), title, RegexUtils.maxTimeMillis, title + "\n" + RegexUtils.complexNumericInfoRegex);
         ltm.run();
         if (!ltm.finished()) {
             // TODO: what to do if search was aborted?
+        	log.debug(String.format("Search was aborted for title '%s'; continuing", title));
         }
         while (ltm.finished() && ltm.matched()) {
-        	if ("".equals(extractRegex(RegexUtils.doiRegex, ltm.group()))) {
-        		numericInfo.add(ltm.group());
+        	String res;
+        	try {
+        		res = ltm.group();
+        	} catch (IllegalStateException e) {
+        		log.warn("No match found by LimitedTimeMatcher although 'matched' set to true! Please check LTM");
+        		log.warn("title: " + title);
+        		continue;
+        	}
+        	if ("".equals(extractRegex(RegexUtils.doiRegex, res))) {
+        		numericInfo.add(res);
         	}
         	ltm.run();
         }

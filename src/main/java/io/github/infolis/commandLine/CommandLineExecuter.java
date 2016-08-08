@@ -269,6 +269,7 @@ public class CommandLineExecuter {
 
             Execution exec = new Execution();
             exec.setAlgorithm(LuceneSearcher.class);
+            exec.setTags(new HashSet<>(Arrays.asList(tag)));
             exec.setPhraseSlop(0);
             exec.setIndexDirectory(parentExec.getIndexDirectory());
             // normalize to treat phrase query properly

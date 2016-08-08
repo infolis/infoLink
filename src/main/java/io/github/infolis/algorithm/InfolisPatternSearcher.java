@@ -16,6 +16,7 @@ import io.github.infolis.util.RegexUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,8 +120,9 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
                 log.debug("Invalid referenced term \"" + referencedTerm + "\"");
                 continue;
             }
-            
-            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), textRef.getTextFile(), pattern.getUri(), textRef.getMentionsReference());
+
+            TextualReference validatedTextRef = LuceneSearcher.getContext(referencedTerm, textRef.getLeftText(), 
+            		textRef.getTextFile(), pattern.getUri(), textRef.getMentionsReference(), textRef.getTags());
             getOutputDataStoreClient().post(TextualReference.class, validatedTextRef);
             validatedTextualReferences.add(validatedTextRef.getUri());
             log.debug("added textual reference " + validatedTextRef);
@@ -142,8 +144,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
     
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagSearcher.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.getInfolisPatternTags().addAll(getExecution().getInfolisPatternTags());
     	tagExec.instantiateAlgorithm(this).run();

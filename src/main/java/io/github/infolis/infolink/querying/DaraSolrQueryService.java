@@ -142,6 +142,7 @@ public class DaraSolrQueryService extends QueryService {
         	JsonArray identifier = null;
         	sr.setQueryService(this.getUri());
         	sr.setListIndex(listIndex);
+        	sr.setTags(getTags());
         	try {
         		identifier = item.getJsonArray("doi");
 	            sr.setIdentifier(identifier.getString(0));

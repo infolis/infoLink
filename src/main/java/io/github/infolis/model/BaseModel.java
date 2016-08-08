@@ -1,5 +1,6 @@
 package io.github.infolis.model;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +38,11 @@ public class BaseModel {
             this.tags = new HashSet<>();
         }
         this.tags.add(tag);
+    }
+    
+    public void addAllTags(Collection<String> tags) {
+    	if (this.tags == null) this.tags = new HashSet<>();
+    	this.tags.addAll(tags);
     }
 
 }

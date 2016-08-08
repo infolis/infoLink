@@ -140,6 +140,7 @@ public class DataciteQueryService extends QueryService {
         for (JsonObject item : result.getValuesAs(JsonObject.class)) {
         	JsonObject attr = item.getJsonObject("attributes");
         	SearchResult sr = new SearchResult();
+        	sr.setTags(getTags());
         	sr.setQueryService(this.getUri());
         	sr.setListIndex(listIndex);
         	try {

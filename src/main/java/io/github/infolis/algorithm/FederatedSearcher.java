@@ -75,6 +75,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                     Constructor<? extends SearchResultLinker> linkerConstructor = getExecution().getSearchResultLinkerClass().getDeclaredConstructor(parameterTypes);
                     SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
                     queryService.setQueryStrategy(linker.getQueryStrategy());
+                    queryService.setTags(getExecution().getTags());
                     getOutputDataStoreClient().post(QueryService.class, queryService);
                     debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
                     

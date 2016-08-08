@@ -74,6 +74,9 @@ public class MetaDataExtractor extends BaseAlgorithm {
         		.replaceAll("\\s+", " ")
         		.trim();
         entity.setName(name);
+        
+        entity.setTags(ref.getTags());
+        entity.addAllTags(getExecution().getTags());
        
         List<String> numericInfo = InformationExtractor.extractNumericInfo(ref);
         //TODO make priorities configurable...

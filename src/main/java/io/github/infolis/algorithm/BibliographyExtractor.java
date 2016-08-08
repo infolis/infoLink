@@ -19,6 +19,8 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -152,7 +154,7 @@ public class BibliographyExtractor extends BaseAlgorithm {
             InfolisFile inputFile;
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;

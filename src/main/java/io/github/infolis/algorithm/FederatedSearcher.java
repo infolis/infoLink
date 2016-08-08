@@ -10,6 +10,7 @@ import io.github.infolis.infolink.querying.QueryService;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class FederatedSearcher extends BaseAlgorithm {
                     
                     updateProgress(counter, size);
 
-                } catch (Exception e) {
+                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }
@@ -100,7 +101,7 @@ public class FederatedSearcher extends BaseAlgorithm {
 	            	
 	                updateProgress(counter, size);
             	}
-            } catch (Exception e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 e.printStackTrace();
             }
         }

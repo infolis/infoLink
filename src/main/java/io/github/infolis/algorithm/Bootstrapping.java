@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLearner {
+public abstract class Bootstrapping extends ComplexAlgorithm implements BootstrapLearner {
 
     public Bootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -116,9 +116,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             throw new IllegalArgumentException("Must set the bootstrap strategy!");
         }
         if (null == exec.isTokenize()) {
-        	throw new IllegalArgumentException("Must specify whether input texts have to be tokenized! Note: "
-        			+ "only set to false if the input texts are in tokenized form.");
-        }
+			warn(log, "tokenize parameter unspecified. Setting to true for Bootstrapping"); 
+			exec.setTokenize(true);
+		}
     }
 
     @Override
@@ -130,24 +130,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-
-    	if (getExecution().isRemoveBib()) {
-    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-    		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
-    		bibRemoverExec.instantiateAlgorithm(this).run();
-    		debug(log, "Removed bibliographies of input files");
-    		getExecution().setInputFiles(bibRemoverExec.getOutputFiles());
-    	}
     	
-    	if (getExecution().isTokenize()) {
-    		Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
-    		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
-    		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
-    		tokenizerExec.setInputFiles(getExecution().getInputFiles());
-    		tokenizerExec.instantiateAlgorithm(this).run();
-    		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
-    		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
-    	}
+    	preprocessInputFiles();
     	
     	this.indexerExecution = createIndex();
     	List<TextualReference> detectedContexts = new ArrayList<>();

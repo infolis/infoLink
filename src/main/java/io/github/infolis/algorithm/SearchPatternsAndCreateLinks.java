@@ -22,7 +22,7 @@ import io.github.infolis.model.ExecutionStatus;
  * @author kata
  *
  */
-public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
+public class SearchPatternsAndCreateLinks extends ComplexAlgorithm {
 
     public SearchPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -39,6 +39,9 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
+    	preprocessInputFiles();
+    	
         List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());
 
         List<String> createdLinks = createLinks(textualRefs);
@@ -104,6 +107,10 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
         }
 		if (null == exec.getSearchResultLinkerClass()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
+		}
+		if (null == exec.isTokenize()) {
+			warn(log, "tokenize parameter unspecified. Setting to true for SearchPatternsAndCreateLinks"); 
+			exec.setTokenize(true);
 		}
     }
 }

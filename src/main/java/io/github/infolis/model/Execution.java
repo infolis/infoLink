@@ -178,8 +178,7 @@ public class Execution extends BaseModel {
 	 * input texts to perform well. It can either be called on tokenized 
 	 * input texts or it can be called on untokenized text or pdf files and 
 	 * perform tokenization itself. If unspecified, defaults to false for 
-	 * TextExtractor. For Bootstrapping, this field has to be set explicitly 
-	 * as this information is crucial for good performance.
+	 * TextExtractor and to true for Bootstrapping.
          * Default: null
          * 
 	 * {@link TextExtractor} {@link Bootstrapping}
@@ -447,7 +446,7 @@ public class Execution extends BaseModel {
 	 * Determines whether new line characters are to be tokenized.
 	 * {@link Tokenizer}
 	 */
-	private boolean tokenizeNLs = true;
+	private boolean tokenizeNLs = false;
 	
 	/**
 	 * Enable all traditional PTB3 token transforms (like parentheses becoming -LRB-, -RRB-).

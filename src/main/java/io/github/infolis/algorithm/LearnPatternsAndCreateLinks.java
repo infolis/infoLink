@@ -15,7 +15,7 @@ import io.github.infolis.util.SerializationUtils;
  * @author kata
  *
  */
-public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
+public class LearnPatternsAndCreateLinks extends ComplexAlgorithm {
 	
 	public LearnPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             		FileResolver inputFileResolver, FileResolver outputFileResolver) {
@@ -30,6 +30,9 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
 		tagExec.instantiateAlgorithm(this).run();
 		getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+		
+		preprocessInputFiles();
+    	
 		try {
 			debug(log, "Step1: Learning patterns and extracting textual references...");
 			Execution learnExec = learn();
@@ -94,5 +97,10 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	public void validate() {
 		// TODO: Validator with validations for each parameter to choose from
 		// all non-optional fields must be given...
+		Execution exec = this.getExecution();
+		if (null == exec.isTokenize()) {
+			warn(log, "tokenize parameter unspecified. Setting to true for LearnPatternsAndCreateLinks"); 
+			exec.setTokenize(true);
+		}
 	}
 }

@@ -412,24 +412,24 @@ public class Execution extends BaseModel {
 	private List<String> linkedEntities;
         
 	/**
-	 * A tag indicates which corpus of documents and/or patterns should be used.
-         * For example, a user likes to apply patterns learnt on
-         * documents of a specific topic like social science.
-         * This map contains names of classes extending the BaseModel as keys 
-         * and a list of tags as values. This parameter is for using tags 
-         * inside the application.
-         * 
+	 * List of tags to identify a specific set of InfolisPatterns
 	 */
-
 	private Set<String> infolisPatternTags = new HashSet<>();
+	
+	/**
+	 * List of tags to identify a specific set of InfolisFiles
+	 */
 	private Set<String> infolisFileTags = new HashSet<>();
 	
 	/**
-	 * A tag indicates which corpus of documents and/or patterns should be used.
-         * For example, a user likes to apply patterns learnt on
-         * documents of a specific topic like social science.
-         * These tags describe the execution to make it searchable via its tags.
-         * 
+	 * List of tags to identify a specific set of TextualReferences
+	 */
+	private Set<String> textualReferenceTags = new HashSet<>();
+	
+	/**
+	 * Free-form tags to assign to the execution and all generated entities. 
+	 * This makes all uploaded and generated data identifiable and searchable 
+	 * e.g. using infolisFileTags and infolisPatternTags.
 	 */
 	private Set<String> tags = new HashSet<>();
 	
@@ -816,14 +816,20 @@ public class Execution extends BaseModel {
 		this.infolisPatternTags = infolisPatternTags;
 	}
 
-	public Set<String> getInfolisFileTags()
-	{
+	public Set<String> getInfolisFileTags()	{
 		return infolisFileTags;
 	}
 
-	public void setInfolisFileTags(Set<String> infolisFileTags)
-	{
+	public void setInfolisFileTags(Set<String> infolisFileTags)	{
 		this.infolisFileTags = infolisFileTags;
+	}
+	
+	public Set<String> getTextualReferenceTags() {
+		return this.textualReferenceTags;
+	}
+	
+	public void setTextualReferenceTags(Set<String> textualReferenceTags) {
+		this.textualReferenceTags = textualReferenceTags;
 	}
     
     public void setProgress(long progress) {

@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -17,18 +14,17 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.ExecutionStatus;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.model.entity.InfolisPattern;
 
 /**
- * Class for searching InfolisFile and InfolisPattern objects with given tags.
+ * Class for searching InfolisFile, InfolisPattern and TextualReference objects with given tags.
  * 
  * @author kata
  *
  */
 public class TagSearcher extends BaseAlgorithm {
-
-	private static final Logger log = LoggerFactory.getLogger(TagSearcher.class);
 
 	public TagSearcher(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -39,6 +35,7 @@ public class TagSearcher extends BaseAlgorithm {
 
 		toSearch.put(InfolisFile.class, getExecution().getInfolisFileTags());
 		toSearch.put(InfolisPattern.class, getExecution().getInfolisPatternTags());
+		toSearch.put(TextualReference.class, getExecution().getTextualReferenceTags());
 
 		for (Class<? extends BaseModel> clazz : toSearch.keySet()) {
 			if (toSearch.get(clazz).isEmpty())
@@ -63,12 +60,11 @@ public class TagSearcher extends BaseAlgorithm {
     	return uris;
     }
 
-	// TODO more generic way to do this?
 	private void setExecutionParameters(Class<? extends BaseModel> clazz, List<? extends BaseModel> instances) {
 		List<String> uris = getUris(instances);
 		if (clazz.equals(InfolisPattern.class)) { getExecution().setPatterns(uris); }
 		if (clazz.equals(InfolisFile.class)) { getExecution().setInputFiles(uris); }
-		//if (clazz.equals(Entity.class)) { getExecution().set?(uris); }
+		if (clazz.equals(TextualReference.class)) { getExecution().setTextualReferences(uris); }
 	}
 
 	@Override

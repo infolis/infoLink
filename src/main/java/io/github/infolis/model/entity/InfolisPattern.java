@@ -44,7 +44,6 @@ public class InfolisPattern extends BaseModel {
     private Set<String> words = new HashSet<>();
     private double threshold;
     private double reliability;
-    private Set<String> tags = new HashSet<>();
     private Map<String, Double> associations = new HashMap<>();
     //TODO: change to URI -> string?
     private Collection<TextualReference> textualReferences;
@@ -107,15 +106,6 @@ public class InfolisPattern extends BaseModel {
     public void setWords(Set<String> words) {
         this.words = words;
     }
-    
-    public Set<String> getTags() {
-		return tags;
-	}
-    
-	public void setTags(Set<String> tags) {
-		this.tags = tags;
-	}
-
 
     /**
      * Generates a regular expression to capture given <emph>title</emph> as

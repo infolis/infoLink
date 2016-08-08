@@ -52,11 +52,9 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	}
 	
 	private Execution createLinks(Execution learnExec) {
-		Execution linkExec = new Execution();
+		Execution linkExec = getExecution().createSubExecution(ReferenceLinker.class);
 		linkExec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
-		linkExec.setAlgorithm(ReferenceLinker.class);
 		linkExec.setInputFiles(getExecution().getInputFiles());
-		linkExec.setTags(getExecution().getTags());
 		
 		linkExec.setTextualReferences(learnExec.getTextualReferences());
 		if (null != getExecution().getQueryServiceClasses()) {
@@ -70,14 +68,14 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	}
 	
 	private Execution learn() {
-		Execution learnExec = new Execution();
-		learnExec.setTags(getExecution().getTags());
+		Execution learnExec;
+		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){
+			learnExec = getExecution().createSubExecution(ReliabilityBasedBootstrapping.class);
+		}
+		else learnExec = getExecution().createSubExecution(FrequencyBasedBootstrapping.class);
+		
 		learnExec.setInputFiles(getExecution().getInputFiles());
 		learnExec.setBootstrapStrategy(getExecution().getBootstrapStrategy());
-		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){
-			learnExec.setAlgorithm(ReliabilityBasedBootstrapping.class);
-		}
-		else learnExec.setAlgorithm(FrequencyBasedBootstrapping.class);
 		learnExec.setStartPage(getExecution().getStartPage());
 		learnExec.setRemoveBib(getExecution().isRemoveBib());
 		learnExec.setTokenize(getExecution().isTokenize());
@@ -88,7 +86,6 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		learnExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
 		learnExec.setReliabilityThreshold(getExecution().getReliabilityThreshold());
 		learnExec.setMaxIterations(getExecution().getMaxIterations());
-		
 		learnExec.instantiateAlgorithm(this).run();
 		return learnExec;
 	}

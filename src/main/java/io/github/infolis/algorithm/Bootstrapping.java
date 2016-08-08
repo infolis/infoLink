@@ -89,19 +89,17 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns, 
     		DataStoreClient outputDataStoreClient) {
-    	Execution applierExec = new Execution();
-    	applierExec.setAlgorithm(InfolisPatternSearcher.class);
-    	applierExec.setInputFiles(getExecution().getInputFiles());
-    	applierExec.setIndexDirectory(indexerExecution.getOutputDirectory());
-    	applierExec.setPatterns(getPatternUris(patterns));
-    	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-    	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
-    	applierExec.setAllowLeadingWildcards(true);
-    	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
-    	applierExec.setTags(getExecution().getTags());
-    	applierExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
+    	Execution searcherExec = getExecution().createSubExecution(InfolisPatternSearcher.class);
+    	searcherExec.setInputFiles(getExecution().getInputFiles());
+    	searcherExec.setIndexDirectory(indexerExecution.getOutputDirectory());
+    	searcherExec.setPatterns(getPatternUris(patterns));
+    	searcherExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
+    	searcherExec.setPhraseSlop(getExecution().getPhraseSlop());
+    	searcherExec.setAllowLeadingWildcards(true);
+    	searcherExec.setMaxClauseCount(getExecution().getMaxClauseCount());
+    	searcherExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
     			getInputFileResolver(), getOutputFileResolver()).run();
-    	return applierExec.getTextualReferences();
+    	return searcherExec.getTextualReferences();
     }
 
     @Override
@@ -135,7 +133,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     	if (getExecution().isRemoveBib()) {
     		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-    		bibRemoverExec.setTags(getExecution().getTags());
     		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
     		bibRemoverExec.instantiateAlgorithm(this).run();
     		debug(log, "Removed bibliographies of input files");
@@ -144,7 +141,6 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
     	
     	if (getExecution().isTokenize()) {
     		Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
-    		tokenizerExec.setTags(getExecution().getTags());
     		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
     		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
     		tokenizerExec.setInputFiles(getExecution().getInputFiles());

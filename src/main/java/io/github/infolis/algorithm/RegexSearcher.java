@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
@@ -81,7 +82,11 @@ public class RegexSearcher extends BaseAlgorithm {
                 log.trace("rightContext: " + rightContext);
                 if (null == leftContext || leftContext.isEmpty()) leftContext = " ";
                 if (null == rightContext || rightContext.isEmpty()) rightContext = " ";
-                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, file.getManifestsEntity());
+                Set<String> tagsToSet = getExecution().getTags();
+            	tagsToSet.addAll(file.getTags());
+                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, 
+                		file.getUri(), patternURI, file.getManifestsEntity());
+                textRef.setTags(tagsToSet);
                 log.trace("added reference: " + textRef);
                 res.add(textRef);
 
@@ -127,8 +132,7 @@ public class RegexSearcher extends BaseAlgorithm {
             if (!inputFile.getMediaType().startsWith("text/plain")) {
                 // if the input file is a PDF file, convert it
                 if (inputFile.getMediaType().startsWith("application/pdf")) {
-                    Execution convertExec = new Execution();
-                    convertExec.setAlgorithm(TextExtractor.class);
+                    Execution convertExec = getExecution().createSubExecution(TextExtractor.class);
                     convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
                     // TODO wire this more efficiently so files are stored temporarily
                     Algorithm algo = convertExec.instantiateAlgorithm(this);

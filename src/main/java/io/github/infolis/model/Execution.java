@@ -959,6 +959,7 @@ public class Execution extends BaseModel {
     {
     	Execution subExec = new Execution(algo);
     	//subExec.setLog(getLog());
+    	subExec.setTags(getTags());
     	return subExec;
     }    
 

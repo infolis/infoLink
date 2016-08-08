@@ -64,7 +64,7 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     }
     
     protected List<String> createLinks(List<String> textualRefs) {
-    	Execution exec = new Execution();
+    	Execution exec = getExecution().createSubExecution(ReferenceLinker.class);
     	if (null != getExecution().getQueryServices()) {
     		exec.setQueryServices(getExecution().getQueryServices());
     	}
@@ -73,7 +73,6 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     	}
     	exec.setTextualReferences(textualRefs);
     	exec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
-    	exec.setAlgorithm(ReferenceLinker.class);
     	exec.instantiateAlgorithm(this).run();
     	updateProgress(2, 2);
     	debug(log, "Done executing ReferenceLinker, created entityLinks: " + exec.getLinks());

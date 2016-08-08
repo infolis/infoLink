@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLearner {
+public abstract class Bootstrapping extends ComplexAlgorithm implements BootstrapLearner {
 
     public Bootstrapping(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -89,19 +89,17 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     List<String> getContextsForPatterns(Collection<InfolisPattern> patterns, 
     		DataStoreClient outputDataStoreClient) {
-    	Execution applierExec = new Execution();
-    	applierExec.setAlgorithm(InfolisPatternSearcher.class);
-    	applierExec.setInputFiles(getExecution().getInputFiles());
-    	applierExec.setIndexDirectory(indexerExecution.getOutputDirectory());
-    	applierExec.setPatterns(getPatternUris(patterns));
-    	applierExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
-    	applierExec.setPhraseSlop(getExecution().getPhraseSlop());
-    	applierExec.setAllowLeadingWildcards(true);
-    	applierExec.setMaxClauseCount(getExecution().getMaxClauseCount());
-    	applierExec.setTags(getExecution().getTags());
-    	applierExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
+    	Execution searcherExec = getExecution().createSubExecution(InfolisPatternSearcher.class);
+    	searcherExec.setInputFiles(getExecution().getInputFiles());
+    	searcherExec.setIndexDirectory(indexerExecution.getOutputDirectory());
+    	searcherExec.setPatterns(getPatternUris(patterns));
+    	searcherExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
+    	searcherExec.setPhraseSlop(getExecution().getPhraseSlop());
+    	searcherExec.setAllowLeadingWildcards(true);
+    	searcherExec.setMaxClauseCount(getExecution().getMaxClauseCount());
+    	searcherExec.instantiateAlgorithm(getInputDataStoreClient(), outputDataStoreClient, 
     			getInputFileResolver(), getOutputFileResolver()).run();
-    	return applierExec.getTextualReferences();
+    	return searcherExec.getTextualReferences();
     }
 
     @Override
@@ -118,9 +116,9 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
             throw new IllegalArgumentException("Must set the bootstrap strategy!");
         }
         if (null == exec.isTokenize()) {
-        	throw new IllegalArgumentException("Must specify whether input texts have to be tokenized! Note: "
-        			+ "only set to false if the input texts are in tokenized form.");
-        }
+			warn(log, "tokenize parameter unspecified. Setting to true for Bootstrapping"); 
+			exec.setTokenize(true);
+		}
     }
 
     @Override
@@ -132,26 +130,8 @@ public abstract class Bootstrapping extends BaseAlgorithm implements BootstrapLe
 
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
-
-    	if (getExecution().isRemoveBib()) {
-    		Execution bibRemoverExec = getExecution().createSubExecution(BibliographyExtractor.class);
-    		bibRemoverExec.setTags(getExecution().getTags());
-    		bibRemoverExec.setInputFiles(getExecution().getInputFiles());
-    		bibRemoverExec.instantiateAlgorithm(this).run();
-    		debug(log, "Removed bibliographies of input files");
-    		getExecution().setInputFiles(bibRemoverExec.getOutputFiles());
-    	}
     	
-    	if (getExecution().isTokenize()) {
-    		Execution tokenizerExec = getExecution().createSubExecution(TokenizerStanford.class);
-    		tokenizerExec.setTags(getExecution().getTags());
-    		tokenizerExec.setTokenizeNLs(getExecution().getTokenizeNLs());
-    		tokenizerExec.setPtb3Escaping(getExecution().getPtb3Escaping());
-    		tokenizerExec.setInputFiles(getExecution().getInputFiles());
-    		tokenizerExec.instantiateAlgorithm(this).run();
-    		debug(log, "Tokenized input with parameters tokenizeNLs=" + tokenizerExec.getTokenizeNLs() + " ptb3Escaping=" + tokenizerExec.getPtb3Escaping());
-    		getExecution().setInputFiles(tokenizerExec.getOutputFiles());
-    	}
+    	preprocessInputFiles();
     	
     	this.indexerExecution = createIndex();
     	List<TextualReference> detectedContexts = new ArrayList<>();

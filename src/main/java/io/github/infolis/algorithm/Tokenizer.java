@@ -30,8 +30,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
 	public Tokenizer (DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) throws IOException {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
-	
-	private static final String executionTag = "TOKENIZED";
+
+	protected abstract List<String> getExecutionTags();
 	
 	private static final Logger log = LoggerFactory.getLogger(Tokenizer.class);
 	
@@ -116,7 +116,8 @@ public abstract class Tokenizer extends BaseAlgorithm {
     		List<String> tokenizedSentences = getTokenizedSentences(text);
     		Set<String> tagsToSet = getExecution().getTags();
     		tagsToSet.addAll(infolisFile.getTags());
-    		tagsToSet.add(executionTag);
+    		tagsToSet.addAll(getExecutionTags());
+    		tagsToSet.remove(TextExtractor.getExecutionTagUntokenized());
     		String outputFileURI = createInfolisFile(infolisFile.getFileName(), infolisFile.getManifestsEntity(), tokenizedSentences, tagsToSet);
     		getExecution().getOutputFiles().add(outputFileURI);
     	}

@@ -22,7 +22,7 @@ import io.github.infolis.model.ExecutionStatus;
  * @author kata
  *
  */
-public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
+public class SearchPatternsAndCreateLinks extends ComplexAlgorithm {
 
     public SearchPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient, FileResolver inputFileResolver, FileResolver outputFileResolver) {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
@@ -39,6 +39,9 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getPatterns().addAll(tagExec.getPatterns());
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+    	
+    	preprocessInputFiles();
+    	
         List<String> textualRefs = searchPatterns(getExecution().getPatterns(), getExecution().getInputFiles());
 
         List<String> createdLinks = createLinks(textualRefs);
@@ -64,7 +67,7 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     }
     
     protected List<String> createLinks(List<String> textualRefs) {
-    	Execution exec = new Execution();
+    	Execution exec = getExecution().createSubExecution(ReferenceLinker.class);
     	if (null != getExecution().getQueryServices()) {
     		exec.setQueryServices(getExecution().getQueryServices());
     	}
@@ -73,7 +76,6 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
     	}
     	exec.setTextualReferences(textualRefs);
     	exec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
-    	exec.setAlgorithm(ReferenceLinker.class);
     	exec.instantiateAlgorithm(this).run();
     	updateProgress(2, 2);
     	debug(log, "Done executing ReferenceLinker, created entityLinks: " + exec.getLinks());
@@ -105,6 +107,10 @@ public class SearchPatternsAndCreateLinks extends BaseAlgorithm {
         }
 		if (null == exec.getSearchResultLinkerClass()) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "searchResultLinkerClass", "Required parameter 'SearchResultLinkerClass' is missing!");
+		}
+		if (null == exec.isTokenize()) {
+			warn(log, "tokenize parameter unspecified. Setting to true for SearchPatternsAndCreateLinks"); 
+			exec.setTokenize(true);
 		}
     }
 }

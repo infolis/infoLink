@@ -11,6 +11,7 @@ import io.github.infolis.model.entity.InfolisPattern;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.regex.Pattern;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ProcessingException;
@@ -71,7 +72,8 @@ public class LuceneSearcher extends BaseAlgorithm {
 		return execution;
 	}
     
-    public static TextualReference getContext(String term, String text, String fileUri, String patternUri, String entityUri) throws StringIndexOutOfBoundsException {
+    public static TextualReference getContext(String term, String text, String fileUri, String patternUri, 
+    		String entityUri, Set<String> tags) throws StringIndexOutOfBoundsException {
     	// do not treat term as regex when splitting
        	String[] contexts = text.split(Pattern.quote(term));
        	// if highlighter is configured to return the whole text 
@@ -83,7 +85,8 @@ public class LuceneSearcher extends BaseAlgorithm {
        	if (rightContext.isEmpty()) rightContext = " ";
        	TextualReference textRef = new TextualReference(leftContext, term, 
 	       			rightContext, fileUri, patternUri, entityUri);
-	       	return textRef;
+       	textRef.setTags(tags);
+	    return textRef;
     }
     	
     /**
@@ -98,8 +101,7 @@ public class LuceneSearcher extends BaseAlgorithm {
      */
     @Override
     public void execute() throws IOException {
-    	Execution tagExec = new Execution();
-    	tagExec.setAlgorithm(TagSearcher.class);
+    	Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     	tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     	tagExec.instantiateAlgorithm(this).run();
     	getExecution().getInputFiles().addAll(tagExec.getInputFiles());
@@ -176,10 +178,12 @@ public class LuceneSearcher extends BaseAlgorithm {
 			           	log.trace("Fragment: " + fragment);
 			            // remove tags inserted by the highlighter
 			            fragment = fragment.replaceAll("</?b>", "").trim();
+			            Set<String> tagsToSet = getExecution().getTags();
+		            	tagsToSet.addAll(file.getTags());
 			            if (term != null) {
 			            	try {
 			            		TextualReference textRef = getContext(term, fragment, file.getUri(), 
-			            				pattern.getUri(), file.getManifestsEntity());
+			            				pattern.getUri(), file.getManifestsEntity(), tagsToSet);
 			                   	// those textual references should be temporary - call with temp client
 				               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 				                getExecution().getTextualReferences().add(textRef.getUri());
@@ -193,6 +197,7 @@ public class LuceneSearcher extends BaseAlgorithm {
 			            	textRef.setTextFile(file.getUri());
 			            	textRef.setMentionsReference(file.getManifestsEntity());
 			            	textRef.setPattern(pattern.getUri());
+			            	textRef.setTags(tagsToSet);
 			            	// those textual references should be temporary if validation using regex is to be performed
 			               	getOutputDataStoreClient().post(TextualReference.class, textRef);
 			                getExecution().getTextualReferences().add(textRef.getUri());

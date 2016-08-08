@@ -75,8 +75,11 @@ public class SearchResultScorer {
 
 	// call method for every enumerated value, one match is sufficient
 	private static boolean enumMatches(List<String> enumInfo, String info2) {
-		for (String enumeratedNumber : enumInfo) {
-			if (numericInfoMatches(enumeratedNumber, info2)) { return true; }
+		for (String info : enumInfo) {
+			for (String enumeratedNumber : info.split(RegexUtils.enumRegex)) {
+				log.debug(String.format("computing score for enum part \"%s\"", enumeratedNumber));
+				if (numericInfoMatches(enumeratedNumber, info2)) { return true; }
+			}
 		}
 		return false;
 	}

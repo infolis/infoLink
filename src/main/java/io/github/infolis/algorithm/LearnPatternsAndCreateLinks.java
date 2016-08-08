@@ -18,7 +18,7 @@ import io.github.infolis.util.SerializationUtils;
  * @author kata
  *
  */
-public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
+public class LearnPatternsAndCreateLinks extends ComplexAlgorithm {
 	
 	public LearnPatternsAndCreateLinks(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
             		FileResolver inputFileResolver, FileResolver outputFileResolver) {
@@ -33,6 +33,9 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
 		tagExec.instantiateAlgorithm(this).run();
 		getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+		
+		preprocessInputFiles();
+    	
 		try {
 			debug(log, "Step1: Learning patterns and extracting textual references...");
 			Execution learnExec = learn();
@@ -54,12 +57,10 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	}
 	
 	private Execution createLinks(Execution learnExec) 
-			throws IllegalAlgorithmArgumentException, IOException {
-		Execution linkExec = new Execution();
+	        throws IllegalAlgorithmArgumentException, IOException {
+		Execution linkExec = getExecution().createSubExecution(ReferenceLinker.class);
 		linkExec.setSearchResultLinkerClass(getExecution().getSearchResultLinkerClass());
-		linkExec.setAlgorithm(ReferenceLinker.class);
 		linkExec.setInputFiles(getExecution().getInputFiles());
-		linkExec.setTags(getExecution().getTags());
 		
 		linkExec.setTextualReferences(learnExec.getTextualReferences());
 		if (null != getExecution().getQueryServiceClasses()) {
@@ -73,14 +74,14 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 	}
 	
 	private Execution learn() throws IllegalArgumentException, IOException {
-		Execution learnExec = new Execution();
-		learnExec.setTags(getExecution().getTags());
+		Execution learnExec;
+		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){
+			learnExec = getExecution().createSubExecution(ReliabilityBasedBootstrapping.class);
+		}
+		else learnExec = getExecution().createSubExecution(FrequencyBasedBootstrapping.class);
+		
 		learnExec.setInputFiles(getExecution().getInputFiles());
 		learnExec.setBootstrapStrategy(getExecution().getBootstrapStrategy());
-		if (getExecution().getBootstrapStrategy().equals(BootstrapStrategy.reliability)){
-			learnExec.setAlgorithm(ReliabilityBasedBootstrapping.class);
-		}
-		else learnExec.setAlgorithm(FrequencyBasedBootstrapping.class);
 		learnExec.setStartPage(getExecution().getStartPage());
 		learnExec.setRemoveBib(getExecution().isRemoveBib());
 		learnExec.setTokenize(getExecution().isTokenize());
@@ -91,7 +92,6 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
 		learnExec.setUpperCaseConstraint(getExecution().isUpperCaseConstraint());
 		learnExec.setReliabilityThreshold(getExecution().getReliabilityThreshold());
 		learnExec.setMaxIterations(getExecution().getMaxIterations());
-		
 		learnExec.instantiateAlgorithm(this).run();
 		return learnExec;
 	}
@@ -110,7 +110,7 @@ public class LearnPatternsAndCreateLinks extends BaseAlgorithm {
             throw new IllegalAlgorithmArgumentException(getClass(), "bootstrapStrategy", "Required parameter 'bootstrapStrategy' is missing!");
         }
         if (null == exec.isTokenize()) {
-        	log.warn("Warning: tokenize parameter not set. Defaulting to true.");
+        	warn(log, "Warning: tokenize parameter unspecified. Defaulting to true for LearnPatternsAndCreateLinks.");
         	this.getExecution().setTokenize(true);
         }
         boolean queryServiceSet = false;

@@ -4,7 +4,9 @@ import io.github.infolis.util.SerializationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,9 +41,9 @@ public class TextualReference extends BaseModel {
 	private String			reference;
 	@XmlAttribute
 	private String			textFile;
-	@XmlTransient
 	private String			pattern;
 	private String			mentionsReference;
+	private Set<String> tags = new HashSet<>();
 
 
     public TextualReference() {
@@ -71,6 +73,14 @@ public class TextualReference extends BaseModel {
         this.pattern = pattern;
         this.mentionsReference = mentionsReference;
     }
+    
+    public void setTags(Set<String> tags) {
+    	this.tags = tags;
+    }
+    
+    public Set<String> getTags() {
+    	return this.tags;
+    }
 
 	public String toXML() {
 		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getReference()) + "\" textFile=\""
@@ -78,7 +88,9 @@ public class TextualReference extends BaseModel {
 				+ "<leftText>" + this.getLeftText() + "</leftText>"
 				+ System.getProperty("line.separator") + "\t\t" + "<rightText>"
 				+ this.getRightText() + "</rightText>" + System.getProperty("line.separator")
-                                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" + System.getProperty("line.separator")
+				+ "\t\t<pattern>" + this.getPattern() + "</pattern>"
+                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" 
+				+ System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
 

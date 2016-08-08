@@ -123,6 +123,11 @@ public class ReferenceLinker extends BaseAlgorithm {
     
 	@Override
 	public void execute() throws IOException {
+		Execution tagSearcher = getExecution().createSubExecution(TagSearcher.class);
+		tagSearcher.setTextualReferenceTags(getExecution().getTextualReferenceTags());
+		tagSearcher.instantiateAlgorithm(this).run();
+		getExecution().getTextualReferences().addAll(tagSearcher.getTextualReferences());
+		
 		List<String> entityLinks = resolveReferences(getExecution().getTextualReferences());
 		getExecution().setLinks(entityLinks);
 	}
@@ -136,7 +141,12 @@ public class ReferenceLinker extends BaseAlgorithm {
 		if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
             queryServiceSet = true;
 		}
-		if (null == getExecution().getTextualReferences()) {
+		// If textualReferences is empty, do not throw an exception. If used automatically after searching for 
+		// patterns, the list of textual references may be empty, it is not an error.
+		// If, however, ReferenceLinker is applied directly on existing textual references specified by their tags, the 
+		// list should not be empty and throwing an error is assumed to be helpful for the user.
+		if (null == getExecution().getTextualReferences()
+				&& (null == getExecution().getTextualReferenceTags() || getExecution().getTextualReferenceTags().isEmpty())) {
 			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
 		}
 		if (!queryServiceSet) {

@@ -9,6 +9,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.infolink.querying.QueryService.QueryField;
 
@@ -37,12 +38,22 @@ public class MultiMatchesLinker extends SearchResultLinker {
 	@Override
 	public void execute() {
 		log.debug("Creating links to all matches...");
-		String textRefURI = getExecution().getTextualReferences().get(0);
-        TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
-		Map<SearchResult, Double> scoreMap = rankResults(textRef);
-		scoreMap = getMatchingSearchResults(scoreMap, 1.0);
-        List<String> entityLinks = createLinks(textRef, scoreMap);
-        getExecution().setLinks(entityLinks);
+		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
+			String entityUri = getExecution().getLinkedEntities().get(0);
+			Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
+			Map<SearchResult, Double> scoreMap = rankResults(entity);
+			scoreMap = getMatchingSearchResults(scoreMap, 1.0);
+	        List<String> entityLinks = createLinks(entity, scoreMap);
+	        getExecution().setLinks(entityLinks);
+		}
+		if (null != getExecution().getTextualReferences() && !getExecution().getTextualReferences().isEmpty()) {
+			String textRefURI = getExecution().getTextualReferences().get(0);
+			TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
+			Map<SearchResult, Double> scoreMap = rankResults(textRef);
+			scoreMap = getMatchingSearchResults(scoreMap, 1.0);
+	        List<String> entityLinks = createLinks(textRef, scoreMap);
+	        getExecution().getLinks().addAll(entityLinks);
+		}
         getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
 }

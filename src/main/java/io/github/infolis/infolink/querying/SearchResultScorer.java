@@ -1,6 +1,7 @@
 package io.github.infolis.infolink.querying;
 
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.util.InformationExtractor;
 import io.github.infolis.util.RegexUtils;
@@ -20,6 +21,32 @@ import org.slf4j.LoggerFactory;
 public class SearchResultScorer {
 	
 	private final static Logger log = LoggerFactory.getLogger(SearchResultScorer.class);
+	
+	/**
+     * Computes score based on correspondence of numbers in entities and 
+     * search results. Considers ranges, abbreviated years and exact matches.
+     *
+     * @param reference
+     * @param targetCandidate
+     * @return
+     */
+    public static double computeScoreBasedOnNumbers(Entity entity, SearchResult targetCandidate) {
+        List<String> textRefNumInfoList = entity.getNumericInfo();
+        if(targetCandidate.getNumericInformation() == null || targetCandidate.getNumericInformation().isEmpty()) {
+        	targetCandidate.setNumericInformation(InformationExtractor.extractNumbers(targetCandidate.getTitles().get(0)));
+        }
+        List<String> targetCandidateNumInfoList = targetCandidate.getNumericInformation();
+        if (targetCandidate.getNumericInformation().isEmpty()) return 0.5;
+        if (textRefNumInfoList.isEmpty()) return 0.7;
+        for (String textRefNumInfo : textRefNumInfoList) {
+            for (String targetCandidateNumInfo : targetCandidateNumInfoList) {
+                if (numericInfoMatches(textRefNumInfo, targetCandidateNumInfo)) {
+                    return 1.0;
+                }
+            }
+        }
+        return 0.0;
+    }
 	
 	/**
      * Computes score based on correspondence of numbers in textual references and 

@@ -9,6 +9,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.infolink.querying.QueryService.QueryField;
 
@@ -38,12 +39,23 @@ public class BestMatchLinker extends SearchResultLinker {
 	@Override
 	public void execute() {
 		log.debug("Creating link to best match...");
-		String textRefURI = getExecution().getTextualReferences().get(0);
-        TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
-        Map<SearchResult, Double> scoreMap = getBestResultsAtFirstIndex();
-		Map<SearchResult, Double> bestMatch = getBestSearchResult(scoreMap); 
-        List<String> entityLinks = createLinks(textRef, bestMatch);
-        getExecution().setLinks(entityLinks);
+		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
+			String entityUri = getExecution().getLinkedEntities().get(0);
+	        Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
+	        Map<SearchResult, Double> scoreMap = getBestResultsAtFirstIndex();
+			Map<SearchResult, Double> bestMatch = getBestSearchResult(scoreMap); 
+	        List<String> entityLinks = createLinks(entity, bestMatch);
+	        getExecution().setLinks(entityLinks);
+			
+		}
+		if (null != getExecution().getTextualReferences() && !getExecution().getTextualReferences().isEmpty()) {
+			String textRefUri = getExecution().getTextualReferences().get(0);
+	        TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefUri);
+	        Map<SearchResult, Double> scoreMap = getBestResultsAtFirstIndex();
+			Map<SearchResult, Double> bestMatch = getBestSearchResult(scoreMap); 
+	        List<String> entityLinks = createLinks(textRef, bestMatch);
+	        getExecution().getLinks().addAll(entityLinks);
+		}
         getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
 

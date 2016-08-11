@@ -64,6 +64,29 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
     public int getMaxNum() {
     	return this.maxNum;
     }
+    
+    public Map<SearchResult, Double> rankResults(Entity entity) {
+    	List<String> searchResultURIs = getExecution().getSearchResults();
+        List<SearchResult> searchResults = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
+        
+        Map<SearchResult, Double> scoreMap = new HashMap<>();
+        int counter = 0;
+        for (SearchResult searchResult : searchResults) {
+            counter++;
+            double confidenceValue = 0.0;
+            log.debug("Computing score based on numbers. Weight: " + weights[0]);
+            if (0 != weights[0]) confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(entity, searchResult);
+            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
+            confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
+            log.debug("Adding score based on list index. Weight: " + weights[2]);
+            // normalize: +1 to avoid NaN if only results contains only one search result
+            confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
+            log.debug("Confidence score: " + confidenceValue);
+            scoreMap.put(searchResult, confidenceValue);
+            updateProgress(counter, searchResults.size());
+        }
+        return scoreMap;
+    }
 
     public Map<SearchResult, Double> rankResults(TextualReference textRef) {
     	List<String> searchResultURIs = getExecution().getSearchResults();
@@ -135,6 +158,37 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         return resultMap;
     }
     
+    public List<String> createLinks(Entity fromEntity, Map<SearchResult, Double> scoreMap) {
+    	List<String> entityLinks = new ArrayList<>();
+    	for (SearchResult searchResult : scoreMap.keySet()) {
+	    	Entity toEntity = new Entity();
+	    	toEntity.setTags(searchResult.getTags());
+	    	toEntity.addAllTags(getExecution().getTags());
+	    	toEntity.setIdentifier(searchResult.getIdentifier());
+	        if (searchResult.getTitles() != null && searchResult.getTitles().size()>0) {
+	        	toEntity.setName(searchResult.getTitles().get(0));
+	        }
+	        if (searchResult.getNumericInformation() != null && searchResult.getNumericInformation().size()>0) {
+                    List<String> numInfo = new ArrayList<>();
+                    numInfo.add(searchResult.getNumericInformation().get(0));
+                    toEntity.setNumericInfo(numInfo);
+	        }
+	        getOutputDataStoreClient().post(Entity.class, toEntity);
+	        
+	        log.debug("Creating link for entity: " + fromEntity.getUri());
+	        EntityLink el = new EntityLink(fromEntity.getUri(), toEntity.getUri(), scoreMap.get(searchResult), "");
+	        // TODO set correct relation
+	        //el.setEntityRelations(entityRelations);
+	        el.setTags(toEntity.getTags());
+	
+	        getOutputDataStoreClient().post(EntityLink.class, el);
+	        entityLinks.add(el.getUri());
+    	}
+        return entityLinks;
+    }
+    
+
+    
     public List<String> createLinks(TextualReference textRef, Map<SearchResult, Double> scoreMap) {
     	List<String> entityLinks = new ArrayList<>();
     	for (SearchResult searchResult : scoreMap.keySet()) {
@@ -170,7 +224,9 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             throw new IllegalAlgorithmArgumentException(getClass(), "searchResults", "Required parameter 'search results' is missing!");
         }
         if (null == getExecution().getTextualReferences() || getExecution().getTextualReferences().isEmpty()) {
-            throw new IllegalAlgorithmArgumentException(getClass(), "textualReferences", "Required parameter 'textual references' is missing!");
+        	if (null == getExecution().getLinkedEntities() || getExecution().getLinkedEntities().isEmpty()) {
+        		throw new IllegalAlgorithmArgumentException(getClass(), "linkedEntities/textualReferences", "Required parameter 'linked entities' or 'textual references' is missing!");
+        	}
         }
     }
 }

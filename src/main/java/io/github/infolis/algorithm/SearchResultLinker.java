@@ -2,10 +2,8 @@ package io.github.infolis.algorithm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.github.infolis.datastore.DataStoreClient;
@@ -67,10 +65,26 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
     	return this.maxNum;
     }
     
-    protected class CandidateTargetEntity {
+    public static class CandidateTargetEntity {
     	SearchResult searchResult;
     	double score;
-    	Set<EntityLink.EntityRelation> entityRelations;
+    	Set<EntityLink.EntityRelation> entityRelations = new HashSet<>();
+    
+	    public void setSearchResult(SearchResult searchResult) {
+	    	this.searchResult = searchResult;
+	    }
+	    
+	    public void setScore(double score) {
+	    	this.score = score;
+	    }
+	    
+	    public void setEntityRelations(Set<EntityLink.EntityRelation> entityRelations) {
+	    	this.entityRelations = entityRelations;
+	    }
+	    
+	    public void addEntityRelation(EntityLink.EntityRelation entityRelation) {
+	    	this.entityRelations.add(entityRelation);
+	    }
     }
     
     public List<CandidateTargetEntity> rankResults(Entity entity) {
@@ -84,7 +98,8 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             counter++;
             double confidenceValue = 0.0;
             log.debug("Computing score based on numbers. Weight: " + weights[0]);
-            if (0 != weights[0]) confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(entity, searchResult);
+            CandidateTargetEntity searchResultCandidate = SearchResultScorer.computeScoreBasedOnNumbers(entity, searchResult);
+            if (0 != weights[0]) confidenceValue = weights[0] * searchResultCandidate.score;
             log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
             confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
             log.debug("Adding score based on list index. Weight: " + weights[2]);
@@ -94,8 +109,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             CandidateTargetEntity candidate = new CandidateTargetEntity();
             candidate.searchResult = searchResult;
             candidate.score = confidenceValue;
-            //TODO FILL
-            candidate.entityRelations = new HashSet<EntityLink.EntityRelation>();
+            candidate.entityRelations = searchResultCandidate.entityRelations;
             candidates.add(candidate);
             updateProgress(counter, searchResults.size());
         }
@@ -112,7 +126,8 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             counter++;
             double confidenceValue = 0.0;
             log.debug("Computing score based on numbers. Weight: " + weights[0]);
-            if (0 != weights[0]) confidenceValue = weights[0] * SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
+            CandidateTargetEntity searchResultCandidate = SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
+            if (0 != weights[0]) confidenceValue = weights[0] * searchResultCandidate.score;
             log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
             confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
             log.debug("Adding score based on list index. Weight: " + weights[2]);
@@ -122,8 +137,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             CandidateTargetEntity candidate = new CandidateTargetEntity();
             candidate.searchResult = searchResult;
             candidate.score = confidenceValue;
-            // TODO fill relations
-            candidate.entityRelations = new HashSet<EntityLink.EntityRelation>();
+            candidate.entityRelations = searchResultCandidate.entityRelations;
             candidates.add(candidate);
             updateProgress(counter, searchResults.size());
         }

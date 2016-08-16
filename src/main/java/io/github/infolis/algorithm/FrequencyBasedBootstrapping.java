@@ -164,7 +164,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
 	            	extractedContextsFromPatterns.add(studyContext);
 	            	Entity entity = new Entity(studyContext.getReference());
-	            	entity.setTags(getExecution().getTags());
+	            	entity.setTags(studyContext.getTags());
 	            	newSeedsIteration.add(entity);
 	            	newSeedTermsIteration.add(studyContext.getReference());
 	            }

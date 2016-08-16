@@ -40,7 +40,6 @@ public class Entity extends BaseModel {
     private String name;
     private String identifier;
     private String url;
-    private Set<String> tags;
     private Collection<TextualReference> textualReferences;
 
     @XmlAttribute
@@ -87,30 +86,6 @@ public class Entity extends BaseModel {
 
     public Collection<TextualReference> getTextualReferences() {
         return this.textualReferences;
-    }
-
-    /**
-     * @return the tags
-     */
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    /**
-     * @param tags the tags to set
-     */
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    /**
-     * @param tag the tag to add
-     */
-    public void addTag(String tag) {
-        if (tags == null) {
-            tags = new HashSet<>();
-        }
-        tags.add(tag);
     }
 
     /**

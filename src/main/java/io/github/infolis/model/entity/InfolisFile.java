@@ -23,7 +23,6 @@ public class InfolisFile extends BaseModel {
 	private String fileStatus;
     private String originalName;
     private String manifestsEntity;
-	private Set<String> tags = new HashSet<>();
         
     public InfolisFile() {
     }
@@ -56,12 +55,6 @@ public class InfolisFile extends BaseModel {
 	}
 	public void setFileStatus(String fileStatus) {
 		this.fileStatus = fileStatus;
-	}
-	public Set<String> getTags() {
-		return tags;
-	}
-	public void setTags(Set<String> tags) {
-		this.tags = tags;
 	}
 
     public String getOriginalName() {

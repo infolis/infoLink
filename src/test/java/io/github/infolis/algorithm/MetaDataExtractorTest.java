@@ -33,6 +33,7 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
     @Test
     public void testExtractMetadata() {
         MetaDataExtractor mde = new MetaDataExtractor(dataStoreClient, dataStoreClient, fileResolver, fileResolver);
+        mde.setExecution(new Execution());
         Entity entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "ALLBUS 2000", "is to be extracted as", "document", "pattern","ref"));
         assertEquals("ALLBUS", entity.getName());
         assertEquals("2000", entity.getNumericInfo().get(0));

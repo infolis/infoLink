@@ -426,13 +426,6 @@ public class Execution extends BaseModel {
 	private Set<String> textualReferenceTags = new HashSet<>();
 	
 	/**
-	 * Free-form tags to assign to the execution and all generated entities. 
-	 * This makes all uploaded and generated data identifiable and searchable 
-	 * e.g. using infolisFileTags and infolisPatternTags.
-	 */
-	private Set<String> tags = new HashSet<>();
-	
-	/**
 	 * Flag used by TextExtractor: if set to false, pdfs for which corresponding text 
 	 * files already exist in the specified text directory will not be converted again, instead 
 	 * the existing text files will be returned as InfolisFile instances. If set to true, all 
@@ -792,14 +785,6 @@ public class Execution extends BaseModel {
     public void setLinkedEntities(List<String> linkedEntities) {
         this.linkedEntities = linkedEntities;
     }
-    
-    public Set<String> getTags() {
-		return this.tags;
-	}
-    
-    public void setTags(Set<String> tags) {
-		this.tags = tags;
-	}
     
     public long getProgress() {
         return progress;

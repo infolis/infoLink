@@ -176,6 +176,7 @@ public class DaraHTMLQueryService extends QueryService {
             sr.setNumericInformation(numericInfo);
             sr.setListIndex(i);
             sr.setQueryService(this.getUri());
+            sr.setTags(getTags());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             sr.setDate(dateFormat.format(date));

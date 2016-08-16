@@ -176,18 +176,21 @@ public class CommandLineExecuter {
                                 String name = "";
                                 String number = "";
                                 String identifier = "";
+                                Set<String> tags = new HashSet<>();
                                 if (entityObject.containsKey("name")) {
                                     name = String.valueOf(entityObject.get("name"));
                                 }
                                 if (entityObject.containsKey("number")) {
-                                    name = String.valueOf(entityObject.get("number"));
+                                    number = String.valueOf(entityObject.get("number"));
                                 }
                                 if (entityObject.containsKey("identifier")) {
-                                    name = String.valueOf(entityObject.get("identifier"));
+                                    identifier = String.valueOf(entityObject.get("identifier"));
                                 }
+                                // TODO set tags
                                 Entity entity = new Entity();
+                                entity.setTags(tags);
                                 entity.setName(name);
-                                List<String> numInfo = new ArrayList();
+                                List<String> numInfo = new ArrayList<>();
                                 numInfo.add(number);
                                 entity.setNumericInfo(numInfo);
                                 entity.setIdentifier(identifier);

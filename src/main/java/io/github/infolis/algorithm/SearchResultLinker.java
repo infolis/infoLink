@@ -1,7 +1,9 @@
 package io.github.infolis.algorithm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,11 +67,18 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
     	return this.maxNum;
     }
     
-    public Map<SearchResult, Double> rankResults(Entity entity) {
+    protected class CandidateTargetEntity {
+    	SearchResult searchResult;
+    	double score;
+    	Set<EntityLink.EntityRelation> entityRelations;
+    }
+    
+    public List<CandidateTargetEntity> rankResults(Entity entity) {
     	List<String> searchResultURIs = getExecution().getSearchResults();
-        List<SearchResult> searchResults = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
+        List<SearchResult> searchResults = getInputDataStoreClient().get(
+        		SearchResult.class, searchResultURIs);
         
-        Map<SearchResult, Double> scoreMap = new HashMap<>();
+        List<CandidateTargetEntity> candidates = new ArrayList<>();
         int counter = 0;
         for (SearchResult searchResult : searchResults) {
             counter++;
@@ -82,17 +91,22 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             // normalize: +1 to avoid NaN if only results contains only one search result
             confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
             log.debug("Confidence score: " + confidenceValue);
-            scoreMap.put(searchResult, confidenceValue);
+            CandidateTargetEntity candidate = new CandidateTargetEntity();
+            candidate.searchResult = searchResult;
+            candidate.score = confidenceValue;
+            //TODO FILL
+            candidate.entityRelations = new HashSet<EntityLink.EntityRelation>();
+            candidates.add(candidate);
             updateProgress(counter, searchResults.size());
         }
-        return scoreMap;
+        return candidates;
     }
 
-    public Map<SearchResult, Double> rankResults(TextualReference textRef) {
+    public List<CandidateTargetEntity> rankResults(TextualReference textRef) {
     	List<String> searchResultURIs = getExecution().getSearchResults();
         List<SearchResult> searchResults = getInputDataStoreClient().get(SearchResult.class, searchResultURIs);
         
-        Map<SearchResult, Double> scoreMap = new HashMap<>();
+        List<CandidateTargetEntity> candidates = new ArrayList<>();
         int counter = 0;
         for (SearchResult searchResult : searchResults) {
             counter++;
@@ -105,15 +119,20 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             // normalize: +1 to avoid NaN if only results contains only one search result
             confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
             log.debug("Confidence score: " + confidenceValue);
-            scoreMap.put(searchResult, confidenceValue);
+            CandidateTargetEntity candidate = new CandidateTargetEntity();
+            candidate.searchResult = searchResult;
+            candidate.score = confidenceValue;
+            // TODO fill relations
+            candidate.entityRelations = new HashSet<EntityLink.EntityRelation>();
+            candidates.add(candidate);
             updateProgress(counter, searchResults.size());
         }
-        return scoreMap;
+        return candidates;
     }
     
     // the confidence score of the best result equals the confidence score of the QueryService
-    public Map<SearchResult, Double> getBestResultsAtFirstIndex() {
-    	Map<SearchResult, Double> scoreMap = new HashMap<>();
+    public  List<CandidateTargetEntity> getBestResultsAtFirstIndex() {
+    	List<CandidateTargetEntity> candidates = new ArrayList<>();
     	List<SearchResult> searchResults = getInputDataStoreClient().get(
     			SearchResult.class, getExecution().getSearchResults());
         for (SearchResult searchResult : searchResults) {
@@ -121,64 +140,80 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         		double confidence = 
         				weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService())
         				.getServiceReliability();
-        		scoreMap.put(searchResult, confidence);
+        		CandidateTargetEntity candidate = new CandidateTargetEntity();
+        		candidate.searchResult = searchResult;
+        		candidate.score = confidence;
+        		candidate.entityRelations = new HashSet<>(Arrays.asList(
+        				EntityLink.EntityRelation.unknown));
+                candidates.add(candidate);
         	}
         }
-        return scoreMap;
+        return candidates;
     }
     
-    public Map<SearchResult, Double> getBestSearchResult(Map<SearchResult, Double> scoreMap) {
-    	SearchResult bestSearchResult = null;
+    public List<CandidateTargetEntity> getBestSearchResult(List<CandidateTargetEntity> candidates) {
+    	CandidateTargetEntity bestCandidate = null;
         double bestScore = -1.0;
         log.debug("Selecting the best search results");
-        for (SearchResult sr : scoreMap.keySet()) {
-            if (scoreMap.get(sr) > bestScore) {
-            	bestScore = scoreMap.get(sr);
-                bestSearchResult = sr;
+        for (CandidateTargetEntity candidate : candidates) {
+            if (candidate.score > bestScore) {
+            	bestScore = candidate.score;
+                bestCandidate = candidate;
             }
         }
         log.debug("Best search result: " 
-        		+ bestSearchResult.getIdentifier() + ": " 
-        		+ bestSearchResult.getTitles());
+        		+ bestCandidate.searchResult.getIdentifier() + ": " 
+        		+ bestCandidate.searchResult.getTitles());
         log.debug("Score: " + bestScore);
-        Map<SearchResult, Double> resultMap = new HashMap<>();
-        resultMap.put(bestSearchResult, bestScore);
-        return resultMap;
+        List<CandidateTargetEntity> bestCandidates = new ArrayList<>();
+        CandidateTargetEntity candidate = new CandidateTargetEntity();
+        candidate.searchResult = bestCandidate.searchResult;
+        candidate.score = bestScore;
+        candidate.entityRelations = new HashSet<>(Arrays.asList(
+        		EntityLink.EntityRelation.unknown));
+        bestCandidates.add(candidate);
+        return bestCandidates;
     }
     
-    public Map<SearchResult, Double> getMatchingSearchResults(Map<SearchResult, Double> scoreMap, double threshold) {
+    public List<CandidateTargetEntity> getMatchingSearchResults(
+    		List<CandidateTargetEntity> candidates, double threshold) {
         log.debug("Selecting all search results with score above or equal to threshold");
-        Map<SearchResult, Double> resultMap = new HashMap<>();
-        for (SearchResult sr : scoreMap.keySet()) {
-        	log.debug("Score for search result " + sr.getUri() + ": " + scoreMap.get(sr));
-            if (scoreMap.get(sr) >= threshold) {
-            	resultMap.put(sr, scoreMap.get(sr));
+        List<CandidateTargetEntity> matchingCandidates = new ArrayList<>();
+        for (CandidateTargetEntity candidate : candidates) {
+        	log.debug("Score for search result " + candidate.searchResult.getUri() + ": " 
+        			+ candidate.score);
+            if (candidate.score >= threshold) {
+            	matchingCandidates.add(candidate);
             }
         }
-        return resultMap;
+        return matchingCandidates;
     }
     
-    public List<String> createLinks(Entity fromEntity, Map<SearchResult, Double> scoreMap) {
+    public List<String> createLinks(Entity fromEntity, 
+    		List<CandidateTargetEntity> candidates) {
     	List<String> entityLinks = new ArrayList<>();
-    	for (SearchResult searchResult : scoreMap.keySet()) {
+    	for (CandidateTargetEntity candidate : candidates) {
 	    	Entity toEntity = new Entity();
-	    	toEntity.setTags(searchResult.getTags());
+	    	toEntity.setTags(candidate.searchResult.getTags());
 	    	toEntity.addAllTags(getExecution().getTags());
-	    	toEntity.setIdentifier(searchResult.getIdentifier());
-	        if (searchResult.getTitles() != null && searchResult.getTitles().size()>0) {
-	        	toEntity.setName(searchResult.getTitles().get(0));
+	    	toEntity.setIdentifier(candidate.searchResult.getIdentifier());
+	        if (candidate.searchResult.getTitles() != null 
+	        		&& candidate.searchResult.getTitles().size()>0) {
+	        	toEntity.setName(candidate.searchResult.getTitles().get(0));
 	        }
-	        if (searchResult.getNumericInformation() != null && searchResult.getNumericInformation().size()>0) {
+	        if (candidate.searchResult.getNumericInformation() != null 
+	        		&& candidate.searchResult.getNumericInformation().size()>0) {
                     List<String> numInfo = new ArrayList<>();
-                    numInfo.add(searchResult.getNumericInformation().get(0));
+                    numInfo.add(candidate.searchResult.getNumericInformation().get(0));
                     toEntity.setNumericInfo(numInfo);
 	        }
 	        getOutputDataStoreClient().post(Entity.class, toEntity);
 	        
 	        log.debug("Creating link for entity: " + fromEntity.getUri());
-	        EntityLink el = new EntityLink(fromEntity.getUri(), toEntity.getUri(), scoreMap.get(searchResult), "");
-	        // TODO set correct relation
-	        //el.setEntityRelations(entityRelations);
+	        EntityLink el = new EntityLink(fromEntity.getUri(), toEntity.getUri(), 
+	        		candidate.score, 
+	        		"");
+	        el.setEntityRelations(candidate.entityRelations);
 	        el.setTags(toEntity.getTags());
 	
 	        getOutputDataStoreClient().post(EntityLink.class, el);
@@ -189,19 +224,21 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
     
 
     
-    public List<String> createLinks(TextualReference textRef, Map<SearchResult, Double> scoreMap) {
+    public List<String> createLinks(TextualReference textRef, 
+    		List<CandidateTargetEntity> candidates) {
     	List<String> entityLinks = new ArrayList<>();
-    	for (SearchResult searchResult : scoreMap.keySet()) {
+    	for (CandidateTargetEntity candidate : candidates) {
 	    	Entity referencedInstance = new Entity();
-	        referencedInstance.setTags(searchResult.getTags());
+	        referencedInstance.setTags(candidate.searchResult.getTags());
 	        referencedInstance.addAllTags(getExecution().getTags());
-	        referencedInstance.setIdentifier(searchResult.getIdentifier());
-	        if(searchResult.getTitles() != null && searchResult.getTitles().size()>0) {
-	            referencedInstance.setName(searchResult.getTitles().get(0));
+	        referencedInstance.setIdentifier(candidate.searchResult.getIdentifier());
+	        if(candidate.searchResult.getTitles() != null && candidate.searchResult.getTitles().size()>0) {
+	            referencedInstance.setName(candidate.searchResult.getTitles().get(0));
 	        }
-	        if(searchResult.getNumericInformation() != null && searchResult.getNumericInformation().size()>0) {
+	        if(candidate.searchResult.getNumericInformation() != null 
+	        		&& candidate.searchResult.getNumericInformation().size()>0) {
                     List<String> numInfo = new ArrayList<>();
-                    numInfo.add(searchResult.getNumericInformation().get(0));
+                    numInfo.add(candidate.searchResult.getNumericInformation().get(0));
 	            referencedInstance.setNumericInfo(numInfo);
 	        }
 	        getOutputDataStoreClient().post(Entity.class, referencedInstance);
@@ -209,7 +246,11 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	        
 	        log.debug("Creating link for TextualReference: " + textRef.getReference() + "; mentionsReference: " + textRef.getMentionsReference());
 	        log.debug("File: " + textRef.getTextFile());
-	        EntityLink el = new EntityLink(textRef.getMentionsReference(), referencedInstance.getUri(), scoreMap.get(searchResult), linkReason);
+	        EntityLink el = new EntityLink(textRef.getMentionsReference(), 
+	        		referencedInstance.getUri(), 
+	        		candidate.score, 
+	        		linkReason);
+	        el.setEntityRelations(candidate.entityRelations);
 	        el.setTags(referencedInstance.getTags());
 	
 	        getOutputDataStoreClient().post(EntityLink.class, el);

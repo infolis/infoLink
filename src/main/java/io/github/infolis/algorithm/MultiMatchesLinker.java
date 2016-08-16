@@ -2,7 +2,6 @@ package io.github.infolis.algorithm;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import io.github.infolis.datastore.DataStoreClient;
@@ -10,7 +9,6 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.model.entity.SearchResult;
 import io.github.infolis.infolink.querying.QueryService.QueryField;
 
 import org.slf4j.Logger;
@@ -41,17 +39,17 @@ public class MultiMatchesLinker extends SearchResultLinker {
 		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
 			String entityUri = getExecution().getLinkedEntities().get(0);
 			Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
-			Map<SearchResult, Double> scoreMap = rankResults(entity);
-			scoreMap = getMatchingSearchResults(scoreMap, 1.0);
-	        List<String> entityLinks = createLinks(entity, scoreMap);
+			List<CandidateTargetEntity> candidates = rankResults(entity);
+			candidates = getMatchingSearchResults(candidates, 1.0);
+	        List<String> entityLinks = createLinks(entity, candidates);
 	        getExecution().setLinks(entityLinks);
 		}
 		if (null != getExecution().getTextualReferences() && !getExecution().getTextualReferences().isEmpty()) {
 			String textRefURI = getExecution().getTextualReferences().get(0);
 			TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
-			Map<SearchResult, Double> scoreMap = rankResults(textRef);
-			scoreMap = getMatchingSearchResults(scoreMap, 1.0);
-	        List<String> entityLinks = createLinks(textRef, scoreMap);
+			List<CandidateTargetEntity> candidates = rankResults(textRef);
+			candidates = getMatchingSearchResults(candidates, 1.0);
+	        List<String> entityLinks = createLinks(textRef, candidates);
 	        getExecution().getLinks().addAll(entityLinks);
 		}
         getExecution().setStatus(ExecutionStatus.FINISHED);

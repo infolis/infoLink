@@ -2,6 +2,7 @@
 build
 .ropeproject
 *.pyc
+*.*~
 .classpath
 .project
 .settings/

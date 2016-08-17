@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.TextualReference;
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ public class Entity extends BaseModel {
     private String name;
     private String identifier;
     private String url;
+    private EntityType entityType;
     private Collection<TextualReference> textualReferences;
 
     @XmlAttribute
@@ -70,6 +72,7 @@ public class Entity extends BaseModel {
     	this.subjects = copyFrom.getSubjects();
     	this.language = copyFrom.getLanguage();
     	this.spatial = copyFrom.getSpatial();
+    	this.entityType = copyFrom.getEntityType();
     	
     	this.setTags(copyFrom.getTags());
     	
@@ -78,6 +81,14 @@ public class Entity extends BaseModel {
     }
 
     public Entity() {
+    }
+      
+    public void setEntityType(EntityType entityType) {
+    	this.entityType = entityType;
+    }
+    
+    public EntityType getEntityType() {
+    	return this.entityType;
     }
     
     public void setSpatial(Set<String> spatial) {

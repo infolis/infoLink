@@ -117,14 +117,11 @@ public class ReferenceLinker extends BaseAlgorithm {
 			}
 		}
 		// no matching entity has been found in the database
-		// put entity to the output datastore client using the temp uri -> avoid having 
-		// more than one uri for this entity, else calling getUri() might yield 
-		// unpredictable results (alternatively, create new Entity with the same properties 
-		// and post to datastore)
-		getOutputDataStoreClient().put(Entity.class, tempEntity, tempEntity.getUri());
-		debug(log, "Did not find entity in datastore, posting new one as " + tempEntity.getUri());
+		Entity newEntity = new Entity(tempEntity);
+		getOutputDataStoreClient().post(Entity.class, newEntity);
+		debug(log, "Did not find entity in datastore, posted new one as " + newEntity.getUri());
 		// call linkEntity here if you do not want to update links for existing entities
-		return tempEntity.getUri();
+		return newEntity.getUri();
 	}
 	
 	private String createLinkToEntity(String fromEntityUri, String toEntityUri, TextualReference textualReference) {

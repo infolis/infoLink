@@ -8,6 +8,7 @@ import java.util.Set;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -210,6 +211,10 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	    	Entity toEntity = new Entity();
 	    	toEntity.setTags(candidate.searchResult.getTags());
 	    	toEntity.addAllTags(getExecution().getTags());
+	    	// TODO as of now, setting EntityType to dataset is always correct
+	    	// if queryservices are added which incorporate databases also, 
+	    	// distinguish the types here
+	    	toEntity.setEntityType(EntityType.dataset);
 	    	toEntity.setIdentifier(candidate.searchResult.getIdentifier());
 	        if (candidate.searchResult.getTitles() != null 
 	        		&& candidate.searchResult.getTitles().size()>0) {
@@ -245,6 +250,10 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	    	Entity referencedInstance = new Entity();
 	        referencedInstance.setTags(candidate.searchResult.getTags());
 	        referencedInstance.addAllTags(getExecution().getTags());
+	        // TODO as of now, setting EntityType to dataset is always correct
+	    	// if queryservices are added which incorporate databases also, 
+	    	// distinguish the types here
+	        referencedInstance.setEntityType(EntityType.dataset);
 	        referencedInstance.setIdentifier(candidate.searchResult.getIdentifier());
 	        if(candidate.searchResult.getTitles() != null && candidate.searchResult.getTitles().size()>0) {
 	            referencedInstance.setName(candidate.searchResult.getTitles().get(0));

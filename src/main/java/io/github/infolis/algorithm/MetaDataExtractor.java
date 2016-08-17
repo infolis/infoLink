@@ -2,6 +2,7 @@ package io.github.infolis.algorithm;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
@@ -82,7 +83,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         //TODO make priorities configurable...
         numericInfo = InformationExtractor.sortNumericInfo(numericInfo);
         entity.setNumericInfo(InformationExtractor.sortNumericInfo(numericInfo)); 
-        
+        entity.setEntityType(EntityType.citedData);
         entity.setIdentifier(InformationExtractor.extractDOI(ref));
         entity.setURL(InformationExtractor.extractURL(ref));
         //TODO entity.setCreator(InformationExtractor.extractCreator(ref));

@@ -56,6 +56,26 @@ public class Entity extends BaseModel {
     public Entity(String name) {
         this.name = name;
     }
+    
+    // copy all attributes except the uri
+    public Entity(Entity copyFrom) {
+    	this.name = copyFrom.getName();
+    	this.identifier = copyFrom.getIdentifier();
+    	this.url = copyFrom.getURL();
+    	this.numericInfo = copyFrom.getNumericInfo();
+    	this.reliability = copyFrom.getReliability();
+    	this.alternativeNames = copyFrom.getAlternativeNames();
+    	this.abstractText = copyFrom.getAbstractText();
+    	this.authors = copyFrom.getAuthors();
+    	this.subjects = copyFrom.getSubjects();
+    	this.language = copyFrom.getLanguage();
+    	this.spatial = copyFrom.getSpatial();
+    	
+    	this.setTags(copyFrom.getTags());
+    	
+    	this.textualReferences = copyFrom.getTextualReferences();
+    	this.associations = copyFrom.getAssociations();
+    }
 
     public Entity() {
     }

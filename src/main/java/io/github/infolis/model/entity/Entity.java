@@ -38,7 +38,7 @@ public class Entity extends BaseModel {
 
     @XmlAttribute
     private String name;
-    private String identifier;
+    private List<String> identifiers = new ArrayList<>();
     private String url;
     private Collection<TextualReference> textualReferences;
 
@@ -91,8 +91,8 @@ public class Entity extends BaseModel {
     /**
      * @return the identifier
      */
-    public String getIdentifier() {
-        return identifier;
+    public List<String> getIdentifiers() {
+        return this.identifiers;
     }
 
     public String getURL() {
@@ -106,8 +106,15 @@ public class Entity extends BaseModel {
     /**
      * @param identifier the identifier to set
      */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setIdentifiers(List<String> identifiers) {
+        this.identifiers = identifiers;
+    }
+    
+    public void addIdentifier(String identifier) {
+    	if (null == this.identifiers) {
+    		this.identifiers = new ArrayList<>();
+    	}
+        this.identifiers.add(identifier);
     }
 
     /**

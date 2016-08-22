@@ -106,7 +106,7 @@ public class DataciteQueryService extends QueryService {
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
-    		doi = entity.getIdentifier();
+    		doi = entity.getIdentifiers().get(0);
     	}
     	return constructQueryURL(title, pubDate, doi, this.getMaxNumber());
     }

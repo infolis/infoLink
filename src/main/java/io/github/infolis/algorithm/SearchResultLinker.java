@@ -141,7 +141,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	    	Entity referencedInstance = new Entity();
 	        referencedInstance.setTags(searchResult.getTags());
 	        referencedInstance.addAllTags(getExecution().getTags());
-	        referencedInstance.setIdentifier(searchResult.getIdentifier());
+	        referencedInstance.addIdentifier(searchResult.getIdentifier());
 	        if(searchResult.getTitles() != null && searchResult.getTitles().size()>0) {
 	            referencedInstance.setName(searchResult.getTitles().get(0));
 	        }

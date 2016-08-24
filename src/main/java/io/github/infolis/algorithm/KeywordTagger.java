@@ -71,7 +71,8 @@ public class KeywordTagger extends BaseAlgorithm {
         for (Entity ent : entitiesForKeyowrdDetection) {
             IflRecord r = new IflRecord();
             r.setAbstractText(ent.getAbstractText());
-            r.setIdentifier(ent.getIdentifier());
+            // TODO more than one identifier for IflRecord?
+            r.setIdentifier(ent.getIdentifiers().get(0));
             r.setOrigin(ent.getUri());
             //if there are any given subject headings/original keywords
             r.setSubjectHeadings(null);

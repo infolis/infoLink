@@ -101,7 +101,7 @@ public class DaraHTMLQueryService extends QueryService {
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
-    		doi = entity.getIdentifier();
+    		doi = entity.getIdentifiers().get(0);
     	}
     	// resourceType field in da|ra: "2" denotes dataset
     	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");

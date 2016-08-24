@@ -6,6 +6,8 @@ import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import io.github.infolis.model.entity.Entity;
 
@@ -123,19 +125,19 @@ public class MetaDataExtractorTest extends InfolisBaseTest {
         entity = mde.extractMetadata(new TextualReference("the reference to the 2nd wave of the", "Eurobarometer", "56.1 is to be extracted as", "document", "pattern","ref"));
         assertEquals("Eurobarometer", entity.getName());
         assertEquals(Arrays.asList("56.1", "2"), entity.getNumericInfo());
-        assertEquals("", entity.getIdentifier());
+        assertTrue(entity.getIdentifiers().isEmpty());
         assertEquals("", entity.getURL());
         
         entity = mde.extractMetadata(new TextualReference("the reference to the 2nd wave of the", "10.4232/1.2525", "2000 is to be extracted as", "document", "pattern","ref"));
         assertEquals("", entity.getName());
         assertEquals(Arrays.asList("2000", "2"), entity.getNumericInfo());
-        assertEquals("10.4232/1.2525", entity.getIdentifier());
+        assertEquals("10.4232/1.2525", entity.getIdentifiers().get(0));
         
         entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", "document", "pattern","ref"));
         assertEquals("Studierendensurvey", entity.getName());
         assertEquals(Arrays.asList(), entity.getNumericInfo());
         assertEquals(0, entity.getNumericInfo().size());
-        assertEquals("", entity.getIdentifier());
+        assertTrue(entity.getIdentifiers().isEmpty());
         
         entity = mde.extractMetadata(new TextualReference("In this snippet, the reference", "Sozio-ökonomisches Panel", "of any year is to", "document", "pattern","ref"));
         assertEquals("Sozio oekonomisches Panel", entity.getName());

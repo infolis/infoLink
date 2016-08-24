@@ -61,7 +61,7 @@ public class SearchDoisAndCreateLinksTest extends InfolisBaseTest {
         	log.debug("created link from " + el.getFromEntity() + " to " + el.getToEntity());
         	Entity targetEntity = dataStoreClient.get(Entity.class, el.getToEntity());
         	assertEquals("German General Social Survey - ALLBUS 2010", targetEntity.getName());
-        	assertEquals("10.4232/1.11692", (targetEntity.getIdentifier()));
+        	assertEquals("10.4232/1.11692", (targetEntity.getIdentifiers().get(0)));
         	TextualReference textRef = dataStoreClient.get(TextualReference.class, el.getLinkReason());
         	assertEquals("infolisFile_1", textRef.getTextFile());
         }

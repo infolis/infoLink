@@ -85,7 +85,6 @@ public class TextAndMetaDataExtractorTest extends InfolisBaseTest {
         assertTrue(e.getSubjects().size()==9);
         log.debug("ids: " + e.getIdentifiers());
         assertEquals(Arrays.asList(
-        		"oai:econstor.eu:10419/100000",
         		"Economics: The Open-Access, Open-Assessment E-Journal 8 2014-25 1-58",
         		"doi:10.5018/economics-ejournal.ja.2014-25",
         		"http://hdl.handle.net/10419/100000",

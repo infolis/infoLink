@@ -65,7 +65,13 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                         DocumentBuilder db = dbf.newDocumentBuilder();
                         Document doc = db.parse(metaFile);
-                        e.addIdentifier(doc.getElementsByTagName("identifier").item(0).getTextContent());
+                        // identifier here describes metadata record, not the publication. 
+                        // thus, ignore
+                        /*try {
+                        	e.addIdentifier(doc.getElementsByTagName("identifier").item(0).getTextContent());
+                        } catch (NullPointerException npe) {
+                        	;
+                        }*/
                         e.setAbstractText(doc.getElementsByTagName("dc:description").item(0).getTextContent());
                         e.setName(doc.getElementsByTagName("dc:title").item(0).getTextContent());
                         
@@ -116,10 +122,6 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
         }
         if ((null == exec.getMetaDataFiles() || exec.getMetaDataFiles().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one metadata file to the according input file!");
-        }
-        if (null == exec.isTokenize()) {
-            warn(log, "\"tokenize\" field unspecified. Defaulting to \"false\".");
-            this.getExecution().setTokenize(false);
         }
     }
 

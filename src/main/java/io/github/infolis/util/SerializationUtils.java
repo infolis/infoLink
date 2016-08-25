@@ -184,8 +184,8 @@ public class SerializationUtils {
 
 	/**
 	 * Create csv file from entity links. 
-	 * Format: fromEntity.getIdentifier()|fromEntity.getName()|linkReason.getTextFile()
-	 * 			|toEntity.getIdentifier()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
+	 * Format: fromEntity.getIdentifiers()|fromEntity.getName()|linkReason.getTextFile()
+	 * 			|toEntity.getIdentifiers()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
 	 * 
 	 * @param entityLinks
 	 * @param client
@@ -198,7 +198,7 @@ public class SerializationUtils {
 			EntityLink link = client.get(EntityLink.class, linkUri);
 			Entity fromEntity = client.get(Entity.class, link.getFromEntity());
 			Entity toEntity = client.get(Entity.class, link.getToEntity());
-			row.add(fromEntity.getIdentifier());
+			row.add(String.join(";", fromEntity.getIdentifiers()));
 			row.add(fromEntity.getName());
 			String textualReferenceString = " ";
 			if (null != link.getLinkReason() && !link.getLinkReason().isEmpty()) {
@@ -206,7 +206,7 @@ public class SerializationUtils {
 				row.add(client.get(InfolisFile.class, ref.getTextFile()).getFileName());
 				textualReferenceString = ref.toPrettyString();
 			} else row.add(" ");
-			row.add(toEntity.getIdentifier());
+			row.add(String.join(";", toEntity.getIdentifiers()));
 			row.add(toEntity.getName());
 			row.add(toEntity.getNumericInfo().toString());
 			row.add(textualReferenceString);

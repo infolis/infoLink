@@ -24,7 +24,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class for all InFoLiS entities, e.g. patterns, datasets, publications.
+ * Class for InFoLiS entities, e.g. datasets, cited data and publications.
  *
  * @author kata
  *
@@ -39,7 +39,7 @@ public class Entity extends BaseModel {
 
     @XmlAttribute
     private String name;
-    private String identifier;
+    private List<String> identifiers = new ArrayList<>();
     private String url;
     private EntityType entityType;
     private Collection<TextualReference> textualReferences;
@@ -62,7 +62,7 @@ public class Entity extends BaseModel {
     // copy all attributes except the uri
     public Entity(Entity copyFrom) {
     	this.name = copyFrom.getName();
-    	this.identifier = copyFrom.getIdentifier();
+    	this.identifiers = copyFrom.getIdentifiers();
     	this.url = copyFrom.getURL();
     	this.numericInfo = copyFrom.getNumericInfo();
     	this.reliability = copyFrom.getReliability();
@@ -122,8 +122,8 @@ public class Entity extends BaseModel {
     /**
      * @return the identifier
      */
-    public String getIdentifier() {
-        return identifier;
+    public List<String> getIdentifiers() {
+        return this.identifiers;
     }
 
     public String getURL() {
@@ -137,8 +137,15 @@ public class Entity extends BaseModel {
     /**
      * @param identifier the identifier to set
      */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setIdentifiers(List<String> identifiers) {
+        this.identifiers = identifiers;
+    }
+    
+    public void addIdentifier(String identifier) {
+    	if (null == this.identifiers) {
+    		this.identifiers = new ArrayList<>();
+    	}
+        this.identifiers.add(identifier);
     }
 
     /**

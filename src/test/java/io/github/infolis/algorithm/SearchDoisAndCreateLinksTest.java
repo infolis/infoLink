@@ -65,7 +65,7 @@ public class SearchDoisAndCreateLinksTest extends InfolisBaseTest {
         el = createdLinks.get(1);
         Entity targetEntity = dataStoreClient.get(Entity.class, el.getToEntity());
         assertEquals("German General Social Survey - ALLBUS 2010", targetEntity.getName());
-        assertEquals("10.4232/1.11692", (targetEntity.getIdentifier()));
+        assertEquals("10.4232/1.11692", (targetEntity.getIdentifiers().get(0)));
     }
 
     public List<String> postQueryServices() throws IOException {

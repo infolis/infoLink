@@ -67,7 +67,13 @@ public class ReferenceLinker extends BaseAlgorithm {
 		for (int i = 0; i < tempEntity.getNumericInfo().size(); i++) {
 			query.put("numericInfo", tempEntity.getNumericInfo().get(i));
 		}
-		query.put("identifier", tempEntity.getIdentifier());
+		// TODO one matching id should be enough provided that ids are really unique.. 
+		// other IDs should be added in case they are missing?
+		// (however, with the current data, there is always exactly one identifier
+		// so this problem does not occur)
+		for (String id : tempEntity.getIdentifiers()) {
+			query.put("identifier", id);
+		}
 		List<Entity> entitiesInDatabase = getOutputDataStoreClient().search(Entity.class, query);
 		for (Entity entityInDatabase : entitiesInDatabase) {
 			// make sure entityInDatabase does not contain additional numeric info
@@ -75,7 +81,8 @@ public class ReferenceLinker extends BaseAlgorithm {
 			// make sure all fields match
 			if ((entityInDatabase.getNumericInfo().equals(tempEntity.getNumericInfo())) 
 					&& (entityInDatabase.getName().equals(tempEntity.getName()))
-					&& (entityInDatabase.getIdentifier().equals(tempEntity.getIdentifier()))) {
+					&& (new HashSet<String>(entityInDatabase.getIdentifiers())
+							.equals(new HashSet<String>(tempEntity.getIdentifiers())))) {
 				debug(log, "Found entity in datastore: " + entityInDatabase.getUri());
 				return entityInDatabase.getUri();
 			}
@@ -106,7 +113,13 @@ public class ReferenceLinker extends BaseAlgorithm {
 		for (int i = 0; i < tempEntity.getNumericInfo().size(); i++) {
 			query.put("numericInfo", tempEntity.getNumericInfo().get(i));
 		}
-		query.put("identifier", tempEntity.getIdentifier());
+		// TODO one matching id should be enough provided that ids are really unique.. 
+		// other IDs should be added in case they are missing?
+		// (however, with the current data, there is always exactly one identifier
+		// so this problem does not occur)
+		for (String id : tempEntity.getIdentifiers()) {
+			query.put("identifier", id);
+		}
 		List<Entity> entitiesInDatabase = getOutputDataStoreClient().search(Entity.class, query);
 		for (Entity entityInDatabase : entitiesInDatabase) {
 			// make sure entityInDatabase does not contain additional numeric info

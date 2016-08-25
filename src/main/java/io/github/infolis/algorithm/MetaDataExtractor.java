@@ -38,7 +38,7 @@ public class MetaDataExtractor extends BaseAlgorithm {
         
         if ((null == entity.getName() || entity.getName().isEmpty()) &&
         	entity.getNumericInfo().isEmpty() &&
-        	(null == entity.getIdentifier() || entity.getIdentifier().isEmpty()) &&
+        	(null == entity.getIdentifiers() || entity.getIdentifiers().isEmpty()) &&
         	(null == entity.getURL() || entity.getURL().isEmpty())) {
         	error(log, "Could not extract metadata for reference {} ", ref);
         	getExecution().setStatus(ExecutionStatus.FAILED);
@@ -84,7 +84,8 @@ public class MetaDataExtractor extends BaseAlgorithm {
         numericInfo = InformationExtractor.sortNumericInfo(numericInfo);
         entity.setNumericInfo(InformationExtractor.sortNumericInfo(numericInfo)); 
         entity.setEntityType(EntityType.citedData);
-        entity.setIdentifier(InformationExtractor.extractDOI(ref));
+        String identifier = InformationExtractor.extractDOI(ref);
+        if (!"".equals(identifier)) entity.addIdentifier(identifier);
         entity.setURL(InformationExtractor.extractURL(ref));
         //TODO entity.setCreator(InformationExtractor.extractCreator(ref));
         return entity;	

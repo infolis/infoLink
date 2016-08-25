@@ -9,7 +9,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+
 import org.apache.commons.io.IOUtils;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,9 +83,14 @@ public class TextAndMetaDataExtractorTest extends InfolisBaseTest {
                 + "interior, or 'possible trinity' is quite generally not only possible but optimal, since the CB obtains a lower loss when it implements a policy with"
                 + " all three interventions."));
         assertTrue(e.getSubjects().size()==9);
-        assertTrue(e.getIdentifier().equals("oai:econstor.eu:10419/100000"));
-        System.out.println(e.getURL());
-        assertTrue(e.getURL().equals("doi:10.5018/economics-ejournal.ja.2014-25"));
+        log.debug("ids: " + e.getIdentifiers());
+        assertEquals(Arrays.asList(
+        		"Economics: The Open-Access, Open-Assessment E-Journal 8 2014-25 1-58",
+        		"doi:10.5018/economics-ejournal.ja.2014-25",
+        		"http://hdl.handle.net/10419/100000",
+        		"ppn:789521210",
+        		"RePEc:zbw:ifweej:201425"),
+        		e.getIdentifiers());
     }
 
     private void writeFile(InfolisFile inFile) {

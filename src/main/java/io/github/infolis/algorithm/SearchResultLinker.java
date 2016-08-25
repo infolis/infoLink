@@ -215,7 +215,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	    	// if queryservices are added which incorporate databases also, 
 	    	// distinguish the types here
 	    	toEntity.setEntityType(EntityType.dataset);
-	    	toEntity.setIdentifier(candidate.searchResult.getIdentifier());
+	    	toEntity.addIdentifier(candidate.searchResult.getIdentifier());
 	        if (candidate.searchResult.getTitles() != null 
 	        		&& candidate.searchResult.getTitles().size()>0) {
 	        	toEntity.setName(candidate.searchResult.getTitles().get(0));
@@ -254,7 +254,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 	    	// if queryservices are added which incorporate databases also, 
 	    	// distinguish the types here
 	        referencedInstance.setEntityType(EntityType.dataset);
-	        referencedInstance.setIdentifier(candidate.searchResult.getIdentifier());
+	        referencedInstance.addIdentifier(candidate.searchResult.getIdentifier());
 	        if(candidate.searchResult.getTitles() != null && candidate.searchResult.getTitles().size()>0) {
 	            referencedInstance.setName(candidate.searchResult.getTitles().get(0));
 	        }

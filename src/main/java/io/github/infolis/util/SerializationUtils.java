@@ -200,12 +200,16 @@ public class SerializationUtils {
 			Entity toEntity = client.get(Entity.class, link.getToEntity());
 			row.add(String.join(";", fromEntity.getIdentifiers()));
 			row.add(fromEntity.getName());
-			TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
-			row.add(client.get(InfolisFile.class, ref.getTextFile()).getFileName());
+			String textualReferenceString = " ";
+			if (null != link.getLinkReason() && !link.getLinkReason().isEmpty()) {
+				TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
+				row.add(client.get(InfolisFile.class, ref.getTextFile()).getFileName());
+				textualReferenceString = ref.toPrettyString();
+			} else row.add(" ");
 			row.add(String.join(";", toEntity.getIdentifiers()));
 			row.add(toEntity.getName());
 			row.add(toEntity.getNumericInfo().toString());
-			row.add(ref.toPrettyString());
+			row.add(textualReferenceString);
 			csv += row.toString() + "\n";
 		}
 		return csv.toString();

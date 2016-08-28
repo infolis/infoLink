@@ -49,6 +49,7 @@ import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
@@ -187,6 +188,7 @@ public class CommandLineExecuter {
                                     identifier = String.valueOf(entityObject.get("identifier"));
                                 }
                                 // TODO set tags
+                                // TODO set entityType
                                 Entity entity = new Entity();
                                 entity.setTags(tags);
                                 entity.setName(name);
@@ -494,11 +496,11 @@ public class CommandLineExecuter {
 
                 infolisFile.setFileName(file.toString());
                 infolisFile.setMediaType(mimetype);
-                //TODO: use either set or list for tags
                 infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
                 
                 Entity entity = new Entity();
+                entity.setEntityType(EntityType.publication);
                 dataStoreClient.post(Entity.class, entity);
                 infolisFile.setManifestsEntity(entity.getUri());
                 

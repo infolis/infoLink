@@ -46,16 +46,21 @@ public class EntityLink extends BaseModel {
 		this.entityRelations = entityRelations;
 	}
 	
-	enum EntityRelation {
+	public enum EntityRelation {
 		part_of_temporal,
 	    part_of_spatial,
 	    parts_of_temporal,
 	    parts_of_spatial,
+	    superset_of_temporal,
+	    superset_of_spatial,
 	    version_of,
 	    part_of_confidential,
 	    part_of_sample,
 	    part_of_supplement,
-	    part_of
+	    part_of,
+	    same_as_temporal,
+	    same_as_spatial,
+	    unknown
 	};
 	
 	public void setEntityRelations(Set<EntityRelation> entityRelations) {

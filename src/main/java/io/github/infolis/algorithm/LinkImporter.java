@@ -94,6 +94,7 @@ public class LinkImporter extends BaseAlgorithm {
 					try {
 						entity.setTags(new HashSet<>(toList(entityValues.get("tags"))));
 					} catch (NullPointerException npe) {};
+					entity.addAllTags(getExecution().getTags());
 					try {
 						entity.setURL(entityValues.getString("url"));
 					} catch (NullPointerException npe) {};
@@ -101,11 +102,13 @@ public class LinkImporter extends BaseAlgorithm {
 					String uri = entityEntry.getKey();
 					getOutputDataStoreClient().put(Entity.class, entity, uri);
 					importedEntities.add(entity.getUri());
+					debug(log, "imported entity {}", entity.getUri());
 					
 					//create link from entity to corresponding entities in the ontology
 					String ontologyEntity = getOntologyEntity(entity);
 					if (null != ontologyEntity)  {
 						EntityLink ontoLink = createLink(entity.getUri(), ontologyEntity, new HashSet<EntityRelation>(Arrays.asList(EntityRelation.same_as)));
+						ontoLink.setTags(getExecution().getTags());
 						getOutputDataStoreClient().post(EntityLink.class, ontoLink);
 						importedLinks.add(ontoLink.getUri());
 					}
@@ -114,7 +117,6 @@ public class LinkImporter extends BaseAlgorithm {
 			}
 			else if (values.getKey().equals("entityLink")) {
 				JsonObject links = (JsonObject)(values.getValue());
-				log.debug(links.toString());
 				for (Entry<String, JsonValue> linkEntry : links.entrySet()) {
 					JsonObject linkValues = (JsonObject)(linkEntry.getValue());
 					EntityLink link = new EntityLink();
@@ -136,6 +138,7 @@ public class LinkImporter extends BaseAlgorithm {
 					try {
 						link.setTags(new HashSet<>(toList(linkValues.get("tags"))));
 					} catch (NullPointerException npe) {};
+					link.addAllTags(getExecution().getTags());
 					try {
 						link.setToEntity(linkValues.getString("toEntity"));
 					} catch (NullPointerException npe) {
@@ -146,6 +149,7 @@ public class LinkImporter extends BaseAlgorithm {
 					String uri = linkEntry.getKey();
 					getOutputDataStoreClient().put(EntityLink.class, link, uri);
 					importedLinks.add(link.getUri());
+					debug(log, "imported entityLink {}", link.getUri());
 				}
 			}
 		}

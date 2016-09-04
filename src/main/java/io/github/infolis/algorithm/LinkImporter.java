@@ -4,9 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
@@ -15,7 +21,11 @@ import org.slf4j.LoggerFactory;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.model.EntityType;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.EntityLink.EntityRelation;
 
 /**
  * Class for importing entities and entityLinks. Entities are connected to entities 
@@ -38,25 +48,145 @@ public class LinkImporter extends BaseAlgorithm {
 	 * to corresponding entities in the ontology.
 	 */
 	private void importLinkFile(InfolisFile linkFile) throws IOException {
+		List<String> importedEntities = new ArrayList<>();
+		List<String> importedLinks = new ArrayList<>();
+		
 		InputStream in = getInputFileResolver().openInputStream(linkFile);
 		BufferedReader streamReader = new BufferedReader(new InputStreamReader(in, "UTF-8")); 
 		JsonObject jsonObject = Json.createReader(streamReader).readObject();
-		// first pass: create all entities
+
 		for (Entry<String, JsonValue> values : jsonObject.entrySet()) {
 			if (values.getKey().equals("entity")) {
-				//create entity
-				//post entity
-				//create link from entity to corresponding entities in the ontology
+				JsonObject entities = (JsonObject)(values.getValue());
+				for (Entry<String, JsonValue> entityEntry : entities.entrySet()) {
+					JsonObject entityValues = (JsonObject)(entityEntry.getValue());
+					Entity entity = new Entity();
+					try {
+						entity.setIdentifiers(toList(entityValues.get("identifiers")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setAbstractText(entityValues.getString("abstractText"));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setAlternativeNames(toList(entityValues.get("alternativeNames")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setAuthors(toList(entityValues.get("authors")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setEntityType(EntityType.valueOf(EntityType.class, entityValues.getString("entityType")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setLanguage(entityValues.getString("language"));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setName(entityValues.getString("name"));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setNumericInfo(toList(entityValues.get("numericInfo")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setSpatial(new HashSet<>(toList(entityValues.get("spatial"))));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setSubjects(toList(entityValues.get("subjects")));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setTags(new HashSet<>(toList(entityValues.get("tags"))));
+					} catch (NullPointerException npe) {};
+					try {
+						entity.setURL(entityValues.getString("url"));
+					} catch (NullPointerException npe) {};
+
+					String uri = entityEntry.getKey();
+					getOutputDataStoreClient().put(Entity.class, entity, uri);
+					importedEntities.add(entity.getUri());
+					
+					//create link from entity to corresponding entities in the ontology
+					String ontologyEntity = getOntologyEntity(entity);
+					if (null != ontologyEntity)  {
+						EntityLink ontoLink = createLink(entity.getUri(), ontologyEntity, new HashSet<EntityRelation>(Arrays.asList(EntityRelation.same_as)));
+						getOutputDataStoreClient().post(EntityLink.class, ontoLink);
+						importedLinks.add(ontoLink.getUri());
+					}
+					
+				};
+			}
+			else if (values.getKey().equals("entityLink")) {
+				JsonObject links = (JsonObject)(values.getValue());
+				log.debug(links.toString());
+				for (Entry<String, JsonValue> linkEntry : links.entrySet()) {
+					JsonObject linkValues = (JsonObject)(linkEntry.getValue());
+					EntityLink link = new EntityLink();
+					try {
+						link.setConfidence(Double.valueOf(linkValues.get("confidence").toString()));
+					} catch (NullPointerException npe) {};
+					try {
+						link.setEntityRelations(new HashSet<>(toEntityRelationList(linkValues.get("entityRelations"))));
+					} catch (NullPointerException npe) {};
+					try {
+						link.setFromEntity(linkValues.getString("fromEntity"));
+					} catch (NullPointerException npe) {
+						warn(log, "entityLink missing fromEntity. Ignoring link");
+						continue;
+					};
+					try {
+						link.setLinkReason(linkValues.getString("linkReason"));
+					} catch (NullPointerException npe) {};
+					try {
+						link.setTags(new HashSet<>(toList(linkValues.get("tags"))));
+					} catch (NullPointerException npe) {};
+					try {
+						link.setToEntity(linkValues.getString("toEntity"));
+					} catch (NullPointerException npe) {
+						warn(log, "entityLink missing toEntity. Ignoring link");
+						continue;
+					};
+					
+					String uri = linkEntry.getKey();
+					getOutputDataStoreClient().put(EntityLink.class, link, uri);
+					importedLinks.add(link.getUri());
+				}
 			}
 		}
-		// second pass: create all links
-		for (Entry<String, JsonValue> values : jsonObject.entrySet()) {
-			if (values.getKey().equals("entityLink")) {
-				//create links
-				//post links
-			}
-			
+		getExecution().setLinkedEntities(importedEntities);
+		getExecution().setLinks(importedLinks);
+	}
+	
+	private List<EntityRelation> toEntityRelationList(JsonValue jsonValue) {
+		List<EntityRelation> list = new ArrayList<>();
+		JsonArray array = (JsonArray) jsonValue;
+		for (JsonValue val : array) {
+			list.add(EntityRelation.valueOf(EntityRelation.class, val.toString().replaceAll("\"", "")));
 		}
+		return list;
+	}
+	
+	private List<String> toList(JsonValue jsonValue) {
+		List<String> list = new ArrayList<>();
+		JsonArray array = (JsonArray) jsonValue;
+		for (JsonValue val : array) {
+			list.add(val.toString());
+		}
+		return list;
+	}
+	
+	private EntityLink createLink(String fromEntityUri, String toEntityUri, Set<EntityRelation> entityRelations) {
+		EntityLink link = new EntityLink();
+		link.setFromEntity(fromEntityUri);
+		link.setToEntity(toEntityUri);
+		link.setEntityRelations(entityRelations);
+		return link;
+	}
+	
+	private String getOntologyEntity(Entity entity) {
+		String ontologyUri = "dataset_" + entity.getIdentifiers().get(0)
+				.replace("/", "")
+				.replace(".", "");
+		Entity ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
+		if (null != ontologyEntity) {
+			return ontologyUri;
+		} else return null;
 	}
 
 	@Override

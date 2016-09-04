@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.SerializationUtils;
 
@@ -37,7 +39,21 @@ public class LinkImporterTest extends InfolisBaseTest {
 		exec.setAlgorithm(LinkImporter.class);
 		exec.instantiateAlgorithm(dataStoreClient, dataStoreClient, FileResolverFactory.local(), fileResolver).run();
 		log.debug("links: " + exec.getLinks());
+		for (EntityLink link : dataStoreClient.get(EntityLink.class, exec.getLinks())) {
+			log.debug("confidence: " + link.getConfidence());
+			log.debug("fromEntity: " + link.getFromEntity());
+			log.debug("toEntity: " + link.getToEntity());
+			log.debug("linkReason: " + link.getLinkReason());
+			log.debug("entityRelations: " + link.getEntityRelations()); 
+			log.debug("tags: " + link.getTags());
+		}
 		log.debug("entities: " + exec.getLinkedEntities());
+		for (Entity entity : dataStoreClient.get(Entity.class, exec.getLinkedEntities())) {
+			log.debug("name: " + entity.getName());
+			log.debug("numericInfo: " + entity.getNumericInfo());
+			log.debug("entityType: " + entity.getEntityType());
+			log.debug("identifiers: " + entity.getIdentifiers());
+		}
 	}
 	
 	private List<String> postFiles(File dir, String mimetype) throws IOException {
@@ -51,6 +67,8 @@ public class LinkImporterTest extends InfolisBaseTest {
             infolisFile.setMediaType(mimetype);
             infolisFile.setFileStatus("AVAILABLE");
             infolisFiles.add(infolisFile);
+            
+            // TODO load ontology and test linking to ontology entities
         }
         return dataStoreClient.post(InfolisFile.class, infolisFiles);
     }

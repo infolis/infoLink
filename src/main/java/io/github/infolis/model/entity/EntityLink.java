@@ -59,7 +59,9 @@ public class EntityLink extends BaseModel {
 	    part_of,
 	    same_as_temporal,
 	    same_as_spatial,
-	    unknown
+	    unknown,
+	    same_as,
+	    references
 	};
 	
 	public void setEntityRelations(Set<EntityRelation> entityRelations) {

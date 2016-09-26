@@ -130,7 +130,9 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
             CandidateTargetEntity searchResultCandidate = SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
             if (0 != weights[0]) confidenceValue = weights[0] * searchResultCandidate.score;
             log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
-            confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
+            //confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
+            // TODO instead of value "0.5", use reliability of query service
+            confidenceValue += weights[1] * 0.5;
             log.debug("Adding score based on list index. Weight: " + weights[2]);
             // normalize: +1 to avoid NaN if only results contains only one search result
             confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));

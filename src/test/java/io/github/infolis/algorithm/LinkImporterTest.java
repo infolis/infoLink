@@ -51,6 +51,7 @@ public class LinkImporterTest extends InfolisBaseTest {
 		for (Entity entity : dataStoreClient.get(Entity.class, exec.getLinkedEntities())) {
 			log.debug("name: " + entity.getName());
 			log.debug("numericInfo: " + entity.getNumericInfo());
+			log.debug("versionInfo: " + entity.getVersionInfo());
 			log.debug("entityType: " + entity.getEntityType());
 			log.debug("identifiers: " + entity.getIdentifiers());
 		}

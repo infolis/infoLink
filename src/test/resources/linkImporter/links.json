@@ -2,6 +2,7 @@
     "entity": {
         "dataset_1": {
             "entityType": "dataset", 
+            "versionInfo": "1.0",
             "identifiers": [
                 "id1"
             ], 

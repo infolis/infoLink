@@ -92,6 +92,9 @@ public class LinkImporter extends BaseAlgorithm {
 						entity.setSubjects(toList(entityValues.get("subjects")));
 					} catch (NullPointerException npe) {};
 					try {
+						entity.setVersionInfo(entityValues.getString("versionInfo"));
+					} catch (NullPointerException npe) {};
+					try {
 						entity.setTags(new HashSet<>(toList(entityValues.get("tags"))));
 					} catch (NullPointerException npe) {};
 					entity.addAllTags(getExecution().getTags());

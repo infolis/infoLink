@@ -8,10 +8,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
+
+import io.github.infolis.InfolisConfig;
 
 /**
  * 
@@ -55,16 +58,28 @@ public class OntologyLinker extends MultiMatchesLinker {
 	 * @return
 	 */
 	private String getOntologyEntity(Entity entity, boolean onlyOntologyEntities) {
-		String ontologyUri = "dataset_" + entity.getIdentifiers().get(0)
+		String baseUri = "";
+		// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
+		if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
+			baseUri = InfolisConfig.getFrontendURI() + "/entity/";
+		}
+		String ontologyUri = baseUri + "dataset_" + entity.getIdentifiers().get(0)
 				.replace("/", "")
 				.replace(".", "");
-		Entity ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
-		if (null != ontologyEntity) {
-			return ontologyUri;
-		} else {
+		try {
+			Entity ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
+			
+			if (null != ontologyEntity) {
+				return ontologyUri;
+			} else {
+				if (onlyOntologyEntities) return null;
+				else return entity.getUri();
+			}
+		} catch (RuntimeException e) {
 			if (onlyOntologyEntities) return null;
 			else return entity.getUri();
 		}
+		
 	}
 	
 	protected List<String> refineLinksUsingOntology(List<String> links) {

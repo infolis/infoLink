@@ -1,15 +1,19 @@
 package io.github.infolis.algorithm;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
@@ -30,32 +34,29 @@ import io.github.infolis.model.entity.InfolisFile;
  */
 public class ReferenceEvaluator extends BaseAlgorithm {
 	
+	Set<Metadata> relevantFields = new HashSet<>();
+	
 	private InputStream goldstandard;
 	AnnotationHandler annotationHandler;
-	Set<Metadata> relevantFields;
 	List<Annotation> goldAnnotations;
 	
 	public ReferenceEvaluator(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
 			FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
-	}
-	
-	public void init(File goldFile, AnnotationHandler annotationHandler, Set<Metadata> relevantFields, boolean tokenize) throws IOException {
-		this.goldstandard = new FileInputStream(goldFile);
-		this.annotationHandler = annotationHandler;
-		this.relevantFields = relevantFields;
-		this.goldAnnotations = readAnnotations(tokenize);
-	}
-	
-	private void init() throws IOException {
-		InfolisFile goldFile = this.getInputDataStoreClient().get(InfolisFile.class, getExecution().getFirstInputFile());
-		this.goldstandard = this.getInputFileResolver().openInputStream(goldFile);
-		this.annotationHandler = new WebAnno3TsvHandler();
-		relevantFields = new HashSet<>();
+		
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b, Metadata.vague_title_b, Metadata.scale_b,
 				Metadata.year_b, Metadata.number_b, Metadata.version_b
 				));
+	}
+	
+	public void setRelevantFields(Set<Metadata> relevantFields) {
+		this.relevantFields = relevantFields;
+	}
+	
+	private void loadAnnotations(InfolisFile goldFile) throws IOException {
+		this.goldstandard = this.getInputFileResolver().openInputStream(goldFile);
+		this.annotationHandler = new WebAnno3TsvHandler();
 		this.goldAnnotations = readAnnotations(getExecution().isTokenize());
 	}
 	
@@ -72,7 +73,6 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		AnnotationHandler.compare(foundReferences, this.goldAnnotations, this.relevantFields);
 	}
 	
-	// TODO implement
 	/**
 	 * Compares the references contained in foundReferences to references in the gold annotations.
 	 * Computes precision (exact and partial matches) and recall.
@@ -80,17 +80,32 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 	 * @param foundReferences
 	 * @throws IOException 
 	 */
-	public void evaluate(List<TextualReference> foundReferences) throws IOException {
-		// 1. iterate through references, generate maps for each different textFile
-		// count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
-		compareToGoldstandard(foundReferences);
+	protected void evaluate(List<TextualReference> foundReferences, List<InfolisFile> goldFiles) throws IOException {
+		// 1. iterate through references, sort by text file names
+		ListMultimap<String, TextualReference> refFileMap = ArrayListMultimap.create();
+		for (TextualReference ref : foundReferences) {
+			String textFileName = getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getOriginalName();
+			refFileMap.put(Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replace(".txt", ""), ref);
+		}
+		// 2. iterate through gold files, sort by gold file names
+		Map<String, InfolisFile> goldFileMap = new HashMap<>();
+		for (InfolisFile goldFile : goldFiles) {
+			goldFileMap.put(Paths.get(goldFile.getOriginalName()).getFileName().toString().replace(".tsv", ""), goldFile);
+		}
+		// 3. evaluate references in every text file
+		for (String goldFilename : goldFileMap.keySet()) {
+			loadAnnotations(goldFileMap.get(goldFilename));
+			compareToGoldstandard(foundReferences);
+			// TODO count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
+		}
+		//TODO 4. aggregate scores for all files
+
 	}
 
 	@Override
 	public void execute() throws IOException {
-		init();
-		evaluate(getInputDataStoreClient().get(TextualReference.class, getExecution().getTextualReferences()));
-		
+		evaluate(getInputDataStoreClient().get(TextualReference.class, getExecution().getTextualReferences()),
+				getInputDataStoreClient().get(InfolisFile.class, getExecution().getInputFiles()));
 	}
 
 	@Override

@@ -24,11 +24,11 @@ public class EvaluatorTest extends InfolisBaseTest {
 		evaluator.setExecution(exec);
 		
 		Entity fromEntity1 = new Entity();
-		fromEntity1.setIdentifier("1");
+		fromEntity1.setIdentifiers(Arrays.asList("1"));
 		Entity toEntity1a = new Entity();
-		toEntity1a.setIdentifier("a");
+		toEntity1a.setIdentifiers(Arrays.asList("a"));
 		Entity toEntity1b = new Entity();
-		toEntity1b.setIdentifier("b");
+		toEntity1b.setIdentifiers(Arrays.asList("b"));
 		dataStoreClient.post(Entity.class, Arrays.asList(fromEntity1, toEntity1a, toEntity1b));
 		
 		EntityLink goldLink1 = new EntityLink(fromEntity1.getUri(), toEntity1a.getUri(), 0.0, "");
@@ -37,9 +37,9 @@ public class EvaluatorTest extends InfolisBaseTest {
 		
 		
 		Entity fromEntity2 = new Entity();
-		fromEntity2.setIdentifier("1");
+		fromEntity2.setIdentifiers(Arrays.asList("1"));
 		Entity toEntity2 = new Entity();
-		toEntity2.setIdentifier("a");
+		toEntity2.setIdentifiers(Arrays.asList("a"));
 		dataStoreClient.post(Entity.class, Arrays.asList(fromEntity2, toEntity2));
 		
 		EntityLink foundLink = new EntityLink(fromEntity2.getUri(), toEntity2.getUri(), 0.0, "");

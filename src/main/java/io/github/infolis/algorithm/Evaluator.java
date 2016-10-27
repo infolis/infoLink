@@ -60,12 +60,12 @@ public class Evaluator extends BaseAlgorithm {
 		for (EntityLink foundLink : foundLinks) {
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, foundLink.getFromEntity());
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, foundLink.getToEntity());
-			foundLinkMap.put(fromEntity.getIdentifier(), toEntity.getIdentifier());
+			foundLinkMap.put(fromEntity.getIdentifiers().get(0), toEntity.getIdentifiers().get(0));
 		}
 		for (EntityLink goldLink : goldLinks) {
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, goldLink.getFromEntity());
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, goldLink.getToEntity());
-			goldLinkMap.put(fromEntity.getIdentifier(), toEntity.getIdentifier());
+			goldLinkMap.put(fromEntity.getIdentifiers().get(0), toEntity.getIdentifiers().get(0));
 		}
 		
 		double precision = EvaluationUtils.getPrecision(flatten(goldLinkMap), flatten(foundLinkMap));

@@ -13,6 +13,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisConfig;
@@ -28,7 +29,7 @@ public class AnnotationHandlerTest {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(AnnotationHandlerTest.class);
 	
-	String inputWebAnno2 = String.join("\n", "#id=49",
+	static String inputWebAnno2 = String.join("\n", "#id=49",
 			"#text=der regelmäßige telefonische Gesundheitssurvey",
 			"49-1	der	O	O	O	_	_	_	_	",
 			"49-2	regelmäßige	O	O	O	_	_	_	_	",
@@ -43,7 +44,7 @@ public class AnnotationHandlerTest {
 			"50-4	Institutes,	I-Creator	I-webanno.custom.Dataset_	I-webanno.custom.Dataset_	_	_	_	_	",
 			"50-5	der	O	O	O	_	_	_	_	\n");
 	
-	String inputWebAnno3 = String.join("\n", 
+	static String inputWebAnno3 = String.join("\n", 
 			"#FORMAT=WebAnno TSV 3",
 			"#T_SP=webanno.custom.Dataset|Information|LeftContext|RightContext",
 			"#T_RL=webanno.custom.Metadata|MetadataforDataset|Relation|sameas|BT_webanno.custom.Dataset",
@@ -167,7 +168,7 @@ public class AnnotationHandlerTest {
 		AnnotationHandler.compare(textualReferences, annotations, relevantFields);
 	}
 	
-	@Test
+	@Ignore
 	public void testTokenizeAnnotations() throws IOException {
 		AnnotationHandler h = new WebAnno3TsvHandler();
 		/*String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");

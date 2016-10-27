@@ -109,7 +109,7 @@ public class ExampleChecker extends InfolisBaseTest {
     }
 
     protected void printFileNameOfContext(TextualReference sc) throws BadRequestException, ProcessingException {
-        String fileUri = sc.getFile();
+        String fileUri = sc.getTextFile();
         InfolisFile file = dataStoreClient.get(InfolisFile.class, fileUri);
         System.out.println("file: " + file.getFileName());
     }

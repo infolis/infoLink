@@ -102,12 +102,12 @@ public class ReliabilityBasedBootstrappingTest extends InfolisBaseTest {
 			TextualReference studyContext = dataStoreClient.get(TextualReference.class, s);
 			assertNotNull("StudyContext must have pattern set!", studyContext.getPattern());
 			assertNotNull("StudyContext must have term set!", studyContext.getReference());
-			assertNotNull("StudyContext must have file set!", studyContext.getFile());
+			assertNotNull("StudyContext must have file set!", studyContext.getTextFile());
 			InfolisPattern pat = dataStoreClient.get(InfolisPattern.class, studyContext.getPattern());
 			log.debug("Study Context:\n {}Pattern: {}", studyContext.toXML(), pat.getPatternRegex());
 			Entity e = dataStoreClient.get(Entity.class, studyContext.getMentionsReference());
 			log.debug("Entity: {}", e.getName());
-			InfolisFile f = dataStoreClient.get(InfolisFile.class, studyContext.getFile());
+			InfolisFile f = dataStoreClient.get(InfolisFile.class, studyContext.getTextFile());
 			log.debug("Filename: {}", f.getFileName());
 		}
 		log.debug(SerializationUtils.dumpExecutionLog(execution));

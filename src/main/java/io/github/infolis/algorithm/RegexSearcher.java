@@ -20,7 +20,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -56,7 +59,7 @@ public class RegexSearcher extends BaseAlgorithm {
         for (String patternURI : this.getExecution().getPatterns()) {
             log.trace(patternURI);
             InfolisPattern pattern = getOutputDataStoreClient().get(InfolisPattern.class, patternURI);
-            log.trace("Searching for pattern '%s'", pattern.getPatternRegex());
+            log.trace("Searching for pattern '{}'", pattern.getPatternRegex());
             Pattern p = Pattern.compile(pattern.getPatternRegex());
 
             // call m.find() as a thread: catastrophic backtracking may occur
@@ -81,7 +84,11 @@ public class RegexSearcher extends BaseAlgorithm {
                 log.trace("rightContext: " + rightContext);
                 if (null == leftContext || leftContext.isEmpty()) leftContext = " ";
                 if (null == rightContext || rightContext.isEmpty()) rightContext = " ";
-                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, file.getUri(), patternURI, file.getManifestsEntity());
+                Set<String> tagsToSet = getExecution().getTags();
+            	tagsToSet.addAll(file.getTags());
+                TextualReference textRef = new TextualReference(leftContext, referencedTerm, rightContext, 
+                		file.getUri(), patternURI, file.getManifestsEntity());
+                textRef.setTags(tagsToSet);
                 log.trace("added reference: " + textRef);
                 res.add(textRef);
 
@@ -112,7 +119,7 @@ public class RegexSearcher extends BaseAlgorithm {
             InfolisFile inputFile;
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;
@@ -127,8 +134,7 @@ public class RegexSearcher extends BaseAlgorithm {
             if (!inputFile.getMediaType().startsWith("text/plain")) {
                 // if the input file is a PDF file, convert it
                 if (inputFile.getMediaType().startsWith("application/pdf")) {
-                    Execution convertExec = new Execution();
-                    convertExec.setAlgorithm(TextExtractor.class);
+                    Execution convertExec = getExecution().createSubExecution(TextExtractor.class);
                     convertExec.setInputFiles(Arrays.asList(inputFile.getUri()));
                     // TODO wire this more efficiently so files are stored temporarily
                     Algorithm algo = convertExec.instantiateAlgorithm(this);

@@ -9,7 +9,6 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -34,15 +33,12 @@ public class TextualReference extends BaseModel {
 	private List<String>	leftWords;
 	@XmlTransient
 	private List<String>	rightWords;
-	@XmlElement(name = "leftContext")
 	private String			leftText;
-	@XmlElement(name = "rightContext")
 	private String			rightText;
 	@XmlAttribute
 	private String			reference;
 	@XmlAttribute
 	private String			textFile;
-	@XmlTransient
 	private String			pattern;
 	private String			mentionsReference;
 
@@ -77,11 +73,13 @@ public class TextualReference extends BaseModel {
 
 	public String toXML() {
 		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getReference()) + "\" textFile=\""
-				+ this.getFile() + "\">" + System.getProperty("line.separator") + "\t\t"
-				+ "<leftContext>" + this.getLeftText() + "</leftContext>"
-				+ System.getProperty("line.separator") + "\t\t" + "<rightContext>"
-				+ this.getRightText() + "</rightContext>" + System.getProperty("line.separator")
-                                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" + System.getProperty("line.separator")
+				+ this.getTextFile() + "\">" + System.getProperty("line.separator") + "\t\t"
+				+ "<leftText>" + this.getLeftText() + "</leftText>"
+				+ System.getProperty("line.separator") + "\t\t" + "<rightText>"
+				+ this.getRightText() + "</rightText>" + System.getProperty("line.separator")
+				+ "\t\t<pattern>" + this.getPattern() + "</pattern>"
+                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" 
+				+ System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
 
@@ -154,11 +152,11 @@ public class TextualReference extends BaseModel {
 		this.reference = reference;
 	}
 
-	public String getFile() {
+	public String getTextFile() {
 		return textFile;
 	}
 
-	public void setFile(String file) {
+	public void setTextFile(String file) {
 		this.textFile = file;
 	}
 

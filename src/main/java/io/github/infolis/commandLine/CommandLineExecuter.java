@@ -36,8 +36,8 @@ import org.kohsuke.args4j.ParserProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Level;
 import io.github.infolis.algorithm.Algorithm;
+import io.github.infolis.algorithm.ComplexAlgorithm;
 import io.github.infolis.algorithm.Indexer;
 import io.github.infolis.algorithm.SearchResultLinker;
 import io.github.infolis.algorithm.LuceneSearcher;
@@ -49,6 +49,7 @@ import io.github.infolis.datastore.DataStoreStrategy;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.InfolisFile;
@@ -56,6 +57,7 @@ import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.infolink.querying.QueryService;
 import io.github.infolis.util.RegexUtils;
 import io.github.infolis.util.SerializationUtils;
+import org.kohsuke.args4j.CmdLineException;
 
 /**
  * CLI to Infolis to make it easy to run an execution and store its results in a
@@ -69,7 +71,7 @@ public class CommandLineExecuter {
     private DataStoreClient dataStoreClient = DataStoreClientFactory.create(DataStoreStrategy.TEMPORARY);
     private FileResolver fileResolver = FileResolverFactory.create(DataStoreStrategy.LOCAL);
 
-    @Option(name = "--text-dir", usage = "Directory containing *.txt", metaVar = "TEXTDIR", required = true)
+    @Option(name = "--text-dir", usage = "Directory containing *.txt", metaVar = "TEXTDIR")
     private Path textDir;
 
     @Option(name = "--pdf-dir", usage = "Directory containing *.pdf", metaVar = "PDFDIR")
@@ -175,21 +177,25 @@ public class CommandLineExecuter {
                                 String name = "";
                                 String number = "";
                                 String identifier = "";
+                                Set<String> tags = new HashSet<>();
                                 if (entityObject.containsKey("name")) {
                                     name = String.valueOf(entityObject.get("name"));
                                 }
                                 if (entityObject.containsKey("number")) {
-                                    name = String.valueOf(entityObject.get("number"));
+                                    number = String.valueOf(entityObject.get("number"));
                                 }
                                 if (entityObject.containsKey("identifier")) {
-                                    name = String.valueOf(entityObject.get("identifier"));
+                                    identifier = String.valueOf(entityObject.get("identifier"));
                                 }
+                                // TODO set tags
+                                // TODO set entityType
                                 Entity entity = new Entity();
+                                entity.setTags(tags);
                                 entity.setName(name);
-                                List<String> numInfo = new ArrayList();
+                                List<String> numInfo = new ArrayList<>();
                                 numInfo.add(number);
                                 entity.setNumericInfo(numInfo);
-                                entity.setIdentifier(identifier);
+                                entity.addIdentifier(identifier);
                                 dataStoreClient.post(Entity.class, entity);
                                 entityURIs.add(entity.getUri());
                             }
@@ -269,6 +275,7 @@ public class CommandLineExecuter {
 
             Execution exec = new Execution();
             exec.setAlgorithm(LuceneSearcher.class);
+            exec.setTags(new HashSet<>(Arrays.asList(tag)));
             exec.setPhraseSlop(0);
             exec.setIndexDirectory(parentExec.getIndexDirectory());
             // normalize to treat phrase query properly
@@ -322,7 +329,7 @@ public class CommandLineExecuter {
             setExecutionIndexDir(exec);
         }
 
-        try {
+      try {
             dataStoreClient.post(Execution.class, exec);
             if (convertToTextMode) {
                 log.debug("Yay nothing to do. woop dee doo.");
@@ -336,7 +343,7 @@ public class CommandLineExecuter {
                     exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
                 }
             }
-        } catch (Exception e) {
+        } catch (BadRequestException e) {
             throwCLI("Execution threw an excepion", e);
         }
         dataStoreClient.dump(dbDir, tag);
@@ -387,14 +394,16 @@ public class CommandLineExecuter {
                 if (shouldConvertToText) {
                     Files.createDirectories(textDir);
                     if (null == exec.isTokenize()) {
-                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to true for text extraction and all algorithms to be applied on extracted texts");
                         exec.setTokenize(true);
-                    } else {
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                    }
+                    } 
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+
                 } else {
-                    throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but not --convert-to-text");
+                	// complex algorithm can convert pdfs on demand, others can't and need --convert-to-text option
+                	if (ComplexAlgorithm.class.isAssignableFrom(exec.getAlgorithm())) exec.setInputFiles(postFiles(pdfDir, "application/pdf"));
+                	else if (TextExtractor.class.equals(exec.getAlgorithm())) exec.setInputFiles(postFiles(pdfDir, "application/pdf"));
+                	else throwCLI("PDFDIR specified, TEXTDIR unspecified/empty, but --convert-to-text not set");
                 }
             } else {
                 if (shouldConvertToText) {
@@ -405,12 +414,10 @@ public class CommandLineExecuter {
                     System.err.println("<Ctrl-C> to stop, <Enter> to continue");
                     System.in.read();
                     if (null == exec.isTokenize()) {
-                        log.warn("Warning: tokenize parameter not set. Defaulting to false for text extraction and true for all algorithms to be applied on extracted texts");
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), false, exec.getTokenizeNLs(), exec.getPtb3Escaping()));
-                        exec.setTokenize(true);
-                    } else {
-                        exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
+                        log.warn("Warning: tokenize parameter not set. Defaulting to true for text extraction and all algorithms to be applied on extracted texts");
+                        exec.setTokenize(true);    
                     }
+                    exec.setInputFiles(convertPDF(postFiles(pdfDir, "application/pdf"), exec.getStartPage(), exec.isRemoveBib(), exec.getOverwriteTextfiles(), exec.isTokenize(), exec.getTokenizeNLs(), exec.getPtb3Escaping()));
                 } else {
                     exec.setInputFiles(postFiles(textDir, "text/plain"));
                 }
@@ -489,11 +496,11 @@ public class CommandLineExecuter {
 
                 infolisFile.setFileName(file.toString());
                 infolisFile.setMediaType(mimetype);
-                //TODO: use either set or list for tags
                 infolisFile.setTags(new HashSet<>(Arrays.asList(tag)));
                 infolisFile.setFileStatus("AVAILABLE");
                 
                 Entity entity = new Entity();
+                entity.setEntityType(EntityType.publication);
                 dataStoreClient.post(Entity.class, entity);
                 infolisFile.setManifestsEntity(entity.getUri());
                 
@@ -527,7 +534,7 @@ public class CommandLineExecuter {
     }
 
     public void doMain(String args[]) throws FileNotFoundException, ClassNotFoundException, NoSuchFieldException,
-            IllegalAccessException, IOException {
+            IllegalAccessException, IOException, CmdLineException {
         CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(120));
         try {
             parser.parseArgument(args);
@@ -539,7 +546,7 @@ public class CommandLineExecuter {
             }
             // ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             // root.setLevel(Level.toLevel(logLevel));
-        } catch (Exception e) {
+        } catch (CmdLineException e) {
             System.err.println("java " + getClass().getSimpleName() + " [options...]");
             parser.printUsage(System.err);
             throwCLI("", e);

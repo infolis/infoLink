@@ -55,16 +55,17 @@ public class SearchDoisAndCreateLinksTest extends InfolisBaseTest {
         }
 
         List<EntityLink> createdLinks = dataStoreClient.get(EntityLink.class, e.getLinks());
-        assertEquals(1, createdLinks.size());
+        assertEquals(2, createdLinks.size());
 
-        for (EntityLink el : createdLinks) {
-        	log.debug("created link from " + el.getFromEntity() + " to " + el.getToEntity());
-        	Entity targetEntity = dataStoreClient.get(Entity.class, el.getToEntity());
-        	assertEquals("German General Social Survey - ALLBUS 2010", targetEntity.getName());
-        	assertEquals("10.4232/1.11692", (targetEntity.getIdentifier()));
-        	TextualReference textRef = dataStoreClient.get(TextualReference.class, el.getLinkReason());
-        	assertEquals("infolisFile_1", textRef.getFile());
-        }
+        EntityLink el = createdLinks.get(0);
+        log.debug("created link from " + el.getFromEntity() + " to " + el.getToEntity());
+        TextualReference textRef = dataStoreClient.get(TextualReference.class, el.getLinkReason());
+        assertEquals("infolisFile_1", textRef.getTextFile());
+        
+        el = createdLinks.get(1);
+        Entity targetEntity = dataStoreClient.get(Entity.class, el.getToEntity());
+        assertEquals("German General Social Survey - ALLBUS 2010", targetEntity.getName());
+        assertEquals("10.4232/1.11692", (targetEntity.getIdentifiers().get(0)));
     }
 
     public List<String> postQueryServices() throws IOException {

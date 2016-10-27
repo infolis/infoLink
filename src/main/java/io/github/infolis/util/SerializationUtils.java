@@ -1,7 +1,11 @@
 package io.github.infolis.util;
 
+import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
+import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +13,8 @@ import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.StringJoiner;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBContext;
@@ -176,6 +182,37 @@ public class SerializationUtils {
 		return sb.toString();
 	}
 
-
+	/**
+	 * Create csv file from entity links. 
+	 * Format: fromEntity.getIdentifiers()|fromEntity.getName()|linkReason.getTextFile()
+	 * 			|toEntity.getIdentifiers()|toEntity.getName()|toEntity.getNumericInfo()|ref.toPrettyString()
+	 * 
+	 * @param entityLinks
+	 * @param client
+	 * @return
+	 */
+	public static String toCsv(List<String> entityLinks, DataStoreClient client) {
+		String csv = "";
+		for (String linkUri : entityLinks) {
+			StringJoiner row = new StringJoiner("|", "", "");
+			EntityLink link = client.get(EntityLink.class, linkUri);
+			Entity fromEntity = client.get(Entity.class, link.getFromEntity());
+			Entity toEntity = client.get(Entity.class, link.getToEntity());
+			row.add(String.join(";", fromEntity.getIdentifiers()));
+			row.add(fromEntity.getName());
+			String textualReferenceString = " ";
+			if (null != link.getLinkReason() && !link.getLinkReason().isEmpty()) {
+				TextualReference ref = client.get(TextualReference.class, link.getLinkReason());
+				row.add(client.get(InfolisFile.class, ref.getTextFile()).getFileName());
+				textualReferenceString = ref.toPrettyString();
+			} else row.add(" ");
+			row.add(String.join(";", toEntity.getIdentifiers()));
+			row.add(toEntity.getName());
+			row.add(toEntity.getNumericInfo().toString());
+			row.add(textualReferenceString);
+			csv += row.toString() + "\n";
+		}
+		return csv.toString();
+	}
 
 }

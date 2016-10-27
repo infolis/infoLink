@@ -40,8 +40,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "queryServiceType")
 public class DaraHTMLQueryService extends QueryService {
 
-	private double serviceReliability = 0.8;
-
     public DaraHTMLQueryService() {
         super("http://www.da-ra.de/dara/search/search_result", 0.5);
     }
@@ -103,7 +101,7 @@ public class DaraHTMLQueryService extends QueryService {
     	}
     	
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
-    		doi = entity.getIdentifier();
+    		doi = entity.getIdentifiers().get(0);
     	}
     	// resourceType field in da|ra: "2" denotes dataset
     	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
@@ -178,6 +176,7 @@ public class DaraHTMLQueryService extends QueryService {
             sr.setNumericInformation(numericInfo);
             sr.setListIndex(i);
             sr.setQueryService(this.getUri());
+            sr.setTags(getTags());
             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             Date date = new Date();
             sr.setDate(dateFormat.format(date));

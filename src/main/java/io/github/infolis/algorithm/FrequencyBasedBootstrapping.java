@@ -4,6 +4,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.patternLearner.StandardPatternInducer;
 import io.github.infolis.model.BootstrapStrategy;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
@@ -78,6 +79,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         for (String term : getExecution().getSeeds()) {
         	Entity entity = new Entity(term);
         	entity.setTags(getExecution().getTags());
+        	entity.setEntityType(EntityType.citedData);
         	newSeedsIteration.add(entity);
         }
 
@@ -164,7 +166,8 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	            for (TextualReference studyContext : getInputDataStoreClient().get(TextualReference.class, res)) {
 	            	extractedContextsFromPatterns.add(studyContext);
 	            	Entity entity = new Entity(studyContext.getReference());
-	            	entity.setTags(getExecution().getTags());
+	            	entity.setTags(studyContext.getTags());
+	            	entity.setEntityType(EntityType.citedData);
 	            	newSeedsIteration.add(entity);
 	            	newSeedTermsIteration.add(studyContext.getReference());
 	            }

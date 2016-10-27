@@ -5,9 +5,9 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.infolink.patternLearner.StandardPatternInducer;
 import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
-import io.github.infolis.model.entity.InfolisFile;
 
 import java.io.IOException;
 
@@ -68,6 +68,8 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         for (String seed : seedTerms) {
             log.info("Bootstrapping with seed \"" + seed + "\"");
             Entity newSeed = new Entity(seed);
+            newSeed.setTags(getExecution().getTags());
+            newSeed.setEntityType(EntityType.citedData);
             newSeed.setTextualReferences(this.getContextsForSeed(seed));
             newSeed.setIsSeed();
             seeds.add(newSeed);
@@ -129,7 +131,9 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             for (TextualReference sC : reliableContexts_iteration) {
                 String newInstanceName = sC.getReference();
                 Collection<String> reliableInstanceTerms = new HashSet<>();
-                for (Entity i : reliableInstances) { reliableInstanceTerms.add(i.getName()); }
+                for (Entity i : reliableInstances) {
+                	i.setTags(sC.getTags());
+                	reliableInstanceTerms.add(i.getName()); }
                 if (!reliableInstanceTerms.contains(newInstanceName)) {
                     newInstanceNames.add(newInstanceName);
                     log.debug("Found new instance: " + newInstanceName);
@@ -137,6 +141,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
             }
             for (String newInstanceName : newInstanceNames) {
                 Entity newInstance = new Entity(newInstanceName);
+                newInstance.setEntityType(EntityType.citedData);
                 // counts of instances are required for computation of pmi
                 newInstance.setTextualReferences(this.getContextsForSeed(newInstanceName));
                 log.debug("new Instance stored contexts: " + newInstance.getTextualReferences());

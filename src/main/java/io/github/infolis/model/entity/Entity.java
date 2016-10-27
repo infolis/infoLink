@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.BaseModel;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.TextualReference;
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class for all InFoLiS entities, e.g. patterns, datasets, publications.
+ * Class for InFoLiS entities, e.g. datasets, cited data and publications.
  *
  * @author kata
  *
@@ -38,9 +39,9 @@ public class Entity extends BaseModel {
 
     @XmlAttribute
     private String name;
-    private String identifier;
+    private List<String> identifiers = new ArrayList<>();
     private String url;
-    private Set<String> tags;
+    private EntityType entityType;
     private Collection<TextualReference> textualReferences;
 
     @XmlAttribute
@@ -57,8 +58,37 @@ public class Entity extends BaseModel {
     public Entity(String name) {
         this.name = name;
     }
+    
+    // copy all attributes except the uri
+    public Entity(Entity copyFrom) {
+    	this.name = copyFrom.getName();
+    	this.identifiers = copyFrom.getIdentifiers();
+    	this.url = copyFrom.getURL();
+    	this.numericInfo = copyFrom.getNumericInfo();
+    	this.reliability = copyFrom.getReliability();
+    	this.alternativeNames = copyFrom.getAlternativeNames();
+    	this.abstractText = copyFrom.getAbstractText();
+    	this.authors = copyFrom.getAuthors();
+    	this.subjects = copyFrom.getSubjects();
+    	this.language = copyFrom.getLanguage();
+    	this.spatial = copyFrom.getSpatial();
+    	this.entityType = copyFrom.getEntityType();
+    	
+    	this.setTags(copyFrom.getTags());
+    	
+    	this.textualReferences = copyFrom.getTextualReferences();
+    	this.associations = copyFrom.getAssociations();
+    }
 
     public Entity() {
+    }
+      
+    public void setEntityType(EntityType entityType) {
+    	this.entityType = entityType;
+    }
+    
+    public EntityType getEntityType() {
+    	return this.entityType;
     }
     
     public void setSpatial(Set<String> spatial) {
@@ -90,34 +120,10 @@ public class Entity extends BaseModel {
     }
 
     /**
-     * @return the tags
-     */
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    /**
-     * @param tags the tags to set
-     */
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    /**
-     * @param tag the tag to add
-     */
-    public void addTag(String tag) {
-        if (tags == null) {
-            tags = new HashSet<>();
-        }
-        tags.add(tag);
-    }
-
-    /**
      * @return the identifier
      */
-    public String getIdentifier() {
-        return identifier;
+    public List<String> getIdentifiers() {
+        return this.identifiers;
     }
 
     public String getURL() {
@@ -131,8 +137,15 @@ public class Entity extends BaseModel {
     /**
      * @param identifier the identifier to set
      */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setIdentifiers(List<String> identifiers) {
+        this.identifiers = identifiers;
+    }
+    
+    public void addIdentifier(String identifier) {
+    	if (null == this.identifiers) {
+    		this.identifiers = new ArrayList<>();
+    	}
+        this.identifiers.add(identifier);
     }
 
     /**

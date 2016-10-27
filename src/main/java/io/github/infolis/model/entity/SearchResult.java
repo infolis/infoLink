@@ -22,7 +22,6 @@ public class SearchResult extends BaseModel {
     private String date;
     private String queryService;
     private String identifier;
-    private List<String> tags;
 
     /**
      * @return the listIndex

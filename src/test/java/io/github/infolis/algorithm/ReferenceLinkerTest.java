@@ -40,11 +40,20 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		List<String> linkUris = exec.getLinks();
-	    assertEquals(1, linkUris.size());
-	    EntityLink link = dataStoreClient.get(EntityLink.class, linkUris.get(0));
-	    Entity toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
-	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity.getName());
-	    assertEquals("10.4232/1.5126", toEntity.getIdentifier());
+
+	    assertEquals(2, linkUris.size());
+	    // link1: link from publication entity to referenced entity
+	    // link2: link from referenced entity to dataset entity
+	    EntityLink link1 = dataStoreClient.get(EntityLink.class, linkUris.get(0));
+	    Entity toEntity1 = dataStoreClient.get(Entity.class, link1.getToEntity());
+	    EntityLink link2 = dataStoreClient.get(EntityLink.class, linkUris.get(1));
+	    Entity toEntity2 = dataStoreClient.get(Entity.class, link2.getToEntity());
+	    Entity fromEntity2 = dataStoreClient.get(Entity.class, link2.getFromEntity());
+	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity2.getName());
+	    assertEquals("10.4232/1.5126", toEntity2.getIdentifiers().get(0));
+	    assertEquals("Studierendensurvey", toEntity1.getName());
+	    assertEquals(Arrays.asList("2012/13"), toEntity1.getNumericInfo());
+	    assertEquals(toEntity1.getUri(), fromEntity2.getUri());
 	    
 	    Execution exec2 = new Execution();
 	    exec2.setTextualReferences(Arrays.asList(reference.getUri()));
@@ -53,16 +62,16 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec2.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec2.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec2.getLinks();
-	    assertEquals(3, linkUris.size());
+	    assertEquals(4, linkUris.size());
 	    List<EntityLink> links = dataStoreClient.get(EntityLink.class, linkUris);
-	    Entity toEntity1 = dataStoreClient.get(Entity.class, links.get(0).getToEntity());
-	    Entity toEntity2 = dataStoreClient.get(Entity.class, links.get(1).getToEntity());
-	    Entity toEntity3 = dataStoreClient.get(Entity.class, links.get(2).getToEntity());
+	    toEntity1 = dataStoreClient.get(Entity.class, links.get(1).getToEntity());
+	    toEntity2 = dataStoreClient.get(Entity.class, links.get(2).getToEntity());
+	    Entity toEntity3 = dataStoreClient.get(Entity.class, links.get(3).getToEntity());
 	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getName()).contains("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)"));
 	    assertTrue(Arrays.asList(toEntity1.getName(), toEntity2.getName(), toEntity3.getName()).contains("Studiensituation und studentische Orientierungen (Studierenden-Survey) Kumulation 1983 - 2013"));
-	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.5126"));
-	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.12510"));
-	    assertTrue(Arrays.asList(toEntity1.getIdentifier(), toEntity2.getIdentifier(), toEntity3.getIdentifier()).contains("10.4232/1.12494"));
+	    assertTrue(Arrays.asList(toEntity1.getIdentifiers().get(0), toEntity2.getIdentifiers().get(0), toEntity3.getIdentifiers().get(0)).contains("10.4232/1.5126"));
+	    assertTrue(Arrays.asList(toEntity1.getIdentifiers().get(0), toEntity2.getIdentifiers().get(0), toEntity3.getIdentifiers().get(0)).contains("10.4232/1.12510"));
+	    assertTrue(Arrays.asList(toEntity1.getIdentifiers().get(0), toEntity2.getIdentifiers().get(0), toEntity3.getIdentifiers().get(0)).contains("10.4232/1.12494"));
 	    
 	    Execution exec3 = new Execution();
 	    TextualReference reference2 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "of any year is to", infolisFile.getUri(), "pattern", infolisFile.getUri());
@@ -73,9 +82,9 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec3.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec3.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec3.getLinks();
-	    assertEquals(1, linkUris.size());
-	    link = dataStoreClient.get(EntityLink.class, linkUris.get(0));
-	    toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
+	    assertEquals(2, linkUris.size());
+	    EntityLink link = dataStoreClient.get(EntityLink.class, linkUris.get(1));
+	    Entity toEntity = dataStoreClient.get(Entity.class, link.getToEntity());
 	    
 	    Execution exec4 = new Execution();
 	    exec4.setTextualReferences(Arrays.asList(reference2.getUri()));
@@ -84,9 +93,9 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec4.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec4.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec4.getLinks();
-	    assertEquals(25, linkUris.size());
+	    assertEquals(26, linkUris.size());
 
-	    // testa for query cache
+	    // tests for query cache
         Execution exec5 = new Execution();
         TextualReference reference3 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
         TextualReference reference4 = new TextualReference("In this snippet, the reference", "Studierendensurvey", "2012/13 is to be linked", infolisFile.getUri(), "pattern", infolisFile.getUri());
@@ -98,16 +107,16 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec5.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec5.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec5.getLinks();
-	    assertEquals(2, linkUris.size());
-	    EntityLink link5 = dataStoreClient.get(EntityLink.class, linkUris.get(0));
+	    assertEquals(3, linkUris.size());
+	    EntityLink link5 = dataStoreClient.get(EntityLink.class, linkUris.get(1));
 	    Entity toEntity5 = dataStoreClient.get(Entity.class, link5.getToEntity());
 	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5.getName());
-	    assertEquals("10.4232/1.5126", toEntity5.getIdentifier());
+	    assertEquals("10.4232/1.5126", toEntity5.getIdentifiers().get(0));
 	    
 	    EntityLink link5b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
 	    Entity toEntity5b = dataStoreClient.get(Entity.class, link5b.getToEntity());
 	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5b.getName());
-	    assertEquals("10.4232/1.5126", toEntity5b.getIdentifier());
+	    assertEquals("10.4232/1.5126", toEntity5b.getIdentifiers().get(0));
 	    
 	    // no matching entries in dara
 	    Execution exec6 = new Execution();
@@ -121,7 +130,7 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec6.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec6.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec6.getLinks();
-	    assertEquals(0, linkUris.size());
+	    assertEquals(2, linkUris.size());
 	    
 	    // exactly one matching entry in dara (to date)
 	    Execution exec7 = new Execution();
@@ -135,11 +144,11 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec7.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec7.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec7.getLinks();
-	    assertEquals(2, linkUris.size());
+	    assertEquals(3, linkUris.size());
 	    EntityLink link7b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
 	    Entity toEntity7b = dataStoreClient.get(Entity.class, link7b.getToEntity());
 	    assertEquals("Sozialwissenschaftliche Telefonumfragen in der Allgemeinbevölkerung über das Mobilfunknetz (CELLA 1)", toEntity7b.getName());
-	    assertEquals("10.4232/1.4875", toEntity7b.getIdentifier());
+	    assertEquals("10.4232/1.4875", toEntity7b.getIdentifiers().get(0));
 	}
     
 }

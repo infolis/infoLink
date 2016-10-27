@@ -1,5 +1,6 @@
 package io.github.infolis.algorithm;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.DataStoreClientFactory;
 import io.github.infolis.datastore.DataStoreStrategy;
@@ -18,7 +19,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -33,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.net.MediaType;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ProcessingException;
 
 /**
  *
@@ -54,12 +60,26 @@ public class TextExtractor extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractor.class);
     private static final String executionTag = "TEXT_EXTRACTED";
+    private static final String executionTagUntokenized = "UNTOKENIZED";
+    private static final String executionTagBibNotRemoved = "BIBNOTREMOVED";
+    private final List<String> executionTags = new ArrayList<>(Arrays.asList(
+    		executionTag, executionTagUntokenized, executionTagBibNotRemoved));
     private final PDFTextStripper stripper;
+    
+    protected static String getExecutionTagUntokenized() {
+    	return executionTagUntokenized;
+    }
+    
+    protected static String getExecutionTagBibNotRemoved() {
+    	return executionTagBibNotRemoved;
+    }
 
     private String removeBibSection(String text) {
         BibliographyExtractor bibExtractor = new BibliographyExtractor(
                 getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
         //TODO: Test optimal section size
+        this.executionTags.addAll(BibliographyExtractor.getExecutionTags());
+        this.executionTags.remove(getExecutionTagBibNotRemoved());
         return bibExtractor.removeBibliography(bibExtractor.tokenizeSections(text, 10));
     }
     
@@ -70,7 +90,10 @@ public class TextExtractor extends BaseAlgorithm {
     	exec.setTokenizeNLs(getExecution().getTokenizeNLs());
     	exec.setPtb3Escaping(getExecution().getPtb3Escaping());
     	tokenizer.setExecution(exec);
-    	return tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
+    	String tokenizedText = tokenizer.getTokenizedText(tokenizer.getTokenizedSentences(text));
+    	this.executionTags.addAll(tokenizer.getExecutionTags());
+    	this.executionTags.remove(getExecutionTagUntokenized());
+    	return tokenizedText;
     }
 
     public InfolisFile extract(InfolisFile inFile, int startPage, boolean tokenize) throws IOException {
@@ -78,7 +101,14 @@ public class TextExtractor extends BaseAlgorithm {
 
         // TODO make configurable
         String outFileName = SerializationUtils.changeFileExtension(inFile.getFileName(), "txt");
-        if (null != getExecution().getOutputDirectory()) {
+        
+        // if no output directory is given, create temporary output files
+    	if (null == getExecution().getOutputDirectory() || getExecution().getOutputDirectory().equals("")) {
+    		 String EXTRACTED_DIR_PREFIX = "extracted-";
+             String tempDir = Files.createTempDirectory(InfolisConfig.getTmpFilePath().toAbsolutePath(), EXTRACTED_DIR_PREFIX).toString();
+             FileUtils.forceDeleteOnExit(new File(tempDir));
+             outFileName = SerializationUtils.changeBaseDir(outFileName, tempDir);
+         } else {
             outFileName = SerializationUtils.changeBaseDir(outFileName, getExecution().getOutputDirectory());
         }
 
@@ -87,11 +117,6 @@ public class TextExtractor extends BaseAlgorithm {
         outFile.setOriginalName(inFile.getFileName());
         outFile.setMediaType("text/plain");
 
-        Set<String> tagsToSet = getExecution().getTags();
-        tagsToSet.addAll(inFile.getTags());
-        tagsToSet.add(executionTag);
-		outFile.setTags(tagsToSet);
-             
         if (getExecution().getOverwriteTextfiles() == false) {
             File _outFile = new File(outFileName);
             if (_outFile.exists()) {
@@ -121,6 +146,10 @@ public class TextExtractor extends BaseAlgorithm {
                 	asText = tokenizeText(asText);
                 }
 
+                Set<String> tagsToSet = getExecution().getTags();
+                tagsToSet.addAll(inFile.getTags());
+                tagsToSet.addAll(executionTags);
+        		outFile.setTags(tagsToSet);
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
 
@@ -137,7 +166,7 @@ public class TextExtractor extends BaseAlgorithm {
                     throw e;
                 } 
                 return outFile;
-            } catch (Exception e) {
+            } catch (IOException e) {
                 warn(log, "Error reading PDF from stream: " + e);
                 throw e;
             }
@@ -190,7 +219,7 @@ public class TextExtractor extends BaseAlgorithm {
             InfolisFile inputFile;
             try {
                 inputFile = getInputDataStoreClient().get(InfolisFile.class, inputFileURI);
-            } catch (Exception e) {
+            } catch (BadRequestException | ProcessingException e) {
                 error(log, "Could not retrieve file " + inputFileURI + ": " + e.getMessage());
                 getExecution().setStatus(ExecutionStatus.FAILED);
                 return;

@@ -10,7 +10,9 @@ import io.github.infolis.infolink.querying.QueryService;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +34,21 @@ public class FederatedSearcher extends BaseAlgorithm {
 
     private static final Logger log = LoggerFactory.getLogger(FederatedSearcher.class);
 
+    private List<String> search(QueryService queryService, SearchResultLinker linker, 
+    		Entity entity, File cache) throws IOException {
+	    queryService.setMaxNumber(linker.getMaxNum());
+	    String query = queryService.createQuery(entity).toString();
+		List<String> searchResultUris = readFromCache(cache, query);
+		
+		// searchResultUris is null iff query is not contained in the cache
+		if (null == searchResultUris) {
+	    	List<SearchResult> results = queryService.find(entity);
+	    	searchResultUris = getInputDataStoreClient().post(SearchResult.class, results);
+	        writeToCache(cache, query, searchResultUris);
+		}
+	    return searchResultUris;
+    }
+    
     @Override
     public void execute() throws IOException {
         List<String> allResults = new ArrayList<>();
@@ -56,26 +73,18 @@ public class FederatedSearcher extends BaseAlgorithm {
                     Constructor<? extends QueryService> constructor = qs.getDeclaredConstructor();
                     queryService = constructor.newInstance();
                     Constructor<? extends SearchResultLinker> linkerConstructor = getExecution().getSearchResultLinkerClass().getDeclaredConstructor(parameterTypes);
-                    if (!Modifier.isAbstract(getExecution().getSearchResultLinkerClass().getModifiers())) {
-                    	SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
-                    	queryService.setQueryStrategy(linker.getQueryStrategy());
-                    }
-                    //TODO else?
+                    SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
+                    queryService.setQueryStrategy(linker.getQueryStrategy());
+                    queryService.setTags(getExecution().getTags());
                     getOutputDataStoreClient().post(QueryService.class, queryService);
                     debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
-                    String query = queryService.createQuery(entity).toString();
-	            	List<String> searchResultUris = readFromCache(cache, query);
-	            	
-	            	if (searchResultUris.isEmpty()) {
-		            	List<SearchResult> results = queryService.find(entity);
-		            	searchResultUris = getInputDataStoreClient().post(SearchResult.class, results);
-		                writeToCache(cache, query, searchResultUris);
-	            	}
-	            	if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
-	            	
-	                updateProgress(counter, size);
+                    
+                    List<String> searchResultUris = search(queryService, linker, entity, cache);
+                    if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
+                    
+                    updateProgress(counter, size);
 
-                } catch (Exception e) {
+                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }
@@ -84,24 +93,16 @@ public class FederatedSearcher extends BaseAlgorithm {
             try {
             	for (QueryService queryService : getInputDataStoreClient().get(QueryService.class, getExecution().getQueryServices())) {
 	            	Constructor<? extends SearchResultLinker> linkerConstructor = getExecution().getSearchResultLinkerClass().getDeclaredConstructor(parameterTypes);
-	            	if (!Modifier.isAbstract(getExecution().getSearchResultLinkerClass().getModifiers())) {
-                    	SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
-                    	queryService.setQueryStrategy(linker.getQueryStrategy());
-                    }
-                    //TODO else?
+	            	SearchResultLinker linker = linkerConstructor.newInstance(initArgs);
+                    queryService.setQueryStrategy(linker.getQueryStrategy());
 	            	debug(log, "Calling QueryService {} to find entity {}", queryService.getUri(), entity.getUri());
-	            	String query = queryService.createQuery(entity).toString();
-	            	List<String> searchResultUris = readFromCache(cache, query);
-	            	if (searchResultUris.isEmpty()) {
-		            	List<SearchResult> results = queryService.find(entity);
-		            	searchResultUris = getInputDataStoreClient().post(SearchResult.class, results);
-		                writeToCache(cache, query, searchResultUris);
-	            	}
-	            	if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
+	            	
+	            	List<String> searchResultUris = search(queryService, linker, entity, cache);
+                    if (!searchResultUris.isEmpty()) allResults.addAll(searchResultUris);
 	            	
 	                updateProgress(counter, size);
             	}
-            } catch (Exception e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 e.printStackTrace();
             }
         }
@@ -123,13 +124,13 @@ public class FederatedSearcher extends BaseAlgorithm {
     	for (String uri : uris) entry += uri + "!!!";
     	if (uris.isEmpty()) entry += " ";
     	FileUtils.write(cache, entry.substring(0, entry.length() - 3) + "\n", true);
-    	log.debug("wrote query to cache");
+    	log.debug("wrote query to cache {}", entry.substring(0, entry.length() - 3));
     }
     
     private List<String> readFromCache(File cache, String query) throws IOException {
     	if (null == cache || !cache.exists()) {
     		log.debug("no cache file given or cache file does not exist, continuing without cache");
-    		return new ArrayList<String>();
+    		return null;
     	}
     	
     	for (String line : FileUtils.readLines(cache)) {
@@ -145,7 +146,7 @@ public class FederatedSearcher extends BaseAlgorithm {
     		}
     	}
     	// query was not found in cache
-    	return new ArrayList<String>();
+    	return null;
     }
 
     @Override

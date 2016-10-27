@@ -11,10 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Algorithm to extract the meta data of the according publications.
@@ -63,40 +65,70 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                         DocumentBuilder db = dbf.newDocumentBuilder();
                         Document doc = db.parse(metaFile);
-                        e.setIdentifier(doc.getElementsByTagName("identifier").item(0).getTextContent());
-                        e.setAbstractText(doc.getElementsByTagName("dc:description").item(0).getTextContent());
-                        e.setName(doc.getElementsByTagName("dc:title").item(0).getTextContent());
+                        // identifier here describes metadata record, not the publication. 
+                        // thus, ignore
+                        /*try {
+                        	e.addIdentifier(doc.getElementsByTagName("identifier").item(0).getTextContent());
+                        } catch (NullPointerException npe) {
+                        	;
+                        }*/
+                        
+                        try {
+                        	e.setAbstractText(doc.getElementsByTagName("dc:description").item(0).getTextContent());
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:description'", metaFile);
+                        }
+                        
+                        try {
+                        	e.setName(doc.getElementsByTagName("dc:title").item(0).getTextContent());
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:title'", metaFile);
+                        }
                         
                         //determine the language and set it to a uniform abbreviation
                         //TODO: any other abbreviations in the data?
-                        String lang = doc.getElementsByTagName("dc:language").item(0).getTextContent();
-                        if(lang.equals("eng") || lang.equals("en")) {
-                            e.setLanguage("en");
-                        }
-                        else if(lang.equals("deu") || lang.equals("de")) {
-                            e.setLanguage("de");
-                        }
-                        //if a DOI is given, use the DOI as identifier
-                        //TODO: which other identifier could be useful?
-                        NodeList urls = doc.getElementsByTagName("dc:identifier");
-                        for (int i = 0; i < urls.getLength(); i++) {
-                            if(urls.item(i).getTextContent().contains("doi:")) {
-                                e.setURL(urls.item(i).getTextContent());
-                            }
+                        try {
+	                        String lang = doc.getElementsByTagName("dc:language").item(0).getTextContent();
+	                        if(lang.equals("eng") || lang.equals("en")) {
+	                            e.setLanguage("en");
+	                        }
+	                        else if(lang.equals("deu") || lang.equals("de")) {
+	                            e.setLanguage("de");
+	                        }
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:language'", metaFile);
                         }
 
-                        NodeList authors = doc.getElementsByTagName("dc:creator");
-                        for (int i = 0; i < authors.getLength(); i++) {
-                            e.addAuthor(authors.item(i).getTextContent());
+                        try {
+	                        NodeList ids = doc.getElementsByTagName("dc:identifier");
+	                        for (int i = 0; i < ids.getLength(); i++) {
+	                            e.addIdentifier(ids.item(i).getTextContent());
+	                        }
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:identifier'", metaFile);
                         }
-                        NodeList subjects = doc.getElementsByTagName("dc:subject");
-                        for (int i = 0; i < subjects.getLength(); i++) {
-                            e.addSubject(subjects.item(i).getTextContent());
+                        
+                        try {
+	                        NodeList authors = doc.getElementsByTagName("dc:creator");
+	                        for (int i = 0; i < authors.getLength(); i++) {
+	                            e.addAuthor(authors.item(i).getTextContent());
+	                        }
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:creator'", metaFile);
+                        }
+                        
+                        try {
+	                        NodeList subjects = doc.getElementsByTagName("dc:subject");
+	                        for (int i = 0; i < subjects.getLength(); i++) {
+	                            e.addSubject(subjects.item(i).getTextContent());
+	                        }
+                        } catch (NullPointerException npe) {
+                        	warn(log, "metadata file '{}' does not contain field 'dc:subject'", metaFile);
                         }
                         updateProgress(counter, getExecution().getInputFiles().size());
 
-                    } catch (Exception ex) {
-                        error(log, "File \"%s\" could not be parsed!", metaFile);
+                    } catch (SAXException | ParserConfigurationException ex) {
+                        error(log, "File \"{}\" could not be parsed!", metaFile);
                         //should it fail if one file could not be parsed?
                         //getExecution().setStatus(ExecutionStatus.FAILED);
                     }
@@ -118,10 +150,6 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
         }
         if ((null == exec.getMetaDataFiles() || exec.getMetaDataFiles().isEmpty())) {
             throw new IllegalArgumentException("Must set at least one metadata file to the according input file!");
-        }
-        if (null == exec.isTokenize()) {
-            warn(log, "\"tokenize\" field unspecified. Defaulting to \"false\".");
-            this.getExecution().setTokenize(false);
         }
     }
 

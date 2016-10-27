@@ -178,8 +178,7 @@ public class Execution extends BaseModel {
 	 * input texts to perform well. It can either be called on tokenized 
 	 * input texts or it can be called on untokenized text or pdf files and 
 	 * perform tokenization itself. If unspecified, defaults to false for 
-	 * TextExtractor. For Bootstrapping, this field has to be set explicitly 
-	 * as this information is crucial for good performance.
+	 * TextExtractor and to true for Bootstrapping.
          * Default: null
          * 
 	 * {@link TextExtractor} {@link Bootstrapping}
@@ -412,26 +411,19 @@ public class Execution extends BaseModel {
 	private List<String> linkedEntities;
         
 	/**
-	 * A tag indicates which corpus of documents and/or patterns should be used.
-         * For example, a user likes to apply patterns learnt on
-         * documents of a specific topic like social science.
-         * This map contains names of classes extending the BaseModel as keys 
-         * and a list of tags as values. This parameter is for using tags 
-         * inside the application.
-         * 
+	 * List of tags to identify a specific set of InfolisPatterns
 	 */
-
 	private Set<String> infolisPatternTags = new HashSet<>();
+	
+	/**
+	 * List of tags to identify a specific set of InfolisFiles
+	 */
 	private Set<String> infolisFileTags = new HashSet<>();
 	
 	/**
-	 * A tag indicates which corpus of documents and/or patterns should be used.
-         * For example, a user likes to apply patterns learnt on
-         * documents of a specific topic like social science.
-         * These tags describe the execution to make it searchable via its tags.
-         * 
+	 * List of tags to identify a specific set of TextualReferences
 	 */
-	private Set<String> tags = new HashSet<>();
+	private Set<String> textualReferenceTags = new HashSet<>();
 	
 	/**
 	 * Flag used by TextExtractor: if set to false, pdfs for which corresponding text 
@@ -447,7 +439,7 @@ public class Execution extends BaseModel {
 	 * Determines whether new line characters are to be tokenized.
 	 * {@link Tokenizer}
 	 */
-	private boolean tokenizeNLs = true;
+	private boolean tokenizeNLs = false;
 	
 	/**
 	 * Enable all traditional PTB3 token transforms (like parentheses becoming -LRB-, -RRB-).
@@ -794,14 +786,6 @@ public class Execution extends BaseModel {
         this.linkedEntities = linkedEntities;
     }
     
-    public Set<String> getTags() {
-		return this.tags;
-	}
-    
-    public void setTags(Set<String> tags) {
-		this.tags = tags;
-	}
-    
     public long getProgress() {
         return progress;
     }
@@ -816,14 +800,20 @@ public class Execution extends BaseModel {
 		this.infolisPatternTags = infolisPatternTags;
 	}
 
-	public Set<String> getInfolisFileTags()
-	{
+	public Set<String> getInfolisFileTags()	{
 		return infolisFileTags;
 	}
 
-	public void setInfolisFileTags(Set<String> infolisFileTags)
-	{
+	public void setInfolisFileTags(Set<String> infolisFileTags)	{
 		this.infolisFileTags = infolisFileTags;
+	}
+	
+	public Set<String> getTextualReferenceTags() {
+		return this.textualReferenceTags;
+	}
+	
+	public void setTextualReferenceTags(Set<String> textualReferenceTags) {
+		this.textualReferenceTags = textualReferenceTags;
 	}
     
     public void setProgress(long progress) {
@@ -959,6 +949,7 @@ public class Execution extends BaseModel {
     {
     	Execution subExec = new Execution(algo);
     	//subExec.setLog(getLog());
+    	subExec.setTags(getTags());
     	return subExec;
     }    
 

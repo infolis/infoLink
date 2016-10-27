@@ -20,7 +20,7 @@ public class WebAnnoTsvHandler extends AnnotationHandler {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(WebAnnoTsvHandler.class);
 	
-	protected List<Annotation> parse(String input) {
+	public List<Annotation> parse(String input) {
 		List<Annotation> annotations = new ArrayList<>();
 		Map<Integer, String> textMap = new HashMap<>();
 		Map<Integer, String> annotationMap = new HashMap<>();

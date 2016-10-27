@@ -132,6 +132,10 @@ public class AnnotationHandlerTest {
 			"9-9	445-470	implementing/implementing	_	_	_	_	_	_	_	",
 			"\n");
 	
+	public static String getTestAnnotationString() {
+		return inputWebAnno3;
+	}
+	
 	@Test
 	public void testCompareWebAnno2() {
 		AnnotationHandler h = new WebAnnoTsvHandler();

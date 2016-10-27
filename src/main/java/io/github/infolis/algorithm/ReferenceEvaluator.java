@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.annotations;
+package io.github.infolis.algorithm;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +15,10 @@ import io.github.infolis.algorithm.BaseAlgorithm;
 import io.github.infolis.algorithm.IllegalAlgorithmArgumentException;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.infolink.annotations.Annotation;
 import io.github.infolis.infolink.annotations.Annotation.Metadata;
+import io.github.infolis.infolink.annotations.AnnotationHandler;
+import io.github.infolis.infolink.annotations.WebAnno3TsvHandler;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
 
@@ -25,14 +28,14 @@ import io.github.infolis.model.entity.InfolisFile;
  * @author kata
  *
  */
-public class Evaluator extends BaseAlgorithm {
+public class ReferenceEvaluator extends BaseAlgorithm {
 	
 	private InputStream goldstandard;
 	AnnotationHandler annotationHandler;
 	Set<Metadata> relevantFields;
 	List<Annotation> goldAnnotations;
 	
-	public Evaluator(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+	public ReferenceEvaluator(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
 			FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
@@ -64,16 +67,30 @@ public class Evaluator extends BaseAlgorithm {
 		}
 		return annotations;
 	}
-
 	
-	public void evaluate(List<TextualReference> foundReferences) throws IOException {
+	protected void compareToGoldstandard(List<TextualReference> foundReferences) throws IOException {
 		AnnotationHandler.compare(foundReferences, this.goldAnnotations, this.relevantFields);
+	}
+	
+	// TODO implement
+	/**
+	 * Compares the references contained in foundReferences to references in the gold annotations.
+	 * Computes precision (exact and partial matches) and recall.
+	 * 
+	 * @param foundReferences
+	 * @throws IOException 
+	 */
+	public void evaluate(List<TextualReference> foundReferences) throws IOException {
+		// 1. iterate through references, generate maps for each different textFile
+		// count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
+		compareToGoldstandard(foundReferences);
 	}
 
 	@Override
 	public void execute() throws IOException {
 		init();
 		evaluate(getInputDataStoreClient().get(TextualReference.class, getExecution().getTextualReferences()));
+		
 	}
 
 	@Override

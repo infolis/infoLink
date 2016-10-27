@@ -1,4 +1,4 @@
-package io.github.infolis.infolink.annotations;
+package io.github.infolis.algorithm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.Test;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.infolink.annotations.AnnotationHandlerTest;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
@@ -15,12 +16,12 @@ import io.github.infolis.model.entity.InfolisFile;
  * @author kata
  *
  */
-public class EvaluatorTest extends InfolisBaseTest {
+public class ReferenceEvaluatorTest extends InfolisBaseTest {
 	
 	@Test
 	public void test() throws Exception {
 		// create annotation test file
-		String[] annotations = {AnnotationHandlerTest.inputWebAnno3};
+		String[] annotations = {AnnotationHandlerTest. getTestAnnotationString()};
 		List<InfolisFile> files = createTestTextFiles(2, annotations);
 		// post for usage as goldstandard
 		List<String> fileUris = dataStoreClient.post(InfolisFile.class, files);
@@ -37,10 +38,11 @@ public class EvaluatorTest extends InfolisBaseTest {
 		
 		// execute
 		Execution exec = new Execution();
-		exec.setAlgorithm(Evaluator.class);
+		exec.setAlgorithm(ReferenceEvaluator.class);
 		exec.setInputFiles(fileUris);
 		exec.setTextualReferences(textRefUris);
 		exec.setTokenize(true);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 	}
+	
 }

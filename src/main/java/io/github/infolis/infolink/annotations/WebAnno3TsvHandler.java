@@ -25,7 +25,7 @@ public class WebAnno3TsvHandler extends AnnotationHandler {
 	Pattern annoClassPat = Pattern.compile("([^|*]*)\\[(\\d+)\\]");
 	private Map<String,Integer> recentGroups = new HashMap<>();
 	
-	protected List<Annotation> parse(String input) {
+	public List<Annotation> parse(String input) {
 		List<Annotation> annotations = new ArrayList<>();
 		Map<Integer, String> textMap = new HashMap<>();
 		Map<Integer, String> annotationMap = new HashMap<>();

@@ -292,7 +292,7 @@ public abstract class AnnotationHandler {
 	 * 
 	 * @param annotations
 	 */
-	protected List<Annotation> tokenizeAnnotations(List<Annotation> annotations) throws IllegalArgumentException {
+	public List<Annotation> tokenizeAnnotations(List<Annotation> annotations) throws IllegalArgumentException {
 		Metadata[] charAnnotations = buildMetadataCharArray(annotations);
 		log.debug(String.format("charAnnotation array contains annotations for %s chars", charAnnotations.length));
 		String originalText = reconstructText(annotations);
@@ -415,7 +415,7 @@ public abstract class AnnotationHandler {
  	// TODO annotations must be tokenized in same way as textual references...
 	// TODO count near misses? (algo identified context of reference as reference?)
 	// TODO compare contexts, not only reference terms
-	protected static void compare(List<TextualReference> textualReferences, 
+	public static void compare(List<TextualReference> textualReferences, 
 			List<Annotation> annotations, Set<Metadata> relevantFields) {
 		List<String> exactMatchesRefToAnno = new ArrayList<>();
 		List<String> noMatchesRefToAnno = new ArrayList<>();
@@ -426,7 +426,7 @@ public abstract class AnnotationHandler {
 		List<List<String>> refAndAnnoOverlap = new ArrayList<>();
 		
 		annotations = mergeNgrams(annotations);
-		for (Annotation anno : annotations) log.debug(anno.toString());//System.exit(0);
+		//for (Annotation anno : annotations) log.debug(anno.toString());
 
 		for (TextualReference textRef : textualReferences) {
 			boolean referenceFoundInAnnotations = false;
@@ -598,7 +598,7 @@ public abstract class AnnotationHandler {
 	}*/
 	
 	
-	protected abstract List<Annotation> parse(String input);
+	public abstract List<Annotation> parse(String input);
 	protected abstract Metadata getMetadata(String annotatedItem);
 
 }

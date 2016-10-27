@@ -13,7 +13,6 @@ import com.google.common.collect.ListMultimap;
 
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
-import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.util.EvaluationUtils;
@@ -24,27 +23,14 @@ import io.github.infolis.util.EvaluationUtils;
  * @author kata
  *
  */
-public class Evaluator extends BaseAlgorithm {
+public class LinkEvaluator extends BaseAlgorithm {
 	
-	public Evaluator(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
+	public LinkEvaluator(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
 			FileResolver inputFileResolver, FileResolver outputFileResolver) {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
-	private static final Logger log = LoggerFactory.getLogger(Evaluator.class);
-
-	// TODO implement (see AnnotationHandler's compare method)
-	/**
-	 * Compares the references contained in foundReferences to references in goldReferences.
-	 * Computes precision (exact and partial matches) and recall.
-	 * 
-	 * @param foundReferences
-	 * @param goldReferences
-	 */
-	public void compareReferences(List<TextualReference> foundReferences, List<TextualReference> goldReferences) {
-		// 1. iterate through references, generate maps for each different textFile
-		// count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
-	}
+	private static final Logger log = LoggerFactory.getLogger(LinkEvaluator.class);
 	
 	// TODO compute study group - wise precision and recall using the ontology
 	/**

@@ -1,12 +1,21 @@
 package io.github.infolis.algorithm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.infolink.annotations.Annotation;
+import io.github.infolis.infolink.annotations.AnnotationHandler;
 import io.github.infolis.infolink.annotations.AnnotationHandlerTest;
+import io.github.infolis.infolink.annotations.WebAnno3TsvHandler;
+import io.github.infolis.infolink.annotations.WebAnnoTsvHandler;
+import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
@@ -17,6 +26,8 @@ import io.github.infolis.model.entity.InfolisFile;
  *
  */
 public class ReferenceEvaluatorTest extends InfolisBaseTest {
+	
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReferenceEvaluatorTest.class);
 	
 	@Test
 	public void test() throws Exception {
@@ -61,5 +72,42 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		exec.setTokenize(true);
 		exec.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 	}
+	
+	@Test
+	public void testCompareWebAnno2() {
+		AnnotationHandler h = new WebAnnoTsvHandler();
+		List<Annotation> annotations = h.parse(AnnotationHandlerTest.getTestAnnotationStringOldFormat());
+		List<TextualReference> textualReferences = new ArrayList<>();
+		TextualReference textRef = new TextualReference();
+		textRef.setReference("Gesundheitssurvey");
+		textualReferences.add(textRef);
+		TextualReference textRef2 = new TextualReference();
+		textRef2.setReference("Koch Institutes");
+		textualReferences.add(textRef2);
+		Set<Metadata> relevantFields = new HashSet<>();
+		relevantFields.addAll(Arrays.asList(
+				Metadata.title_b, 
+				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
+		ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+	}
+	
+	@Test
+	public void testCompareWebAnno3() {
+		AnnotationHandler h = new WebAnno3TsvHandler();
+		List<Annotation> annotations = h.parse(AnnotationHandlerTest.getTestAnnotationString());
+		for (Annotation anno : annotations) log.debug(anno.toString());
+		List<TextualReference> textualReferences = new ArrayList<>();
+		TextualReference textRef = new TextualReference();
+		textRef.setReference("PIAAC");
+		textualReferences.add(textRef);
+		TextualReference textRef2 = new TextualReference();
+		textRef2.setReference("Programme for the International Assessment of Adult Competencies");
+		textualReferences.add(textRef2);
+		Set<Metadata> relevantFields = new HashSet<>();
+		relevantFields.addAll(Arrays.asList(
+				Metadata.title_b));
+		ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+	}
+	
 	
 }

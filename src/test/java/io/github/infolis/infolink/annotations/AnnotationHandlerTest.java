@@ -1,6 +1,5 @@
 package io.github.infolis.infolink.annotations;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisConfig;
@@ -136,43 +134,12 @@ public class AnnotationHandlerTest {
 		return inputWebAnno3;
 	}
 	
-	@Test
-	public void testCompareWebAnno2() {
-		AnnotationHandler h = new WebAnnoTsvHandler();
-		List<Annotation> annotations = h.parse(inputWebAnno2);
-		List<TextualReference> textualReferences = new ArrayList<>();
-		TextualReference textRef = new TextualReference();
-		textRef.setReference("Gesundheitssurvey");
-		textualReferences.add(textRef);
-		TextualReference textRef2 = new TextualReference();
-		textRef2.setReference("Koch Institutes");
-		textualReferences.add(textRef2);
-		Set<Metadata> relevantFields = new HashSet<>();
-		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b, 
-				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
-		AnnotationHandler.compare(textualReferences, annotations, relevantFields);
+	public static String getTestAnnotationStringOldFormat() {
+		return inputWebAnno2;
 	}
 	
-	@Test
-	public void testCompareWebAnno3() {
-		AnnotationHandler h = new WebAnno3TsvHandler();
-		List<Annotation> annotations = h.parse(inputWebAnno3);
-		for (Annotation anno : annotations) log.debug(anno.toString());
-		List<TextualReference> textualReferences = new ArrayList<>();
-		TextualReference textRef = new TextualReference();
-		textRef.setReference("PIAAC");
-		textualReferences.add(textRef);
-		TextualReference textRef2 = new TextualReference();
-		textRef2.setReference("Programme for the International Assessment of Adult Competencies");
-		textualReferences.add(textRef2);
-		Set<Metadata> relevantFields = new HashSet<>();
-		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b));
-		AnnotationHandler.compare(textualReferences, annotations, relevantFields);
-	}
 	
-	@Ignore
+	@Test
 	public void testTokenizeAnnotations() throws IOException {
 		AnnotationHandler h = new WebAnno3TsvHandler();
 		/*String annotationTsv = FileUtils.readFileToString(new File("/tmp/44275 (7).tsv"), "utf8");

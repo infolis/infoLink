@@ -2,9 +2,14 @@ package io.github.infolis.infolink.evaluation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 import io.github.infolis.util.EvaluationUtils;
 
@@ -28,6 +33,14 @@ public class Agreement {
 	
 	int numFoundReferences = 0;
 	int numAnnotatedReferences = 0;
+	List<String> annotatedReferences = new ArrayList<>();
+	
+	ListMultimap<String, String> annoTypeMap = ArrayListMultimap.create();
+	double typeRecall;
+	double typeRecallExact;
+	double summedTypeRecall;
+	double summedTypeRecallExact;
+	int cumulatedFiles = 0;
 	
 	public Agreement(int numFoundReferences, int numAnnotatedReferences) {
 		this.numFoundReferences = numFoundReferences;
@@ -44,10 +57,20 @@ public class Agreement {
 		this.refAndAnnoOverlap.addAll(agreement.refAndAnnoOverlap);
 		this.numFoundReferences += agreement.numFoundReferences;
 		this.numAnnotatedReferences += agreement.numAnnotatedReferences;
+		this.annotatedReferences.addAll(agreement.annotatedReferences);
+		this.cumulatedFiles++;
+		try {
+			this.summedTypeRecall += agreement.typeRecall;
+			this.summedTypeRecallExact += agreement.typeRecallExact;
+		} catch (NullPointerException npe) {
+			agreement.getRecallForTypes();
+			this.summedTypeRecall += agreement.typeRecall;
+			this.summedTypeRecallExact += agreement.typeRecallExact;
+		}
 	}
 	
-	public void addAnnotatedReferences(int n) {
-		this.numAnnotatedReferences += n; 
+	public void setAnnotatedReferences(List<String> annotatedReferences) {
+		this.annotatedReferences = annotatedReferences;
 	}
 	
 	public int getNumAnnotatedReferences() {
@@ -64,14 +87,34 @@ public class Agreement {
 	
 	public void addIncompleteReference(String foundReference, String annotatedReference) {
 		this.refPartOfAnno.add(Arrays.asList(annotatedReference, foundReference));
+		annoTypeMap.put(annotatedReference, foundReference);
 	}
 	
 	public void addInflatedReference(String foundReference, String annotatedReference) {
 		this.annoPartOfRef.add(Arrays.asList(annotatedReference, foundReference));
+		annoTypeMap.put(annotatedReference, foundReference);
 	}
 	
 	public void addOverlap(String foundReference, String annotatedReference) {
-		this.refPartOfAnno.add(Arrays.asList(annotatedReference, foundReference));
+		this.refAndAnnoOverlap.add(Arrays.asList(annotatedReference, foundReference));
+		annoTypeMap.put(annotatedReference, foundReference);
+	}
+
+	// the current lists count matches per token; count them per type here
+	// e.g. if "PIAAC" has been found once, it does not need to be found twice
+	private void getRecallForTypes() {
+		Set<String> annotatedTypes = new HashSet<String>(this.annotatedReferences);
+		List<String> exactMatches = new ArrayList<>();
+		List<String> inexactMatches = new ArrayList<>();
+		List<String> noMatches  = new ArrayList<>();
+		
+		for (String anno : annotatedTypes) {
+			if (this.exactMatchesRefToAnno.contains(anno)) exactMatches.add(anno);
+			else if (annoTypeMap.containsKey(anno)) inexactMatches.add(anno);
+			else noMatches.add(anno);
+		}
+		this.typeRecall = getRecall(exactMatches.size() + inexactMatches.size(), annotatedTypes.size());
+		this.typeRecallExact = getRecall(exactMatches.size(), annotatedTypes.size());
 	}
 	
 	public void logStats() {
@@ -108,6 +151,7 @@ public class Agreement {
 				(foundReferences.size() / (double)numAnnotatedReferences) * 100,
 				foundReferences));
 		
+		// per token
 		double precision = getPrecision(foundReferences.size(), numFoundReferences);
 		double recall = getRecall(foundReferences.size(), numAnnotatedReferences);
 		double f1 = getF1(precision, recall);
@@ -115,12 +159,35 @@ public class Agreement {
 		log.debug("Recall: {}", recall);
 		log.debug("F1: {}", f1);
 		
+		// per token
 		double precisionExact = getPrecision(this.exactMatchesRefToAnno.size(), numFoundReferences);
 		double recallExact = getRecall(this.exactMatchesRefToAnno.size(), numAnnotatedReferences);
 		double f1Exact = getF1(precisionExact, recallExact);
 		log.debug("Precision (exact match only): {}", precisionExact);
 		log.debug("Recall (exact match only): {}", recallExact);
 		log.debug("F1: {}", f1Exact);
+		
+		// per type 
+		// count statistics for types per file, do not aggregate this over multiple files!
+		if (this.cumulatedFiles == 0) {
+			getRecallForTypes();
+			double typesF1 = getF1(precision, this.typeRecall);
+			double typesF1Exact = getF1(precisionExact, typeRecallExact);
+			log.debug("Recall for types: {}", this.typeRecall);
+			log.debug("F1 for types: {}", typesF1);
+			log.debug("Recall for types (exact match only): {}", this.typeRecallExact);
+			log.debug("F1 for types (exact match only): {}", typesF1Exact);
+		} else {
+			double cumulatedTypeRecall = this.summedTypeRecall / this.cumulatedFiles;
+			double cumulatedTypeRecallExact = this.summedTypeRecallExact / this.cumulatedFiles;
+			double cumulatedTypesF1 = getF1(precision, cumulatedTypeRecall);
+			double cumulatedTypesF1Exact = getF1(precisionExact, cumulatedTypeRecallExact);
+			log.debug("Recall for types: {}", cumulatedTypeRecall);
+			log.debug("F1 for types: {}", cumulatedTypesF1);
+			log.debug("Recall for types (exact match only): {}", cumulatedTypeRecallExact);
+			log.debug("F1 for types (exact match only): {}", cumulatedTypesF1Exact);
+		}
+		
 	}
 	
 	public double getPrecision(int correct, int retrieved) {
@@ -132,6 +199,7 @@ public class Agreement {
 	}
 	
 	public double getF1(double precision, double recall) {
+		if (recall == 0.0) return 0.0;
 		return EvaluationUtils.getF1Measure(precision, recall);
 	}
 

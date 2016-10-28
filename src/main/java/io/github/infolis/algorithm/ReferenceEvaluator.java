@@ -102,7 +102,6 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 			log.debug("agreement for {}:", goldFilename);
 			agreement.logStats();
 			cumulatedAgreement.update(agreement);
-			// TODO precision, recall; per individual references; per reference types per file
 		}
 		log.debug("agreement for all files:");
 		cumulatedAgreement.logStats();
@@ -169,6 +168,7 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		}
 		
 		Agreement agreement = new Agreement(textualReferences.size(), annotatedReferences.size());
+		agreement.setAnnotatedReferences(annotatedReferences);
 
 		for (TextualReference textRef : textualReferences) {
 			boolean referenceFoundInAnnotations = false;

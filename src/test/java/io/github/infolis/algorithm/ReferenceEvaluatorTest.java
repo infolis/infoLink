@@ -63,6 +63,10 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		textRef2.setTextFile(file2.getUri());
 		textRef2.setReference("Programme for the International Assessment of Adult Competencies which was");
 		textualReferences.add(textRef2);
+		TextualReference textRef3 = new TextualReference();
+		textRef3.setReference("PIAAC");
+		textRef3.setTextFile(file1.getUri());
+		textualReferences.add(textRef3);
 		List<String> textRefUris = dataStoreClient.post(TextualReference.class, textualReferences);
 		
 		// execute

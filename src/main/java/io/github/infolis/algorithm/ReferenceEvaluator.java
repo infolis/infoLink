@@ -99,11 +99,12 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		for (String goldFilename : goldFileMap.keySet()) {
 			loadAnnotations(goldFileMap.get(goldFilename));
 			Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
-			log.debug("agreement for {}", goldFilename);
+			log.debug("agreement for {}:", goldFilename);
 			agreement.logStats();
 			cumulatedAgreement.update(agreement);
 			// TODO precision, recall; per individual references; per reference types per file
 		}
+		log.debug("agreement for all files:");
 		cumulatedAgreement.logStats();
 		return cumulatedAgreement;
 	}

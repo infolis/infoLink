@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.util.EvaluationUtils;
+
+
 /**
  * 
  * @author kata
@@ -104,6 +107,32 @@ public class Agreement {
 				numAnnotatedReferences,
 				(foundReferences.size() / (double)numAnnotatedReferences) * 100,
 				foundReferences));
+		
+		double precision = getPrecision(foundReferences.size(), numFoundReferences);
+		double recall = getRecall(foundReferences.size(), numAnnotatedReferences);
+		double f1 = getF1(precision, recall);
+		log.debug("Precision: {}", precision);
+		log.debug("Recall: {}", recall);
+		log.debug("F1: {}", f1);
+		
+		double precisionExact = getPrecision(this.exactMatchesRefToAnno.size(), numFoundReferences);
+		double recallExact = getRecall(this.exactMatchesRefToAnno.size(), numAnnotatedReferences);
+		double f1Exact = getF1(precisionExact, recallExact);
+		log.debug("Precision (exact match only): {}", precisionExact);
+		log.debug("Recall (exact match only): {}", recallExact);
+		log.debug("F1: {}", f1Exact);
+	}
+	
+	public double getPrecision(int correct, int retrieved) {
+		return correct / (double)retrieved;
+	}
+	
+	public double getRecall(int correct, int relevant) {
+		return correct / (double)relevant;
+	}
+	
+	public double getF1(double precision, double recall) {
+		return EvaluationUtils.getF1Measure(precision, recall);
 	}
 
 }

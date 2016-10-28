@@ -81,7 +81,9 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 	 * @param foundReferences
 	 * @throws IOException 
 	 */
-	protected void evaluate(List<TextualReference> foundReferences, List<InfolisFile> goldFiles) throws IOException {
+	protected Agreement evaluate(List<TextualReference> foundReferences, List<InfolisFile> goldFiles) throws IOException {
+		Agreement cumulatedAgreement = new Agreement();
+		
 		// 1. iterate through references, sort by text file names
 		ListMultimap<String, TextualReference> refFileMap = ArrayListMultimap.create();
 		for (TextualReference ref : foundReferences) {
@@ -96,13 +98,14 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		// 3. evaluate references in every text file
 		for (String goldFilename : goldFileMap.keySet()) {
 			loadAnnotations(goldFileMap.get(goldFilename));
-			Agreement agreement = compareToGoldstandard(foundReferences);
+			Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
 			log.debug("agreement for {}", goldFilename);
 			agreement.logStats();
-			// TODO count: exact matches, partial matches; precision, recall; per individual references; per reference types per file
+			cumulatedAgreement.update(agreement);
+			// TODO precision, recall; per individual references; per reference types per file
 		}
-		//TODO 4. aggregate scores for all files
-
+		cumulatedAgreement.logStats();
+		return cumulatedAgreement;
 	}
 	
 	/**

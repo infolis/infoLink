@@ -23,12 +23,32 @@ public class Agreement {
 	List<List<String>> annoPartOfRef = new ArrayList<>();
 	List<List<String>> refAndAnnoOverlap = new ArrayList<>();
 	
-	int numFoundReferences;
-	int numAnnotatedReferences;
+	int numFoundReferences = 0;
+	int numAnnotatedReferences = 0;
 	
 	public Agreement(int numFoundReferences, int numAnnotatedReferences) {
 		this.numFoundReferences = numFoundReferences;
 		this.numAnnotatedReferences = numAnnotatedReferences;
+	}
+	
+	public Agreement() { }
+	
+	public void update(Agreement agreement) {
+		this.exactMatchesRefToAnno.addAll(agreement.exactMatchesRefToAnno);
+		this.noMatchesRefToAnno.addAll(agreement.noMatchesRefToAnno);
+		this.refPartOfAnno.addAll(agreement.refPartOfAnno);
+		this.annoPartOfRef.addAll(agreement.annoPartOfRef);
+		this.refAndAnnoOverlap.addAll(agreement.refAndAnnoOverlap);
+		this.numFoundReferences += agreement.numFoundReferences;
+		this.numAnnotatedReferences += agreement.numAnnotatedReferences;
+	}
+	
+	public void addAnnotatedReferences(int n) {
+		this.numAnnotatedReferences += n; 
+	}
+	
+	public int getNumAnnotatedReferences() {
+		return this.numAnnotatedReferences;
 	}
 	
 	public void addExactMatch(String foundReference) {

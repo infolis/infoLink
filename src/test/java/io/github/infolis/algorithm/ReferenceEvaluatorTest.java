@@ -15,6 +15,7 @@ import io.github.infolis.infolink.annotations.AnnotationHandler;
 import io.github.infolis.infolink.annotations.AnnotationHandlerTest;
 import io.github.infolis.infolink.annotations.WebAnno3TsvHandler;
 import io.github.infolis.infolink.annotations.WebAnnoTsvHandler;
+import io.github.infolis.infolink.evaluation.Agreement;
 import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
@@ -55,12 +56,12 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		// create textualReferences for test
 		List<TextualReference> textualReferences = new ArrayList<>();
 		TextualReference textRef = new TextualReference();
-		textRef.setReference("PIAAC");
+		textRef.setReference("PIAA");
 		textRef.setTextFile(file1.getUri());
 		textualReferences.add(textRef);
 		TextualReference textRef2 = new TextualReference();
 		textRef2.setTextFile(file2.getUri());
-		textRef2.setReference("Programme for the International Assessment of Adult Competencies");
+		textRef2.setReference("Programme for the International Assessment of Adult Competencies which was");
 		textualReferences.add(textRef2);
 		List<String> textRefUris = dataStoreClient.post(TextualReference.class, textualReferences);
 		
@@ -88,14 +89,15 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b, 
 				Metadata.creator, Metadata.creator_b, Metadata.creator_i));
-		ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+		Agreement agreement = ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+		agreement.logStats();
 	}
 	
 	@Test
 	public void testCompareWebAnno3() {
 		AnnotationHandler h = new WebAnno3TsvHandler();
 		List<Annotation> annotations = h.parse(AnnotationHandlerTest.getTestAnnotationString());
-		for (Annotation anno : annotations) log.debug(anno.toString());
+		//for (Annotation anno : annotations) log.debug(anno.toString());
 		List<TextualReference> textualReferences = new ArrayList<>();
 		TextualReference textRef = new TextualReference();
 		textRef.setReference("PIAAC");
@@ -106,7 +108,8 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		Set<Metadata> relevantFields = new HashSet<>();
 		relevantFields.addAll(Arrays.asList(
 				Metadata.title_b));
-		ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+		Agreement agreement = ReferenceEvaluator.compare(textualReferences, AnnotationHandler.mergeNgrams(annotations), relevantFields);
+		agreement.logStats();
 	}
 	
 	

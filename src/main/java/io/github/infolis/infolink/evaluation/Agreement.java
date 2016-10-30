@@ -40,7 +40,8 @@ public class Agreement {
 	double typeRecallExact;
 	double summedTypeRecall;
 	double summedTypeRecallExact;
-	int cumulatedFiles = 0;
+	int summedRecallTypes = 0;
+	int summedRecallTypesExact = 0;
 	
 	public Agreement(int numFoundReferences, int numAnnotatedReferences) {
 		this.numFoundReferences = numFoundReferences;
@@ -58,15 +59,26 @@ public class Agreement {
 		this.numFoundReferences += agreement.numFoundReferences;
 		this.numAnnotatedReferences += agreement.numAnnotatedReferences;
 		this.annotatedReferences.addAll(agreement.annotatedReferences);
-		this.cumulatedFiles++;
-		try {
-			this.summedTypeRecall += agreement.typeRecall;
-			this.summedTypeRecallExact += agreement.typeRecallExact;
-		} catch (NullPointerException npe) {
+		/*try {
+			if (!Double.isNaN(agreement.typeRecall)) {
+				this.summedTypeRecall += agreement.typeRecall;
+				this.summedRecallTypes++;
+			}
+			if (!Double.isNaN(agreement.typeRecallExact)) {
+				this.summedTypeRecallExact += agreement.typeRecallExact;
+				this.summedRecallTypesExact++;
+			}
+		} catch (NullPointerException npe) {*/
 			agreement.getRecallForTypes();
-			this.summedTypeRecall += agreement.typeRecall;
-			this.summedTypeRecallExact += agreement.typeRecallExact;
-		}
+			if (!Double.isNaN(agreement.typeRecall)) {
+				this.summedTypeRecall += agreement.typeRecall;
+				this.summedRecallTypes++;
+			}
+			if (!Double.isNaN(agreement.typeRecallExact)) {
+				this.summedTypeRecallExact += agreement.typeRecallExact;
+				this.summedRecallTypesExact++;
+			}
+		//}
 	}
 	
 	public void setAnnotatedReferences(List<String> annotatedReferences) {
@@ -169,7 +181,7 @@ public class Agreement {
 		
 		// per type 
 		// count statistics for types per file, do not aggregate this over multiple files!
-		if (this.cumulatedFiles == 0) {
+		if (this.summedRecallTypes == 0 && this.summedRecallTypesExact == 0) {
 			getRecallForTypes();
 			double typesF1 = getF1(precision, this.typeRecall);
 			double typesF1Exact = getF1(precisionExact, typeRecallExact);
@@ -178,8 +190,8 @@ public class Agreement {
 			log.debug("Recall for types (exact match only): {}", this.typeRecallExact);
 			log.debug("F1 for types (exact match only): {}", typesF1Exact);
 		} else {
-			double cumulatedTypeRecall = this.summedTypeRecall / this.cumulatedFiles;
-			double cumulatedTypeRecallExact = this.summedTypeRecallExact / this.cumulatedFiles;
+			double cumulatedTypeRecall = this.summedTypeRecall / this.summedRecallTypes;
+			double cumulatedTypeRecallExact = this.summedTypeRecallExact / this.summedRecallTypesExact;
 			double cumulatedTypesF1 = getF1(precision, cumulatedTypeRecall);
 			double cumulatedTypesF1Exact = getF1(precisionExact, cumulatedTypeRecallExact);
 			log.debug("Recall for types: {}", cumulatedTypeRecall);

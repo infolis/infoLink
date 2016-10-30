@@ -228,7 +228,8 @@ public abstract class AnnotationHandler {
 							word.matches("[\\p{Punct}\\p{P}]+")) {
 						
 						anno.setMetadata(Metadata.none);
-						if (charAnnotations[token.beginPosition() + 1].toString().endsWith("_i") && 
+						if (token.beginPosition() + 1 == charAnnotations.length) anno.setMetadata(charAnnotations[token.beginPosition()]);
+						else if (charAnnotations[token.beginPosition() + 1].toString().endsWith("_i") && 
 								charAnnotations[token.beginPosition()].toString().endsWith("_i")) {
 							anno.setMetadata(charAnnotations[token.beginPosition()]);
 						}
@@ -303,13 +304,6 @@ public abstract class AnnotationHandler {
 		List<Annotation> transformedAnnotations = transferAnnotationsToTokenizedText2(charAnnotations, 
 				sentences, originalText);
 		return transformedAnnotations;
-	}
-	
-	
-	protected List<Annotation> importData(String filename) throws IOException {
-		String input = read(filename);
-		log.debug("read annotation file " + filename);
-		return parse(input);
 	}
 	
 	// title_b, title_i and title have equal classes...

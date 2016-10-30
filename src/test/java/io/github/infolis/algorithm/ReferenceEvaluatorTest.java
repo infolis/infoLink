@@ -1,15 +1,23 @@
 package io.github.infolis.algorithm;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.datastore.DataStoreClient;
+import io.github.infolis.datastore.DataStoreClientFactory;
+import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.FileResolverFactory;
 import io.github.infolis.infolink.annotations.Annotation;
 import io.github.infolis.infolink.annotations.AnnotationHandler;
 import io.github.infolis.infolink.annotations.AnnotationHandlerTest;
@@ -20,6 +28,7 @@ import io.github.infolis.infolink.annotations.Annotation.Metadata;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.util.SerializationUtils;
 
 /**
  * 
@@ -30,6 +39,47 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReferenceEvaluatorTest.class);
 	
+	private List<String> uploadFiles(File directory, DataStoreClient client) throws IOException {
+		List<String> uris = new ArrayList<>();
+		for (File file : directory.listFiles()) {
+			InfolisFile infolisFile = new InfolisFile();
+			infolisFile.setFileName(file.getCanonicalPath());
+			infolisFile.setOriginalName(file.getName());
+			infolisFile.setMd5(SerializationUtils.getHexMd5(FileUtils.readFileToString(file)));
+			infolisFile.setMediaType("plain/text");
+			infolisFile.setFileStatus("AVAILABLE");
+			client.post(InfolisFile.class, infolisFile);
+			uris.add(infolisFile.getUri());
+		}
+		return uris;
+	}
+	
+	@Ignore
+	public void example() throws IOException {
+		DataStoreClient client = DataStoreClientFactory.local();
+		FileResolver resolver = FileResolverFactory.local();
+		Execution learn = new Execution(FrequencyBasedBootstrapping.class);
+		File testDir = new File(getClass().getResource("/referenceEvaluator/text").getFile());
+		learn.setInputFiles(uploadFiles(testDir, client));
+		learn.setTokenize(true);
+		learn.setPtb3Escaping(true);
+		learn.setTokenizeNLs(true);
+		learn.setMaxIterations(10);
+		learn.setReliabilityThreshold(0.05);
+		learn.setSeeds(Arrays.asList("SOEP", "ALLBUS"));
+		learn.instantiateAlgorithm(client, resolver).run();
+		List<String> foundReferences = learn.getTextualReferences();
+		
+		Execution evaluator = new Execution(ReferenceEvaluator.class);
+		File goldDir = new File(getClass().getResource("/referenceEvaluator/gold").getFile());
+		evaluator.setInputFiles(uploadFiles(goldDir, client));
+		log.debug("number of gold files: " + evaluator.getInputFiles().size());
+		evaluator.setTextualReferences(foundReferences);
+		evaluator.setTokenize(true);
+		evaluator.instantiateAlgorithm(client, resolver).run();
+	}
+	
+	
 	@Test
 	public void test() throws Exception {
 		// create annotation test files
@@ -39,17 +89,17 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 		List<String> fileUris = dataStoreClient.post(InfolisFile.class, files);
 		// add file names
 		InfolisFile f1 = dataStoreClient.get(InfolisFile.class, fileUris.get(0));
-		f1.setOriginalName("goldstandard/file1.tsv");
+		f1.setFileName("goldstandard/file1.tsv");
 		dataStoreClient.put(InfolisFile.class, f1, f1.getUri());
 		InfolisFile f2 = dataStoreClient.get(InfolisFile.class, fileUris.get(1));
-		f2.setOriginalName("goldstandard/file2.tsv");
+		f2.setFileName("goldstandard/file2.tsv");
 		dataStoreClient.put(InfolisFile.class, f2, f2.getUri());
 		
 		// create infolisFiles for test
 		InfolisFile file1 = new InfolisFile();
-		file1.setOriginalName("/foo/bar/file1.txt");
+		file1.setFileName("/foo/bar/file1.txt");
 		InfolisFile file2 = new InfolisFile();
-		file2.setOriginalName("file2.pdf");
+		file2.setFileName("file2.pdf");
 		dataStoreClient.post(InfolisFile.class, file1);
 		dataStoreClient.post(InfolisFile.class, file2);
 		

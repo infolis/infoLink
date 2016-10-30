@@ -62,6 +62,7 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 	private void loadAnnotations(InfolisFile goldFile) throws IOException {
 		this.goldstandard = this.getInputFileResolver().openInputStream(goldFile);
 		this.annotationHandler = new WebAnno3TsvHandler();
+		log.debug("reading annotation file {}", goldFile.getFileName());
 		this.goldAnnotations = readAnnotations(getExecution().isTokenize());
 	}
 	
@@ -72,6 +73,7 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 			annotations = this.annotationHandler.tokenizeAnnotations(annotations);
 		}
 		return AnnotationHandler.mergeNgrams(annotations);
+
 	}
 	
 	/**
@@ -87,13 +89,18 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		// 1. iterate through references, sort by text file names
 		ListMultimap<String, TextualReference> refFileMap = ArrayListMultimap.create();
 		for (TextualReference ref : foundReferences) {
-			String textFileName = getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getOriginalName();
-			refFileMap.put(Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replace(".txt", ""), ref);
+			//log.debug("original name: " + getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getOriginalName());
+			//log.debug("file name: " + getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getFileName());
+			String textFileName = getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getFileName();
+			log.debug("expected gold file name: " + Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.tokenized)?(\\.bibless)?\\.txt", ""), ref);
+			refFileMap.put(Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.tokenized)?(\\.bibless)?\\.txt", ""), ref);
 		}
 		// 2. iterate through gold files, sort by gold file names
 		Map<String, InfolisFile> goldFileMap = new HashMap<>();
+		log.debug("number of gold files: " + goldFileMap.size());
 		for (InfolisFile goldFile : goldFiles) {
-			goldFileMap.put(Paths.get(goldFile.getOriginalName()).getFileName().toString().replace(".tsv", ""), goldFile);
+			log.debug("gold file name: " + Paths.get(goldFile.getFileName()).getFileName().toString().replace(".tsv", ""));
+			goldFileMap.put(Paths.get(goldFile.getFileName()).getFileName().toString().replace(".tsv", ""), goldFile);
 		}
 		// 3. evaluate references in every text file
 		for (String goldFilename : goldFileMap.keySet()) {

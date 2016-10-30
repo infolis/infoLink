@@ -50,8 +50,9 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 		
 		relevantFields.addAll(Arrays.asList(
-				Metadata.title_b, Metadata.vague_title_b, Metadata.scale_b,
-				Metadata.year_b, Metadata.number_b, Metadata.version_b
+				Metadata.title_b, Metadata.project_title
+				//,Metadata.vague_title_b, Metadata.scale_b, 
+				//Metadata.year_b, Metadata.number_b, Metadata.version_b,
 				));
 	}
 	
@@ -104,11 +105,15 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 		}
 		// 3. evaluate references in every text file
 		for (String goldFilename : goldFileMap.keySet()) {
-			loadAnnotations(goldFileMap.get(goldFilename));
-			Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
-			log.debug("agreement for {}:", goldFilename);
-			agreement.logStats();
-			cumulatedAgreement.update(agreement);
+			try {
+				loadAnnotations(goldFileMap.get(goldFilename));
+				Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
+				log.debug("agreement for {}:", goldFilename);
+				agreement.logStats();
+				cumulatedAgreement.update(agreement);
+			} catch (IllegalArgumentException e) {
+				// no annotations in the file - no references found
+			}
 		}
 		log.debug("agreement for all files:");
 		cumulatedAgreement.logStats();

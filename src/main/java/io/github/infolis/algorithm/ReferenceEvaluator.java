@@ -93,27 +93,32 @@ public class ReferenceEvaluator extends BaseAlgorithm {
 			//log.debug("original name: " + getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getOriginalName());
 			//log.debug("file name: " + getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getFileName());
 			String textFileName = getInputDataStoreClient().get(InfolisFile.class, ref.getTextFile()).getFileName();
-			log.debug("expected gold file name: " + Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.tokenized)?(\\.bibless)?\\.txt", ""), ref);
-			refFileMap.put(Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.tokenized)?(\\.bibless)?\\.txt", ""), ref);
+			log.debug("expected gold file name: " + Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.bibless)?(\\.tokenized)?\\.txt", ""), ref);
+			refFileMap.put(Paths.get(textFileName).getFileName().toString().replace(".pdf", "").replaceAll("(\\.bibless)?(\\.tokenized)?\\.txt", ""), ref);
 		}
 		// 2. iterate through gold files, sort by gold file names
 		Map<String, InfolisFile> goldFileMap = new HashMap<>();
-		log.debug("number of gold files: " + goldFileMap.size());
 		for (InfolisFile goldFile : goldFiles) {
 			log.debug("gold file name: " + Paths.get(goldFile.getFileName()).getFileName().toString().replace(".tsv", ""));
 			goldFileMap.put(Paths.get(goldFile.getFileName()).getFileName().toString().replace(".tsv", ""), goldFile);
 		}
+		log.debug("number of gold files: " + goldFileMap.size());
 		// 3. evaluate references in every text file
 		for (String goldFilename : goldFileMap.keySet()) {
 			try {
 				loadAnnotations(goldFileMap.get(goldFilename));
-				Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
-				log.debug("agreement for {}:", goldFilename);
-				agreement.logStats();
-				cumulatedAgreement.update(agreement);
 			} catch (IllegalArgumentException e) {
 				// no annotations in the file - no references found
+				// don't just ignore file; if algorithm found references, this must hurt precision
+				log.debug("no annotations in {} that can be read", goldFilename);
+				log.debug(e.getMessage());
+				this.goldAnnotations = new ArrayList<>();
 			}
+			Agreement agreement = compareToGoldstandard(refFileMap.get(goldFilename));
+			log.debug("agreement for {}:", goldFilename);
+			agreement.logStats();
+			cumulatedAgreement.update(agreement);
+			
 		}
 		log.debug("agreement for all files:");
 		cumulatedAgreement.logStats();

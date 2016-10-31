@@ -46,7 +46,7 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 			infolisFile.setFileName(file.getCanonicalPath());
 			infolisFile.setOriginalName(file.getName());
 			infolisFile.setMd5(SerializationUtils.getHexMd5(FileUtils.readFileToString(file)));
-			infolisFile.setMediaType("plain/text");
+			infolisFile.setMediaType("text/plain");
 			infolisFile.setFileStatus("AVAILABLE");
 			client.post(InfolisFile.class, infolisFile);
 			uris.add(infolisFile.getUri());

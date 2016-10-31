@@ -39,7 +39,7 @@ public class ReferenceEvaluatorTest extends InfolisBaseTest {
 	
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReferenceEvaluatorTest.class);
 	
-	private List<String> uploadFiles(File directory, DataStoreClient client) throws IOException {
+	protected static List<String> uploadFiles(File directory, DataStoreClient client) throws IOException {
 		List<String> uris = new ArrayList<>();
 		for (File file : directory.listFiles()) {
 			InfolisFile infolisFile = new InfolisFile();

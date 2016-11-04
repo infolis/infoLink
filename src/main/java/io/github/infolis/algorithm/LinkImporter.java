@@ -173,7 +173,8 @@ public class LinkImporter extends BaseAlgorithm {
 		List<String> list = new ArrayList<>();
 		JsonArray array = (JsonArray) jsonValue;
 		for (JsonValue val : array) {
-			list.add(val.toString());
+			// remove '"' from string
+			list.add(val.toString().substring(1, val.toString().length() - 1));
 		}
 		return list;
 	}

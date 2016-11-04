@@ -134,6 +134,7 @@ public class DaraSolrQueryService extends QueryService {
 			throw new RuntimeException("Cannot read response for \"" + url.toString() + "\"");
 		} catch (IOException e) {
 			e.printStackTrace();
+			return results;
 		}
 		
         int listIndex = 0;

@@ -9,7 +9,7 @@
             "name": "name1", 
             "reliability": 1.0, 
             "tags": [
-                "test"
+                "test-goldstandard"
             ]
         }, 
         "dataset_2": {
@@ -20,7 +20,7 @@
             "name": "name2", 
             "reliability": 1.0, 
             "tags": [
-                "test"
+                "test-goldstandard"
             ]
         }
     },
@@ -32,7 +32,10 @@
                 "version_of"
             ], 
             "fromEntity": "dataset_1", 
-            "toEntity": "dataset_2"
+            "toEntity": "dataset_2",
+            "tags": [
+                "test-goldstandard"
+            ]
         }
     }
 }

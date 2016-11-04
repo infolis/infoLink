@@ -1,5 +1,8 @@
 package io.github.infolis.algorithm;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,7 +16,7 @@ import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
-
+import io.github.infolis.model.entity.EntityLink.EntityRelation;
 import io.github.infolis.InfolisConfig;
 
 /**
@@ -82,29 +85,25 @@ public class OntologyLinker extends MultiMatchesLinker {
 		
 	}
 	
-	protected List<String> refineLinksUsingOntology(List<String> links) {
+	protected List<String> enhanceLinksUsingOntology(List<String> links) {
+		List<String> newLinks = new ArrayList<>();
 		for (EntityLink link : getOutputDataStoreClient().get(EntityLink.class, links)) {
 			Entity toEntity = getOutputDataStoreClient().get(Entity.class, link.getToEntity());
-			String entityUri = getOntologyEntity(toEntity, false);
-			if (null == entityUri) {
-				//TODO implement delete method and use here
-				//getOutputDataStoreClient().delete(link.getUri());
-				//getOutputDataStoreClient().delete(toEntity.getUri());
-				links.remove(link.getUri());
-			}
-			else {
-				EntityLink newLink = new EntityLink(link.getFromEntity(), entityUri, link.getConfidence(), 
-						link.getLinkReason(), link.getEntityRelations());
-				getOutputDataStoreClient().put(EntityLink.class, newLink, link.getUri());
+			String entityUri = getOntologyEntity(toEntity, true);
+			if (null != entityUri) {
+				EntityLink newLink = new EntityLink(toEntity.getUri(), entityUri, 1.0, 
+						"", new HashSet<>(Arrays.asList(EntityRelation.same_as)));
+				getOutputDataStoreClient().post(EntityLink.class, newLink);
+				newLinks.add(newLink.getUri());
 			}
 		}
-		return links;
+		return newLinks;
 	}
 	
 	@Override
 	public void execute() {
 		super.execute();
 		List<String> links = getExecution().getLinks();
-		getExecution().setLinks(refineLinksUsingOntology(links));
+		getExecution().getLinks().addAll(enhanceLinksUsingOntology(links));
 	}
 }

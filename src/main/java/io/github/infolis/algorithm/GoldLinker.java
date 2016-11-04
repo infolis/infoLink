@@ -19,6 +19,7 @@ import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.model.entity.EntityLink.EntityRelation;
 
 /**
  * Use links contained in the gold standard for linking new citedData entities. 
@@ -71,7 +72,39 @@ public class GoldLinker extends SearchResultLinker {
 		importerExec.instantiateAlgorithm(this).run();
 	}
 	
+	private List<String> getAllOutgoingLinks(String fromEntityUri, List<String> tags) {
+		List<String> links = new ArrayList<>();
+		for (EntityLink goldLink : getLinksFromDatastore(fromEntityUri, tags)) {
+    		links.add(goldLink.getUri());
+    	}
+		return links;
+	}
+	
 	private List<String> link(Entity entity, List<String> ruleFileTags) {
+		List<String> links = new ArrayList<>();
+        debug(log, "Searching for matching entity in gold links");
+        List<String> fromEntityUris = getEntitiesFromDatastore(entity, ruleFileTags);
+        if (fromEntityUris.isEmpty()) return new ArrayList<>();
+		// get all links with fromEntityUri as fromEntity and make copies with entity as fromEntity
+        List<String> tags = new ArrayList<>();
+        tags.addAll(ruleFileTags);
+        tags.add("infolis-ontology");
+        for (String fromEntityUri : fromEntityUris) {
+        	EntityLink newLink = new EntityLink();
+        	newLink.setFromEntity(entity.getUri());
+        	newLink.setToEntity(fromEntityUri);
+        	newLink.setConfidence(1.0);
+        	newLink.setEntityRelations(new HashSet<>(Arrays.asList(EntityRelation.same_as)));
+        	newLink.setTags(getExecution().getTags());
+        	getOutputDataStoreClient().post(EntityLink.class, newLink);
+    		links.add(newLink.getUri());
+    		
+    		links.addAll(getAllOutgoingLinks(fromEntityUri, tags));
+        }
+		return links;
+	}
+	
+	private List<String> link_copy(Entity entity, List<String> ruleFileTags) {
 		List<String> links = new ArrayList<>();
         debug(log, "Searching for matching entity in gold links");
         List<String> fromEntityUris = getEntitiesFromDatastore(entity, ruleFileTags);

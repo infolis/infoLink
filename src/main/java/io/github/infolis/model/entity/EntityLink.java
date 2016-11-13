@@ -23,7 +23,7 @@ public class EntityLink extends BaseModel {
     private String fromEntity;
     private double confidence;
     private String linkReason;
-    private Set<EntityRelation> entityRelations;
+    private Set<EntityRelation> entityRelations = new HashSet<>();
     
     public EntityLink() {
     }
@@ -34,7 +34,6 @@ public class EntityLink extends BaseModel {
 		this.toEntity = toEntity;
 		this.confidence = confidence;
 		this.linkReason = linkReason;
-		this.entityRelations = new HashSet<>();
 	}
 	
 	public EntityLink(String fromEntity, String toEntity, double confidence, String linkReason, Set<EntityRelation> entityRelations)

@@ -50,9 +50,8 @@ public class ReferenceLinker extends BaseAlgorithm {
 		//link.setConfidence(textualReference.getConfidence());
 		link.setFromEntity(fromEntityUri);
 		link.setToEntity(toEntityUri);
-		// TODO add relation "references"
 		Set<EntityLink.EntityRelation> entityRelations = new HashSet<>();
-		//entityRelations.add(EntityLink.EntityRelation.references);
+		entityRelations.add(EntityLink.EntityRelation.references);
 		link.setEntityRelations(entityRelations);
 		link.setLinkReason(textualReference.getUri());
 		link.setTags(textualReference.getTags());

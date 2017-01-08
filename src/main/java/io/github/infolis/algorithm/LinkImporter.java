@@ -197,7 +197,14 @@ public class LinkImporter extends BaseAlgorithm {
 		if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
 			ontologyUri = InfolisConfig.getFrontendURI() + "/entity/" + ontologyUri;
 		}
-		Entity ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
+		
+		Entity ontologyEntity = null;
+		try {
+			ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
+		} catch (RuntimeException e) {
+			return null;
+		}
+		
 		if (null != ontologyEntity) {
 			return ontologyUri;
 		} else return null;

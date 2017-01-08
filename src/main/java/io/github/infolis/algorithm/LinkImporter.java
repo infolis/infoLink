@@ -19,8 +19,10 @@ import javax.json.JsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
+import io.github.infolis.datastore.LocalClient;
 import io.github.infolis.model.EntityType;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -103,17 +105,26 @@ public class LinkImporter extends BaseAlgorithm {
 					} catch (NullPointerException npe) {};
 
 					String uri = entityEntry.getKey();
+					
+					// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
+					if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
+						uri = InfolisConfig.getFrontendURI() + "/entity/" + uri;
+					}
+
+					entity.setUri(uri);
 					getOutputDataStoreClient().put(Entity.class, entity, uri);
-					importedEntities.add(entity.getUri());
+					importedEntities.add(uri);
 					debug(log, "imported entity {}", entity.getUri());
 					
 					//create link from entity to corresponding entities in the ontology
-					String ontologyEntity = getOntologyEntity(entity);
-					if (null != ontologyEntity)  {
-						EntityLink ontoLink = createLink(entity.getUri(), ontologyEntity, new HashSet<EntityRelation>(Arrays.asList(EntityRelation.same_as)));
-						ontoLink.setTags(getExecution().getTags());
-						getOutputDataStoreClient().post(EntityLink.class, ontoLink);
-						importedLinks.add(ontoLink.getUri());
+					if (null != entity.getIdentifiers() && !entity.getIdentifiers().isEmpty()) {
+						String ontologyEntity = getOntologyEntity(entity);
+						if (null != ontologyEntity)  {
+							EntityLink ontoLink = createLink(entity.getUri(), ontologyEntity, new HashSet<EntityRelation>(Arrays.asList(EntityRelation.same_as)));
+							ontoLink.setTags(getExecution().getTags());
+							getOutputDataStoreClient().post(EntityLink.class, ontoLink);
+							importedLinks.add(ontoLink.getUri());
+						}
 					}
 					
 				};
@@ -150,8 +161,16 @@ public class LinkImporter extends BaseAlgorithm {
 					};
 					
 					String uri = linkEntry.getKey();
+					
+					// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
+					if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
+						uri = InfolisConfig.getFrontendURI() + "/entityLink/" + uri;
+					}
+					
+					link.setUri(uri);
+					
 					getOutputDataStoreClient().put(EntityLink.class, link, uri);
-					importedLinks.add(link.getUri());
+					importedLinks.add(uri);
 					debug(log, "imported entityLink {}", link.getUri());
 				}
 			}
@@ -191,6 +210,10 @@ public class LinkImporter extends BaseAlgorithm {
 		String ontologyUri = "dataset_" + entity.getIdentifiers().get(0)
 				.replace("/", "")
 				.replace(".", "");
+		// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
+		if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
+			ontologyUri = InfolisConfig.getFrontendURI() + "/entity/" + ontologyUri;
+		}
 		Entity ontologyEntity = getOutputDataStoreClient().get(Entity.class, ontologyUri);
 		if (null != ontologyEntity) {
 			return ontologyUri;

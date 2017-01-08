@@ -104,16 +104,8 @@ public class LinkImporter extends BaseAlgorithm {
 						entity.setURL(entityValues.getString("url"));
 					} catch (NullPointerException npe) {};
 
-					String uri = entityEntry.getKey();
-					
-					// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
-					if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
-						uri = InfolisConfig.getFrontendURI() + "/entity/" + uri;
-					}
-
-					entity.setUri(uri);
-					getOutputDataStoreClient().put(Entity.class, entity, uri);
-					importedEntities.add(uri);
+					getOutputDataStoreClient().post(Entity.class, entity);
+					importedEntities.add(entity.getUri());
 					debug(log, "imported entity {}", entity.getUri());
 					
 					//create link from entity to corresponding entities in the ontology
@@ -160,17 +152,8 @@ public class LinkImporter extends BaseAlgorithm {
 						continue;
 					};
 					
-					String uri = linkEntry.getKey();
-					
-					// TODO add "getUriPrefix"-method to AbstractClient and implementing classes; use this here
-					if (!getOutputDataStoreClient().getClass().isAssignableFrom(LocalClient.class)) {
-						uri = InfolisConfig.getFrontendURI() + "/entityLink/" + uri;
-					}
-					
-					link.setUri(uri);
-					
-					getOutputDataStoreClient().put(EntityLink.class, link, uri);
-					importedLinks.add(uri);
+					getOutputDataStoreClient().post(EntityLink.class, link);
+					importedLinks.add(link.getUri());
 					debug(log, "imported entityLink {}", link.getUri());
 				}
 			}

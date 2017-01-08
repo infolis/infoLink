@@ -61,6 +61,7 @@ public class EntityLink extends BaseModel {
 	    part_of_supplement,
 	    superset_of_supplement,
 	    part_of,
+	    parts_of,
 	    superset_of,
 	    same_as_temporal,
 	    same_as_spatial,

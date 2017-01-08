@@ -158,6 +158,7 @@ public class ReferenceLinker extends BaseAlgorithm {
     	Execution linker = getExecution().createSubExecution(getExecution().getSearchResultLinkerClass());
     	linker.setSearchResults(searchResults);
         linker.setLinkedEntities(Arrays.asList(entityUri));
+        if (null != getExecution().getInputFiles() && !getExecution().getInputFiles().isEmpty()) linker.setInputFiles(getExecution().getInputFiles());
         getOutputDataStoreClient().post(Execution.class, linker);
         debug(log, "Creating links based on " + searchResults.size() + " search results");
         linker.instantiateAlgorithm(this).run();

@@ -1,6 +1,5 @@
 package io.github.infolis.algorithm;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,7 +27,7 @@ import io.github.infolis.model.entity.EntityLink.EntityRelation;
  * @author kata
  *
  */
-public class GoldLinker extends SearchResultLinker {
+public class GoldLinker extends OntologyLinker {
 
 	private static final Logger log = LoggerFactory.getLogger(GoldLinker.class);
 	
@@ -38,27 +37,39 @@ public class GoldLinker extends SearchResultLinker {
 	}
 
 	@Override
-	public void execute() throws IOException {
+	public void execute() {
 		List<String> ruleFileTags = new ArrayList<>();
+		
 		log.debug("Loading data from rule file...");
 		for (InfolisFile ruleFile : getInputDataStoreClient().get(InfolisFile.class, getExecution().getInputFiles())) {
 			loadData(ruleFile);
 			ruleFileTags.add(getRuleFileTag(ruleFile));
 		}
+		
 		log.debug("Creating links...");
-		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
-			String entityUri = getExecution().getLinkedEntities().get(0);
-			Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
-			List<String> links = link(entity, ruleFileTags);
-			if (links.isEmpty()) {
-				Execution exec = getExecution().createSubExecution(OntologyLinker.class);
-				exec.setLinkedEntities(Arrays.asList(entityUri));
-				exec.setSearchResults(getExecution().getSearchResults());
-				exec.instantiateAlgorithm(this).run();
-				getExecution().setLinks(exec.getLinks());
-			}
-			else getExecution().setLinks(links);
+		String entityUri = "";
+		
+		if (null != getExecution().getTextualReferences() && !getExecution().getTextualReferences().isEmpty()) {
+			Execution mde = getExecution().createSubExecution(MetaDataExtractor.class);
+			mde.setTextualReferences(getExecution().getTextualReferences());
+			mde.instantiateAlgorithm(this).run();
+			entityUri = mde.getLinkedEntities().get(0);
 		}
+		
+		// if both textual reference and entity are given, only the entity is processed
+		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
+			entityUri = getExecution().getLinkedEntities().get(0);
+		}
+		
+		Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
+		List<String> links = link(entity, ruleFileTags);
+		if (links.isEmpty()) {
+			Execution exec = getExecution().createSubExecution(OntologyLinker.class);
+			exec.setLinkedEntities(Arrays.asList(entityUri));
+			exec.setSearchResults(getExecution().getSearchResults());
+			exec.instantiateAlgorithm(this).run();
+			getExecution().setLinks(exec.getLinks());
+		} else getExecution().setLinks(links);
 	}
 	
 	private String getRuleFileTag(InfolisFile ruleFile) {

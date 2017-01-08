@@ -18,6 +18,7 @@ import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.infolink.querying.QueryService;
@@ -177,6 +178,7 @@ public class ReferenceLinker extends BaseAlgorithm {
 		
 		List<String> entityLinks = linkReferences(getExecution().getTextualReferences());
 		getExecution().setLinks(entityLinks);
+		getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
 	
 	@Override

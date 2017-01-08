@@ -180,6 +180,7 @@ public class CommandLineExecuter {
                                 Set<String> tags = new HashSet<>();
                                 if (entityObject.containsKey("name")) {
                                     name = String.valueOf(entityObject.get("name"));
+                                    name = name.substring(1, name.length()-1).trim();
                                 }
                                 if (entityObject.containsKey("number")) {
                                     number = String.valueOf(entityObject.get("number"));

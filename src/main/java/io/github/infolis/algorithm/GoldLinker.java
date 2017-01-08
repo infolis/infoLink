@@ -170,7 +170,7 @@ public class GoldLinker extends OntologyLinker {
 		List<Entity> entitiesInDatabase = getOutputDataStoreClient().search(Entity.class, query);
 		for (Entity entityInDatabase : entitiesInDatabase) {
 			if (((new HashSet<>(entityInDatabase.getNumericInfo()).equals(new HashSet<>(entity.getNumericInfo())))
-						|| (CollectionUtils.intersection(entityInDatabase.getNumericInfo(), entity.getNumericInfo()).isEmpty())
+						|| !(CollectionUtils.intersection(entityInDatabase.getNumericInfo(), entity.getNumericInfo()).isEmpty())
 						|| (entityInDatabase.getNumericInfo().isEmpty() && entity.getNumericInfo().isEmpty())) 
 					&& (entityInDatabase.getName().equals(entity.getName()))
 					&& (!CollectionUtils.intersection(entityInDatabase.getTags(), tags).isEmpty())) {

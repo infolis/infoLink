@@ -67,6 +67,9 @@ public class EntityLink extends BaseModel {
 	    same_as_spatial,
 	    superset_of_translation,
 	    part_of_translation,
+            part_of_methodical,
+            parts_of_methodical,
+            superset_of_methodical,
 	    unknown,
 	    same_as,
 	    references

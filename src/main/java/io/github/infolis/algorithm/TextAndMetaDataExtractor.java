@@ -53,6 +53,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
 
             for (String metaFile : getExecution().getMetaDataFiles()) {
                 Path p = null;
+                if (null == infoFile.getOriginalName()) infoFile.setOriginalName(infoFile.getFileName());
                 //problems with leading slashs if using Windows...
                 if (infoFile.getOriginalName().startsWith("/")) {
                     p = Paths.get(infoFile.getOriginalName().substring(1));

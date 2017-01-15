@@ -240,7 +240,10 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		        }
 		      	
 		        boolean nonStopwordPresent = false;
-		        double relevance = computeRelevance(candidate, candidates);
+		        double relevance = 0;
+		        try {
+		        	relevance = computeRelevance(candidate, candidates);
+		        } catch (NullPointerException npe) {}
 		        
 		        for (String word : candidate.getWords()) {
 		         	if (!RegexUtils.isStopword(word)) {

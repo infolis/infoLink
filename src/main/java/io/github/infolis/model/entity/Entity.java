@@ -53,6 +53,7 @@ public class Entity extends BaseModel {
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
     private String language;
+    private String versionInfo;
     private Set<String> spatial = new HashSet<>();
 
     public Entity(String name) {
@@ -71,6 +72,7 @@ public class Entity extends BaseModel {
     	this.authors = copyFrom.getAuthors();
     	this.subjects = copyFrom.getSubjects();
     	this.language = copyFrom.getLanguage();
+    	this.versionInfo = copyFrom.getVersionInfo();
     	this.spatial = copyFrom.getSpatial();
     	this.entityType = copyFrom.getEntityType();
     	
@@ -286,6 +288,14 @@ public class Entity extends BaseModel {
      */
     public void setLanguage(String language) {
         this.language = language;
+    }
+    
+    public void setVersionInfo(String versionInfo) {
+    	this.versionInfo = versionInfo;
+    }
+    
+    public String getVersionInfo() {
+    	return this.versionInfo;
     }
 
     /**

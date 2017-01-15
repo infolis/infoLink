@@ -67,9 +67,10 @@ public class OntologyLinkerTest extends InfolisBaseTest {
 				dataStoreClient, dataStoreClient, fileResolver, fileResolver);
 		ontoLinker.setExecution(exec);
 		
-		for (EntityLink newLink : dataStoreClient.get(EntityLink.class, ontoLinker.refineLinksUsingOntology(links))) {
+		for (EntityLink newLink : dataStoreClient.get(EntityLink.class, ontoLinker.enhanceLinksUsingOntology(links))) {
+			Entity fromEntity = dataStoreClient.get(Entity.class, newLink.getFromEntity());
 			Entity toEntity = dataStoreClient.get(Entity.class, newLink.getToEntity());
-			log.debug("fromEntity: " + newLink.getFromEntity());
+			log.debug("fromEntity: " + fromEntity.getName());
 			log.debug("toEntity: " + toEntity.getName());
 			log.debug("toEntitySpatial: " + toEntity.getSpatial());
 			log.debug("entityRelations: " + newLink.getEntityRelations());

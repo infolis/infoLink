@@ -1,0 +1,41 @@
+{
+    "entity": {
+        "dataset_1": {
+            "entityType": "dataset", 
+            "versionInfo": "1.0",
+            "identifiers": [
+                "id1"
+            ], 
+            "name": "name1", 
+            "reliability": 1.0, 
+            "tags": [
+                "test-goldstandard"
+            ]
+        }, 
+        "dataset_2": {
+            "entityType": "dataset", 
+            "identifiers": [
+                "id2"
+            ], 
+            "name": "name2", 
+            "reliability": 1.0, 
+            "tags": [
+                "test-goldstandard"
+            ]
+        }
+    },
+    "entityLink": {
+        "entityLink_dataset_1_dataset_2": {
+            "confidence": 1.0, 
+            "entityRelations": [
+                "parts_of_temporal", 
+                "version_of"
+            ], 
+            "fromEntity": "dataset_1", 
+            "toEntity": "dataset_2",
+            "tags": [
+                "test-goldstandard"
+            ]
+        }
+    }
+}

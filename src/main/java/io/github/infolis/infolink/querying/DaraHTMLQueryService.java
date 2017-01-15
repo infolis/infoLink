@@ -41,7 +41,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 public class DaraHTMLQueryService extends QueryService {
 
     public DaraHTMLQueryService() {
-        super("http://www.da-ra.de/dara/search/search_result", 0.5);
+        super("http://www.da-ra.de/dara/search/search_result", 0.8);
     }
     
     private static final Logger log = LoggerFactory.getLogger(DaraHTMLQueryService.class);

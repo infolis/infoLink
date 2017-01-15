@@ -40,7 +40,7 @@ public class MultiMatchesLinker extends SearchResultLinker {
 			String entityUri = getExecution().getLinkedEntities().get(0);
 			Entity entity = getInputDataStoreClient().get(Entity.class, entityUri);
 			List<CandidateTargetEntity> candidates = rankResults(entity);
-			candidates = getMatchingSearchResults(candidates, 1.0);
+			candidates = getMatchingSearchResults(candidates, 0.55);
 	        List<String> entityLinks = createLinks(entity, candidates);
 	        getExecution().setLinks(entityLinks);
 		}
@@ -48,7 +48,7 @@ public class MultiMatchesLinker extends SearchResultLinker {
 			String textRefURI = getExecution().getTextualReferences().get(0);
 			TextualReference textRef = getInputDataStoreClient().get(TextualReference.class, textRefURI);
 			List<CandidateTargetEntity> candidates = rankResults(textRef);
-			candidates = getMatchingSearchResults(candidates, 1.0);
+			candidates = getMatchingSearchResults(candidates, 0.55);
 	        List<String> entityLinks = createLinks(textRef, candidates);
 	        getExecution().getLinks().addAll(entityLinks);
 		}

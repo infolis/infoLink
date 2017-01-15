@@ -81,6 +81,7 @@ public class FrequencyBasedBootstrappingTest extends InfolisBaseTest {
 			assertNotNull("StudyContext must have pattern set!", studyContext.getPattern());
 			assertNotNull("StudyContext must have term set!", studyContext.getReference());
 			assertNotNull("StudyContext must have file set!", studyContext.getTextFile());
+			assertNotNull("StudyContext must have reliability set!", studyContext.getReliability());
 		}
 		log.debug(SerializationUtils.dumpExecutionLog(execution));
 	}

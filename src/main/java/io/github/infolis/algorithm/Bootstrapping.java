@@ -147,6 +147,11 @@ public abstract class Bootstrapping extends ComplexAlgorithm implements Bootstra
             this.getExecution().getTextualReferences().add(sC.getUri());
             this.getExecution().getPatterns().add(sC.getPattern());
         }
+        /*log.debug("Final list of patterns: ");
+        for (InfolisPattern p : getOutputDataStoreClient().get(InfolisPattern.class, this.getExecution().getPatterns())) {
+        	log.debug(p.getPatternRegex() + "=" + p.getReliability());
+        }*/
+
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }
 

@@ -80,6 +80,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         	Entity entity = new Entity(term);
         	entity.setTags(getExecution().getTags());
         	entity.setEntityType(EntityType.citedData);
+        	entity.setIsSeed();
         	newSeedsIteration.add(entity);
         }
 
@@ -168,6 +169,14 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	            	Entity entity = new Entity(studyContext.getReference());
 	            	entity.setTags(studyContext.getTags());
 	            	entity.setEntityType(EntityType.citedData);
+
+	            	// an entity is just as reliable as the textual reference it was extracted from
+	            	try {
+	            		entity.setReliability(studyContext.getReliability());
+	            	} catch (NullPointerException npe) {
+	            		log.debug("Cannot set reliability of entity: textual reference's reliability score is null");
+	            	}
+	            	
 	            	newSeedsIteration.add(entity);
 	            	newSeedTermsIteration.add(studyContext.getReference());
 	            }
@@ -183,7 +192,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	debug(log, "Final iteration: " + numIter);//info
                 log.debug("Final list of instances:  ");
                 for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
-                log.debug("Final list of patterns: " + String.join("\n", processedPatterns));
             	return extractedContextsFromPatterns;
             }
         }
@@ -192,7 +200,6 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
         debug(log, "Final iteration: " + numIter);//info
         log.debug("Final list of instances:  ");
         for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
-        log.debug("Final list of patterns: " + String.join("\n", processedPatterns));
         return extractedContextsFromPatterns;
     }
 
@@ -231,13 +238,17 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		            candidateNo += remainingCandidatesForContext -1;
 		            continue;
 		        }
+		      	
 		        boolean nonStopwordPresent = false;
+		        double relevance = computeRelevance(candidate, candidates);
+		        
 		        for (String word : candidate.getWords()) {
 		         	if (!RegexUtils.isStopword(word)) {
 		          		nonStopwordPresent = true;
 		           		continue;
 		           	}
 		        }
+ 
 		        if (!nonStopwordPresent) {
 		        	log.debug("Pattern rejected - stopwords only");
 		        	if (acceptedPatterns == 1) {
@@ -246,8 +257,10 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		           		continue;
 		        	}
 		        }
-		        else if (nonStopwordPresent && isRelevant(candidate, candidates)) {
+		        
+		        else if (nonStopwordPresent && isRelevant(candidate, relevance)) {
 		        	candidate.setTags(getExecution().getTags());
+		        	candidate.setReliability(relevance);
 		          	patterns.add(candidate);
 		           	processedRegex_iteration.add(candidate.getPatternRegex());
 		           	log.debug("Pattern accepted");
@@ -275,23 +288,34 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 	        return patterns;
 	    }
 
-    	private double computeRelevance(int count, int size) {
-    		int norm = 1;
-    		double score = ((double) count / size) * norm;
+    	private double computeRelevance(int count, int size, int minCount) {
+    		double score = 0.0;
+    		
+    		if (count >= minCount) {
+    			//TODO make configurable
+    			int norm = 1;
+	    		score = ((double) count / size) * norm;
+    		}
+    		
     		log.debug("Relevance score: " + score);
     		log.debug("Occurrences: " + count);
     		log.debug("Size: " + size);
     		return score;
     	}
-
-    	private boolean isRelevant(InfolisPattern pattern, List<InfolisPattern> candidateList) {
+    	
+    	private double computeRelevance(InfolisPattern pattern, List<InfolisPattern> candidateList) {
+    		//TODO make configurable
+    		int minCount = 0;
     		int count = 0;
     		for (InfolisPattern candidateP : candidateList) {
     			if (pattern.getPatternRegex().equals(candidateP.getPatternRegex())) count++;
     		}
-    		double relevance = computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext());
-		return (relevance >= pattern.getThreshold() && (count > 0));
+    		return computeRelevance(count, candidateList.size() / getPatternInducer().getPatternsPerContext(), minCount);
     	}
-    }//end of class
+
+    	private boolean isRelevant(InfolisPattern pattern, double score) {
+    		return (score >= pattern.getThreshold());
+    	}
+    }
 
 }

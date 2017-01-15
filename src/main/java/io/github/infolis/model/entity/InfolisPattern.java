@@ -182,10 +182,9 @@ public class InfolisPattern extends BaseModel {
     /**
      * @param reliability the reliability to set
      */
-    /*
      public void setReliability(double reliability) {
-     this.reliability = reliability;
-     }*/
+    	 this.reliability = reliability;
+     }
     /**
      * @return the associations
      */

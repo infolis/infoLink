@@ -166,6 +166,10 @@ public class Entity extends BaseModel {
     public double getReliability() {
         return this.reliability;
     }
+    
+    public void setReliability(double reliability) {
+    	this.reliability = reliability;
+    }
 
     public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
         this.reliability = r.computeReliability(dataSize, reliablePatterns, this);

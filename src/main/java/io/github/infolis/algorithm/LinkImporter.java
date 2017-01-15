@@ -103,6 +103,9 @@ public class LinkImporter extends BaseAlgorithm {
 					try {
 						entity.setURL(entityValues.getString("url"));
 					} catch (NullPointerException npe) {};
+					try {
+						entity.setReliability(Double.valueOf(entityValues.get("reliability").toString()));
+					} catch (NullPointerException npe) {};
 
 					getOutputDataStoreClient().post(Entity.class, entity);
 					importedEntities.add(entity.getUri());
@@ -114,6 +117,7 @@ public class LinkImporter extends BaseAlgorithm {
 						if (null != ontologyEntity)  {
 							EntityLink ontoLink = createLink(entity.getUri(), ontologyEntity, new HashSet<EntityRelation>(Arrays.asList(EntityRelation.same_as)));
 							ontoLink.setTags(getExecution().getTags());
+							ontoLink.setConfidence(1.0);
 							getOutputDataStoreClient().post(EntityLink.class, ontoLink);
 							importedLinks.add(ontoLink.getUri());
 						}

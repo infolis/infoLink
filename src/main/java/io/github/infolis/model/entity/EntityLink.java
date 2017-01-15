@@ -53,13 +53,26 @@ public class EntityLink extends BaseModel {
 	    superset_of_temporal,
 	    superset_of_spatial,
 	    version_of,
+	    superset_of_version,
 	    part_of_confidential,
+	    superset_of_confidential,
 	    part_of_sample,
+	    superset_of_sample,
 	    part_of_supplement,
+	    superset_of_supplement,
 	    part_of,
+	    parts_of,
+	    superset_of,
 	    same_as_temporal,
 	    same_as_spatial,
-	    unknown
+	    superset_of_translation,
+	    part_of_translation,
+            part_of_methodical,
+            parts_of_methodical,
+            superset_of_methodical,
+	    unknown,
+	    same_as,
+	    references
 	};
 	
 	public void setEntityRelations(Set<EntityRelation> entityRelations) {

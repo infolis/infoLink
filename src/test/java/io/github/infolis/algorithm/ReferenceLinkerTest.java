@@ -107,7 +107,7 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec5.setSearchResultLinkerClass(BestMatchLinker.class);
 		exec5.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec5.getLinks();
-	    assertEquals(3, linkUris.size());
+	    assertEquals(4, linkUris.size());
 	    EntityLink link5 = dataStoreClient.get(EntityLink.class, linkUris.get(1));
 	    Entity toEntity5 = dataStoreClient.get(Entity.class, link5.getToEntity());
 	    assertEquals("Studiensituation und studentische Orientierungen 2012/13 (Studierenden-Survey)", toEntity5.getName());
@@ -144,7 +144,7 @@ public class ReferenceLinkerTest extends InfolisBaseTest {
 		exec7.setSearchResultLinkerClass(MultiMatchesLinker.class);
 		exec7.instantiateAlgorithm(dataStoreClient, fileResolver).run();
 		linkUris = exec7.getLinks();
-	    assertEquals(3, linkUris.size());
+	    assertEquals(4, linkUris.size());
 	    EntityLink link7b = dataStoreClient.get(EntityLink.class, linkUris.get(1));
 	    Entity toEntity7b = dataStoreClient.get(Entity.class, link7b.getToEntity());
 	    assertEquals("Sozialwissenschaftliche Telefonumfragen in der Allgemeinbevölkerung über das Mobilfunknetz (CELLA 1)", toEntity7b.getName());

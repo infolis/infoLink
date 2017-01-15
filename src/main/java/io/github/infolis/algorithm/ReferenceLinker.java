@@ -14,15 +14,12 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
+import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
-import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.infolink.querying.QueryService;
 
@@ -48,104 +45,14 @@ public class ReferenceLinker extends BaseAlgorithm {
 	
 	private static final Logger log = LoggerFactory.getLogger(ReferenceLinker.class);
 	
-	//TODO do all clients use boolean OR? Using AND is more efficient
-	/**
-	 * Search entity in datastore - if an entity with the same properties can be found, 
-	 * return its uri. Else, post the tempEntity to the datastore and return its uri.
-	 * 
-	 * Note: this method assumes the search method searches for entities having at least 
-	 * one of the specified properties (AND), not all them (OR). 
-	 * 
-	 * @param tempEntity
-	 * @return
-	 */
-	private String getEntityFromDatastore(Entity tempEntity) {
-		Multimap<String, String> query = HashMultimap.create();
-		query.put("name", tempEntity.getName());
-		// numeric info must be equal -> each item has to be contained 
-		// but also there must not be an additional item -> filter below
-		for (int i = 0; i < tempEntity.getNumericInfo().size(); i++) {
-			query.put("numericInfo", tempEntity.getNumericInfo().get(i));
-		}
-		// TODO one matching id should be enough provided that ids are really unique.. 
-		// other IDs should be added in case they are missing?
-		// (however, with the current data, there is always exactly one identifier
-		// so this problem does not occur)
-		for (String id : tempEntity.getIdentifiers()) {
-			query.put("identifier", id);
-		}
-		List<Entity> entitiesInDatabase = getOutputDataStoreClient().search(Entity.class, query);
-		for (Entity entityInDatabase : entitiesInDatabase) {
-			// make sure entityInDatabase does not contain additional numeric info
-			// restricting the applicable links
-			// make sure all fields match
-			if ((entityInDatabase.getNumericInfo().equals(tempEntity.getNumericInfo())) 
-					&& (entityInDatabase.getName().equals(tempEntity.getName()))
-					&& (new HashSet<String>(entityInDatabase.getIdentifiers())
-							.equals(new HashSet<String>(tempEntity.getIdentifiers())))) {
-				debug(log, "Found entity in datastore: " + entityInDatabase.getUri());
-				return entityInDatabase.getUri();
-			}
-		}
-		// no matching entity has been found in the database
-		Entity newEntity = new Entity(tempEntity);
-		getOutputDataStoreClient().post(Entity.class, newEntity);
-		debug(log, "Did not find entity in datastore, posted new one as " + newEntity.getUri());
-		// call linkEntity here if you do not want to update links for existing entities
-		return newEntity.getUri();
-	}
-	
-	/**
-	 * Search entity in datastore - if an entity with the same properties can be found, 
-	 * return its uri. Else, post the tempEntity to the datastore and return its uri.
-	 * 
-	 * Note: this method assumes the search method searches for entities having all 
-	 * of the specified properties (AND), not at least one of them (OR). 
-	 * 
-	 * @param tempEntity
-	 * @return
-	 */
-	private String getEntityFromDatastoreOR(Entity tempEntity) {
-		Multimap<String, String> query = HashMultimap.create();
-		query.put("name", tempEntity.getName());
-		// numeric info must be equal -> each item has to be contained 
-		// but also there must not be an additional item -> filter below
-		for (int i = 0; i < tempEntity.getNumericInfo().size(); i++) {
-			query.put("numericInfo", tempEntity.getNumericInfo().get(i));
-		}
-		// TODO one matching id should be enough provided that ids are really unique.. 
-		// other IDs should be added in case they are missing?
-		// (however, with the current data, there is always exactly one identifier
-		// so this problem does not occur)
-		for (String id : tempEntity.getIdentifiers()) {
-			query.put("identifier", id);
-		}
-		List<Entity> entitiesInDatabase = getOutputDataStoreClient().search(Entity.class, query);
-		for (Entity entityInDatabase : entitiesInDatabase) {
-			// make sure entityInDatabase does not contain additional numeric info
-			// restricting the applicable links
-			if (entityInDatabase.getNumericInfo().equals(tempEntity.getNumericInfo())) {
-				debug(log, "Found entity in datastore: " + entityInDatabase.getUri());
-				return entityInDatabase.getUri();
-			}
-		}
-		// no matching entity has been found in the database
-		Entity newEntity = new Entity(tempEntity);
-		getOutputDataStoreClient().post(Entity.class, newEntity);
-		debug(log, "Did not find entity in datastore, posted new one as " + newEntity.getUri());
-		// call linkEntity here if you do not want to update links for existing entities
-		return newEntity.getUri();
-	}
-	
 	private String createLinkToEntity(String fromEntityUri, String toEntityUri, TextualReference textualReference) {
 		EntityLink link = new EntityLink();
 		// TODO confidence for texualReferences?
 		//link.setConfidence(textualReference.getConfidence());
 		link.setFromEntity(fromEntityUri);
 		link.setToEntity(toEntityUri);
-		// TODO add relation "references"
 		Set<EntityLink.EntityRelation> entityRelations = new HashSet<>();
-		//entityRelations.add(EntityLink.EntityRelation.references);
+		entityRelations.add(EntityLink.EntityRelation.references);
 		link.setEntityRelations(entityRelations);
 		link.setLinkReason(textualReference.getUri());
 		link.setTags(textualReference.getTags());
@@ -186,12 +93,8 @@ public class ReferenceLinker extends BaseAlgorithm {
     	List<String> entityLinks = new ArrayList<>();
         
 	    for (String s : textualReferences) {
-	    	DataStoreClient tempClient = getTempDataStoreClient();
-	        String referencedEntity = extractMetaData(s, tempClient);
-	        debug(log, "Extracted metadata from reference");
-	        debug(log, "Searching for matching entity in datastore");
-	        String toEntityUri = getEntityFromDatastore(tempClient.get(Entity.class, referencedEntity));
-	        tempClient.clear();
+	    	debug(log, "Extracted metadata from reference");
+	    	String toEntityUri = extractMetaData(s, getOutputDataStoreClient());
 	        
 	        TextualReference textRef = getOutputDataStoreClient().get(TextualReference.class, s);
 	        String linkFromSourceToReferencedEntity = createLinkToEntity(
@@ -256,6 +159,7 @@ public class ReferenceLinker extends BaseAlgorithm {
     	Execution linker = getExecution().createSubExecution(getExecution().getSearchResultLinkerClass());
     	linker.setSearchResults(searchResults);
         linker.setLinkedEntities(Arrays.asList(entityUri));
+        if (null != getExecution().getInputFiles() && !getExecution().getInputFiles().isEmpty()) linker.setInputFiles(getExecution().getInputFiles());
         getOutputDataStoreClient().post(Execution.class, linker);
         debug(log, "Creating links based on " + searchResults.size() + " search results");
         linker.instantiateAlgorithm(this).run();
@@ -274,6 +178,7 @@ public class ReferenceLinker extends BaseAlgorithm {
 		
 		List<String> entityLinks = linkReferences(getExecution().getTextualReferences());
 		getExecution().setLinks(entityLinks);
+		getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
 	
 	@Override

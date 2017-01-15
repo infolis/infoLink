@@ -44,6 +44,15 @@ public class MetaDataExtractor extends BaseAlgorithm {
         	getExecution().setStatus(ExecutionStatus.FAILED);
             return;
         }
+        
+        //TODO multiply with actual reliability of metadata extraction
+        double metadataExtractionReliability = 0.7;
+        try {
+        	entity.setReliability(ref.getReliability() * metadataExtractionReliability);
+        } catch (NullPointerException npe) {
+        	log.debug("Cannot set reliability of entity: textual reference's reliability is null");
+        }
+        
         getOutputDataStoreClient().post(Entity.class, entity);
         getExecution().setLinkedEntities(Arrays.asList(entity.getUri()));
         getExecution().setStatus(ExecutionStatus.FINISHED);

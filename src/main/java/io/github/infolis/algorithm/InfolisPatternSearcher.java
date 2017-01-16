@@ -125,7 +125,7 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
             
             // a textual reference is just as reliable as the pattern that was used to extract it
         	try {
-        		validatedTextRef.setReliability(pattern.getReliability());
+        		validatedTextRef.setReferenceReliability(pattern.getPatternReliability());
         	} catch (NullPointerException npe) {
         		log.debug("Cannot set reliability of textual reference: pattern's reliability score is null");
         	}

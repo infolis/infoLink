@@ -96,9 +96,9 @@ public class InfolisPatternTest extends InfolisBaseTest {
 		double expectedReliability = r.reliability(pat, new HashSet<String>());
 
 		pat.isReliable(dataSize, reliableInstances, r);
-		assertEquals(expectedReliability, pat.getReliability(), 0.0);
+		assertEquals(expectedReliability, pat.getPatternReliability(), 0.0);
 		log.debug("Expected reliability: " + expectedReliability);
-		log.debug("Computed reliability: " + pat.getReliability());
+		log.debug("Computed reliability: " + pat.getPatternReliability());
 	}
 
 }

@@ -172,7 +172,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 
 	            	// an entity is just as reliable as the textual reference it was extracted from
 	            	try {
-	            		entity.setReliability(studyContext.getReliability());
+	            		entity.setEntityReliability(studyContext.getReferenceReliability());
 	            	} catch (NullPointerException npe) {
 	            		log.debug("Cannot set reliability of entity: textual reference's reliability score is null");
 	            	}
@@ -191,7 +191,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	// thus, return the latter here
             	debug(log, "Final iteration: " + numIter);//info
                 log.debug("Final list of instances:  ");
-                for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+                for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getEntityReliability()); }
             	return extractedContextsFromPatterns;
             }
         }
@@ -199,7 +199,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 
         debug(log, "Final iteration: " + numIter);//info
         log.debug("Final list of instances:  ");
-        for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getReliability()); }
+        for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getEntityReliability()); }
         return extractedContextsFromPatterns;
     }
 
@@ -263,7 +263,7 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
 		        
 		        else if (nonStopwordPresent && isRelevant(candidate, relevance)) {
 		        	candidate.setTags(getExecution().getTags());
-		        	candidate.setReliability(relevance);
+		        	candidate.setPatternReliability(relevance);
 		          	patterns.add(candidate);
 		           	processedRegex_iteration.add(candidate.getPatternRegex());
 		           	log.debug("Pattern accepted");

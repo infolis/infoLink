@@ -104,7 +104,7 @@ public class LinkImporter extends BaseAlgorithm {
 						entity.setURL(entityValues.getString("url"));
 					} catch (NullPointerException npe) {};
 					try {
-						entity.setReliability(Double.valueOf(entityValues.get("reliability").toString()));
+						entity.setEntityReliability(Double.valueOf(entityValues.get("reliability").toString()));
 					} catch (NullPointerException npe) {};
 
 					getOutputDataStoreClient().post(Entity.class, entity);

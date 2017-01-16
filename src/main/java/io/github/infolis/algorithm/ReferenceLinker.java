@@ -49,7 +49,7 @@ public class ReferenceLinker extends BaseAlgorithm {
 	private String createLinkToEntity(String fromEntityUri, String toEntityUri, TextualReference textualReference) {
 		EntityLink link = new EntityLink();
 		Entity referencedEntity = getOutputDataStoreClient().get(Entity.class, toEntityUri);
-		link.setConfidence(referencedEntity.getReliability());
+		link.setConfidence(referencedEntity.getEntityReliability());
 		link.setFromEntity(fromEntityUri);
 		link.setToEntity(toEntityUri);
 		Set<EntityLink.EntityRelation> entityRelations = new HashSet<>();

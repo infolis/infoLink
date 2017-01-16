@@ -41,7 +41,7 @@ public class TextualReference extends BaseModel {
 	private String			textFile;
 	private String			pattern;
 	private String			mentionsReference;
-	private double			reliability;
+	private double			referenceReliability;
 
 
     public TextualReference() {
@@ -83,7 +83,7 @@ public class TextualReference extends BaseModel {
 				+ "\t\t<pattern>" + this.getPattern() + "</pattern>"
                 + "\t\t<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" 
                 + System.getProperty("line.separator")
-                + "\t\t<reliability>" + this.getReliability() + "</reliability>" 
+                + "\t\t<referenceReliability>" + this.getReferenceReliability() + "</referenceReliability>" 
 				+ System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
@@ -206,12 +206,12 @@ public class TextualReference extends BaseModel {
         this.mentionsReference = mentionsReference;
     }
     
-    public void setReliability(double reliability) {
-    	this.reliability = reliability;
+    public void setReferenceReliability(double reliability) {
+    	this.referenceReliability = reliability;
     }
     
-    public double getReliability() {
-    	return this.reliability;
+    public double getReferenceReliability() {
+    	return this.referenceReliability;
     }
 
 }

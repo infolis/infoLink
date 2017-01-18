@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.LoggerFactory;
@@ -134,23 +136,26 @@ public abstract class Bootstrapping extends ComplexAlgorithm implements Bootstra
     	preprocessInputFiles();
     	
     	this.indexerExecution = createIndex();
-    	List<TextualReference> detectedContexts = new ArrayList<>();
+    	List<TextualReference> detectedReferences = new ArrayList<>();
         try {
-        	detectedContexts = bootstrap();
+        	detectedReferences = bootstrap();
         } catch (ParseException | IOException | InstantiationException | IllegalAccessException ex) {
             log.error("Could not apply reliability bootstrapping: " + ex);
             getExecution().setStatus(ExecutionStatus.FAILED);
         }
 
-        for (TextualReference sC : detectedContexts) {
-            //getOutputDataStoreClient().post(TextualReference.class, sC);
-            this.getExecution().getTextualReferences().add(sC.getUri());
-            this.getExecution().getPatterns().add(sC.getPattern());
+        Set<String> detectedPatterns = new HashSet<>();
+        for (TextualReference ref : detectedReferences) {
+            this.getExecution().getTextualReferences().add(ref.getUri());
+            detectedPatterns.add(ref.getPattern());
         }
-        /*log.debug("Final list of patterns: ");
+        
+        this.getExecution().getPatterns().addAll(detectedPatterns);
+        
+        debug(log, "Final list of patterns: ");
         for (InfolisPattern p : getOutputDataStoreClient().get(InfolisPattern.class, this.getExecution().getPatterns())) {
-        	log.debug(p.getPatternRegex() + "=" + p.getReliability());
-        }*/
+        	debug(log, p.getPatternRegex() + "=" + p.getPatternReliability());
+        }
 
         getExecution().setStatus(ExecutionStatus.FINISHED);
     }

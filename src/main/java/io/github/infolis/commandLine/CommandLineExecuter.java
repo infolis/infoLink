@@ -232,7 +232,13 @@ public class CommandLineExecuter {
                             JsonString stringEntry = array.getJsonString(i);
                             listEntries.add(stringEntry.getString());
                         }
-                        exec.setProperty(values.getKey(), listEntries);
+                        
+                        if (values.getKey().equals("infolisFileTags") || values.getKey().equals("infolisPatternTags")) {
+                        	exec.setProperty(values.getKey(), new HashSet<>(listEntries));
+                        } else if (values.getKey().equals("tags")) {
+                        	exec.setTags(new HashSet<>(listEntries));
+                        } else exec.setProperty(values.getKey(), listEntries);
+                       
                         break;
                     case OBJECT:
                     //$FALL-THROUGH$
@@ -448,6 +454,7 @@ public class CommandLineExecuter {
             if (values.getKey().equals("inputFiles")) {
                 throwCLI("Do not specify inputFiles in JSON, it will be overridden [in " + json + "]");
             }
+
             try {
                 testExecution.getClass().getDeclaredField(values.getKey());
             } catch (NoSuchFieldException ex) {

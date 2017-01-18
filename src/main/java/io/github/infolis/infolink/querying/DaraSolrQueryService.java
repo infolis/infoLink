@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class DaraSolrQueryService extends QueryService {
 
     public DaraSolrQueryService() {
-        super("http://www.da-ra.de/solr/dara/",0.5);
+        super("http://www.da-ra.de/solr/dara/", 0.8);
     }
     
     private static final Logger log = LoggerFactory.getLogger(DaraSolrQueryService.class);

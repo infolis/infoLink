@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 public class DataciteQueryService extends QueryService {
 
     public DataciteQueryService() {
-    	super("https://api.datacite.org/works/", 0.3);
+    	super("https://api.datacite.org/works/", 0.6);
     }
     
     private static final Logger log = LoggerFactory.getLogger(DataciteQueryService.class);

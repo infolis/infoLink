@@ -47,7 +47,7 @@ public class Entity extends BaseModel {
     @XmlAttribute
     private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
-    private double reliability;
+    private double entityReliability = 1;
     private List<String> alternativeNames = new ArrayList<>();
     private String abstractText;
     private List<String> authors = new ArrayList<>();
@@ -66,7 +66,7 @@ public class Entity extends BaseModel {
     	this.identifiers = copyFrom.getIdentifiers();
     	this.url = copyFrom.getURL();
     	this.numericInfo = copyFrom.getNumericInfo();
-    	this.reliability = copyFrom.getReliability();
+    	this.entityReliability = copyFrom.getEntityReliability();
     	this.alternativeNames = copyFrom.getAlternativeNames();
     	this.abstractText = copyFrom.getAbstractText();
     	this.authors = copyFrom.getAuthors();
@@ -154,7 +154,7 @@ public class Entity extends BaseModel {
      * Set reliability to 1.0 for manually selected seed instances.
      */
     public void setIsSeed() {
-        this.reliability = 1.0;
+        this.entityReliability = 1.0;
     }
 
     public void addNumericInfo(String numericInfo) {
@@ -165,13 +165,17 @@ public class Entity extends BaseModel {
         return this.numericInfo;
     }
 
-    public double getReliability() {
-        return this.reliability;
+    public double getEntityReliability() {
+        return this.entityReliability;
+    }
+    
+    public void setEntityReliability(double reliability) {
+    	this.entityReliability = reliability;
     }
 
     public boolean isReliable(Collection<InfolisPattern> reliablePatterns, int dataSize, Reliability r, double threshold) throws IOException, ParseException {
-        this.reliability = r.computeReliability(dataSize, reliablePatterns, this);
-        if (this.getReliability() >= threshold) {
+        this.entityReliability = r.computeReliability(dataSize, reliablePatterns, this);
+        if (this.getEntityReliability() >= threshold) {
             return true;
         } else {
             return false;

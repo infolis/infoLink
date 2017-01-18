@@ -154,11 +154,11 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                 }*/
                 //TODO include reliability computation for instances again!
                 seeds.add(newInstance);
-                log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getReliability());
+                log.debug("Reliability of instance \"" + newInstanceName + "\": " + newInstance.getEntityReliability());
             }
 
             for (Entity i : r.getInstances()) {
-                log.debug("stored instance: \"" + i.getName() + "\"=" + i.getReliability());
+                log.debug("stored instance: \"" + i.getName() + "\"=" + i.getEntityReliability());
                 log.debug("stored associations: " + i.getAssociations().size());
             }
             for (InfolisPattern p : r.getPatterns()) {
@@ -195,7 +195,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
         
         log.info("Final iteration: " + numIter);
         log.debug("Final reliable instances:  ");
-        for (Entity i : reliableInstances) { log.debug(i.getName() + "=" + i.getReliability()); }
+        for (Entity i : reliableInstances) { log.debug(i.getName() + "=" + i.getEntityReliability()); }
         log.debug("Final top patterns: ");
         for (Map.Entry<String, Double> k : patternRanker.topK.entrySet()) {
         	log.debug(String.format("%s=%s", k.getKey(), k.getValue()));
@@ -307,7 +307,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 
                     // Pattern Ranking / Selection
                     if (candidate.isReliable(size, relInstances, r)) {
-                        double candidateReliability = candidate.getReliability();
+                        double candidateReliability = candidate.getPatternReliability();
                         log.debug("Pattern reliable, score: " + candidateReliability);
                         Collection<String> regexWithSameScore = new ArrayList<>();
                         if (this.reliableRegex.containsKey(candidateReliability)) {
@@ -327,7 +327,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
                         //continue; // this prohibits induction of duplicate patterns but allows less general ones
                     } else {
                         processedRegex_iteration.add(candidate.getPatternRegex());
-                        log.debug("Pattern unreliable, score: " + candidate.getReliability());
+                        log.debug("Pattern unreliable, score: " + candidate.getPatternReliability());
                     }
                 }
             }
@@ -406,7 +406,7 @@ public class ReliabilityBasedBootstrapping extends Bootstrapping {
 
                     // Pattern Ranking / Selection
                     candidate.isReliable(size, relInstances, r);
-                    double candidateReliability = candidate.getReliability();
+                    double candidateReliability = candidate.getPatternReliability();
                     // TODO is the approximate highlighter implementation the cause for this happening?
                     if (Double.isNaN(candidateReliability)) {
                     	log.warn("Pattern has score of NaN. Ignoring: " + candidate.getLuceneQuery());

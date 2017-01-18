@@ -20,6 +20,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
+import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.infolink.querying.QueryService;
 
@@ -47,8 +48,8 @@ public class ReferenceLinker extends BaseAlgorithm {
 	
 	private String createLinkToEntity(String fromEntityUri, String toEntityUri, TextualReference textualReference) {
 		EntityLink link = new EntityLink();
-		// TODO confidence for texualReferences?
-		//link.setConfidence(textualReference.getConfidence());
+		Entity referencedEntity = getOutputDataStoreClient().get(Entity.class, toEntityUri);
+		link.setConfidence(referencedEntity.getEntityReliability());
 		link.setFromEntity(fromEntityUri);
 		link.setToEntity(toEntityUri);
 		Set<EntityLink.EntityRelation> entityRelations = new HashSet<>();

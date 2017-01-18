@@ -30,7 +30,7 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
 
 	private static final Logger log = LoggerFactory.getLogger(SearchResultLinker.class);
 	// weight for number-based score, weight for reliability of QueryService, weight for list index
-	private int[] weights = {1, 1, 1};
+	private float[] weights = {1.0f, 1.0f, 1.0f};
 	Set<QueryField> queryStrategy;
 	private int maxNum = 1000;
 
@@ -38,15 +38,15 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
     }
     
-    public void setWeightForNumberBasedScore(int weight) {
+    public void setWeightForNumberBasedScore(float weight) {
     	weights[0] = weight;
     }
     
-    public void setWeightForQSReliability(int weight) {
+    public void setWeightForQSReliability(float weight) {
     	weights[1] = weight;
     }
     
-    public void setWeightForListIndex(int weight) {
+    public void setWeightForListIndex(float weight) {
     	weights[2] = weight;
     }
     
@@ -98,14 +98,36 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         for (SearchResult searchResult : searchResults) {
             counter++;
             double confidenceValue = 0.0;
-            log.debug("Computing score based on numbers. Weight: " + weights[0]);
+            int factors = 0;
+            
             CandidateTargetEntity searchResultCandidate = SearchResultScorer.computeScoreBasedOnNumbers(entity, searchResult);
-            if (0 != weights[0]) confidenceValue = weights[0] * searchResultCandidate.score;
-            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
-            confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
-            log.debug("Adding score based on list index. Weight: " + weights[2]);
-            // normalize: +1 to avoid NaN if only results contains only one search result
-            confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
+            
+            if (0 != weights[0]) {
+            	log.debug("Computing score based on numbers. Weight: " + weights[0]);
+                confidenceValue = weights[0] * searchResultCandidate.score;
+                factors++;
+                log.debug("number score: " + confidenceValue);
+            }
+            
+            if (0 != weights[1]) {
+	            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
+	            double serviceScore = weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
+	            factors++;
+	            log.debug("service score: " + serviceScore);
+	            confidenceValue += serviceScore;
+            }
+            
+            if (0 != weights[2]) {
+	            log.debug("Adding score based on list index. Weight: " + weights[2]);
+	            // normalize: +1 to avoid NaN if only results contains only one search result
+	            double indexScore = weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
+	            factors++;
+	            log.debug("index score: " + indexScore);
+	            confidenceValue += indexScore;
+            }
+            
+            if (0 != factors) confidenceValue = confidenceValue / factors;
+            
             log.debug("Confidence score: " + confidenceValue);
             CandidateTargetEntity candidate = new CandidateTargetEntity();
             candidate.searchResult = searchResult;
@@ -126,14 +148,36 @@ public abstract class SearchResultLinker extends BaseAlgorithm {
         for (SearchResult searchResult : searchResults) {
             counter++;
             double confidenceValue = 0.0;
-            log.debug("Computing score based on numbers. Weight: " + weights[0]);
+int factors = 0;
+            
             CandidateTargetEntity searchResultCandidate = SearchResultScorer.computeScoreBasedOnNumbers(textRef, searchResult);
-            if (0 != weights[0]) confidenceValue = weights[0] * searchResultCandidate.score;
-            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
-            confidenceValue += weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
-            log.debug("Adding score based on list index. Weight: " + weights[2]);
-            // normalize: +1 to avoid NaN if only results contains only one search result
-            confidenceValue += weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
+            
+            if (0 != weights[0]) {
+            	log.debug("Computing score based on numbers. Weight: " + weights[0]);
+                confidenceValue = weights[0] * searchResultCandidate.score;
+                factors++;
+                log.debug("number score: " + confidenceValue);
+            }
+            
+            if (0 != weights[1]) {
+	            log.debug("Adding score based on query service reliability. Weight: " + weights[1]);
+	            double serviceScore = weights[1] * getInputDataStoreClient().get(QueryService.class, searchResult.getQueryService()).getServiceReliability();
+	            factors++;
+	            log.debug("service score: " + serviceScore);
+	            confidenceValue += serviceScore;
+            }
+            
+            if (0 != weights[2]) {
+	            log.debug("Adding score based on list index. Weight: " + weights[2]);
+	            // normalize: +1 to avoid NaN if only results contains only one search result
+	            double indexScore = weights[2] * (1 - ((double) searchResult.getListIndex() / ((double) searchResults.get(searchResults.size() - 1).getListIndex() + 1)));
+	            factors++;
+	            log.debug("index score: " + indexScore);
+	            confidenceValue += indexScore;
+            }
+            
+            if (0 != factors) confidenceValue = confidenceValue / factors;
+            
             log.debug("Confidence score: " + confidenceValue);
             CandidateTargetEntity candidate = new CandidateTargetEntity();
             candidate.searchResult = searchResult;

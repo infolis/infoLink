@@ -41,6 +41,7 @@ public class TextualReference extends BaseModel {
 	private String			textFile;
 	private String			pattern;
 	private String			mentionsReference;
+	private double			referenceReliability;
 
 
     public TextualReference() {
@@ -73,12 +74,16 @@ public class TextualReference extends BaseModel {
 
 	public String toXML() {
 		return "\t<context reference=\"" + SerializationUtils.escapeXML(this.getReference()) + "\" textFile=\""
-				+ this.getTextFile() + "\">" + System.getProperty("line.separator") + "\t\t"
-				+ "<leftText>" + this.getLeftText() + "</leftText>"
-				+ System.getProperty("line.separator") + "\t\t" + "<rightText>"
-				+ this.getRightText() + "</rightText>" + System.getProperty("line.separator")
+				+ this.getTextFile() + "\">" 
+				+ System.getProperty("line.separator") 
+				+ "\t\t<leftText>" + this.getLeftText() + "</leftText>"
+				+ System.getProperty("line.separator") 
+				+ "\t\t<rightText>"	+ this.getRightText() + "</rightText>" 
+				+ System.getProperty("line.separator")
 				+ "\t\t<pattern>" + this.getPattern() + "</pattern>"
-                + "<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" 
+                + "\t\t<mentionsReference>" + this.getMentionsReference() + "</mentionsReference>" 
+                + System.getProperty("line.separator")
+                + "\t\t<referenceReliability>" + this.getReferenceReliability() + "</referenceReliability>" 
 				+ System.getProperty("line.separator")
 				+ "\t</context>" + System.getProperty("line.separator");
 	}
@@ -199,6 +204,14 @@ public class TextualReference extends BaseModel {
      */
     public void setMentionsReference(String mentionsReference) {
         this.mentionsReference = mentionsReference;
+    }
+    
+    public void setReferenceReliability(double reliability) {
+    	this.referenceReliability = reliability;
+    }
+    
+    public double getReferenceReliability() {
+    	return this.referenceReliability;
     }
 
 }

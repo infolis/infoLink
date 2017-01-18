@@ -43,7 +43,7 @@ public class InfolisPattern extends BaseModel {
     private String luceneQuery;
     private Set<String> words = new HashSet<>();
     private double threshold;
-    private double reliability;
+    private double patternReliability;
     private Map<String, Double> associations = new HashMap<>();
     //TODO: change to URI -> string?
     private Collection<TextualReference> textualReferences;
@@ -150,8 +150,8 @@ public class InfolisPattern extends BaseModel {
     }
 
     public boolean isReliable(int dataSize, Set<Entity> reliableInstances, Reliability r) throws IOException, ParseException {
-        this.reliability = r.computeReliability(dataSize, reliableInstances, this);
-        if (this.getReliability() >= this.getThreshold()) {
+        this.patternReliability = r.computeReliability(dataSize, reliableInstances, this);
+        if (this.getPatternReliability() >= this.getThreshold()) {
             return true;
         } else {
             return false;
@@ -175,17 +175,16 @@ public class InfolisPattern extends BaseModel {
     /**
      * @return the reliability
      */
-    public double getReliability() {
-        return reliability;
+    public double getPatternReliability() {
+        return this.patternReliability;
     }
 
     /**
      * @param reliability the reliability to set
      */
-    /*
-     public void setReliability(double reliability) {
-     this.reliability = reliability;
-     }*/
+     public void setPatternReliability(double reliability) {
+    	 this.patternReliability = reliability;
+     }
     /**
      * @return the associations
      */

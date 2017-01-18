@@ -47,7 +47,7 @@ public class Entity extends BaseModel {
     @XmlAttribute
     private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
-    private double entityReliability;
+    private double entityReliability = 1;
     private List<String> alternativeNames = new ArrayList<>();
     private String abstractText;
     private List<String> authors = new ArrayList<>();

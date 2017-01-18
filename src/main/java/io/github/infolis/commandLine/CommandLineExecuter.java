@@ -451,7 +451,11 @@ public class CommandLineExecuter {
             try {
                 testExecution.getClass().getDeclaredField(values.getKey());
             } catch (NoSuchFieldException ex) {
-                badFields.add(values.getKey());
+            	try {
+            		testExecution.getClass().getSuperclass().getDeclaredField(values.getKey());
+            	} catch (NoSuchFieldException ex2) {
+            		badFields.add(values.getKey());
+            	}
             }
         }
         if (!badFields.isEmpty()) {

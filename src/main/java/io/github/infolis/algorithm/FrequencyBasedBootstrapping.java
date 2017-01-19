@@ -190,16 +190,16 @@ public class FrequencyBasedBootstrapping extends Bootstrapping {
             	// extractedContexts_patterns contains all contexts resulting from searching for the induced patterns
             	// thus, return the latter here
             	debug(log, "Final iteration: " + numIter);//info
-                log.debug("Final list of instances:  ");
-                for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getEntityReliability()); }
+                debug(log, "Final list of instances:  ");
+                for (Entity i : processedSeeds.values()) { debug(log, i.getName() + "=" + i.getEntityReliability()); }
             	return extractedContextsFromPatterns;
             }
         }
         debug(log, "Maximum number of iterations reached, returning.");
 
         debug(log, "Final iteration: " + numIter);//info
-        log.debug("Final list of instances:  ");
-        for (Entity i : processedSeeds.values()) { log.debug(i.getName() + "=" + i.getEntityReliability()); }
+        debug(log, "Final list of instances:  ");
+        for (Entity i : processedSeeds.values()) { debug(log, i.getName() + "=" + i.getEntityReliability()); }
         return extractedContextsFromPatterns;
     }
 

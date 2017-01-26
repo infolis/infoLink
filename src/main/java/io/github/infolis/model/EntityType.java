@@ -6,8 +6,11 @@ package io.github.infolis.model;
  *
  */
 public enum EntityType {
-    	publication,
-    	dataset,
-    	database,
-    	citedData
+    publication,
+    dataset,
+    database,
+    citedData,
+    project,
+    institution,
+    instrument
 }

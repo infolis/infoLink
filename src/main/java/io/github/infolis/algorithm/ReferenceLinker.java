@@ -80,6 +80,36 @@ public class ReferenceLinker extends BaseAlgorithm {
         return links;
 	}
 	
+	public List<String> linkEntities(List<String> entities) throws IOException {
+		// create query cache
+		Path generalCachePath = Paths.get(InfolisConfig.getTmpFilePath().toString(), "cache");
+		if (!generalCachePath.toFile().exists()) Files.createDirectories(generalCachePath);
+		Path privateCachePath = Files.createTempDirectory(generalCachePath, Long.toString(System.nanoTime()));
+		File cache = Files.createTempFile(privateCachePath, "querycache", ".txt").toFile();
+        String cachePath = cache.getCanonicalPath();
+        
+        // update links for entities only once per execution
+        Set<String> entitiesWithUpdatedLinks = new HashSet<>(); 
+        
+    	List<String> entityLinks = new ArrayList<>();
+        
+	    for (String toEntityUri : entities) {
+	        // create links from referenced entity to entities in repository, if not already linked
+	        if (!entitiesWithUpdatedLinks.contains(toEntityUri)) {
+	        	List<String> queryServices = getExecution().getQueryServices();
+	            List<Class<? extends QueryService>> queryServiceClasses = getExecution().getQueryServiceClasses();
+	            entityLinks.addAll(linkEntity(toEntityUri, queryServices, queryServiceClasses, cachePath));
+	        	entitiesWithUpdatedLinks.add(toEntityUri);
+	        }
+	        // TODO else return all existing links of entity
+	        //else
+	    }
+	    cache.delete();
+		privateCachePath.toFile().delete();
+		log.debug("Returning entity links: " + entityLinks);
+	    return entityLinks;
+    }
+	
 	private List<String> linkReferences(List<String> textualReferences) throws IOException {
 		// create query cache
 		Path generalCachePath = Paths.get(InfolisConfig.getTmpFilePath().toString(), "cache");
@@ -176,9 +206,16 @@ public class ReferenceLinker extends BaseAlgorithm {
 		tagSearcher.setTextualReferenceTags(getExecution().getTextualReferenceTags());
 		tagSearcher.instantiateAlgorithm(this).run();
 		getExecution().getTextualReferences().addAll(tagSearcher.getTextualReferences());
+		getExecution().setLinks(new ArrayList<>());
 		
-		List<String> entityLinks = linkReferences(getExecution().getTextualReferences());
-		getExecution().setLinks(entityLinks);
+		if (!getExecution().getTextualReferences().isEmpty()) {
+			List<String> entityLinks = linkReferences(getExecution().getTextualReferences());
+			getExecution().setLinks(entityLinks);
+		}
+		if (null != getExecution().getLinkedEntities() && !getExecution().getLinkedEntities().isEmpty()) {
+			getExecution().getLinks().addAll(linkEntities(getExecution().getLinkedEntities()));
+		}
+		
 		getExecution().setStatus(ExecutionStatus.FINISHED);
 	}
 	
@@ -191,13 +228,16 @@ public class ReferenceLinker extends BaseAlgorithm {
 		if (null != getExecution().getQueryServices() && !getExecution().getQueryServices().isEmpty()) {
             queryServiceSet = true;
 		}
+
 		// If textualReferences is empty, do not throw an exception. If used automatically after searching for 
 		// patterns, the list of textual references may be empty, it is not an error.
 		// If, however, ReferenceLinker is applied directly on existing textual references specified by their tags, the 
 		// list should not be empty and throwing an error is assumed to be helpful for the user.
 		if (null == getExecution().getTextualReferences()
 				&& (null == getExecution().getTextualReferenceTags() || getExecution().getTextualReferenceTags().isEmpty())) {
-			throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' is missing!");
+			if (null == getExecution().getLinkedEntities() || getExecution().getLinkedEntities().isEmpty()) {
+				throw new IllegalAlgorithmArgumentException(getClass(), "TextualReference", "Required parameter 'textual references' (or linked entities) is missing!");
+			}
 		}
 		if (!queryServiceSet) {
             throw new IllegalAlgorithmArgumentException(getClass(), "queryService", "Required parameter 'query services' is missing!");

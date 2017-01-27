@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  *
  * @author domi
+ * @author kata
  */
 @XmlRootElement(name = "link")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -24,6 +25,8 @@ public class EntityLink extends BaseModel {
     private double confidence;
     private String linkReason;
     private Set<EntityRelation> entityRelations = new HashSet<>();
+    private String provenance;
+    private String view;
     
     public EntityLink() {
     }
@@ -67,9 +70,9 @@ public class EntityLink extends BaseModel {
 	    same_as_spatial,
 	    superset_of_translation,
 	    part_of_translation,
-            part_of_methodical,
-            parts_of_methodical,
-            superset_of_methodical,
+        part_of_methodical,
+        parts_of_methodical,
+        superset_of_methodical,
 	    unknown,
 	    same_as,
 	    references
@@ -133,6 +136,22 @@ public class EntityLink extends BaseModel {
      */
     public void setLinkReason(String linkReason) {
         this.linkReason = linkReason;
+    }
+    
+    public void setView(String view) {
+    	this.view = view;
+    }
+    
+    public String getView() {
+    	return this.view;
+    }
+    
+    public void setProvenance(String provenance) {
+    	this.provenance = provenance;
+    }
+    
+    public String getProvenance() {
+    	return this.provenance;
     }
 
 }

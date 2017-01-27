@@ -49,6 +49,7 @@ public class Entity extends BaseModel {
     private Map<String, Double> associations = new HashMap<>();
     private double entityReliability = 1;
     private List<String> alternativeNames = new ArrayList<>();
+    private String view;
     private String abstractText;
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
@@ -296,6 +297,14 @@ public class Entity extends BaseModel {
     
     public String getVersionInfo() {
     	return this.versionInfo;
+    }
+    
+    public void setView(String view) {
+    	this.view = view;
+    }
+    
+    public String getView() {
+    	return this.view;
     }
 
     /**

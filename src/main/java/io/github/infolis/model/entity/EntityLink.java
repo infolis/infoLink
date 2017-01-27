@@ -26,7 +26,7 @@ public class EntityLink extends BaseModel {
     private String linkReason;
     private Set<EntityRelation> entityRelations = new HashSet<>();
     private String provenance;
-    private String view;
+    private String linkView;
     
     public EntityLink() {
     }
@@ -138,12 +138,12 @@ public class EntityLink extends BaseModel {
         this.linkReason = linkReason;
     }
     
-    public void setView(String view) {
-    	this.view = view;
+    public void setLinkView(String view) {
+    	this.linkView = view;
     }
     
-    public String getView() {
-    	return this.view;
+    public String getLinkView() {
+    	return this.linkView;
     }
     
     public void setProvenance(String provenance) {

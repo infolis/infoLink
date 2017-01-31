@@ -122,6 +122,20 @@ public class TextExtractor extends BaseAlgorithm {
             if (_outFile.exists()) {
                 debug(log, "File exists: {}, skipping text extraction for {}", _outFile, inFile);
                 asText = FileUtils.readFileToString(_outFile, "utf-8");
+                Set<String> tagsToSet = getExecution().getTags();
+                tagsToSet.addAll(inFile.getTags());
+                if (getExecution().isRemoveBib()) {
+                	this.executionTags.addAll(BibliographyExtractor.getExecutionTags());
+                	this.executionTags.remove(getExecutionTagBibNotRemoved());
+                }
+                if (getExecution().isTokenize()) {
+                	Tokenizer tokenizer = new TokenizerStanford(
+                			getInputDataStoreClient(), getOutputDataStoreClient(), getInputFileResolver(), getOutputFileResolver());
+	                this.executionTags.addAll(tokenizer.getExecutionTags());
+	            	this.executionTags.remove(getExecutionTagUntokenized());
+                }
+                tagsToSet.addAll(executionTags);
+                outFile.setTags(tagsToSet);
                 outFile.setMd5(SerializationUtils.getHexMd5(asText));
                 outFile.setFileStatus("AVAILABLE");
                 return outFile;

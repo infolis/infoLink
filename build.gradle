@@ -31,6 +31,7 @@ dependencies {
     compile 'org.apache.lucene:lucene-highlighter:6.0.0'
     compile 'org.apache.lucene:lucene-memory:6.0.0'
     compile 'org.apache.pdfbox:pdfbox:1.8.8'
+    compile 'org.apache.httpcomponents:httpclient:4.5.3'
     compile 'org.bouncycastle:bcprov-jdk16:1.45'
     compile 'args4j:args4j:2.0.29'
     compile 'org.jsoup:jsoup:1.8.1'

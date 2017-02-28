@@ -178,7 +178,12 @@ public class InfolisConfig {
 		return Arrays.asList(INSTANCE.prop.getProperty("stopwords").trim().split("\\s*,\\s*"));
 	}
         
-        public static String getFastJoinLocation() {
-            return INSTANCE.prop.getProperty("fastJoin");
-        }
+    public static String getFastJoinLocation() {
+        return INSTANCE.prop.getProperty("fastJoin");
+    }
+    
+    public static String getElasticSearchIndex() {
+    	return INSTANCE.prop.getProperty("elasticSearchIndex");
+    }
+    
 }

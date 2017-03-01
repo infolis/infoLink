@@ -28,6 +28,7 @@ import io.github.infolis.InfolisConfig;
 import io.github.infolis.datastore.DataStoreClient;
 import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.EntityType;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
 import io.github.infolis.util.SerializationUtils;
@@ -94,6 +95,7 @@ public class LinkIndexer extends BaseAlgorithm {
 							if (null != reason) linkReason = reason;
 						}
 						directLink.setLinkReason(linkReason);
+						log.debug("reference: " + linkReason);
 						if (link1.getProvenance() != link2.getProvenance()) log.warn("link1 and link2 have different provenance info!");
 						directLink.setProvenance(link1.getProvenance());
 						// TODO view?
@@ -146,6 +148,7 @@ public class LinkIndexer extends BaseAlgorithm {
 	
 	private void pushToIndex(List<EntityLink> flattenedLinks) throws ClientProtocolException, IOException {
 		Set<String> entities = new HashSet<>();
+		Set<String> references = new HashSet<>();
 		
 		String index = InfolisConfig.getElasticSearchIndex();
 		HttpClient httpclient = HttpClients.createDefault();
@@ -164,12 +167,19 @@ public class LinkIndexer extends BaseAlgorithm {
 			}
 				entities.add(link.getFromEntity());
 				entities.add(link.getToEntity());
+				references.add(link.getLinkReason());
 		}
 
 		for (String entity : entities) {
 			HttpPut httpput = new HttpPut(index + "Entity/" + entity);
 			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(Entity.class, entity)).toString()));
 			log.debug(String.format("put entity \"%s\" to %s", entity, index));
+		}
+		
+		for (String reference : references) {
+			HttpPut httpput = new HttpPut(index + "TextualReference/" + reference);
+			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(TextualReference.class, reference)).toString()));
+			log.debug(String.format("put textual reference \"%s\" to %s", reference, index));
 		}
 	}
 	

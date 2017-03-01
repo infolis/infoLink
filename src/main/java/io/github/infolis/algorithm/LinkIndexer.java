@@ -3,7 +3,6 @@ package io.github.infolis.algorithm;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,7 @@ import io.github.infolis.model.EntityType;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.entity.EntityLink.EntityRelation;
 import io.github.infolis.util.SerializationUtils;
 
 public class LinkIndexer extends BaseAlgorithm {
@@ -42,6 +42,63 @@ public class LinkIndexer extends BaseAlgorithm {
 		super(inputDataStoreClient, outputDataStoreClient, inputFileResolver, outputFileResolver);
 	}
 	
+	private List<EntityLink> getFlattenedLinksForEntity(
+			Multimap<String, String> entityEntityMap, 
+			Multimap<String, String> entitiesLinkMap,
+			String startEntityUri, Multimap<String, String> toEntities, 
+			List<EntityLink> processedLinks) {
+		List<EntityLink> flattenedLinks = new ArrayList<>();
+		for (Map.Entry<String, String> entry : toEntities.entries()) {
+			Entity toEntity = getInputDataStoreClient().get(Entity.class, entry.getKey());
+			EntityLink link = getInputDataStoreClient().get(EntityLink.class, entry.getValue());
+			
+			if (!toEntity.getEntityType().equals(EntityType.citedData)) {
+
+				EntityLink directLink = new EntityLink();
+				directLink.setFromEntity(startEntityUri);
+				directLink.setToEntity(link.getToEntity());
+				directLink.setEntityRelations(link.getEntityRelations());
+				directLink.setTags(link.getTags());
+				
+				int intermediateLinks = processedLinks.size();
+				String linkReason = null;
+				double confidenceSum = 0;
+				for (EntityLink intermediateLink : processedLinks) {
+					confidenceSum += intermediateLink.getConfidence();
+					if (null != intermediateLink.getLinkReason()) linkReason = intermediateLink.getLinkReason();
+					directLink.addAllTags(intermediateLink.getTags());
+					for (EntityRelation relation : intermediateLink.getEntityRelations()) {
+						if (!relation.equals(EntityRelation.same_as)) directLink.addEntityRelation(relation);
+						}
+					}
+					confidenceSum += link.getConfidence();
+					intermediateLinks += 1;
+					directLink.setConfidence(confidenceSum / intermediateLinks);
+					directLink.setLinkReason(linkReason);
+					log.debug("reference: " + linkReason);
+						
+					// provenance entries of all intermediate links should be equal
+					directLink.setProvenance(link.getProvenance());
+					// TODO view of a flattened link?
+						
+					directLink.addAllTags(getExecution().getTags());
+					log.debug("flattenedLink: " + SerializationUtils.toJSON(directLink));
+					flattenedLinks.add(directLink);
+
+			} else {
+				toEntities = ArrayListMultimap.create();
+				for (String toEntityUri : entityEntityMap.get(toEntity.getUri())) {
+					toEntities.putAll(toEntityUri, entitiesLinkMap.get(toEntity.getUri() + toEntityUri));
+				}
+				processedLinks.add(link);
+				flattenedLinks.addAll(getFlattenedLinksForEntity(entityEntityMap,
+						entitiesLinkMap, startEntityUri,
+						toEntities,
+						processedLinks));
+			}
+		}
+		return flattenedLinks;
+	}
 	
 	private List<EntityLink> flattenLinks(List<EntityLink> links) {
 		List<EntityLink> flattenedLinks = new ArrayList<>();
@@ -62,50 +119,7 @@ public class LinkIndexer extends BaseAlgorithm {
 				linkedEntities.putAll(toEntityUri, entitiesLinkMap.get(entityUri + toEntityUri));
 			}
 			
-			// TODO make recursive, stop at the first non-citedData link
-			// keep confidence of previous links and number of links
-			// this would automatically treat same-as links properly
-			for (Map.Entry<String, String> entry : linkedEntities.entries()) {
-				Entity toEntity1 = getInputDataStoreClient().get(Entity.class, entry.getKey());
-				EntityLink link1 = getInputDataStoreClient().get(EntityLink.class, entry.getValue());
-				
-				log.debug("fromEntity1: " + fromEntity.getIdentifiers());
-				log.debug("toEntity1: " + toEntity1.getIdentifiers());
-				log.debug("link1: " + link1.getUri());
-				//Multimap<String, String> linkedEntities2 = ArrayListMultimap.create();
-				
-				if (!toEntity1.getEntityType().equals(EntityType.citedData)) {
-					log.warn("direct link found: " + fromEntity + " -> " + toEntity1);
-				}
-				
-				for (String toEntity2uri : entityEntityMap.get(link1.getToEntity())) {
-					log.debug("key: " + toEntity1.getUri() + toEntity2uri);
-					log.debug("keys: " + entitiesLinkMap.keySet());
-					for (String link2uri : entitiesLinkMap.get(link1.getToEntity() + toEntity2uri)) {
-						EntityLink link2 = getInputDataStoreClient().get(EntityLink.class, link2uri);
-						log.debug(link2uri);
-						EntityLink directLink = new EntityLink();
-						directLink.setFromEntity(entityUri);
-						directLink.setToEntity(link2.getToEntity());
-						directLink.setEntityRelations(link1.getEntityRelations());
-						directLink.getEntityRelations().addAll(link2.getEntityRelations());
-						directLink.setConfidence((link1.getConfidence() + link2.getConfidence()) / 2);
-						String linkReason = null;
-						for (String reason : Arrays.asList(link1.getLinkReason(), link2.getLinkReason())) {
-							if (null != reason) linkReason = reason;
-						}
-						directLink.setLinkReason(linkReason);
-						log.debug("reference: " + linkReason);
-						if (link1.getProvenance() != link2.getProvenance()) log.warn("link1 and link2 have different provenance info!");
-						directLink.setProvenance(link1.getProvenance());
-						// TODO view?
-						directLink.setTags(link1.getTags());
-						directLink.addAllTags(link2.getTags());
-						directLink.addAllTags(getExecution().getTags());
-						flattenedLinks.add(directLink);
-					}
-				}
-			}
+			flattenedLinks.addAll(getFlattenedLinksForEntity(entityEntityMap, entitiesLinkMap, entityUri, linkedEntities, new ArrayList<>()));
 		}
 		return flattenedLinks;
 	}

@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.Test;
 
 import io.github.infolis.InfolisBaseTest;
+import io.github.infolis.model.EntityType;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.entity.EntityLink;
@@ -23,6 +24,9 @@ public class LinkIndexerTest extends InfolisBaseTest {
 		entity1.setIdentifiers(Arrays.asList("pub1"));
 		entity2.setIdentifiers(Arrays.asList("cit1"));
 		entity3.setIdentifiers(Arrays.asList("dat1"));
+		entity1.setEntityType(EntityType.publication);
+		entity2.setEntityType(EntityType.citedData);
+		entity3.setEntityType(EntityType.dataset);
 		dataStoreClient.post(Entity.class, entity1);
 		dataStoreClient.post(Entity.class, entity2);
 		dataStoreClient.post(Entity.class, entity3);

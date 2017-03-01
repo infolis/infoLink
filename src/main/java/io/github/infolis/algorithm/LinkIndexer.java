@@ -152,13 +152,13 @@ public class LinkIndexer extends BaseAlgorithm {
 		
 		for (EntityLink link : flattenedLinks) {
 			if (null != link.getUri()) {
-				HttpPut httpput = new HttpPut(index + "enityLink/" + link.getUri());
+				HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri());
 				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(link).toString()));
 				log.debug(String.format("put link \"%s\" to %s", link, index));
 			}
 			// flattened links are not pushed to any datastore and thus have no uri
 			else {
-				HttpPost httppost = new HttpPost(index + "enityLink/");
+				HttpPost httppost = new HttpPost(index + "EntityLink/");
 				post(httpclient, httppost, new StringEntity(SerializationUtils.toJSON(link).toString()));
 				log.debug(String.format("posted link \"%s\" to %s", link, index));
 			}
@@ -167,7 +167,7 @@ public class LinkIndexer extends BaseAlgorithm {
 		}
 
 		for (String entity : entities) {
-			HttpPut httpput = new HttpPut(index + "enity/" + entity);
+			HttpPut httpput = new HttpPut(index + "Entity/" + entity);
 			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(Entity.class, entity)).toString()));
 			log.debug(String.format("put entity \"%s\" to %s", entity, index));
 		}

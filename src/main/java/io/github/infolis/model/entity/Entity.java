@@ -42,20 +42,42 @@ public class Entity extends BaseModel {
     private List<String> identifiers = new ArrayList<>();
     private String url;
     private EntityType entityType;
+    // TODO do not persist
     private Collection<TextualReference> textualReferences;
-
     @XmlAttribute
     private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
     private double entityReliability = 1;
     private List<String> alternativeNames = new ArrayList<>();
-    private String entityView;
     private String abstractText;
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
     private String language;
     private String versionInfo;
     private Set<String> spatial = new HashSet<>();
+    
+    private String entityView;
+    
+    // additional bibliographic metadata
+    private String journal = null;
+    private String series = null;
+    private String collection = null;
+    private String number = null;
+    private String volume = null;
+    private String pages = null;
+    private List<String> editors = new ArrayList<>();
+    private String corporateEditor = null;
+    private String publisher = null;
+    private String isbn = null;
+    private String issn = null;
+    private String publicationType = null;//collection article //journal article //working paper //expert report //monograph //review
+    private List<String> classification = new ArrayList<>();
+    private List<String> methodKeywords = new ArrayList<>();
+    private List<String> freeKeywords = new ArrayList<>();
+    private String location = null;
+    private String licence = null;
+    private String dataProvider = null;
+    private String publicationStatus = null; //published version //published version; reviewed //
 
     public Entity(String name) {
         this.name = name;
@@ -81,6 +103,28 @@ public class Entity extends BaseModel {
     	
     	this.textualReferences = copyFrom.getTextualReferences();
     	this.associations = copyFrom.getAssociations();
+    	
+    	this.entityView = copyFrom.getEntityView();
+        
+    	this.journal = copyFrom.getJournal();
+        this.series = copyFrom.getSeries();
+        this.collection = copyFrom.getCollectionTitle();
+        this.number = copyFrom.getNumber();
+        this.volume = copyFrom.getVolume();
+        this.pages = copyFrom.getPages();
+        this.editors = copyFrom.getEditors();
+        this.corporateEditor = copyFrom.getCorporateEditor();
+        this.publisher = copyFrom.getPublisher();
+        this.isbn = copyFrom.getIsbn();
+        this.issn = copyFrom.getIssn();
+        this.publicationType = copyFrom.getPublicationType();
+        this.classification = copyFrom.getClassification();
+        this.methodKeywords = copyFrom.getMethodKeywords();
+        this.freeKeywords = copyFrom.getFreeKeywords();
+        this.location = copyFrom.getLocation();
+        this.licence = copyFrom.getLicence();
+        this.dataProvider = copyFrom.getDataProvider();
+       	this.publicationStatus = copyFrom.getPublicationStatus();
     }
 
     public Entity() {
@@ -312,5 +356,157 @@ public class Entity extends BaseModel {
      */
     public void setNumericInfo(List<String> numericInfo) {
         this.numericInfo = numericInfo;
+    }
+    
+    public void setPublicationType(String publicationType) {
+    	this.publicationType = publicationType;
+    }
+    
+    public String getPublicationType() {
+    	return this.publicationType;
+    }
+    
+    public void setEditors(List<String> editors) {
+    	this.editors = editors;
+    }
+    
+    public List<String> getEditors() {
+    	return this.editors;
+    }
+    
+    public void setCorporateEditor(String corporateEditor) {
+    	this.corporateEditor = corporateEditor;
+    }
+    
+    public String getCorporateEditor() {
+    	return this.corporateEditor;
+    }
+    
+    public void setCollection(String collection) {
+    	this.collection = collection;
+    }
+    
+    public String getCollection() {
+    	return this.collection;
+    }
+    
+    public void setJournal(String journal) {
+    	this.journal = journal;
+    }
+    
+    public String getJournal() {
+    	return this.journal;
+    }
+    
+    public void setSeries(String series) {
+    	this.series = series;
+    }
+    
+    public String getSeries() {
+    	return this.series;
+    }
+    
+    public void setNumber(String number) {
+    	this.number = number;
+    }
+    
+    public String getNumber() {
+    	return this.number;
+    }
+    
+    public void setVolume(String volume) {
+    	this.volume = volume;
+    }
+    
+    public String getVolume() {
+    	return this.volume;
+    }
+    
+    public void setPublisher(String publisher) {
+    	this.publisher = publisher;
+    }
+    
+    public String getPublisher() {
+    	return this.publisher;
+    }
+    
+    public void setLocation(String location) {
+    	this.location = location;
+    }
+    
+    public String getLocation() {
+    	return this.location;
+    }
+    
+    public void setPages(String pages) {
+    	this.pages = pages;
+    }
+    
+    public String getPages() {
+    	return this.pages;
+    }
+    
+    public void setIsbn(String isbn) {
+    	this.isbn = isbn;
+    }
+    
+    public String getIsbn() {
+    	return this.isbn;
+    }
+    
+    public void setIssn(String issn) {
+    	this.issn = issn;
+    }
+    
+    public String getIssn() {
+    	return this.issn;
+    }
+    
+    public void setClassification(List<String> classification) {
+    	this.classification = classification;
+    }
+    
+    public List<String> getClassification() {
+    	return this.classification;
+    }
+    
+    public void setMethodKeywords(List<String> methodKeywords) {
+    	this.methodKeywords = methodKeywords;
+    }
+    
+    public List<String> getMethodKeywords() {
+    	return this.methodKeywords;
+    }
+    
+    public void setFreeKeywords(List<String> freeKeywords) {
+    	this.freeKeywords = freeKeywords;
+    }
+    
+    public List<String> getFreeKeywords() {
+    	return this.freeKeywords;
+    }
+    
+    public void setLicence(String licence) {
+    	this.licence = licence;
+    }
+    
+    public String getLicence() {
+    	return this.licence;
+    }
+    
+    public void setDataProvider(String dataProvider) {
+    	this.dataProvider = dataProvider;
+    }
+    
+    public String getDataProvider() {
+    	return this.dataProvider;
+    }
+    
+    public void setPublicationStatus(String publicationStatus) {
+    	this.publicationStatus = publicationStatus;
+    }
+    
+    public String getPublicationStatus() {
+    	return this.publicationStatus;
     }
 }

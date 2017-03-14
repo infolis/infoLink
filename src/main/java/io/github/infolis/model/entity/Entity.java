@@ -108,7 +108,7 @@ public class Entity extends BaseModel {
         
     	this.journal = copyFrom.getJournal();
         this.series = copyFrom.getSeries();
-        this.collection = copyFrom.getCollectionTitle();
+        this.collection = copyFrom.getCollection();
         this.number = copyFrom.getNumber();
         this.volume = copyFrom.getVolume();
         this.pages = copyFrom.getPages();

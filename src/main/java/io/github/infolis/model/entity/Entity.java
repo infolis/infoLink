@@ -78,7 +78,9 @@ public class Entity extends BaseModel {
     private String licence = null;
     private String dataProvider = null;
     private String publicationStatus = null; //published version //published version; reviewed //
-
+    private String month = null;
+    private String year = null;
+    
     public Entity(String name) {
         this.name = name;
     }
@@ -125,6 +127,8 @@ public class Entity extends BaseModel {
         this.licence = copyFrom.getLicence();
         this.dataProvider = copyFrom.getDataProvider();
        	this.publicationStatus = copyFrom.getPublicationStatus();
+        this.month = copyFrom.getMonth();
+        this.year = copyFrom.getYear();
     }
 
     public Entity() {
@@ -508,5 +512,21 @@ public class Entity extends BaseModel {
     
     public String getPublicationStatus() {
     	return this.publicationStatus;
+    }
+    
+    public void setMonth(String month) {
+    	this.month = month;
+    }
+    
+    public String getMonth() {
+    	return this.month;
+    }
+    
+    public void setYear(String year) {
+    	this.year = year;
+    }
+    
+    public String getYear() {
+    	return this.year;
     }
 }

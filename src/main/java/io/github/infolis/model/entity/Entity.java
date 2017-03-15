@@ -59,9 +59,9 @@ public class Entity extends BaseModel {
     private String entityView;
     
     // additional bibliographic metadata
-    private String journal = null;
-    private String series = null;
-    private String collection = null;
+    private String journalTitle = null;
+    private String seriesTitle = null;
+    private String collectionTitle = null;
     private String number = null;
     private String volume = null;
     private String pages = null;
@@ -106,9 +106,9 @@ public class Entity extends BaseModel {
     	
     	this.entityView = copyFrom.getEntityView();
         
-    	this.journal = copyFrom.getJournal();
-        this.series = copyFrom.getSeries();
-        this.collection = copyFrom.getCollectionTitle();
+        this.journalTitle = copyFrom.getJournalTitle();
+        this.seriesTitle = copyFrom.getSeriesTitle();
+        this.collectionTitle = copyFrom.getCollectionTitle();
         this.number = copyFrom.getNumber();
         this.volume = copyFrom.getVolume();
         this.pages = copyFrom.getPages();
@@ -382,28 +382,28 @@ public class Entity extends BaseModel {
     	return this.corporateEditor;
     }
     
-    public void setCollection(String collection) {
-    	this.collection = collection;
+    public void setCollectionTitle(String collectionTitle) {
+    	this.collectionTitle = collectionTitle;
     }
     
-    public String getCollection() {
-    	return this.collection;
+    public String getCollectionTitle() {
+    	return this.collectionTitle;
     }
     
-    public void setJournal(String journal) {
-    	this.journal = journal;
+    public void setJournalTitle(String journalTitle) {
+    	this.journalTitle = journalTitle;
     }
     
-    public String getJournal() {
-    	return this.journal;
+    public String getJournalTitle() {
+    	return this.journalTitle;
     }
     
-    public void setSeries(String series) {
-    	this.series = series;
+    public void setSeriesTitle(String seriesTitle) {
+    	this.seriesTitle = seriesTitle;
     }
     
-    public String getSeries() {
-    	return this.series;
+    public String getSeriesTitle() {
+    	return this.seriesTitle;
     }
     
     public void setNumber(String number) {

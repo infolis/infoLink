@@ -209,8 +209,7 @@ class CentralClient extends AbstractClient {
         }
         String baseURI = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
         String uri = baseURI;
-        if (qParamSB.length() > 0)
-        	uri += "?q=" + qParamSB.toString();
+        uri += "?q=" + qParamSB.toString();
         uri += "&max=" + Integer.MAX_VALUE;
         log.debug("Search for {}", uri);
         WebTarget target = jerseyClient.target(uri);

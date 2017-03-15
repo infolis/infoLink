@@ -197,9 +197,23 @@ public class LinkIndexer extends BaseAlgorithm {
 		}
 	}
 	
+	private List<String> getAllLinksInDatabase() {
+		List<String> links = new ArrayList<>();
+		Multimap<String, String> query = ArrayListMultimap.create();
+		for (EntityLink link : getInputDataStoreClient().search(EntityLink.class, query)) {
+			links.add(link.getUri());
+		}
+		return links;
+	}
+	
 
 	@Override
 	public void execute() throws IOException {
+		//either use specified set of links or use on all links in the database
+		if (null == getExecution().getLinks() || getExecution().getLinks().isEmpty()) {
+			debug(log, "list of input links is empty, indexing all links in the database");
+			getExecution().setLinks(getAllLinksInDatabase());
+		}
 		pushToIndex(flattenLinks(getInputDataStoreClient().get(EntityLink.class, getExecution().getLinks())));
 		
 	}

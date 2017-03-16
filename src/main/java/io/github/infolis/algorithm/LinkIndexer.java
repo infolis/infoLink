@@ -181,7 +181,7 @@ public class LinkIndexer extends BaseAlgorithm {
 			}
 				entities.add(link.getFromEntity());
 				entities.add(link.getToEntity());
-				references.add(link.getLinkReason());
+				if (null != link.getLinkReason()) references.add(link.getLinkReason());
 		}
 
 		for (String entity : entities) {

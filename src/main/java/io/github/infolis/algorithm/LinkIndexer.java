@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -163,13 +165,22 @@ public class LinkIndexer extends BaseAlgorithm {
 	private void pushToIndex(List<EntityLink> flattenedLinks) throws ClientProtocolException, IOException {
 		Set<String> entities = new HashSet<>();
 		Set<String> references = new HashSet<>();
-		
+		String prefixRegex = "http://.*/entity/";
+		Pattern prefixPattern = Pattern.compile(prefixRegex);
+	 	// assume all entities have the same prefix
+		String entityPrefix = "";	
 		String index = InfolisConfig.getElasticSearchIndex();
+		String newPrefix = index + "Entity/";
 		HttpClient httpclient = HttpClients.createDefault();
 		
 		for (EntityLink link : flattenedLinks) {
+			Matcher m = prefixPattern.matcher(link.getFromEntity());
+			if (m.find()) entityPrefix = m.group();
+
+			link.setFromEntity(link.getFromEntity().replaceAll(prefixRegex, newPrefix));
+			link.setToEntity(link.getToEntity().replaceAll(prefixRegex, newPrefix));
 			if (null != link.getUri()) {
-				HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri());
+				HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri().replaceAll("http://.*/entityLink/", ""));
 				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(link).toString()));
 				log.debug(String.format("put link \"%s\" to %s", link, index));
 			}
@@ -185,13 +196,15 @@ public class LinkIndexer extends BaseAlgorithm {
 		}
 
 		for (String entity : entities) {
-			HttpPut httpput = new HttpPut(index + "Entity/" + entity);
-			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(Entity.class, entity)).toString()));
+			HttpPut httpput = new HttpPut(entity);
+			Entity e = getInputDataStoreClient().get(Entity.class, entity.replaceAll(newPrefix, entityPrefix));
+			e.setUri(entity);
+			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(e).toString()));
 			log.debug(String.format("put entity \"%s\" to %s", entity, index));
 		}
 		
 		for (String reference : references) {
-			HttpPut httpput = new HttpPut(index + "TextualReference/" + reference);
+			HttpPut httpput = new HttpPut(index + "TextualReference/" + reference.replaceAll("http://.*/textualReference/", ""));
 			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(TextualReference.class, reference)).toString()));
 			log.debug(String.format("put textual reference \"%s\" to %s", reference, index));
 		}

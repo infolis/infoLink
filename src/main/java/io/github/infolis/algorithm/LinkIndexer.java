@@ -61,7 +61,12 @@ public class LinkIndexer extends BaseAlgorithm {
 				directLink.setFromEntity(startEntityUri);
 				directLink.setToEntity(link.getToEntity());
 				directLink.setEntityRelations(link.getEntityRelations());
-				//TODO set view: name of link.getFromEntity()
+				// set cited data as link view
+				Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
+				StringJoiner linkView = new StringJoiner(" ");
+				linkView.add(fromEntity.getName());
+				for (String number : fromEntity.getNumericInfo()) linkView.add(number);
+				directLink.setLinkView(linkView.toString());
 				directLink.setTags(link.getTags());
 				
 				int intermediateLinks = processedLinks.size();
@@ -89,7 +94,6 @@ public class LinkIndexer extends BaseAlgorithm {
 						
 				provenance.add(link.getProvenance());
 				directLink.setProvenance(provenance.toString());
-				// TODO view of a flattened link? -> cited dataset name
 						
 				directLink.addAllTags(getExecution().getTags());
 				log.debug("flattenedLink: " + SerializationUtils.toJSON(directLink));

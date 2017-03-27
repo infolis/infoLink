@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.StringJoiner;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -60,13 +61,13 @@ public class LinkIndexer extends BaseAlgorithm {
 				directLink.setFromEntity(startEntityUri);
 				directLink.setToEntity(link.getToEntity());
 				directLink.setEntityRelations(link.getEntityRelations());
-				//TODO add provenance from first link
 				//TODO set view: name of link.getFromEntity()
 				directLink.setTags(link.getTags());
 				
 				int intermediateLinks = processedLinks.size();
 				String linkReason = null;
 				double confidenceSum = 0;
+				StringJoiner provenance = new StringJoiner(" + ");
 				for (EntityLink intermediateLink : processedLinks) {
 					confidenceSum += intermediateLink.getConfidence();
 					if (null != intermediateLink.getLinkReason()) {
@@ -76,21 +77,23 @@ public class LinkIndexer extends BaseAlgorithm {
 					directLink.addAllTags(intermediateLink.getTags());
 					for (EntityRelation relation : intermediateLink.getEntityRelations()) {
 						if (!relation.equals(EntityRelation.same_as)) directLink.addEntityRelation(relation);
-						}
 					}
-					confidenceSum += link.getConfidence();
-					intermediateLinks += 1;
-					directLink.setConfidence(confidenceSum / intermediateLinks);
-					directLink.setLinkReason(linkReason);
-					log.debug("reference: " + linkReason);
+					// provenance entries of intermediate links do not have to be equal - e.g. manually specified cited data may have been linked to datasets automatically
+					if (null != intermediateLink.getProvenance()) provenance.add(intermediateLink.getProvenance());
+				}
+				confidenceSum += link.getConfidence();
+				intermediateLinks += 1;
+				directLink.setConfidence(confidenceSum / intermediateLinks);
+				directLink.setLinkReason(linkReason);
+				log.debug("reference: " + linkReason);
 						
-					// provenance entries of all intermediate links should be equal
-					directLink.setProvenance(link.getProvenance());
-					// TODO view of a flattened link? -> cited dataset name
+				provenance.add(link.getProvenance());
+				directLink.setProvenance(provenance.toString());
+				// TODO view of a flattened link? -> cited dataset name
 						
-					directLink.addAllTags(getExecution().getTags());
-					log.debug("flattenedLink: " + SerializationUtils.toJSON(directLink));
-					flattenedLinks.add(directLink);
+				directLink.addAllTags(getExecution().getTags());
+				log.debug("flattenedLink: " + SerializationUtils.toJSON(directLink));
+				flattenedLinks.add(directLink);
 
 			} else {
 				toEntities = ArrayListMultimap.create();

@@ -60,6 +60,8 @@ public class LinkIndexer extends BaseAlgorithm {
 				directLink.setFromEntity(startEntityUri);
 				directLink.setToEntity(link.getToEntity());
 				directLink.setEntityRelations(link.getEntityRelations());
+				//TODO add provenance from first link
+				//TODO set view: name of link.getFromEntity()
 				directLink.setTags(link.getTags());
 				
 				int intermediateLinks = processedLinks.size();
@@ -67,7 +69,10 @@ public class LinkIndexer extends BaseAlgorithm {
 				double confidenceSum = 0;
 				for (EntityLink intermediateLink : processedLinks) {
 					confidenceSum += intermediateLink.getConfidence();
-					if (null != intermediateLink.getLinkReason()) linkReason = intermediateLink.getLinkReason();
+					if (null != intermediateLink.getLinkReason()) {
+						TextualReference ref = getInputDataStoreClient().get(TextualReference.class, intermediateLink.getLinkReason());
+						linkReason = ref.toPrettyString();
+					}
 					directLink.addAllTags(intermediateLink.getTags());
 					for (EntityRelation relation : intermediateLink.getEntityRelations()) {
 						if (!relation.equals(EntityRelation.same_as)) directLink.addEntityRelation(relation);
@@ -81,7 +86,7 @@ public class LinkIndexer extends BaseAlgorithm {
 						
 					// provenance entries of all intermediate links should be equal
 					directLink.setProvenance(link.getProvenance());
-					// TODO view of a flattened link?
+					// TODO view of a flattened link? -> cited dataset name
 						
 					directLink.addAllTags(getExecution().getTags());
 					log.debug("flattenedLink: " + SerializationUtils.toJSON(directLink));
@@ -163,8 +168,7 @@ public class LinkIndexer extends BaseAlgorithm {
 	}
 	
 	private void pushToIndex(List<EntityLink> flattenedLinks) throws ClientProtocolException, IOException {
-		Set<String> entities = new HashSet<>();
-		Set<String> references = new HashSet<>();
+		Set<String> entities = new HashSet<>();	
 		String prefixRegex = "http://.*/entity/";
 		Pattern prefixPattern = Pattern.compile(prefixRegex);
 	 	// assume all entities have the same prefix
@@ -192,7 +196,6 @@ public class LinkIndexer extends BaseAlgorithm {
 			}
 				entities.add(link.getFromEntity());
 				entities.add(link.getToEntity());
-				if (null != link.getLinkReason()) references.add(link.getLinkReason());
 		}
 
 		for (String entity : entities) {
@@ -203,11 +206,6 @@ public class LinkIndexer extends BaseAlgorithm {
 			log.debug(String.format("put entity \"%s\" to %s", entity, index));
 		}
 		
-		for (String reference : references) {
-			HttpPut httpput = new HttpPut(index + "TextualReference/" + reference.replaceAll("http://.*/textualReference/", ""));
-			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(getInputDataStoreClient().get(TextualReference.class, reference)).toString()));
-			log.debug(String.format("put textual reference \"%s\" to %s", reference, index));
-		}
 	}
 	
 	private List<String> getAllLinksInDatabase() {

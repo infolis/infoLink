@@ -70,6 +70,8 @@ public class Entity extends BaseModel {
     private String publisher = null;
     private String isbn = null;
     private String issn = null;
+    private String doi = null;
+    private String gwsId = null;
     private String publicationType = null;//collection article //journal article //working paper //expert report //monograph //review
     private List<String> classification = new ArrayList<>();
     private List<String> methodKeywords = new ArrayList<>();
@@ -119,6 +121,8 @@ public class Entity extends BaseModel {
         this.publisher = copyFrom.getPublisher();
         this.isbn = copyFrom.getIsbn();
         this.issn = copyFrom.getIssn();
+	this.doi = copyFrom.getDoi();
+	this.gwsId = copyFrom.getGwsId();
         this.publicationType = copyFrom.getPublicationType();
         this.classification = copyFrom.getClassification();
         this.methodKeywords = copyFrom.getMethodKeywords();
@@ -528,5 +532,21 @@ public class Entity extends BaseModel {
     
     public String getYear() {
     	return this.year;
+    }
+
+    public void setDoi(String doi) {
+	this.doi = doi;
+    }
+
+    public String getDoi() {
+	return this.doi;
+    }
+
+    public void setGwsId(String gwsId) {
+	this.gwsId = gwsId;
+    }
+
+    public String getGwsId() {
+	return this.gwsId;
     }
 }

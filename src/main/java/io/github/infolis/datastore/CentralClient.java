@@ -104,8 +104,9 @@ class CentralClient extends AbstractClient {
 				.post(entity);
 		log.debug("-> {}", target);
 		log.debug("<- HTTP {}", resp.getStatus());
+		String err = resp.readEntity(String.class);
 		if (resp.getStatus() >= 400) {
-			String err = resp.readEntity(String.class);
+			//String err = resp.readEntity(String.class);
 			log.error(err);
 			throw new RuntimeException(err);
 		} else {
@@ -125,10 +126,11 @@ class CentralClient extends AbstractClient {
 		Response resp = target
 				.request(MediaType.APPLICATION_JSON_TYPE)
 				.put(entity);
+		String err = resp.readEntity(String.class);
 		if (resp.getStatus() >= 400) {
 			// TODO check whether resp actually succeeded
 //			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-//			log.error(err.getMessage());
+			log.error(err);
 //			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
 			throw new BadRequestException(resp);
 		}

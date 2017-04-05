@@ -189,6 +189,8 @@ public class LinkIndexer extends BaseAlgorithm {
 			//if (m.find()) entityPrefix = m.group();
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity());
+			//post only links when ids of both entities are known
+			if ((null == toEntity.getGwsId()) || (null == fromEntity.getGwsId())) continue;
 			fromEntity.setUri(fromEntity.getGwsId());
 			toEntity.setUri(toEntity.getGwsId());
 			link.setFromEntity(fromEntity.getUri());

@@ -79,10 +79,12 @@ public class DbIndexer extends BaseAlgorithm {
 		String index = InfolisConfig.getElasticSearchIndex();
 		HttpClient httpclient = HttpClients.createDefault();
 		List<Entity> entities = new ArrayList<>();
-
+		
 		for (EntityLink link : getInputDataStoreClient().get(EntityLink.class, getExecution().getLinks())) {
-			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
-			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity());
+			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replace("http.*?/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
+			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity().replace("http.*?/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
+			// do not post entities or their links having no gwsId
+			if ((null == fromEntity.getGwsId()) || (null == toEntity.getGwsId())) continue;
 			link.setFromEntity(fromEntity.getGwsId());
 			link.setToEntity(toEntity.getGwsId());
 			HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri().replaceAll("http://.*/entityLink/", ""));
@@ -97,7 +99,7 @@ public class DbIndexer extends BaseAlgorithm {
 		for (Entity e : entities) {
 			e.setUri(e.getGwsId());
 			HttpPut httpput = new HttpPut(index + "Entity/" + e.getUri());
-			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(e).toString()));
+			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(e).toString(), "UTF-8"));
 			log.debug(String.format("put entity \"%s\" to %s", e, index));
 		}
 		

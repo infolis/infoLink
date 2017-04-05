@@ -52,8 +52,8 @@ public class LinkIndexer extends BaseAlgorithm {
 			List<EntityLink> processedLinks) {
 		List<EntityLink> flattenedLinks = new ArrayList<>();
 		for (Map.Entry<String, String> entry : toEntities.entries()) {
-			Entity toEntity = getInputDataStoreClient().get(Entity.class, entry.getKey());
-			EntityLink link = getInputDataStoreClient().get(EntityLink.class, entry.getValue());
+			Entity toEntity = getInputDataStoreClient().get(Entity.class, entry.getKey().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
+			EntityLink link = getInputDataStoreClient().get(EntityLink.class, entry.getValue().replaceAll("http://.*/entityLink", "http://svkolodtest.gesis.intra/link-db/api/entityLink"));
 			
 			if (!toEntity.getEntityType().equals(EntityType.citedData)) {
 
@@ -62,7 +62,7 @@ public class LinkIndexer extends BaseAlgorithm {
 				directLink.setToEntity(link.getToEntity());
 				directLink.setEntityRelations(link.getEntityRelations());
 				// set cited data as link view
-				Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
+				Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 				StringJoiner linkView = new StringJoiner(" ");
 				linkView.add(fromEntity.getName());
 				for (String number : fromEntity.getNumericInfo()) linkView.add(number);
@@ -76,7 +76,7 @@ public class LinkIndexer extends BaseAlgorithm {
 				for (EntityLink intermediateLink : processedLinks) {
 					confidenceSum += intermediateLink.getConfidence();
 					if (null != intermediateLink.getLinkReason()) {
-						TextualReference ref = getInputDataStoreClient().get(TextualReference.class, intermediateLink.getLinkReason());
+						TextualReference ref = getInputDataStoreClient().get(TextualReference.class, intermediateLink.getLinkReason().replaceAll("http://.*/textualReference", "http://svkolodtest.gesis.intra/link-db/api/textualReference"));
 						linkReason = ref.toPrettyString();
 					}
 					directLink.addAllTags(intermediateLink.getTags());
@@ -119,7 +119,7 @@ public class LinkIndexer extends BaseAlgorithm {
 		Multimap<String, String> entityEntityMap = ArrayListMultimap.create();
 		Multimap<String, String> entitiesLinkMap = ArrayListMultimap.create();
 		for (EntityLink link : links) {
-			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
+			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			if (fromEntity.getTags().contains("infolis-ontology")) continue;
 			entityEntityMap.put(fromEntity.getUri(), link.getToEntity());
 			entitiesLinkMap.put(fromEntity.getUri()+link.getToEntity(), link.getUri());
@@ -175,7 +175,7 @@ public class LinkIndexer extends BaseAlgorithm {
 	}
 	
 	private void pushToIndex(List<EntityLink> flattenedLinks) throws ClientProtocolException, IOException {
-		Set<String> entities = new HashSet<>();	
+		Set<Entity> entities = new HashSet<>();	
 		String prefixRegex = "http://.*/entity/";
 		Pattern prefixPattern = Pattern.compile(prefixRegex);
 	 	// assume all entities have the same prefix
@@ -185,11 +185,14 @@ public class LinkIndexer extends BaseAlgorithm {
 		HttpClient httpclient = HttpClients.createDefault();
 		
 		for (EntityLink link : flattenedLinks) {
-			Matcher m = prefixPattern.matcher(link.getFromEntity());
-			if (m.find()) entityPrefix = m.group();
-
-			link.setFromEntity(link.getFromEntity().replaceAll(prefixRegex, newPrefix));
-			link.setToEntity(link.getToEntity().replaceAll(prefixRegex, newPrefix));
+			//Matcher m = prefixPattern.matcher(link.getFromEntity());
+			//if (m.find()) entityPrefix = m.group();
+			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity());
+			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity());
+			fromEntity.setUri(fromEntity.getGwsId());
+			toEntity.setUri(toEntity.getGwsId());
+			link.setFromEntity(fromEntity.getUri());
+			link.setToEntity(toEntity.getUri());
 			if (null != link.getUri()) {
 				HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri().replaceAll("http://.*/entityLink/", ""));
 				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(link).toString()));
@@ -201,16 +204,18 @@ public class LinkIndexer extends BaseAlgorithm {
 				post(httpclient, httppost, new StringEntity(SerializationUtils.toJSON(link).toString()));
 				log.debug(String.format("posted link \"%s\" to %s", link, index));
 			}
-				entities.add(link.getFromEntity());
-				entities.add(link.getToEntity());
+				entities.add(fromEntity);
+				entities.add(toEntity);
 		}
 
-		for (String entity : entities) {
-			HttpPut httpput = new HttpPut(entity);
-			Entity e = getInputDataStoreClient().get(Entity.class, entity.replaceAll(newPrefix, entityPrefix));
-			e.setUri(entity);
-			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(e).toString()));
-			log.debug(String.format("put entity \"%s\" to %s", entity, index));
+		for (Entity entity : entities) {
+			HttpPut httpput = new HttpPut(index + "Entity/" + entity.getUri());
+			//Entity e = getInputDataStoreClient().get(Entity.class, entity.replaceAll(newPrefix, entityPrefix));
+			//workaround for links with incorrect prefix
+			//Entity e = getInputDataStoreClient().get(Entity.class, entity.replaceAll(newPrefix, "http://svkolodtest.gesis.intra/link-db/api/entity/"));
+			//e.setUri(e.getGwsId());
+			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(entity).toString()));
+			log.debug(String.format("put entity \"%s\" to %s", entity.getUri(), index));
 		}
 		
 	}

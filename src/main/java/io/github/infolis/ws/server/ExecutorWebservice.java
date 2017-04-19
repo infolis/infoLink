@@ -16,6 +16,7 @@ import java.util.List;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
@@ -104,4 +105,14 @@ public class ExecutorWebservice {
 		}
 		return resp.build();
 	}
+        
+	@DELETE
+	@Produces("application/json")
+	public Response stopExecution(@QueryParam("id") String executionUri) {
+            ExecutionScheduler exe = ExecutionScheduler.getInstance();
+            exe.stopExecution(executionUri);
+	    log.info("Received DELETE request for " + executionUri + " in thread " + exe.futureList.get(executionUri));
+            ResponseBuilder resp = Response.ok();
+            return resp.build();
+        }
 }

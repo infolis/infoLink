@@ -20,6 +20,11 @@ import static io.github.infolis.model.ExecutionStatus.PENDING;
 import static io.github.infolis.model.ExecutionStatus.STARTED;
 import static io.github.infolis.model.ExecutionStatus.FINISHED;
 import static io.github.infolis.model.ExecutionStatus.FAILED;
+import io.github.infolis.ws.server.ExecutorWebservice;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  *
  * Class to pool threads of {@link Execution Executions}s.
@@ -31,6 +36,7 @@ public class ExecutionScheduler {
 
     private static ExecutionScheduler instance = null;
     private static ThreadPoolExecutor executor;
+    Logger log = LoggerFactory.getLogger(ExecutionScheduler.class);
 
     /**
      * @param aExecutor the executor to set
@@ -39,6 +45,7 @@ public class ExecutionScheduler {
         executor = aExecutor;
     }
     private final Map<String, ExecutionStatus> statusForExecution = new HashMap<>();
+    public final Map<String, Future> futureList = new HashMap<>();
 
     private ExecutionScheduler() { }
 
@@ -52,7 +59,8 @@ public class ExecutionScheduler {
     public void execute(final Algorithm r) {
         final String uri = r.getExecution().getUri();
         setStatus(uri, PENDING);
-        executor.execute(new Runnable() {
+        //execute vs. submit
+        Future future = executor.submit(new Runnable() {
             @Override
             public void run() {
                 setStatus(uri, STARTED);
@@ -65,6 +73,8 @@ public class ExecutionScheduler {
                 }
             }
         });
+        futureList.put(uri, future);
+        log.info("Execution " + uri + " submitted with future " + future.toString());
     }
 
     public ExecutionStatus getStatus(Execution e) {
@@ -96,6 +106,14 @@ public class ExecutionScheduler {
     public void shutDown() throws InterruptedException {
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
+    }
+    
+    public void stopExecution(String executionURI) {                
+        Future f = futureList.get(executionURI);
+        log.info("Stop Requested: " + executionURI + " with future " + f.toString());
+        f.cancel(true);
+        setStatus(executionURI, FAILED);
+        futureList.remove(executionURI);
     }
 
 }

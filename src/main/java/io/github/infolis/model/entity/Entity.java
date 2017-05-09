@@ -140,7 +140,12 @@ public class Entity extends BaseModel {
 
     public Entity() {
     }
-      
+    
+    // prevent mongo keyTooLong exception
+    private String shortenIfNeeded(String string) {
+	return (string.length() > 500 ? string.substring(0, 495) + " (...)" : string);
+    }  
+
     public void setEntityType(EntityType entityType) {
     	this.entityType = entityType;
     }
@@ -162,7 +167,7 @@ public class Entity extends BaseModel {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = shortenIfNeeded(name);
     }
 
     public String getName() {
@@ -293,7 +298,7 @@ public class Entity extends BaseModel {
      * @param abstractText the abstractText to set
      */
     public void setAbstractText(String abstractText) {
-        this.abstractText = abstractText;
+        this.abstractText = shortenIfNeeded(abstractText);
     }
 
     /**
@@ -355,7 +360,7 @@ public class Entity extends BaseModel {
     }
     
     public void setEntityView(String view) {
-    	this.entityView = view;
+    	this.entityView = shortenIfNeeded(view);
     }
     
     public String getEntityView() {

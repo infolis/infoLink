@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.EntityType;
@@ -57,6 +58,7 @@ public class Entity extends BaseModel {
     private Set<String> spatial = new HashSet<>();
     
     private String entityView;
+    private String entityProvenance;
     
     // additional bibliographic metadata
     private String journalTitle = null;
@@ -109,6 +111,7 @@ public class Entity extends BaseModel {
     	this.associations = copyFrom.getAssociations();
     	
     	this.entityView = copyFrom.getEntityView();
+	this.entityProvenance = copyFrom.getEntityProvenance();
 
         this.journalTitle = copyFrom.getJournalTitle();
         this.seriesTitle = copyFrom.getSeriesTitle();
@@ -359,6 +362,14 @@ public class Entity extends BaseModel {
     	return this.entityView;
     }
 
+    public String getEntityProvenance() {
+	return this.entityProvenance;
+    }
+
+    public void setEntityProvenance(String entityProvenance) {
+	this.entityProvenance = entityProvenance;
+    }
+
     /**
      * @param numericInfo the numericInfo to set
      */
@@ -549,4 +560,5 @@ public class Entity extends BaseModel {
     public String getGwsId() {
 	return this.gwsId;
     }
+
 }

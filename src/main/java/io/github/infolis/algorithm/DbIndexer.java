@@ -86,6 +86,8 @@ public class DbIndexer extends BaseAlgorithm {
 		private String gws_toID;
 
 		public ElasticLink(EntityLink copyFrom) {
+			this.setFromEntity(copyFrom.getFromEntity());
+			this.setToEntity(copyFrom.getToEntity());
 			this.setGws_fromID(copyFrom.getFromEntity());
 			this.setGws_toID(copyFrom.getToEntity());
 			this.setConfidence(copyFrom.getConfidence());
@@ -156,11 +158,12 @@ public class DbIndexer extends BaseAlgorithm {
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity().replaceAll("http.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			// do not post entities or their links having no gwsId
-			if ((null == fromEntity.getGwsId()) || (null == toEntity.getGwsId())) continue;
+			//if ((null == fromEntity.getGwsId()) || (null == toEntity.getGwsId())) continue;
+			// TODO check if entityType == entityType.citedData and don't add prefix "literaturpool-" in this case if that prefix should be applied to publications only
 			if (null != fromEntity.getGwsId()) fromEntity.setUri(fromEntity.getGwsId());
-			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/", ""));
+			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
 			if (null != toEntity.getGwsId()) toEntity.setUri(toEntity.getGwsId());
-			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/", ""));
+			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
 			
 			link.setFromEntity(fromEntity.getUri());
 			link.setToEntity(toEntity.getUri());
@@ -170,10 +173,10 @@ public class DbIndexer extends BaseAlgorithm {
 			elink.setGws_toType(toEntity.getEntityType());
 			elink.setGws_fromView(fromEntity.getEntityView());
 			elink.setGws_toView(toEntity.getEntityView());
-
-			HttpPost httpost = new HttpPost(index + "EntityLink/");
+			elink.setUri(fromEntity.getUri() + "---" + toEntity.getUri());
+			HttpPut httpput = new HttpPut(index + "EntityLink/" + elink.getUri());
 			//log.debug(SerializationUtils.toJSON(elink).toString());
-			post(httpclient, httpost, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
+			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
 			//post(httpclient, httpost, new StringEntity(elink.toJson(), ContentType.APPLICATION_JSON));
 			//log.debug(String.format("posted link \"%s\" to %s", link, index));
 			entities.add(fromEntity);

@@ -67,8 +67,11 @@ public class LinkIndexer extends BaseAlgorithm {
 				// set cited data as link view
 				Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 				StringJoiner linkView = new StringJoiner(" ");
-				linkView.add(fromEntity.getName());
-				for (String number : fromEntity.getNumericInfo()) linkView.add(number);
+				//TODO check
+				if (fromEntity.getEntityType().equals(EntityType.citedData)) {
+					linkView.add(fromEntity.getName());
+					for (String number : fromEntity.getNumericInfo()) linkView.add(number);
+				}
 				directLink.setLinkView(linkView.toString());
 				directLink.setTags(link.getTags());
 				
@@ -80,6 +83,7 @@ public class LinkIndexer extends BaseAlgorithm {
 					confidenceSum += intermediateLink.getConfidence();
 					if (null != intermediateLink.getLinkReason()) {
 						TextualReference ref = getInputDataStoreClient().get(TextualReference.class, intermediateLink.getLinkReason().replaceAll("http://.*/textualReference", "http://svkolodtest.gesis.intra/link-db/api/textualReference"));
+						//TODO REPLACE TOKENS LIKE -RRB-
 						linkReason = ref.toPrettyString();
 					}
 					directLink.addAllTags(intermediateLink.getTags());
@@ -197,8 +201,8 @@ public class LinkIndexer extends BaseAlgorithm {
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity().replaceAll("http://.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			//quick hack for current ssoar infolink data; remove later
-			
-			/*toEntity.setGwsId("doi:" + toEntity.getIdentifiers().get(0).replace("/", "-"));
+		/*	
+			toEntity.setGwsId("doi:" + toEntity.getIdentifiers().get(0).replace("/", "-"));
 			for (String pubId : fromEntity.getIdentifiers())  {
 				if (pubId.startsWith("urn:")) {
 					fromEntity.setGwsId(pubId);
@@ -217,13 +221,13 @@ public class LinkIndexer extends BaseAlgorithm {
 			//if (null != toEntity.getAuthors()) for (String author : toEntity.getAuthors()) toEntityAuthor.add(author);
 			fromEntity.setEntityView(String.format("%s (%s): %s", fromEntityAuthor.toString(), fromEntity.getYear(), fromEntity.getName()));
 			toEntity.setEntityView(String.format("%s", toEntity.getName()));
-			*/
+		*/	//end of hack
 			//post only links when ids of both entities are known
 			//if ((null == toEntity.getGwsId()) || (null == fromEntity.getGwsId())) continue;
 			if (null != fromEntity.getGwsId()) fromEntity.setUri(fromEntity.getGwsId());
-			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/",""));
+			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/","literaturpool-"));
 			if (null != toEntity.getGwsId()) toEntity.setUri(toEntity.getGwsId());
-			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/",""));
+			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/","literaturpool-"));
 
 			link.setFromEntity(fromEntity.getUri());
 			link.setToEntity(toEntity.getUri());
@@ -236,8 +240,10 @@ public class LinkIndexer extends BaseAlgorithm {
 			elink.setGws_toView(toEntity.getEntityView());
 			elink.setGws_fromType(fromEntity.getEntityType());
 			elink.setGws_toType(toEntity.getEntityType());
-			if (null != link.getUri()) {
-				HttpPut httpput = new HttpPut(index + "EntityLink/" + link.getUri().replaceAll("http://.*/entityLink/", ""));
+			// set URI in a way that duplicates are overriden
+			elink.setUri(elink.getGws_fromID() + "---" + elink.getGws_toID());
+			if (null != elink.getUri()) {
+				HttpPut httpput = new HttpPut(index + "EntityLink/" + elink.getUri().replaceAll("http://.*/entityLink/", ""));
 				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
 				log.debug(String.format("put link \"%s\" to %s", elink, index));
 			}

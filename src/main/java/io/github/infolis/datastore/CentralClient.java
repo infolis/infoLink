@@ -202,7 +202,7 @@ class CentralClient extends AbstractClient {
         	qParamSB.append(":");
         	try
 			{
-				qParamSB.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+				qParamSB.append(URLEncoder.encode(entry.getValue().replace(":", "\\:"), "UTF-8"));
 			} catch (UnsupportedEncodingException e)
 			{
 				throw new RuntimeException(e);

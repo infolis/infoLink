@@ -148,6 +148,20 @@ public class DbIndexer extends BaseAlgorithm {
 		}
 	
 	}	
+
+	private boolean showInGws(Entity fromEntity, Entity toEntity) {
+		if (basicPublicationMetadataExists(fromEntity) && basicPublicationMetadataExists(toEntity)) return true;
+		return false;
+	}
+
+	private boolean basicPublicationMetadataExists(Entity entity) {
+		// apply filter on publications only
+		if (entity.getEntityType() != EntityType.publication) return true;
+		// ignore all entities where not even the basic metadata (title, author, year) is known
+		if ((null == entity.getGwsId() || entity.getGwsId().isEmpty()) && (null == entity.getName() || entity.getName().isEmpty() || null == entity.getAuthors() || entity.getAuthors().isEmpty() || null == entity.getYear() || entity.getYear().isEmpty())) return false;
+		return true;
+	}
+
 	
 	private void pushToIndex() throws ClientProtocolException, IOException {
 		String index = InfolisConfig.getElasticSearchIndex();
@@ -164,21 +178,25 @@ public class DbIndexer extends BaseAlgorithm {
 			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
 			if (null != toEntity.getGwsId()) toEntity.setUri(toEntity.getGwsId());
 			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
-			
-			link.setFromEntity(fromEntity.getUri());
-			link.setToEntity(toEntity.getUri());
+		
+			// always post entities; links only when to be shown in gws	
+			if (showInGws(fromEntity, toEntity)) {
+				link.setFromEntity(fromEntity.getUri());
+				link.setToEntity(toEntity.getUri());
 
-			ElasticLink elink = new ElasticLink(link);
-			elink.setGws_fromType(fromEntity.getEntityType());
-			elink.setGws_toType(toEntity.getEntityType());
-			elink.setGws_fromView(fromEntity.getEntityView());
-			elink.setGws_toView(toEntity.getEntityView());
-			elink.setUri(fromEntity.getUri() + "---" + toEntity.getUri());
-			HttpPut httpput = new HttpPut(index + "EntityLink/" + elink.getUri());
-			//log.debug(SerializationUtils.toJSON(elink).toString());
-			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
-			//post(httpclient, httpost, new StringEntity(elink.toJson(), ContentType.APPLICATION_JSON));
-			//log.debug(String.format("posted link \"%s\" to %s", link, index));
+				ElasticLink elink = new ElasticLink(link);
+				elink.setGws_fromType(fromEntity.getEntityType());
+				elink.setGws_toType(toEntity.getEntityType());
+				elink.setGws_fromView(fromEntity.getEntityView());
+				elink.setGws_toView(toEntity.getEntityView());
+				elink.setUri(fromEntity.getUri() + "---" + toEntity.getUri());
+				HttpPut httpput = new HttpPut(index + "EntityLink/" + elink.getUri());
+				//log.debug(SerializationUtils.toJSON(elink).toString());
+				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
+				//post(httpclient, httpost, new StringEntity(elink.toJson(), ContentType.APPLICATION_JSON));
+				//log.debug(String.format("posted link \"%s\" to %s", link, index));
+			}
+
 			entities.add(fromEntity);
 			entities.add(toEntity);
 		}

@@ -368,7 +368,8 @@ public class LinkIndexer extends BaseAlgorithm {
 				directLink.setTags(link.getTags());
 				
 				int intermediateLinks = processedLinks.size();
-				String linkReason = link.getLinkReason().replaceAll("http://.*/textualReference", "http://svkolodtest.gesis.intra/link-db/api/textualReference");
+				String linkReason = null;
+				if (null != link.getLinkReason() && !link.getLinkReason().isEmpty()) linkReason = link.getLinkReason().replaceAll("http://.*/textualReference", "http://svkolodtest.gesis.intra/link-db/api/textualReference");
 				double confidenceSum = 0;
 				Set<String> provenance = new HashSet<>();
 				for (EntityLink intermediateLink : processedLinks) {

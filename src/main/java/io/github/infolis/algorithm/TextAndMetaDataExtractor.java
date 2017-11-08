@@ -61,8 +61,7 @@ public class TextAndMetaDataExtractor extends BaseAlgorithm {
                     p = Paths.get(infoFile.getOriginalName());
                 }
                 String fileName = p.getFileName().toString().split("\\.")[0];
-                if (metaFile.replaceAll(".*/", "").replace(".txt", "").replace(".pdf",
-                			"").equals(fileName.replaceAll(".*/","").replace(".txt", "").replace(".pdf",""))) {
+                if (metaFile.replaceAll(".*/", "").replace(".xml","").equals(fileName.replaceAll(".*/","").replace(".txt", "").replace(".pdf",""))) {
                     try {
                         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                         DocumentBuilder db = dbf.newDocumentBuilder();

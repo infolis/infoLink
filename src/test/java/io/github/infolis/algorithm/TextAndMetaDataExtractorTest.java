@@ -69,20 +69,21 @@ public class TextAndMetaDataExtractorTest extends InfolisBaseTest {
         algo.run();
 
         Entity e = dataStoreClient.get(Entity.class, inFile.getManifestsEntity());
-        assertTrue(e.getName().equals("The possible trinity: Optimal interest rate, exchange rate, and taxes on capital flows in a DSGE model for a small open economy"));
-        assertTrue(e.getAuthors().size()==1);
-        assertTrue(e.getAbstractText().equals("A traditional way of thinking about the exchange rate (XR) regime and capital account openness has been framed in "
+        assertEquals("The possible trinity: Optimal interest rate, exchange rate, and taxes on capital flows in a DSGE model for a small open economy", e.getName());
+        assertEquals(1, e.getAuthors().size());
+        assertEquals("A traditional way of thinking about the exchange rate (XR) regime and capital account openness has been framed in "
                 + "terms of the 'impossible trinity' or 'trilemma', in which policymakers can only have 2 of 3 possible outcomes: open capital markets, monetary "
                 + "independence and pegged XRs. This paper is an extension of Escude (A DSGE Model for a SOE with Systematic Interest and Foreign Exchange Policies "
-                + "in Which Policymakers Exploit the Risk Premium for Stabilization Purposes, 2013), which focused on interest rate and XR policies, since it introduces"
-                + " the third vertex of the 'trinity' in the form of taxes on private foreign debt. These affect the risk-adjusted uncovered interest parity equation and"
-                + " hence influence the SOE's international financial flows. A useful way to illustrate the range of policy alternatives is to associate them with the"
-                + " faces of a triangle. Each of 3 possible government intervention policies taken individually (in the domestic currency bond market, in the FX market,"
-                + " and in the foreign currency bonds market) corresponds to one of the vertices of the triangle, each of the 3 possible pairs of intervention policies"
-                + " corresponds to one of its 3 edges, and the 3 simultaneous intervention policies taken jointly correspond to its interior. This paper shows that this "
-                + "interior, or 'possible trinity' is quite generally not only possible but optimal, since the CB obtains a lower loss when it implements a policy with"
-                + " all three interventions."));
-        assertTrue(e.getSubjects().size()==9);
+                + "in Which Policymakers Exploit the Risk Premium for Stabilization Purposes, 2013), which focuse (...)",//d on interest rate and XR policies, since it introduces"
+               // + " the third vertex of the 'trinity' in the form of taxes on private foreign debt. These affect the risk-adjusted uncovered interest parity equation and"
+                //+ " hence influence the SOE's international financial flows. A useful way to illustrate the range of policy alternatives is to associate them with the"
+                //+ " faces of a triangle. Each of 3 possible government intervention policies taken individually (in the domestic currency bond market, in the FX market,"
+                //+ " and in the foreign currency bonds market) corresponds to one of the vertices of the triangle, each of the 3 possible pairs of intervention policies"
+                //+ " corresponds to one of its 3 edges, and the 3 simultaneous intervention policies taken jointly correspond to its interior. This paper shows that this "
+                //+ "interior, or 'possible trinity' is quite generally not only possible but optimal, since the CB obtains a lower loss when it implements a policy with"
+                //+ " all three interventions.",
+		e.getAbstractText());
+        assertEquals(9, e.getSubjects().size());
         log.debug("ids: " + e.getIdentifiers());
         assertEquals(Arrays.asList(
         		"Economics: The Open-Access, Open-Assessment E-Journal 8 2014-25 1-58",

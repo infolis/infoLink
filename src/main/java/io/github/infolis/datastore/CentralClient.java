@@ -132,6 +132,7 @@ class CentralClient extends AbstractClient {
 //			ErrorResponse err = resp.readEntity(ErrorResponse.class);
 			log.error(err);
 //			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			log.error(resp.toString());
 			throw new BadRequestException(resp);
 		}
 	}

@@ -117,6 +117,8 @@ public class DbIndexer extends BaseAlgorithm {
 			}
 		}
 
+		public ElasticLink() {}
+
 		public ElasticLink(EntityLink copyFrom) {
 			this.setFromEntity(copyFrom.getFromEntity());
 			this.setToEntity(copyFrom.getToEntity());
@@ -128,8 +130,6 @@ public class DbIndexer extends BaseAlgorithm {
 			this.setEntityRelations(copyFrom.getEntityRelations());
 			this.setProvenance(copyFrom.getProvenance());
 			this.setLinkView(copyFrom.getLinkView());
-			this.setFromEntity(copyFrom.getFromEntity());
-			this.setToEntity(copyFrom.getToEntity());
 			this.setGws_link(null);
 		}
 
@@ -239,12 +239,13 @@ public class DbIndexer extends BaseAlgorithm {
 				elink.setGws_toType(toEntity.getEntityType());
 				if (EntityType.citedData.equals(toEntity.getEntityType())) {
 					log.debug("searching for gwsLink for " + toEntity.getName());
-					//elink.setGws_link(elink.getGwsLink(toEntity.getName().replaceAll("\\d", "").trim()));
 					elink.setGws_link(elink.getGwsLink(toEntity.getName().replaceAll("\\d", "").trim()));
+					//elink.setGws_link(elink.getGwsLink(toEntity.getName().trim()));
 					//log.debug(elink.getGws_link());
 				} else if (EntityType.citedData.equals(fromEntity.getEntityType())) {
 					log.debug("Searching for gwsLink for " + fromEntity.getName());
 					elink.setGws_link(elink.getGwsLink(fromEntity.getName().replaceAll("\\d", "").trim()));
+					//elink.setGws_link(elink.getGwsLink(fromEntity.getName().trim()));
 				}
 				elink.setGws_fromView(fromEntity.getEntityView());
 				elink.setGws_toView(toEntity.getEntityView());

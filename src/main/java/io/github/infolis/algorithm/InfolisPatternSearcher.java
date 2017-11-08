@@ -12,6 +12,7 @@ import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.TextualReference;
 import io.github.infolis.model.entity.InfolisPattern;
 import io.github.infolis.util.RegexUtils;
+import io.github.infolis.InfolisConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -114,8 +115,9 @@ public class InfolisPatternSearcher extends BaseAlgorithm {
 	    		continue;
 	    	}
 	    	// if referencedTerm contains no characters or is a stopword: ignore
+	    	//log.debug("ignore study: " + InfolisConfig.getIgnoreStudy().toString());
             // TODO: not accurate - include accents etc in match... \p{M}?
-            if (referencedTerm.matches("\\P{L}+") || RegexUtils.isStopword(referencedTerm)) {
+            if (referencedTerm.matches("\\P{L}+") || RegexUtils.isStopword(referencedTerm) || InfolisConfig.getIgnoreStudy().contains(referencedTerm.trim())) {
                 log.debug("Invalid referenced term \"" + referencedTerm + "\"");
                 continue;
             }

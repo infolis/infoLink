@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.EntityType;
@@ -57,6 +58,7 @@ public class Entity extends BaseModel {
     private Set<String> spatial = new HashSet<>();
     
     private String entityView;
+    private String entityProvenance;
     
     // additional bibliographic metadata
     private String journalTitle = null;
@@ -109,6 +111,7 @@ public class Entity extends BaseModel {
     	this.associations = copyFrom.getAssociations();
     	
     	this.entityView = copyFrom.getEntityView();
+	this.entityProvenance = copyFrom.getEntityProvenance();
 
         this.journalTitle = copyFrom.getJournalTitle();
         this.seriesTitle = copyFrom.getSeriesTitle();
@@ -137,7 +140,12 @@ public class Entity extends BaseModel {
 
     public Entity() {
     }
-      
+    
+    // prevent mongo keyTooLong exception
+    private String shortenIfNeeded(String string) {
+	return (string.length() > 500 ? string.substring(0, 495) + " (...)" : string);
+    }  
+
     public void setEntityType(EntityType entityType) {
     	this.entityType = entityType;
     }
@@ -159,7 +167,7 @@ public class Entity extends BaseModel {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = shortenIfNeeded(name);
     }
 
     public String getName() {
@@ -290,7 +298,7 @@ public class Entity extends BaseModel {
      * @param abstractText the abstractText to set
      */
     public void setAbstractText(String abstractText) {
-        this.abstractText = abstractText;
+        this.abstractText = shortenIfNeeded(abstractText);
     }
 
     /**
@@ -352,11 +360,19 @@ public class Entity extends BaseModel {
     }
     
     public void setEntityView(String view) {
-    	this.entityView = view;
+    	this.entityView = shortenIfNeeded(view);
     }
     
     public String getEntityView() {
     	return this.entityView;
+    }
+
+    public String getEntityProvenance() {
+	return this.entityProvenance;
+    }
+
+    public void setEntityProvenance(String entityProvenance) {
+	this.entityProvenance = entityProvenance;
     }
 
     /**
@@ -549,4 +565,5 @@ public class Entity extends BaseModel {
     public String getGwsId() {
 	return this.gwsId;
     }
+
 }

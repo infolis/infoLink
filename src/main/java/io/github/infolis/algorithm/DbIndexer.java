@@ -2,13 +2,17 @@ package io.github.infolis.algorithm;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -30,6 +34,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.entity.Entity;
 import io.github.infolis.model.EntityType;
 import io.github.infolis.model.entity.EntityLink;
+import io.github.infolis.model.TextualReference;
 import io.github.infolis.util.SerializationUtils;
 
 public class DbIndexer extends BaseAlgorithm {
@@ -84,17 +89,56 @@ public class DbIndexer extends BaseAlgorithm {
 		private String gws_toView;
 		private String gws_fromID;
 		private String gws_toID;
+		private String gws_link;
+
+		private Map<String, String> getDataUrls() {
+			Map<String, String> data_urls = new HashMap<>();
+			try {
+				String content = FileUtils.readFileToString(new File("/infolis-files/data-urls.csv"));
+				for (String line : content.trim().split("\n")) {
+					String[] keyValue = line.split(";");
+					data_urls.put(keyValue[0].trim(), keyValue[1].trim());
+				}
+			} catch (IOException e) {
+				log.error(e.toString());
+			}
+			return data_urls;
+		}
+
+		protected String getGwsLink(String citedData) {
+			Map<String, String> data_urls = getDataUrls();
+			String dataLink = data_urls.get(citedData);
+			if (null != dataLink) {
+				log.debug("FOUND DATA LINK FOR " + citedData + ": " + dataLink);
+				return dataLink;
+			} else {
+				log.debug("NO DATA LINK FOR " + citedData);
+				return null;
+			}
+		}
 
 		public ElasticLink(EntityLink copyFrom) {
+			this.setFromEntity(copyFrom.getFromEntity());
+			this.setToEntity(copyFrom.getToEntity());
 			this.setGws_fromID(copyFrom.getFromEntity());
 			this.setGws_toID(copyFrom.getToEntity());
 			this.setConfidence(copyFrom.getConfidence());
-			this.setLinkReason(copyFrom.getLinkReason());
+			String linkReason = copyFrom.getLinkReason();
+			if (null != linkReason && !linkReason.isEmpty()) this.setLinkReason(removePtb3escaping(resolveLinkReason(linkReason)));
 			this.setEntityRelations(copyFrom.getEntityRelations());
 			this.setProvenance(copyFrom.getProvenance());
 			this.setLinkView(copyFrom.getLinkView());
 			this.setFromEntity(copyFrom.getFromEntity());
 			this.setToEntity(copyFrom.getToEntity());
+			this.setGws_link(null);
+		}
+
+		private String removePtb3escaping(String string) {
+			return string.replaceAll("-LRB-", "(").replaceAll("-RRB-", ")");
+		}
+
+		private String resolveLinkReason(String uri) {
+			return getInputDataStoreClient().get(TextualReference.class, uri).toPrettyString();
 		}
 
 		public void setGws_fromID(String gws_fromID) {
@@ -144,11 +188,33 @@ public class DbIndexer extends BaseAlgorithm {
 		public String getGws_toView() {
 			return this.gws_toView;
 		}
+
+		public void setGws_link(String link) {
+			this.gws_link = link;
+		}
+
+		public String getGws_link() {
+			return this.gws_link;
+		}
 	
 	}	
+
+	private boolean showInGws(Entity fromEntity, Entity toEntity) {
+		if (basicPublicationMetadataExists(fromEntity) && basicPublicationMetadataExists(toEntity)) return true;
+		return false;
+	}
+
+	private boolean basicPublicationMetadataExists(Entity entity) {
+		// apply filter on publications only
+		if (entity.getEntityType() != EntityType.publication) return true;
+		// ignore all entities where not even the basic metadata (title, author, year) is known
+		if ((null == entity.getGwsId() || entity.getGwsId().isEmpty()) && (null == entity.getName() || entity.getName().isEmpty() || null == entity.getAuthors() || entity.getAuthors().isEmpty() || null == entity.getYear() || entity.getYear().isEmpty())) return false;
+		return true;
+	}
+
 	
-	private void pushToIndex() throws ClientProtocolException, IOException {
-		String index = InfolisConfig.getElasticSearchIndex();
+	private void pushToIndex(String index) throws ClientProtocolException, IOException {
+		if (null == index || index.isEmpty()) index = InfolisConfig.getElasticSearchIndex();
 		HttpClient httpclient = HttpClients.createDefault();
 		List<Entity> entities = new ArrayList<>();
 		
@@ -156,26 +222,41 @@ public class DbIndexer extends BaseAlgorithm {
 			Entity fromEntity = getInputDataStoreClient().get(Entity.class, link.getFromEntity().replaceAll("http.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			Entity toEntity = getInputDataStoreClient().get(Entity.class, link.getToEntity().replaceAll("http.*/entity", "http://svkolodtest.gesis.intra/link-db/api/entity"));
 			// do not post entities or their links having no gwsId
-			if ((null == fromEntity.getGwsId()) || (null == toEntity.getGwsId())) continue;
+			//if ((null == fromEntity.getGwsId()) || (null == toEntity.getGwsId())) continue;
+			// TODO check if entityType == entityType.citedData and don't add prefix "literaturpool-" in this case if that prefix should be applied to publications only
 			if (null != fromEntity.getGwsId()) fromEntity.setUri(fromEntity.getGwsId());
-			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/", ""));
+			else fromEntity.setUri(fromEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
 			if (null != toEntity.getGwsId()) toEntity.setUri(toEntity.getGwsId());
-			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/", ""));
-			
-			link.setFromEntity(fromEntity.getUri());
-			link.setToEntity(toEntity.getUri());
+			else toEntity.setUri(toEntity.getUri().replaceAll("http.*/entity/", "literaturpool-"));
+		
+			// always post entities; links only when to be shown in gws	
+			if (showInGws(fromEntity, toEntity)) {
+				link.setFromEntity(fromEntity.getUri());
+				link.setToEntity(toEntity.getUri());
 
-			ElasticLink elink = new ElasticLink(link);
-			elink.setGws_fromType(fromEntity.getEntityType());
-			elink.setGws_toType(toEntity.getEntityType());
-			elink.setGws_fromView(fromEntity.getEntityView());
-			elink.setGws_toView(toEntity.getEntityView());
+				ElasticLink elink = new ElasticLink(link);
+				elink.setGws_fromType(fromEntity.getEntityType());
+				elink.setGws_toType(toEntity.getEntityType());
+				if (EntityType.citedData.equals(toEntity.getEntityType())) {
+					log.debug("searching for gwsLink for " + toEntity.getName());
+					//elink.setGws_link(elink.getGwsLink(toEntity.getName().replaceAll("\\d", "").trim()));
+					elink.setGws_link(elink.getGwsLink(toEntity.getName().replaceAll("\\d", "").trim()));
+					//log.debug(elink.getGws_link());
+				} else if (EntityType.citedData.equals(fromEntity.getEntityType())) {
+					log.debug("Searching for gwsLink for " + fromEntity.getName());
+					elink.setGws_link(elink.getGwsLink(fromEntity.getName().replaceAll("\\d", "").trim()));
+				}
+				elink.setGws_fromView(fromEntity.getEntityView());
+				elink.setGws_toView(toEntity.getEntityView());
+				elink.setUri(fromEntity.getUri() + "---" + toEntity.getUri());
+				HttpPut httpput = new HttpPut(index + "EntityLink/" + elink.getUri());
+				log.debug(SerializationUtils.toJSON(elink).toString());
+				put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
+				//post(httpclient, httpost, new StringEntity(elink.toJson(), ContentType.APPLICATION_JSON));
+				//log.debug(String.format("posted link \"%s\" to %s", link, index));
+				//if (elink.getGws_link() != null) throw new RuntimeException();
+			}
 
-			HttpPost httpost = new HttpPost(index + "EntityLink/");
-			//log.debug(SerializationUtils.toJSON(elink).toString());
-			post(httpclient, httpost, new StringEntity(SerializationUtils.toJSON(elink), ContentType.APPLICATION_JSON));
-			//post(httpclient, httpost, new StringEntity(elink.toJson(), ContentType.APPLICATION_JSON));
-			//log.debug(String.format("posted link \"%s\" to %s", link, index));
 			entities.add(fromEntity);
 			entities.add(toEntity);
 		}
@@ -183,17 +264,23 @@ public class DbIndexer extends BaseAlgorithm {
 		//for (String entity : getExecution().getLinkedEntities()) {
 		//	Entity e = getInputDataStoreClient().get(Entity.class, entity);
 		for (Entity e : entities) {
-			//e.setUri(e.getGwsId());
+			if (null == e.getGwsId() || e.getGwsId().isEmpty()) e.setGwsId(e.getUri());
+			//log.debug("putting: " + SerializationUtils.toJSON(e));
 			HttpPut httpput = new HttpPut(index + "Entity/" + e.getUri());
 			put(httpclient, httpput, new StringEntity(SerializationUtils.toJSON(e), ContentType.APPLICATION_JSON));
-			if (null == e.getUri()) log.debug(String.format("put entity \"%s\" to %s", SerializationUtils.toJSON(e), index));
+			if (null == e.getUri()) log.warn(String.format("uri is null: cannot put entity \"%s\" to %s", SerializationUtils.toJSON(e), index));
 		}
 		
 	}
 	
-	private void getData() {
+	private void getData(List<String> ignoreLinksWithProvenance) {
 		Multimap<String, String> query = ArrayListMultimap.create();
 		for (EntityLink link : getInputDataStoreClient().search(EntityLink.class, query)) {
+			if (null != ignoreLinksWithProvenance && !ignoreLinksWithProvenance.isEmpty()) {
+				for (String provenance : ignoreLinksWithProvenance) {
+					if (link.getProvenance().equals(provenance)) continue;
+				}
+			}
 			getExecution().getLinks().add(link.getUri());
 		}
 		/*for (Entity entity : getInputDataStoreClient().search(Entity.class, query)) {
@@ -206,8 +293,8 @@ public class DbIndexer extends BaseAlgorithm {
 	public void execute() throws IOException {
 		getExecution().setLinks(new ArrayList<>());
 		getExecution().setLinkedEntities(new ArrayList<>());
-		getData();		
-		pushToIndex();
+		getData(getExecution().getSeeds());		
+		pushToIndex(getExecution().getIndexDirectory());
 		
 	}
 

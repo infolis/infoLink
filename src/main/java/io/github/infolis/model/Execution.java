@@ -300,7 +300,7 @@ public class Execution extends BaseModel {
          * 
          * {@link PatternApplier} {@link Bootstrapping}
          */
-	private boolean upperCaseConstraint = false;
+	private boolean upperCaseConstraint = true;
 
 	/**
 	 * Seeds used for bootstrapping, e.g. study names to start

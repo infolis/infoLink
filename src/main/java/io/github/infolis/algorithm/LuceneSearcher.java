@@ -80,7 +80,13 @@ public class LuceneSearcher extends BaseAlgorithm {
        	// when it isn't able to find any passages, the context 
        	// size should be restricted here
        	String leftContext = contexts[0];
-       	String rightContext = contexts[1];
+       	String rightContext = " ";
+       	// for NameExtractor
+       	try {
+       			rightContext = contexts[1];
+       	} catch (ArrayIndexOutOfBoundsException e) {
+       			rightContext = " ";
+       	}
        	if (leftContext.isEmpty()) leftContext = " ";
        	if (rightContext.isEmpty()) rightContext = " ";
        	TextualReference textRef = new TextualReference(leftContext, term, 

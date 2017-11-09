@@ -49,6 +49,7 @@ public class InfolisPatternSearcherTest extends InfolisBaseTest {
 		exec.setInputFiles(Arrays.asList(testFile.getUri()));
 		exec.setPatterns(Arrays.asList(pattern.getUri()));
 		exec.setAlgorithm(InfolisPatternSearcher.class);
+		exec.setUpperCaseConstraint(false);
 		Set<String> tagsToSet = new HashSet<>();
 		tagsToSet.add("test1");
 		tagsToSet.add("test2");

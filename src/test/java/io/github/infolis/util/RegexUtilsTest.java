@@ -120,8 +120,6 @@ public class RegexUtilsTest extends InfolisBaseTest {
 	//TODO may change if different values for ignoreStudy are set in the config
 	@Test
 	public void ignoreStudyTest() {
-		assertTrue(RegexUtils.ignoreStudy("eigene Erhebung"));
-		assertTrue(RegexUtils.ignoreStudy("eigene Erhebungen"));
 		assertTrue(RegexUtils.ignoreStudy("eigene Berechnung"));
 		assertTrue(RegexUtils.ignoreStudy("eigene Berechnungen"));
 		assertTrue(RegexUtils.ignoreStudy("eigene Darstellung"));

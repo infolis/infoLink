@@ -22,6 +22,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisFile;
+import io.github.infolis.algorithm.TagSearcher;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -93,6 +94,12 @@ public class Indexer extends BaseAlgorithm {
         Directory fsIndexDir = NIOFSDirectory.open(Paths.get(indexPath));
 
         List<InfolisFile> files = new ArrayList<>();
+		if (null != getExecution().getInfolisFileTags() && !getExecution().getInfolisFileTags().isEmpty()) {
+			Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
+			tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
+			tagExec.instantiateAlgorithm(this).run();
+			getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+		}
         for (String fileUri : getExecution().getInputFiles()) {
             try {
                 files.add(this.getInputDataStoreClient().get(InfolisFile.class, fileUri));
@@ -127,14 +134,15 @@ public class Indexer extends BaseAlgorithm {
             writer.close();
             fsIndexDir.close();
         }
+        long duration = new Date().getTime() - start.getTime();
         getExecution().setStatus(ExecutionStatus.FINISHED);
-        log.debug(String.format("Indexing %s documents took %s ms", files.size(), new Date().getTime() - start.getTime()));
+        log.debug(String.format("Indexing %s documents took %s ms = %s hours (index: %s)", files.size(), duration, ((duration / 1000) / 60) / 60, indexPath));
     }
 
     @Override
     public void validate() throws IllegalAlgorithmArgumentException {
         Execution exec = this.getExecution();
-        if (null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) {
+        if ((null == exec.getInputFiles() || exec.getInputFiles().isEmpty()) && (null == exec.getInfolisFileTags() || exec.getInfolisFileTags().isEmpty())){
             throw new IllegalAlgorithmArgumentException(getClass(), "inputFiles", "missing or empty");
         }
     }

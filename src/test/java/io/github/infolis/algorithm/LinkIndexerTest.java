@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 import io.github.infolis.InfolisBaseTest;
 import io.github.infolis.model.EntityType;
@@ -16,7 +17,7 @@ import io.github.infolis.model.entity.EntityLink.EntityRelation;
 
 public class LinkIndexerTest extends InfolisBaseTest {
 	
-	@Test
+	@Ignore
 	public void test() {
 		Execution exec = new Execution(LinkIndexer.class);
 		EntityLink link1 = new EntityLink();
@@ -56,7 +57,7 @@ public class LinkIndexerTest extends InfolisBaseTest {
 		// TODO tests
 	}
 	
-	@Test
+	@Ignore
 	public void testSameAs() {
 		Execution exec = new Execution(LinkIndexer.class);
 		EntityLink link1 = new EntityLink();

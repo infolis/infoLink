@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import io.github.infolis.infolink.patternLearner.Reliability;
 import io.github.infolis.model.BaseModel;
 import io.github.infolis.model.EntityType;
@@ -42,21 +43,48 @@ public class Entity extends BaseModel {
     private List<String> identifiers = new ArrayList<>();
     private String url;
     private EntityType entityType;
+    // TODO do not persist
     private Collection<TextualReference> textualReferences;
-
     @XmlAttribute
     private List<String> numericInfo = new ArrayList<>();
     private Map<String, Double> associations = new HashMap<>();
     private double entityReliability = 1;
     private List<String> alternativeNames = new ArrayList<>();
-    private String entityView;
     private String abstractText;
     private List<String> authors = new ArrayList<>();
     private List<String> subjects = new ArrayList<>();
     private String language;
     private String versionInfo;
     private Set<String> spatial = new HashSet<>();
-
+    
+    private String entityView;
+    private String entityProvenance;
+    
+    // additional bibliographic metadata
+    private String journalTitle = null;
+    private String seriesTitle = null;
+    private String collectionTitle = null;
+    private String number = null;
+    private String volume = null;
+    private String pages = null;
+    private List<String> editors = new ArrayList<>();
+    private String corporateEditor = null;
+    private String publisher = null;
+    private String isbn = null;
+    private String issn = null;
+    private String doi = null;
+    private String gwsId = null;
+    private String publicationType = null;//collection article //journal article //working paper //expert report //monograph //review
+    private List<String> classification = new ArrayList<>();
+    private List<String> methodKeywords = new ArrayList<>();
+    private List<String> freeKeywords = new ArrayList<>();
+    private String location = null;
+    private String licence = null;
+    private String dataProvider = null;
+    private String publicationStatus = null; //published version //published version; reviewed //
+    private String month = null;
+    private String year = null;
+    
     public Entity(String name) {
         this.name = name;
     }
@@ -81,11 +109,43 @@ public class Entity extends BaseModel {
     	
     	this.textualReferences = copyFrom.getTextualReferences();
     	this.associations = copyFrom.getAssociations();
+    	
+    	this.entityView = copyFrom.getEntityView();
+	this.entityProvenance = copyFrom.getEntityProvenance();
+
+        this.journalTitle = copyFrom.getJournalTitle();
+        this.seriesTitle = copyFrom.getSeriesTitle();
+        this.collectionTitle = copyFrom.getCollectionTitle();
+        this.number = copyFrom.getNumber();
+        this.volume = copyFrom.getVolume();
+        this.pages = copyFrom.getPages();
+        this.editors = copyFrom.getEditors();
+        this.corporateEditor = copyFrom.getCorporateEditor();
+        this.publisher = copyFrom.getPublisher();
+        this.isbn = copyFrom.getIsbn();
+        this.issn = copyFrom.getIssn();
+	this.doi = copyFrom.getDoi();
+	this.gwsId = copyFrom.getGwsId();
+        this.publicationType = copyFrom.getPublicationType();
+        this.classification = copyFrom.getClassification();
+        this.methodKeywords = copyFrom.getMethodKeywords();
+        this.freeKeywords = copyFrom.getFreeKeywords();
+        this.location = copyFrom.getLocation();
+        this.licence = copyFrom.getLicence();
+        this.dataProvider = copyFrom.getDataProvider();
+       	this.publicationStatus = copyFrom.getPublicationStatus();
+        this.month = copyFrom.getMonth();
+        this.year = copyFrom.getYear();
     }
 
     public Entity() {
     }
-      
+    
+    // prevent mongo keyTooLong exception
+    private String shortenIfNeeded(String string) {
+	return (string.length() > 500 ? string.substring(0, 495) + " (...)" : string);
+    }  
+
     public void setEntityType(EntityType entityType) {
     	this.entityType = entityType;
     }
@@ -107,7 +167,7 @@ public class Entity extends BaseModel {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = shortenIfNeeded(name);
     }
 
     public String getName() {
@@ -238,7 +298,7 @@ public class Entity extends BaseModel {
      * @param abstractText the abstractText to set
      */
     public void setAbstractText(String abstractText) {
-        this.abstractText = abstractText;
+        this.abstractText = shortenIfNeeded(abstractText);
     }
 
     /**
@@ -300,11 +360,19 @@ public class Entity extends BaseModel {
     }
     
     public void setEntityView(String view) {
-    	this.entityView = view;
+    	this.entityView = shortenIfNeeded(view);
     }
     
     public String getEntityView() {
     	return this.entityView;
+    }
+
+    public String getEntityProvenance() {
+	return this.entityProvenance;
+    }
+
+    public void setEntityProvenance(String entityProvenance) {
+	this.entityProvenance = entityProvenance;
     }
 
     /**
@@ -313,4 +381,189 @@ public class Entity extends BaseModel {
     public void setNumericInfo(List<String> numericInfo) {
         this.numericInfo = numericInfo;
     }
+    
+    public void setPublicationType(String publicationType) {
+    	this.publicationType = publicationType;
+    }
+    
+    public String getPublicationType() {
+    	return this.publicationType;
+    }
+    
+    public void setEditors(List<String> editors) {
+    	this.editors = editors;
+    }
+    
+    public List<String> getEditors() {
+    	return this.editors;
+    }
+    
+    public void setCorporateEditor(String corporateEditor) {
+    	this.corporateEditor = corporateEditor;
+    }
+    
+    public String getCorporateEditor() {
+    	return this.corporateEditor;
+    }
+    
+    public void setCollectionTitle(String collectionTitle) {
+    	this.collectionTitle = collectionTitle;
+    }
+    
+    public String getCollectionTitle() {
+    	return this.collectionTitle;
+    }
+    
+    public void setJournalTitle(String journalTitle) {
+    	this.journalTitle = journalTitle;
+    }
+    
+    public String getJournalTitle() {
+    	return this.journalTitle;
+    }
+    
+    public void setSeriesTitle(String seriesTitle) {
+    	this.seriesTitle = seriesTitle;
+    }
+    
+    public String getSeriesTitle() {
+    	return this.seriesTitle;
+    }
+    
+    public void setNumber(String number) {
+    	this.number = number;
+    }
+    
+    public String getNumber() {
+    	return this.number;
+    }
+    
+    public void setVolume(String volume) {
+    	this.volume = volume;
+    }
+    
+    public String getVolume() {
+    	return this.volume;
+    }
+    
+    public void setPublisher(String publisher) {
+    	this.publisher = publisher;
+    }
+    
+    public String getPublisher() {
+    	return this.publisher;
+    }
+    
+    public void setLocation(String location) {
+    	this.location = location;
+    }
+    
+    public String getLocation() {
+    	return this.location;
+    }
+    
+    public void setPages(String pages) {
+    	this.pages = pages;
+    }
+    
+    public String getPages() {
+    	return this.pages;
+    }
+    
+    public void setIsbn(String isbn) {
+    	this.isbn = isbn;
+    }
+    
+    public String getIsbn() {
+    	return this.isbn;
+    }
+    
+    public void setIssn(String issn) {
+    	this.issn = issn;
+    }
+    
+    public String getIssn() {
+    	return this.issn;
+    }
+    
+    public void setClassification(List<String> classification) {
+    	this.classification = classification;
+    }
+    
+    public List<String> getClassification() {
+    	return this.classification;
+    }
+    
+    public void setMethodKeywords(List<String> methodKeywords) {
+    	this.methodKeywords = methodKeywords;
+    }
+    
+    public List<String> getMethodKeywords() {
+    	return this.methodKeywords;
+    }
+    
+    public void setFreeKeywords(List<String> freeKeywords) {
+    	this.freeKeywords = freeKeywords;
+    }
+    
+    public List<String> getFreeKeywords() {
+    	return this.freeKeywords;
+    }
+    
+    public void setLicence(String licence) {
+    	this.licence = licence;
+    }
+    
+    public String getLicence() {
+    	return this.licence;
+    }
+    
+    public void setDataProvider(String dataProvider) {
+    	this.dataProvider = dataProvider;
+    }
+    
+    public String getDataProvider() {
+    	return this.dataProvider;
+    }
+    
+    public void setPublicationStatus(String publicationStatus) {
+    	this.publicationStatus = publicationStatus;
+    }
+    
+    public String getPublicationStatus() {
+    	return this.publicationStatus;
+    }
+    
+    public void setMonth(String month) {
+    	this.month = month;
+    }
+    
+    public String getMonth() {
+    	return this.month;
+    }
+    
+    public void setYear(String year) {
+    	this.year = year;
+    }
+    
+    public String getYear() {
+    	return this.year;
+    }
+
+    public void setDoi(String doi) {
+	this.doi = doi;
+    }
+
+    public String getDoi() {
+	return this.doi;
+    }
+
+    public void setGwsId(String gwsId) {
+	this.gwsId = gwsId;
+    }
+
+    public String getGwsId() {
+	return this.gwsId;
+    }
+
 }

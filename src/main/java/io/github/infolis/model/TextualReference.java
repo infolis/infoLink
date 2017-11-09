@@ -53,8 +53,8 @@ public class TextualReference extends BaseModel {
 
     // TODO set reference, term param is ignored...
     public TextualReference(String term) {
-        this.leftText = "";
-        this.rightText = "";
+        this.leftText = " ";
+        this.rightText = " ";
         this.leftWords = new ArrayList<>();
         this.rightWords = new ArrayList<>();
         //this.reference = term;
@@ -65,7 +65,7 @@ public class TextualReference extends BaseModel {
 
     public TextualReference(String leftText, String reference, String rightText, String textFile, String pattern, String mentionsReference) {
         setLeftText(leftText);
-        setRightText(rightText);
+        setRightText(rightText); 
         this.reference = reference;
         this.textFile = textFile;
         this.pattern = pattern;
@@ -139,14 +139,18 @@ public class TextualReference extends BaseModel {
 	public void setRightText(String rightText) {
 		this.rightText = rightText;
 		String[] rightWordsArray = rightText.trim().split("\\s+");
-		String firstChar = rightText.substring(0, 1);
-        List<String> rightWords;
-        String[]_rightWordsArray = new String[rightWordsArray.length + 1];
-        System.arraycopy(rightWordsArray, 0, _rightWordsArray, 1, rightWordsArray.length);
-        if (firstChar.matches("\\s")) _rightWordsArray[0] = firstChar;
-        else _rightWordsArray[0] = "";
-        rightWords = (Arrays.asList(_rightWordsArray));
-        setRightWords(rightWords);
+		try {
+			String firstChar = rightText.substring(0, 1);
+        		List<String> rightWords;
+        		String[]_rightWordsArray = new String[rightWordsArray.length + 1];
+        		System.arraycopy(rightWordsArray, 0, _rightWordsArray, 1, rightWordsArray.length);
+        		if (firstChar.matches("\\s")) _rightWordsArray[0] = firstChar;
+        		else _rightWordsArray[0] = "";
+        		rightWords = (Arrays.asList(_rightWordsArray));
+        		setRightWords(rightWords);
+		} catch (StringIndexOutOfBoundsException e) {
+			setRightWords(Arrays.asList(" "));
+		}
 	}
 
 	public String getReference() {

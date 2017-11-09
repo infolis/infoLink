@@ -104,8 +104,9 @@ class CentralClient extends AbstractClient {
 				.post(entity);
 		log.debug("-> {}", target);
 		log.debug("<- HTTP {}", resp.getStatus());
+		String err = resp.readEntity(String.class);
 		if (resp.getStatus() >= 400) {
-			String err = resp.readEntity(String.class);
+			//String err = resp.readEntity(String.class);
 			log.error(err);
 			throw new RuntimeException(err);
 		} else {
@@ -125,11 +126,13 @@ class CentralClient extends AbstractClient {
 		Response resp = target
 				.request(MediaType.APPLICATION_JSON_TYPE)
 				.put(entity);
+		String err = resp.readEntity(String.class);
 		if (resp.getStatus() >= 400) {
 			// TODO check whether resp actually succeeded
 //			ErrorResponse err = resp.readEntity(ErrorResponse.class);
-//			log.error(err.getMessage());
+			log.error(err);
 //			log.error(Arrays.toString(err.getCause().entrySet().toArray()));
+			log.error(resp.toString());
 			throw new BadRequestException(resp);
 		}
 	}
@@ -200,7 +203,7 @@ class CentralClient extends AbstractClient {
         	qParamSB.append(":");
         	try
 			{
-				qParamSB.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+				qParamSB.append(URLEncoder.encode(entry.getValue().replace(":", "\\:"), "UTF-8"));
 			} catch (UnsupportedEncodingException e)
 			{
 				throw new RuntimeException(e);
@@ -209,8 +212,7 @@ class CentralClient extends AbstractClient {
         }
         String baseURI = InfolisConfig.getFrontendURI() + "/" + getUriForClass(clazz);
         String uri = baseURI;
-        if (qParamSB.length() > 0)
-        	uri += "?q=" + qParamSB.toString();
+        uri += "?q=" + qParamSB.toString();
         uri += "&max=" + Integer.MAX_VALUE;
         log.debug("Search for {}", uri);
         WebTarget target = jerseyClient.target(uri);

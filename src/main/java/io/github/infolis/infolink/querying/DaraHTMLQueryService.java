@@ -154,7 +154,7 @@ public class DaraHTMLQueryService extends QueryService {
             String identifier = "";
             //TODO: search for tag "a" first to limit elements to search by attribute value?
             Elements names = hit.getElementsByAttributeValueMatching("href", "/dara/search/search_show?.*");
-            Elements dois = hit.getElementsByAttributeValueContaining("href", "http://dx.doi.org");
+            Elements dois = hit.getElementsByAttributeValueContaining("href", "https://doi.org");
             // each entry has exactly one name and one doi element
             //TODO: except for some datasets that are not registered but only referenced in dara!
             // e.g. "OECD Employment Outlook" -> no doi listed here -> ignored

@@ -11,6 +11,7 @@ import io.github.infolis.datastore.FileResolver;
 import io.github.infolis.model.Execution;
 import io.github.infolis.model.ExecutionStatus;
 import io.github.infolis.model.entity.InfolisPattern;
+import io.github.infolis.model.entity.InfolisFile;
 import io.github.infolis.util.RegexUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -22,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author kata
  *
  */
-public class NameExtractor extends BaseAlgorithm {
+public class NameExtractor extends ComplexAlgorithm {
 
     	private static final Logger log = LoggerFactory.getLogger(NameExtractor.class);
 	public NameExtractor(DataStoreClient inputDataStoreClient, DataStoreClient outputDataStoreClient,
@@ -47,7 +48,8 @@ public class NameExtractor extends BaseAlgorithm {
 		List<String> names = new ArrayList<>();
 		for (String infolisFileUri : infolisFileUris) {
 			debug(log, "Extracting names from " + infolisFileUri);
-			String content = IOUtils.toString(getInputFileResolver().openInputStream(infolisFileUri));
+			InfolisFile file = getInputDataStoreClient().get(InfolisFile.class, infolisFileUri);
+			String content = IOUtils.toString(getInputFileResolver().openInputStream(file));
 			for (String line : content.split(System.getProperty("line.separator"))) {
 				if (!line.isEmpty()) names.add(line.trim());
 			}
@@ -72,17 +74,22 @@ public class NameExtractor extends BaseAlgorithm {
 
 	@Override
 	public void execute() throws IOException {
-    		// TODO name lists need to be given as input files; files names to extract patterns from by tags... not the best solution
-        	List<String> names = getNames(getExecution().getInputFiles());
-
+		// URIs of namelist InfolisFiles need to be given as patterns...
 		Execution tagExec = getExecution().createSubExecution(TagSearcher.class);
     		tagExec.getInfolisFileTags().addAll(getExecution().getInfolisFileTags());
     		tagExec.instantiateAlgorithm(this).run();
+		getExecution().getInputFiles().addAll(tagExec.getInputFiles());
+
+		preprocessInputFiles();
+
+        	List<String> names = getNames(getExecution().getPatterns());
+
 		List<InfolisPattern> patterns = getPatterns(names);
 		List<String> patternUris = getOutputDataStoreClient().post(InfolisPattern.class, patterns);
 
-		extractNames(patternUris, tagExec.getInputFiles());
+		extractNames(patternUris, getExecution().getInputFiles());
         	getExecution().setStatus(ExecutionStatus.FINISHED);
+		getOutputDataStoreClient().put(Execution.class, getExecution(), getExecution().getUri());
 	}
 
 	@Override

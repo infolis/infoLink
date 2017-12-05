@@ -106,8 +106,7 @@ public class DaraSolrQueryService extends QueryService {
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
     		doi = entity.getIdentifiers().get(0);
     	}
-    	// resourceType field in da|ra: "2" denotes dataset
-    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
+    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "Dataset");
     }
     
     public List<SearchResult> find(Entity entity) {
@@ -146,7 +145,7 @@ public class DaraSolrQueryService extends QueryService {
         	sr.setTags(getTags());
         	try {
         		identifier = item.getJsonArray("doi");
-	            sr.setIdentifier(identifier.getString(0));
+	            sr.setIdentifier(identifier.getString(0).replace("https://doi.org/", "").replace("http://dx.doi.org/", ""));
         	} catch (NullPointerException npe) {
         		log.warn("search result does not have a doi. Ignoring");
         		//sr.setIdentifier("");

@@ -103,8 +103,7 @@ public class DaraHTMLQueryService extends QueryService {
     	if (this.getQueryStrategy().contains(QueryService.QueryField.doi)) {
     		doi = entity.getIdentifiers().get(0);
     	}
-    	// resourceType field in da|ra: "2" denotes dataset
-    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "2");
+    	return constructQueryURL(title, pubDate, doi, this.getMaxNumber(), "Dataset");
     }
 
     @Override
@@ -171,7 +170,7 @@ public class DaraHTMLQueryService extends QueryService {
             log.debug("Creating search result: title: " + title + "; identifier: " + identifier);
             List<String> numericInfo = InformationExtractor.getNumericInfo(title);
             SearchResult sr = new SearchResult();
-            sr.setIdentifier(identifier);
+            sr.setIdentifier(identifier.replace("https://doi.org/", "").replace("http://dx.doi.org/", ""));
             sr.setTitles(new ArrayList<>(Arrays.asList(title)));
             sr.setNumericInformation(numericInfo);
             sr.setListIndex(i);

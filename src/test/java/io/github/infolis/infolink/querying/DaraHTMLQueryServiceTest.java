@@ -72,7 +72,7 @@ public class DaraHTMLQueryServiceTest {
 	     queryService.setQueryStrategy(queryStrategy);
 	     Entity entity = new Entity();
 	     entity.setName("Studierendensurvey");
-	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
+	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:Dataset&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
 	 }
 	 
 	 @Test
@@ -84,6 +84,6 @@ public class DaraHTMLQueryServiceTest {
 	     queryService.setQueryStrategy(queryStrategy);
 	     Entity entity = new Entity();
 	     entity.setName("Studierendensurvey");
-	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:2&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
+	     Assert.assertEquals(new URL("http://www.da-ra.de/dara/search/search_result?q=title:Studierendensurvey+resourceType:Dataset&lang=en&mdlang=de&max=600"), queryService.createQuery(entity));
 	 }
 }
